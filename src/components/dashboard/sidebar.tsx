@@ -17,6 +17,7 @@ import {
   UserCog,
   Newspaper,
   Shield,
+  CreditCard,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -84,6 +85,12 @@ const navigationItems: NavigationItem[] = [
     badge: { text: "5", variant: "info" },
   },
   {
+    label: "Payments",
+    icon: CreditCard,
+    href: "/payments",
+    badge: { text: "NEW", variant: "success" },
+  },
+  {
     label: "AI Assistant",
     icon: MessageCircle,
     href: "/ai-chat",
@@ -107,6 +114,7 @@ const glowByPath: Record<string, string> = {
   "/compliance-framework": "shadow-[0_0_18px_rgba(99,102,241,0.45)]",
   "/training-library": "shadow-[0_0_18px_rgba(249,115,22,0.45)]",
   "/regulatory-news": "shadow-[0_0_18px_rgba(244,63,94,0.45)]",
+  "/payments": "shadow-[0_0_18px_rgba(34,197,94,0.45)]",
   "/ai-chat": "shadow-[0_0_18px_rgba(20,184,166,0.45)]",
 };
 

@@ -43,6 +43,7 @@ const breadcrumbsMap: Record<string, string> = {
   "authorization-pack": "Authorization Pack",
   "risk-assessment": "Risk Assessment",
   "compliance-framework": "Compliance Framework",
+  "payments": "Payments",
   training: "Training Library",
   "regulatory-news": "Regulatory News",
   "ai-chat": "AI Assistant",
