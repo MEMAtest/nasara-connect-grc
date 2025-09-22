@@ -1,0 +1,161 @@
+Training Pack 9: Data Protection & GDPR in Financial Services
+🎯 Topic Overview
+Introduction:
+In our business, data is as valuable as money. We are entrusted with a vast amount of our customers' personal and financial information. Protecting this data is not just a matter of good customer service; it's a fundamental legal obligation under the UK General Data Protection Regulation (GDPR) and the Data Protection Act 2018. These laws give individuals strong rights over their personal data and place strict responsibilities on firms like ours. This module will explain the core principles of data protection, the rights you must help our customers exercise, and our duties in the event of a data breach.
+
+Learning Outcomes:
+By the end of this module, you will be able to:
+
+Name the seven key principles of data protection under UK GDPR.
+
+Define what constitutes "personal data."
+
+Describe the main rights that individuals have over their data, including the right of access.
+
+Understand what a "personal data breach" is and our duty to report it.
+
+Recognise the importance of data protection in maintaining customer trust and regulatory compliance.
+
+🎬 Hook Section
+Every time a customer uses our service, they leave a digital footprint. Their name, address, date of birth, transaction history, even the IP address they used to log in. Each piece of data is a piece of them, and our duty is to be its responsible guardian. In the wrong hands, this data could lead to identity theft, fraud, and significant personal distress. That's why the law is so strict. It starts from the principle that personal data belongs to the individual, and we are only borrowing it for a specific, legitimate purpose. Every action we take, from collecting data at onboarding to storing it securely, must be done with respect, transparency, and a 'security-first' mindset.
+
+Real-World Example: American Express Services Europe Ltd Marketing Fine
+In 2021, the UK's data regulator, the Information Commissioner's Office (ICO), fined American Express £90,000 for sending over 4 million unlawful marketing emails to its customers. The customers had opted out of receiving marketing, but Amex decided that emails about its rewards programme or its app were "servicing" emails, not marketing. The ICO disagreed, stating that since the emails contained marketing content, consent was required. This case is a powerful example of the "purpose limitation" principle in action. It shows that you cannot collect data for one reason (servicing an account) and then use it for another (marketing) without the customer's explicit consent.
+
+📚 Main Content (5-8 minutes)
+Section 1: The Seven Principles of Data Protection
+Content Text:
+The UK GDPR is built around seven core principles. These are the mandatory rules that must underpin all of our data processing activities.
+
+Lawfulness, fairness and transparency: We must process data lawfully, be fair in our handling of it, and be completely transparent with people about what we're doing with their data.
+
+Purpose limitation: We must only collect personal data for a specific, explicit, and legitimate purpose. We cannot then use it for a different, incompatible purpose.
+
+Data minimisation: We should only collect and process the personal data that is absolutely necessary for the purpose we've identified. We must not collect data "just in case."
+
+Accuracy: We must take reasonable steps to ensure the personal data we hold is accurate and kept up to date.
+
+Storage limitation: We must not keep personal data for longer than is necessary for the purpose we collected it for. We must have clear retention policies.
+
+Integrity and confidentiality (Security): We must ensure we have appropriate technical and organisational security measures in place to protect personal data from unauthorised access, loss, or destruction.
+
+Accountability: We are responsible for complying with these principles and must be able to demonstrate our compliance to the regulator.
+
+"Personal data" is any information that relates to an identifiable living individual. This includes obvious identifiers like a name or an account number, but also less obvious ones like an email address, an IP address, or location data.
+
+Section 2: The Rights of the Individual
+Content Text:
+UK GDPR provides individuals with eight fundamental rights regarding their personal data. It is our duty to have processes in place to facilitate these rights.
+
+The most common rights you will encounter are:
+
+The Right to be Informed: Individuals have the right to be told how their data is being collected and used. This is usually fulfilled through a Privacy Notice.
+
+The Right of Access: Individuals can ask for a copy of all the personal data we hold on them. This is known as a Subject Access Request (SAR). We must respond to a SAR within one month and provide the data free of charge.
+
+The Right to Rectification: If a customer's data is inaccurate or incomplete, they have the right to have it corrected.
+
+The Right to Erasure (The "Right to be Forgotten"): Individuals can request the deletion of their personal data. However, this right is not absolute. We can refuse to erase data if we need to keep it to comply with a legal obligation (for example, our anti-money laundering obligation to keep records for five years).
+
+Other rights include the right to restrict processing, the right to data portability, the right to object, and rights related to automated decision-making.
+
+Section 3: Personal Data Breaches
+Content Text:
+A "personal data breach" is a security incident that leads to the accidental or unlawful destruction, loss, alteration, unauthorised disclosure of, or access to, personal data.
+
+It's not just about being hacked. A breach could be:
+
+Sending an email containing customer data to the wrong recipient.
+
+Losing an unencrypted company laptop or USB stick.
+
+An employee accessing customer records without a legitimate business reason.
+
+A ransomware attack that makes data unavailable.
+
+If a data breach occurs, we have a legal duty to act immediately.
+
+Internal Reporting: Every employee has a personal responsibility to report a suspected data breach to the Data Protection Officer (DPO) or the Compliance team immediately. There is no such thing as a "minor" breach.
+
+Containment: We must take immediate steps to contain the breach and assess the potential risk to individuals.
+
+Reporting to the ICO: If the breach is likely to result in a risk to people's rights and freedoms, we must report it to the Information Commissioner's Office (ICO) without undue delay, and where feasible, within 72 hours of becoming aware of it.
+
+Informing Individuals: If the breach is likely to result in a high risk to individuals, we must also inform the affected people directly without undue delay.
+
+🎯 Practice Scenarios (2-3 minutes)
+Scenario 1:
+You receive an email from a customer that simply says, "Please send me everything you have on me."
+
+Question: What is this request known as, and what is the time limit for the firm to respond?
+Answer: This is a Subject Access Request (SAR). The firm has one calendar month to respond to the request and provide the customer with a copy of their personal data.
+
+Scenario 2:
+You are working on a customer spreadsheet and need to email it to a colleague in another department. You accidentally mistype the email address and send the file, which contains the names and account balances of 50 customers, to an external person. You realise your mistake immediately.
+
+Question: What is your immediate and most critical responsibility?
+Answer: Your immediate responsibility is to report the incident as a potential personal data breach to your manager and the Data Protection Officer (DPO)/Compliance team. You must not try to hide the mistake or hope it goes unnoticed. The firm needs to assess the risk and determine if it needs to be reported to the ICO within the 72-hour deadline.
+
+📝 Assessment Questions
+What is the time limit for reporting a significant personal data breach to the ICO?
+
+Answer: Within 72 hours of becoming aware of it.
+
+The principle that states you should only collect data that is necessary for a specific purpose is called what?
+
+Answer: Data minimisation.
+
+A customer asks you to delete all their data. You know the firm has a legal obligation under AML rules to keep their transaction history for five years. Can you grant their request in full?
+
+Answer: No. The Right to Erasure is not absolute. You must explain that while you can delete some data, you are legally required to retain their transaction and identification data for a specific period.
+
+Is a customer's IP address considered personal data under UK GDPR?
+
+Answer: Yes, because it is information that can be used to identify an individual.
+
+What was the key data protection principle American Express breached in the case study?
+
+Answer: Purpose limitation (and Lawfulness, fairness and transparency), as they used customer data for marketing without the right legal basis (consent).
+
+A customer makes a Subject Access Request. Can the firm charge a £10 administration fee to provide the data?
+
+Answer: No, in most cases the information must be provided free of charge.
+
+Keeping data "for longer than is necessary" breaches which GDPR principle?
+
+Answer: Storage limitation.
+
+Leaving a printout of customer details on your desk in an open-plan office could be considered a data breach. True or False?
+
+Answer: True. It's a breach of the "integrity and confidentiality (security)" principle if it leads to unauthorised disclosure.
+
+Which of the seven principles makes the firm responsible for proving it complies with the rules?
+
+Answer: Accountability.
+
+You receive an email from a person claiming to be a customer, asking for their account balance. You are not 100% sure it is them. What should you do?
+
+Answer: You must not disclose any personal data until you have verified the individual's identity through your firm's established security procedures.
+
+🎉 Summary & Takeaways
+Key Points:
+
+The seven principles of UK GDPR are the foundation of everything we do with personal data.
+
+Customers have strong rights over their data, including the right to access it via a SAR.
+
+Protecting data through robust security is a non-negotiable legal duty.
+
+Every employee has a personal duty to report suspected data breaches immediately.
+
+Compliance is not optional; failure can result in huge fines, reputational damage, and loss of customer trust.
+
+Next Steps:
+How we conduct ourselves in the market is just as important as how we handle data. The final module, "⚖️ Market Conduct & Best Execution," will explore the rules designed to ensure we act with integrity and fairness in the financial markets.
+
+📸 Visual Assets
+Asset 1 (for Section 1): An infographic or circular diagram with seven icons, each representing one of the GDPR principles (e.g., a lock for Security, a scale for Lawfulness, a recycling bin for Storage Limitation).
+
+Asset 2 (for Section 2): A simple flowchart for a Subject Access Request: [1. Request Received] -> [2. Verify Identity] -> [3. Locate & Compile Data] -> [4. Review & Redact (if necessary)] -> [5. Send to Customer within 1 Month].
+
+Asset 3 (for Section 3): A graphic of a ticking countdown clock with "72 HOURS" displayed prominently, titled "Personal Data Breach: Report to ICO."

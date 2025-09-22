@@ -1,0 +1,153 @@
+Training Pack 2: Know Your Customer (KYC) & Customer Due Diligence (CDD)
+🎯 Topic Overview
+Introduction:
+Know Your Customer (KYC) and Customer Due Diligence (CDD) are the cornerstones of our firm's Risk-Based Approach to AML. Before we can monitor for suspicious activity, we must first understand who our customers are and the nature of their business. This module explores the practical application of CDD, from identifying and verifying a customer's identity to understanding the risks they may pose. Getting this stage right is non-negotiable; it is our first and most important opportunity to prevent financial criminals from accessing our services.
+
+Learning Outcomes:
+By the end of this module, you will be able to:
+
+Explain the purpose of CDD and its role in the AML framework.
+
+Differentiate between the three levels of due diligence: Simplified, Standard, and Enhanced.
+
+Identify the key triggers that require Enhanced Due Diligence (EDD).
+
+Understand the requirement to identify and verify the Ultimate Beneficial Owner (UBO) of a corporate customer.
+
+Recognise what constitutes reliable and independent documentation for verification.
+
+🎬 Hook Section
+If you don't know who you're doing business with, you can't protect yourself from the risks they bring. Customer Due Diligence is more than just a box-ticking exercise; it's our firm's vetting process. It's how we ensure the customers we onboard are legitimate and that we understand the purpose of their relationship with us. Failing at this stage means leaving the door wide open to financial crime.
+
+Real-World Example: The Sapien Capital Limited Fine
+In 2021, the FCA fined investment firm Sapien Capital Limited £178,000 for serious financial crime control failings. The firm had processed a series of transactions that were clear red flags for money laundering, including trades with a high-risk counterparty and a lack of clear commercial rationale. The FCA found that Sapien's CDD was "wholly inadequate," failing to properly identify the beneficial owners or question the source of funds. This case demonstrates that simply collecting documents is not enough; we must critically assess the information and truly know our customer.
+
+📚 Main Content (5-8 minutes)
+Section 1: The Purpose and Principles of CDD
+Content Text:
+Customer Due Diligence, as mandated by Regulation 28 of the Money Laundering Regulations 2017, is the process of gathering and assessing information about a customer to understand their risk profile. The goal is not just to confirm a name matches a document, but to build a comprehensive picture of the customer.
+
+The three core components of CDD are:
+
+Identification: This involves obtaining key information about the customer, such as their full name, date of birth, address (for individuals), or company name, registered number, and address (for corporates).
+
+Verification: This is the crucial step of corroborating the identification information using reliable, independent sources. This means checking the data against government-issued documents, public records, or reputable electronic databases.
+
+Understanding the Purpose and Intended Nature of the Business Relationship: We must understand why the customer wants to use our services. What is the source of their funds and wealth? What kind of transactional activity should we expect? This forms the baseline against which we conduct ongoing monitoring.
+
+We must apply CDD at the start of a business relationship, when we suspect money laundering, or when we doubt the validity of previously obtained documents.
+
+Section 2: The Three Tiers of Due Diligence
+Content Text:
+Our Risk-Based Approach means we don't apply the same level of scrutiny to every customer. The level of CDD is determined by the customer's risk profile, which is assessed during onboarding.
+
+Simplified Due Diligence (SDD): This can only be applied in specific, pre-assessed low-risk situations, as defined in our AML policy. Examples might include dealing with a UK public authority or another regulated financial institution. SDD is an exception, not the rule.
+
+Standard Due Diligence (CDD): This is the default level applied to most customers. It involves completing the three core components: full identification, verification from reliable sources, and understanding the purpose of the relationship. For corporate clients, this includes identifying the Ultimate Beneficial Owners.
+
+Enhanced Due Diligence (EDD): This is a more stringent level of diligence that we must apply in any high-risk situation. EDD involves gathering additional information to manage and mitigate the increased risk. Key triggers for EDD include:
+
+Politically Exposed Persons (PEPs): Individuals in prominent public functions, along with their family and known close associates.
+
+High-Risk Jurisdictions: Customers linked to countries identified as having weak AML/CFT regimes.
+
+Complex or Opaque Company Structures: The use of shell companies, trusts, or nominee shareholders where there is no clear economic or legal purpose.
+
+Unusual Transaction Patterns: Transactions that have no apparent economic or visible lawful purpose.
+
+Any other factor identified as high-risk in our firm's Business-Wide Risk Assessment.
+
+EDD measures can include obtaining information on the Source of Wealth (SOW) and Source of Funds (SOF), and securing senior management approval to begin the relationship.
+
+Section 3: Beneficial Ownership and Ongoing Monitoring
+Content Text:
+For any customer that is a corporate entity, we have a legal obligation to understand who ultimately owns and controls it. A criminal will rarely be the named director; they will hide behind layers of corporate ownership.
+
+An Ultimate Beneficial Owner (UBO) is generally defined as any individual who ultimately owns or controls more than 25% of a company's shares or voting rights, or who otherwise exercises significant control.
+
+Our process involves:
+
+Obtaining the corporate structure chart.
+
+Identifying all individuals who meet the UBO definition.
+
+Conducting full CDD (identification and verification) on each of these UBOs.
+
+Finally, KYC is not a one-off event. It is an ongoing process. We must keep customer information up-to-date through regular reviews and conduct Ongoing Monitoring of their transactions. This means scrutinising transactions to ensure they are consistent with our knowledge of the customer, their business, and their risk profile. Any significant deviation could be a red flag and must be investigated.
+
+🎯 Practice Scenarios (2-3 minutes)
+Scenario 1:
+You are onboarding a new corporate client. The company is registered in the UK, but its ownership is a chain of three companies registered in different offshore jurisdictions. The final company in the chain is owned by a discretionary trust, making it difficult to identify a specific individual with a 25% share.
+
+Question: What level of due diligence is required, and what specific challenge does the ownership structure present?
+Answer: This situation automatically requires Enhanced Due Diligence (EDD) due to the complex and opaque ownership structure involving multiple offshore jurisdictions. The key challenge is identifying the Ultimate Beneficial Owner. With a trust, you must identify the settlor, the trustees, and the beneficiaries, and treat them as the beneficial owners for CDD purposes.
+
+Scenario 2:
+A new individual customer provides a high-quality electronic copy of their passport and a recent utility bill as proof of identity and address. The name and address match the application form perfectly.
+
+Question: Is this sufficient for verification? What is a key risk with documents provided directly by the customer?
+Answer: It may not be sufficient. While the documents appear valid, the key risk is forgery. Documents provided directly by the customer are not independently sourced. Best practice requires verifying the information against an independent source, such as a reputable electronic verification service, or by obtaining certified copies of the documents.
+
+📝 Assessment Questions
+What are the three core components of Customer Due Diligence?
+
+Answer: Identification, Verification, and understanding the purpose/nature of the business relationship.
+
+Under the Money Laundering Regulations, an individual who owns 30% of a company's shares is considered a UBO. True or False?
+
+Answer: True. The general threshold for a UBO is owning or controlling more than 25% of the shares or voting rights.
+
+A customer is the Minister for Energy in a foreign country. What specific risk category do they fall into, and what level of due diligence is automatically required?
+
+Answer: They are a Politically Exposed Person (PEP). This automatically requires Enhanced Due Diligence (EDD).
+
+Why is "understanding the intended nature of the business relationship" a critical part of CDD?
+
+Answer: It establishes a baseline of expected activity. This allows the firm to conduct effective ongoing monitoring and spot transactions that are unusual or inconsistent with that baseline, which could be red flags for money laundering.
+
+List three different triggers that would mandate the application of Enhanced Due Diligence (EDD).
+
+Answer: Any three of: The customer is a PEP, the customer is linked to a high-risk jurisdiction, the corporate structure is unusually complex/opaque, the transaction has no apparent lawful purpose, or any other factor deemed high-risk by the firm.
+
+An employee verifies a new customer's identity using a valid passport provided by the customer. A week later, they read in the news that the customer is under investigation for fraud. What should the employee do?
+
+Answer: The employee must immediately file an internal suspicious activity report with the MLRO. The news provides new information that gives rise to suspicion and is directly relevant to the customer's risk profile.
+
+What is the fundamental difference between 'identification' and 'verification' in the CDD process?
+
+Answer: 'Identification' is the process of collecting information from the customer (e.g., their name, address, DOB). 'Verification' is the process of independently confirming that information is correct using reliable sources (e.g., checking a government database or certified documents).
+
+In the Sapien Capital case, what was a key CDD failing mentioned in the summary?
+
+Answer: The firm failed to adequately identify the beneficial owners of their client and did not properly question the source of the funds being used in the transactions.
+
+Is it acceptable to conduct CDD after a business relationship has been established?
+
+Answer: No, the Money Laundering Regulations require that CDD must be completed before the establishment of a business relationship or the carrying out of a transaction.
+
+If you cannot complete CDD on a potential new customer, what must you do?
+
+Answer: You must not establish the business relationship or carry out any transactions. You must also consider whether the circumstances are suspicious and if a report to the MLRO is required.
+
+🎉 Summary & Takeaways
+Key Points:
+
+CDD is our first line of defence and the foundation of our AML program.
+
+We must identify our customers, verify their identity, and understand why they are using our services.
+
+A Risk-Based Approach dictates whether we apply Simplified, Standard, or Enhanced Due Diligence.
+
+For companies, we must always identify and verify the Ultimate Beneficial Owners.
+
+KYC is an ongoing process, not a one-time event.
+
+Next Steps:
+Now that we understand how to identify our customers, the next module, "🛡️ Sanctions & Financial Crime Prevention", will cover how we screen them against government lists to prevent dealings with designated terrorists, criminals, and sanctioned regimes.
+
+📸 Visual Assets
+Asset 1 (for Section 2): A pyramid or tiered diagram titled "The Three Tiers of Due Diligence". The base should be the largest tier, labelled "Standard Due Diligence (CDD) - The Default". Above it, a smaller tier labelled "Enhanced Due Diligence (EDD) - High Risk". At the very top, a small peak labelled "Simplified Due Diligence (SDD) - Low-Risk Exception".
+
+Asset 2 (for Section 3): An infographic titled "Finding the UBO". It should show a corporate icon at the top, with lines leading down to several other company icons, which in turn lead down to a single person icon at the bottom, labelled "Ultimate Beneficial Owner (UBO) > 25%".
+
+Asset 3 (for the whole module): A simple flowchart titled "The CDD Process". It should show boxes in order: [1. Assess Risk Profile] -> [2. Collect Identity Info] -> [3. Verify with Independent Source] -> [4. Identify UBOs (if applicable)] -> [5. Onboard & Monitor].
