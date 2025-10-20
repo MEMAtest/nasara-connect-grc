@@ -14,11 +14,8 @@ import {
   Clock,
   Target,
   Award,
-  BookOpen,
   AlertCircle,
   Download,
-  Calendar,
-  Filter,
   Eye,
   ThumbsUp,
   MessageSquare
@@ -469,7 +466,7 @@ export function TrainingAnalyticsClient() {
                     <AlertCircle className="h-5 w-5 text-amber-600" />
                     <div>
                       <h4 className="font-medium text-amber-900">Low Engagement</h4>
-                      <p className="text-sm text-amber-700">15 learners haven't accessed content in 14+ days</p>
+                      <p className="text-sm text-amber-700">15 learners haven&apos;t accessed content in 14+ days</p>
                     </div>
                   </div>
                   <Button variant="outline" size="sm">View Details</Button>

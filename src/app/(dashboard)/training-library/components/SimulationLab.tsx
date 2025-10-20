@@ -1,17 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
   FileText,
   Download,
-  Upload,
   CheckCircle2,
   XCircle,
   AlertTriangle,
@@ -19,7 +17,6 @@ import {
   Trophy,
   Target,
   Gamepad2,
-  Zap,
   Eye,
   ThumbsUp,
   ThumbsDown,
@@ -58,7 +55,7 @@ export function SimulationLab({ simulation, onComplete }: SimulationLabProps) {
   const [hasStarted, setHasStarted] = useState(false);
 
   // Mock documents for KYC simulation
-  const documents: Document[] = [
+  const documents = useMemo<Document[]>(() => [
     {
       id: 'passport_001',
       type: 'passport',
@@ -92,7 +89,7 @@ export function SimulationLab({ simulation, onComplete }: SimulationLabProps) {
       name: 'Certificate of Incorporation',
       condition: 'genuine'
     }
-  ];
+  ], []);
 
   const currentDocument = documents[currentDocumentIndex];
   const progress = (Object.keys(reviews).length / documents.length) * 100;
@@ -112,7 +109,7 @@ export function SimulationLab({ simulation, onComplete }: SimulationLabProps) {
 
       return () => clearInterval(timer);
     }
-  }, [hasStarted, simulation.difficulty]);
+  }, [hasStarted, simulation.difficulty, completeSimulation]);
 
   const startSimulation = () => {
     setHasStarted(true);
@@ -148,15 +145,7 @@ export function SimulationLab({ simulation, onComplete }: SimulationLabProps) {
     }
   };
 
-  const completeSimulation = () => {
-    const { finalScore, feedbackMessages } = calculateScore();
-    setScore(finalScore);
-    setFeedback(feedbackMessages);
-    setIsComplete(true);
-    onComplete?.(finalScore, feedbackMessages);
-  };
-
-  const calculateScore = () => {
+  const calculateScore = useCallback(() => {
     let correctClassifications = 0;
     let issuesIdentified = 0;
     let totalIssues = 0;
@@ -201,7 +190,15 @@ export function SimulationLab({ simulation, onComplete }: SimulationLabProps) {
     const finalScore = Math.round(classificationScore + issueScore);
 
     return { finalScore, feedbackMessages };
-  };
+  }, [documents, reviews]);
+
+  const completeSimulation = useCallback(() => {
+    const { finalScore, feedbackMessages } = calculateScore();
+    setScore(finalScore);
+    setFeedback(feedbackMessages);
+    setIsComplete(true);
+    onComplete?.(finalScore, feedbackMessages);
+  }, [calculateScore, onComplete]);
 
   const getCorrectClassification = (condition: string): 'accept' | 'reject' | 'request_more' => {
     switch (condition) {
@@ -488,6 +485,12 @@ function DocumentReviewForm({ document, onSubmit }: DocumentReviewFormProps) {
 
   return (
     <div className="space-y-6">
+      <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+        <p className="text-sm font-medium text-slate-800">{document.name}</p>
+        <p className="text-xs text-slate-600 mt-1 capitalize">
+          Document type: {document.type.replace(/_/g, ' ')}
+        </p>
+      </div>
       {/* Classification */}
       <div>
         <Label className="text-base font-medium mb-3 block">Decision</Label>

@@ -103,7 +103,7 @@ export function AiChatClient() {
           </div>
 
           <div className="text-xs text-muted-foreground">
-            Examples: "What are the latest Consumer Duty requirements?" or "How do I implement SMCR controls?"
+            Examples: &ldquo;What are the latest Consumer Duty requirements?&rdquo; or &ldquo;How do I implement SMCR controls?&rdquo;
           </div>
         </CardContent>
       </Card>

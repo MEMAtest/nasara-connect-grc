@@ -3,11 +3,8 @@
 
 import {
   LearningPathway,
-  TrainingModule,
   MicroLesson,
   BranchingScenario,
-  Assessment,
-  Question,
   LearnerPersona,
   MicroChallenge,
   Simulation

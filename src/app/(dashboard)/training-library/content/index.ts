@@ -283,7 +283,7 @@ export interface ModuleProgress {
 }
 
 // Default export for convenience
-export default {
+const trainingContentRegistry = {
   trainingModules,
   learningPathways,
   featuredModules,
@@ -296,3 +296,5 @@ export default {
   getModulesByPersona,
   getModulePrerequisites
 };
+
+export default trainingContentRegistry;

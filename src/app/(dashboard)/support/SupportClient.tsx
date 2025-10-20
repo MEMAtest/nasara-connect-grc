@@ -76,7 +76,7 @@ export function SupportClient() {
           <CardHeader>
             <CardTitle>Contact Support</CardTitle>
             <CardDescription>
-              Submit a support ticket and we'll get back to you quickly
+              Submit a support ticket and we&apos;ll get back to you quickly
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">

@@ -25,7 +25,7 @@ import {
   Crown,
   Shield
 } from "lucide-react";
-import { featuredModules, learningPathways, getAllTrainingModules, getModulesByCategory } from "./content";
+import { featuredModules, learningPathways } from "./content";
 import { GamificationHub } from "./components/GamificationHub";
 import { SocialLearning } from "./components/SocialLearning";
 import { ProgressTracker } from "./components/ProgressTracker";
@@ -34,7 +34,6 @@ export function TrainingLibraryClient() {
   const [selectedPersona, setSelectedPersona] = useState<string>("all");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
-  const allModules = getAllTrainingModules();
   const pathways = learningPathways;
 
   // Mock data for micro-learning components

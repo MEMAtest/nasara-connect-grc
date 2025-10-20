@@ -17,25 +17,48 @@ import {
   Plus,
   Trash2,
   ArrowLeft,
-  Settings,
   FileText,
   PlayCircle,
-  Clock,
   Target,
-  Users,
   BookOpen,
   Zap,
   Brain
 } from "lucide-react";
 
-interface ContentEditorProps {
-  contentType?: 'micro-lesson' | 'branching-scenario' | 'simulation' | 'assessment' | 'pathway';
-  contentId?: string;
+type ContentType = "micro-lesson" | "branching-scenario" | "simulation" | "assessment" | "pathway";
+
+interface AssessmentQuestion {
+  id: string;
+  prompt: string;
+  options: string[];
+  correctAnswer: string;
+  explanation?: string;
 }
 
-export function ContentEditorClient() {
-  const [contentType, setContentType] = useState<string>("micro-lesson");
-  const [formData, setFormData] = useState({
+interface LearningContentForm {
+  title: string;
+  description: string;
+  regulatoryArea: string;
+  difficulty: "beginner" | "intermediate" | "advanced";
+  estimatedDuration: number;
+  targetPersonas: string[];
+  learningObjectives: string[];
+  prerequisites: string[];
+  content: {
+    hook: string;
+    mainContent: string;
+    practiceScenario: string;
+    keyTakeaways: string[];
+  };
+  assessment: {
+    questions: AssessmentQuestion[];
+  };
+}
+
+type LearningContentField = keyof LearningContentForm;
+type ContentSectionKey = keyof LearningContentForm["content"];
+
+const createDefaultFormData = (): LearningContentForm => ({
     title: "",
     description: "",
     regulatoryArea: "",
@@ -48,24 +71,28 @@ export function ContentEditorClient() {
       hook: "",
       mainContent: "",
       practiceScenario: "",
-      keyTakeaways: [] as string[]
+      keyTakeaways: []
     },
     assessment: {
-      questions: [] as any[]
+      questions: []
     }
   });
+
+export function ContentEditorClient() {
+  const [contentType, setContentType] = useState<ContentType>("micro-lesson");
+  const [formData, setFormData] = useState<LearningContentForm>(() => createDefaultFormData());
 
   const [currentSection, setCurrentSection] = useState("basic-info");
   const [previewMode, setPreviewMode] = useState(false);
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = <K extends LearningContentField>(field: K, value: LearningContentForm[K]) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
   };
 
-  const handleContentChange = (section: string, value: any) => {
+  const handleContentChange = <K extends ContentSectionKey>(section: K, value: LearningContentForm["content"][K]) => {
     setFormData(prev => ({
       ...prev,
       content: {

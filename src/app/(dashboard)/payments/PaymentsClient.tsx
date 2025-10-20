@@ -15,14 +15,14 @@ import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import {
   CreditCard, Building2, Plus, Search, AlertTriangle, CheckCircle,
-  Clock, Eye, Send, Download, TrendingUp, Banknote, Users,
-  FileText, Globe, Wallet, ArrowRight, RefreshCw, Settings,
+  Clock, Eye, Send, Download, TrendingUp,
+  FileText, Globe, Wallet, RefreshCw, Settings,
   PoundSterling, DollarSign, Euro, Calendar, BarChart3,
   Shield, ExternalLink, Copy, Filter, MoreHorizontal,
-  ArrowUpRight, ArrowDownLeft, Target, Zap, MapPin,
-  Receipt, Bell, ChevronDown, ChevronUp, Star, Bookmark
+  ArrowUpRight, Target, Zap, MapPin,
+  Receipt, Bell
 } from 'lucide-react';
-import { format, subDays, startOfDay, endOfDay } from 'date-fns';
+import { format, subDays } from 'date-fns';
 import { cn } from '@/lib/utils';
 
 // Initial account data - transactions will be stored in state
@@ -288,7 +288,7 @@ export function PaymentsClient() {
 
   // Filter transactions
   const filteredTransactions = useMemo(() => {
-    let filtered = transactions.filter(tx => {
+    const filtered = transactions.filter(tx => {
       if (statusFilter !== 'all' && tx.status !== statusFilter) return false;
       if (searchTerm && !tx.beneficiary.toLowerCase().includes(searchTerm.toLowerCase()) &&
           !tx.reference.toLowerCase().includes(searchTerm.toLowerCase())) return false;

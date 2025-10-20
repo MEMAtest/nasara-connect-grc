@@ -14,7 +14,6 @@ import { EvidenceManager } from "./components/EvidenceManager";
 import { GapAnalysis } from "./components/GapAnalysis";
 import { ReportsSection } from "./components/ReportsSection";
 import {
-  FileCheck2,
   AlertCircle,
   CheckCircle2,
   Clock,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +14,6 @@ import {
   Trophy,
   CheckCircle2,
   XCircle,
-  AlertCircle,
   Brain,
   Star,
   Flame
@@ -54,7 +53,7 @@ export function DailyMicroChallenge({ challenge, onComplete }: DailyMicroChallen
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [hasStarted, isComplete, timeRemaining]);
+  }, [hasStarted, isComplete, timeRemaining, completeChallenge]);
 
   const startChallenge = () => {
     setHasStarted(true);
@@ -96,11 +95,11 @@ export function DailyMicroChallenge({ challenge, onComplete }: DailyMicroChallen
     return false;
   };
 
-  const completeChallenge = (success: boolean) => {
+  const completeChallenge = useCallback((success: boolean) => {
     setIsComplete(true);
     const pointsEarned = success ? challenge.points : 0;
     onComplete?.(success, timeSpent, pointsEarned);
-  };
+  }, [challenge.points, onComplete, timeSpent]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);

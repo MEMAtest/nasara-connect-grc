@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable react/no-unescaped-entities */
+
 import { useState, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,10 +17,11 @@ import {
   AlertCircle,
   Target,
   Users,
-  FileText,
-  Clock
+  FileText
 } from "lucide-react";
 import { BranchingScenario as BranchingScenarioType, DecisionPoint } from "../types";
+
+type DecisionConsequence = DecisionPoint["options"][number]["consequence"];
 
 interface BranchingScenarioProps {
   scenario: BranchingScenarioType;
@@ -33,7 +36,7 @@ interface ScenarioState {
   consequences: Array<{
     decisionId: string;
     optionId: string;
-    consequence: any;
+    consequence: DecisionConsequence;
   }>;
 }
 
@@ -47,7 +50,7 @@ export function BranchingScenario({ scenario, onComplete }: BranchingScenarioPro
   });
 
   const [showConsequence, setShowConsequence] = useState(false);
-  const [currentConsequence, setCurrentConsequence] = useState<any>(null);
+  const [currentConsequence, setCurrentConsequence] = useState<DecisionConsequence | null>(null);
 
   const currentDecision = scenario.decisionPoints.find(dp => dp.id === state.currentDecisionId);
   const progress = (state.pathTaken.length / (scenario.scoring.optimalPath.length || 1)) * 100;
@@ -87,7 +90,7 @@ export function BranchingScenario({ scenario, onComplete }: BranchingScenarioPro
       }));
     } else {
       // Scenario complete
-      const finalScore = calculateFinalScore();
+      const finalScore = calculateFinalScore(state.pathTaken, state.consequences);
       const learningObjectivesMet = assessLearningObjectives();
 
       setState(prev => ({
@@ -101,14 +104,14 @@ export function BranchingScenario({ scenario, onComplete }: BranchingScenarioPro
 
     setShowConsequence(false);
     setCurrentConsequence(null);
-  }, [state.currentDecisionId, state.pathTaken, scenario.decisionPoints, onComplete]);
+  }, [state.consequences, state.currentDecisionId, state.pathTaken, scenario.decisionPoints, onComplete, assessLearningObjectives, calculateFinalScore]);
 
-  const calculateFinalScore = () => {
-    const isOptimalPath = JSON.stringify(state.pathTaken) === JSON.stringify(scenario.scoring.optimalPath);
+  const calculateFinalScore = useCallback((pathTaken: string[], consequences: ScenarioState["consequences"]) => {
+    const isOptimalPath = JSON.stringify(pathTaken) === JSON.stringify(scenario.scoring.optimalPath);
     if (isOptimalPath) return 100;
 
     const isAcceptablePath = scenario.scoring.acceptablePaths.some(
-      path => JSON.stringify(state.pathTaken) === JSON.stringify(path)
+      path => JSON.stringify(pathTaken) === JSON.stringify(path)
     );
     if (isAcceptablePath) return 75;
 
@@ -116,7 +119,7 @@ export function BranchingScenario({ scenario, onComplete }: BranchingScenarioPro
     let totalScore = 0;
     let totalDecisions = 0;
 
-    state.consequences.forEach(consequence => {
+    consequences.forEach(consequence => {
       totalDecisions++;
       switch (consequence.consequence.complianceImpact) {
         case 'compliant':
@@ -132,12 +135,12 @@ export function BranchingScenario({ scenario, onComplete }: BranchingScenarioPro
     });
 
     return totalDecisions > 0 ? Math.round(totalScore / totalDecisions) : 0;
-  };
+  }, [scenario.scoring]);
 
-  const assessLearningObjectives = () => {
+  const assessLearningObjectives = useCallback(() => {
     // This would be more sophisticated in a real implementation
     return scenario.scoring.learningObjectivesMet;
-  };
+  }, [scenario.scoring.learningObjectivesMet]);
 
   const restart = () => {
     setState({

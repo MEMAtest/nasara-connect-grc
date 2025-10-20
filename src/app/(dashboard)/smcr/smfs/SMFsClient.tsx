@@ -1,235 +1,186 @@
 "use client";
 
-import React, { useState, useMemo } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Textarea } from '@/components/ui/textarea'
-import { Calendar } from '@/components/ui/calendar'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { AlertTriangle, CheckCircle, Clock, Plus, Search, UserCheck, Users, FileText, Calendar as CalendarIcon, Crown, Shield, Award, Eye, Edit, Bell } from 'lucide-react'
-import { format } from 'date-fns'
-import { cn } from '@/lib/utils'
-import { allSMFs, prescribedResponsibilities } from '../data/core-functions'
-import { SeniorManagementFunction, Person, Role, Alert } from '../types'
+import React, { useCallback, useMemo, useState } from "react";
+import { format } from "date-fns";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  AlertTriangle,
+  Calendar as CalendarIcon,
+  FileText,
+  Plus,
+  Shield,
+  Trash2,
+  Users,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { allSMFs } from "../data/core-functions";
+import { useSmcrData, RoleAssignment, RoleApprovalStatus } from "../context/SmcrDataContext";
 
-// Mock data for SMF holders
-const mockSMFHolders: (Person & { roles: (Role & { function?: SeniorManagementFunction })[], alerts: Alert[] })[] = [
-  {
-    id: 'p1',
-    employee_id: 'EMP001',
-    name: 'Sarah Johnson',
-    email: 'sarah.johnson@company.com',
-    department: 'Executive',
-    reporting_manager: 'Board of Directors',
-    start_date: new Date('2020-01-15'),
-    roles: [
-      {
-        id: 'r1',
-        type: 'SMF',
-        function_id: 'smf1',
-        start_date: new Date('2020-01-15'),
-        approval_status: 'approved',
-        function: allSMFs.find(f => f.id === 'smf1')
-      }
-    ],
-    alerts: [
-      {
-        id: 'a1',
-        type: 'assessment_due',
-        priority: 'medium',
-        title: 'Annual F&P Assessment Due',
-        description: 'Annual fitness and propriety assessment due within 30 days',
-        due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        action_required: 'Schedule assessment',
-        created_date: new Date()
-      }
-    ]
-  }
+interface AssignmentRow {
+  role: RoleAssignment;
+  functionTitle: string;
+  functionNumber: string;
+  category: string;
+  personName: string;
+  employeeId: string;
+  email: string;
+  entity?: string;
+}
+
+const approvalColours: Record<RoleApprovalStatus, string> = {
+  approved: "bg-emerald-100 text-emerald-800",
+  pending: "bg-amber-100 text-amber-800",
+  draft: "bg-slate-100 text-slate-700",
+  rejected: "bg-rose-100 text-rose-800",
+};
+
+const statusOptions: { value: RoleApprovalStatus | "all"; label: string }[] = [
+  { value: "all", label: "All statuses" },
+  { value: "draft", label: "Draft" },
+  { value: "pending", label: "Pending" },
+  { value: "approved", label: "Approved" },
+  { value: "rejected", label: "Rejected" },
 ];
 
+function toISO(date?: Date) {
+  return date ? new Date(date).toISOString() : undefined;
+}
+
 export function SMFsClient() {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState<string>('all')
-  const [selectedStatus, setSelectedStatus] = useState<string>('all')
-  const [selectedSMF, setSelectedSMF] = useState<SeniorManagementFunction | null>(null)
-  const [showAssignDialog, setShowAssignDialog] = useState(false)
-  const [smfHolders, setSMFHolders] = useState(mockSMFHolders)
+  const { state, isReady, assignRole, removeRole } = useSmcrData();
+  const { people, roles } = state;
 
-  // Form state for SMF assignment
-  const [assignmentForm, setAssignmentForm] = useState({
-    personId: '',
-    smfId: '',
-    startDate: new Date(),
-    responsibilities: ''
-  })
+  const smfAssignments: AssignmentRow[] = useMemo(() => {
+    return roles
+      .filter((role) => role.functionType === "SMF")
+      .map((role) => {
+        const meta = allSMFs.find((item) => item.id === role.functionId);
+        const person = people.find((p) => p.id === role.personId);
+        return {
+          role,
+          functionTitle: meta?.title ?? role.functionLabel,
+          functionNumber: meta?.smf_number ?? role.functionLabel,
+          category: meta?.category ?? "universal",
+          personName: person?.name ?? "Unknown",
+          employeeId: person?.employeeId ?? "",
+          email: person?.email ?? "",
+          entity: role.entity,
+        } satisfies AssignmentRow;
+      });
+  }, [roles, people]);
 
-  // Handle SMF assignment
-  const handleAssignSMF = (e: React.FormEvent) => {
-    e.preventDefault()
-    alert('SMF assignment created successfully!')
-    setShowAssignDialog(false)
-  }
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<RoleApprovalStatus | "all">("all");
+  const [functionFilter, setFunctionFilter] = useState<string>("all");
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [assignForm, setAssignForm] = useState({
+    personId: "",
+    smfId: "",
+    entity: "",
+    startDate: undefined as Date | undefined,
+    endDate: undefined as Date | undefined,
+    approvalStatus: "pending" as RoleApprovalStatus,
+    assessmentDate: undefined as Date | undefined,
+    notes: "",
+  });
 
-  // Filter SMF holders
-  const filteredHolders = useMemo(() => {
-    return smfHolders.filter(holder => {
-      const matchesSearch = holder.name.toLowerCase().includes(searchTerm.toLowerCase())
-      return matchesSearch
-    })
-  }, [searchTerm])
+  const filteredAssignments = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    return smfAssignments.filter(({ role, personName, employeeId, functionTitle, functionNumber }) => {
+      const matchesSearch = !term
+        || personName.toLowerCase().includes(term)
+        || employeeId.toLowerCase().includes(term)
+        || functionTitle.toLowerCase().includes(term)
+        || functionNumber.toLowerCase().includes(term);
+      const matchesStatus = statusFilter === "all" || role.approvalStatus === statusFilter;
+      const matchesFunction = functionFilter === "all" || role.functionId === functionFilter;
+      return matchesSearch && matchesStatus && matchesFunction;
+    });
+  }, [smfAssignments, searchTerm, statusFilter, functionFilter]);
 
-  // Calculate summary statistics
-  const statistics = useMemo(() => {
-    const totalSMFs = smfHolders.reduce((acc, holder) => acc + holder.roles.length, 0)
-    const activeSMFs = smfHolders.filter(holder =>
-      holder.roles.some(role => role.approval_status === 'approved')
-    ).length
-    const pendingApprovals = smfHolders.filter(holder =>
-      holder.roles.some(role => role.approval_status === 'pending')
-    ).length
-    const totalAlerts = smfHolders.reduce((acc, holder) => acc + holder.alerts.length, 0)
+  const stats = useMemo(() => {
+    const total = smfAssignments.length;
+    const approved = smfAssignments.filter(({ role }) => role.approvalStatus === "approved").length;
+    const pending = smfAssignments.filter(({ role }) => role.approvalStatus === "pending").length;
+    const overdue = smfAssignments.filter(({ role }) => {
+      if (!role.assessmentDate) return false;
+      const due = new Date(role.assessmentDate);
+      if (Number.isNaN(due.getTime())) return false;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return due < today;
+    }).length;
+    return { total, approved, pending, overdue };
+  }, [smfAssignments]);
 
-    return { totalSMFs, activeSMFs, pendingApprovals, totalAlerts }
-  }, [smfHolders])
+  const handleAssign = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!assignForm.personId || !assignForm.smfId || !assignForm.startDate) return;
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'approved': return 'bg-green-100 text-green-800'
-      case 'pending': return 'bg-yellow-100 text-yellow-800'
-      case 'rejected': return 'bg-red-100 text-red-800'
-      default: return 'bg-gray-100 text-gray-800'
-    }
-  }
+    assignRole({
+      personId: assignForm.personId,
+      functionId: assignForm.smfId,
+      functionType: "SMF",
+      entity: assignForm.entity || undefined,
+      startDate: toISO(assignForm.startDate) ?? new Date().toISOString(),
+      endDate: toISO(assignForm.endDate),
+      assessmentDate: toISO(assignForm.assessmentDate),
+      approvalStatus: assignForm.approvalStatus,
+      notes: assignForm.notes || undefined,
+    });
 
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case 'universal': return <Users className="h-4 w-4" />
-      case 'payment_specific': return <Shield className="h-4 w-4" />
-      case 'investment_specific': return <Award className="h-4 w-4" />
-      case 'insurance_specific': return <Crown className="h-4 w-4" />
-      default: return <FileText className="h-4 w-4" />
-    }
+    setAssignForm({
+      personId: "",
+      smfId: "",
+      entity: "",
+      startDate: undefined,
+      endDate: undefined,
+      approvalStatus: "pending",
+      assessmentDate: undefined,
+      notes: "",
+    });
+    setAssignDialogOpen(false);
+  };
+
+  const handleRemove = useCallback((id: string) => {
+    if (!window.confirm("Remove this SMF assignment?")) return;
+    removeRole(id);
+  }, [removeRole]);
+
+  if (!isReady) {
+    return <div className="p-6 text-sm text-slate-600">Loading SMF assignments...</div>;
   }
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Senior Management Functions</h1>
-          <p className="text-gray-600 mt-1">Manage SMF appointments, responsibilities, and compliance</p>
+          <h1 className="text-2xl font-semibold text-slate-900">Senior Management Functions</h1>
+          <p className="text-slate-600 mt-1">Track SMF appointments, approval status, and assessment cadence.</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm">
-            <FileText className="h-4 w-4 mr-2" />
-            Export Report
-          </Button>
-          <Dialog open={showAssignDialog} onOpenChange={setShowAssignDialog}>
-            <DialogTrigger asChild>
-              <Button size="sm">
-                <Plus className="h-4 w-4 mr-2" />
-                Assign SMF
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Assign Senior Management Function</DialogTitle>
-                <DialogDescription>
-                  Assign a Senior Management Function to an individual
-                </DialogDescription>
-              </DialogHeader>
-              <form onSubmit={handleAssignSMF} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="person">Person</Label>
-                    <Select
-                      value={assignmentForm.personId}
-                      onValueChange={(value) => setAssignmentForm(prev => ({ ...prev, personId: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select person" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="sarah_johnson">Sarah Johnson (EMP001)</SelectItem>
-                        <SelectItem value="new">+ Add New Person</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="smf">SMF Function</Label>
-                    <Select
-                      value={assignmentForm.smfId}
-                      onValueChange={(value) => setAssignmentForm(prev => ({ ...prev, smfId: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select SMF" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {allSMFs.map(smf => (
-                          <SelectItem key={smf.id} value={smf.id}>
-                            {smf.smf_number} - {smf.title}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div>
-                  <Label htmlFor="start-date">Start Date</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start text-left font-normal">
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {assignmentForm.startDate ? format(assignmentForm.startDate, 'PPP') : 'Select date'}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={assignmentForm.startDate}
-                        onSelect={(date) => date && setAssignmentForm(prev => ({ ...prev, startDate: date }))}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-                <div>
-                  <Label htmlFor="responsibilities">Key Responsibilities</Label>
-                  <Textarea
-                    value={assignmentForm.responsibilities}
-                    onChange={(e) => setAssignmentForm(prev => ({ ...prev, responsibilities: e.target.value }))}
-                    placeholder="Enter key responsibilities..."
-                    className="h-24"
-                  />
-                </div>
-                <div className="flex justify-end gap-2">
-                  <Button type="button" variant="outline" onClick={() => setShowAssignDialog(false)}>
-                    Cancel
-                  </Button>
-                  <Button type="submit">Assign SMF</Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </div>
+        <Button onClick={() => setAssignDialogOpen(true)}>
+          <Plus className="h-4 w-4 mr-2" />
+          Assign SMF
+        </Button>
       </div>
 
-      {/* Summary Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total SMFs</p>
-                <p className="text-2xl font-bold">{statistics.totalSMFs}</p>
+                <p className="text-sm text-slate-500">Total Assignments</p>
+                <p className="text-2xl font-bold text-slate-900">{stats.total}</p>
               </div>
-              <Users className="h-8 w-8 text-blue-500" />
+              <Users className="h-8 w-8 text-sky-500" />
             </div>
           </CardContent>
         </Card>
@@ -237,10 +188,10 @@ export function SMFsClient() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Active SMFs</p>
-                <p className="text-2xl font-bold text-green-600">{statistics.activeSMFs}</p>
+                <p className="text-sm text-slate-500">Approved</p>
+                <p className="text-2xl font-bold text-emerald-600">{stats.approved}</p>
               </div>
-              <CheckCircle className="h-8 w-8 text-green-500" />
+              <Shield className="h-8 w-8 text-emerald-500" />
             </div>
           </CardContent>
         </Card>
@@ -248,10 +199,10 @@ export function SMFsClient() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Pending Approvals</p>
-                <p className="text-2xl font-bold text-yellow-600">{statistics.pendingApprovals}</p>
+                <p className="text-sm text-slate-500">Pending Review</p>
+                <p className="text-2xl font-bold text-amber-500">{stats.pending}</p>
               </div>
-              <Clock className="h-8 w-8 text-yellow-500" />
+              <FileText className="h-8 w-8 text-amber-500" />
             </div>
           </CardContent>
         </Card>
@@ -259,131 +210,285 @@ export function SMFsClient() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Active Alerts</p>
-                <p className="text-2xl font-bold text-red-600">{statistics.totalAlerts}</p>
+                <p className="text-sm text-slate-500">Assessments Overdue</p>
+                <p className="text-2xl font-bold text-rose-600">{stats.overdue}</p>
               </div>
-              <AlertTriangle className="h-8 w-8 text-red-500" />
+              <AlertTriangle className="h-8 w-8 text-rose-500" />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Search */}
       <Card>
         <CardContent className="p-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Search by name or employee ID..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
+            <div className="flex-1">
+              <Input
+                placeholder="Search by person, employee ID, or SMF title"
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+              />
+            </div>
+            <div className="flex gap-2">
+              <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as RoleApprovalStatus | "all") }>
+                <SelectTrigger className="w-[170px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {statusOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={functionFilter} onValueChange={setFunctionFilter}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="All functions" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All SMFs</SelectItem>
+                  {allSMFs.map((item) => (
+                    <SelectItem key={item.id} value={item.id}>
+                      {item.smf_number} - {item.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Main Content */}
-      <Tabs defaultValue="holders" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="holders">SMF Holders</TabsTrigger>
-          <TabsTrigger value="functions">Available Functions</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="holders" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredHolders.map((holder) => (
-              <Card key={holder.id} className="hover:shadow-md transition-shadow">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="text-lg">{holder.name}</CardTitle>
-                      <CardDescription>{holder.employee_id}</CardDescription>
-                    </div>
-                    <div className="flex gap-1">
-                      {holder.alerts.length > 0 && (
-                        <Badge variant="secondary" className="text-xs">
-                          <Bell className="h-3 w-3 mr-1" />
-                          {holder.alerts.length}
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
+      <div className="space-y-3">
+        {filteredAssignments.length === 0 ? (
+          <Card>
+            <CardContent className="py-10 text-center text-sm text-slate-500">
+              No senior management function assignments found.
+            </CardContent>
+          </Card>
+        ) : (
+          filteredAssignments.map(({ role, functionTitle, functionNumber, category, personName, employeeId, email, entity }) => (
+            <Card key={role.id}>
+              <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <CardTitle className="text-lg text-slate-900">{functionNumber} &middot; {functionTitle}</CardTitle>
+                  <CardDescription>{category.replace("_", " ")}</CardDescription>
+                </div>
+                <Badge className={cn("text-xs uppercase", approvalColours[role.approvalStatus])}>
+                  {role.approvalStatus}
+                </Badge>
+              </CardHeader>
+              <CardContent className="space-y-4 text-sm text-slate-600">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   <div>
-                    <p className="text-sm text-gray-600 mb-2">Current SMF Roles:</p>
-                    <div className="space-y-2">
-                      {holder.roles.map((role) => (
-                        <div key={role.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
-                          <div className="flex items-center gap-2">
-                            {getCategoryIcon(role.function?.category || '')}
-                            <div>
-                              <p className="font-medium text-sm">{role.function?.smf_number}</p>
-                              <p className="text-xs text-gray-600">{role.function?.title}</p>
-                            </div>
-                          </div>
-                          <Badge className={cn("text-xs", getStatusColor(role.approval_status))}>
-                            {role.approval_status}
-                          </Badge>
-                        </div>
-                      ))}
-                    </div>
+                    <p className="text-xs uppercase tracking-wide text-slate-500">Assigned Person</p>
+                    <p className="font-medium text-slate-800">{personName}</p>
+                    <p className="text-xs text-slate-500">{employeeId}</p>
+                    <p className="text-xs text-slate-500">{email}</p>
                   </div>
-
-                  <div className="flex gap-2 pt-2 border-t">
-                    <Button size="sm" variant="outline" className="flex-1">
-                      <Eye className="h-3 w-3 mr-1" />
-                      View
-                    </Button>
-                    <Button size="sm" variant="outline" className="flex-1">
-                      <Edit className="h-3 w-3 mr-1" />
-                      Edit
-                    </Button>
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-slate-500">Entity</p>
+                    <p className="font-medium text-slate-800">{entity ?? "Not specified"}</p>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
+                </div>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                  <InfoBlock label="Start Date" value={role.startDate} />
+                  <InfoBlock label="End Date" value={role.endDate} />
+                  <InfoBlock label="Last Assessment" value={role.assessmentDate} />
+                </div>
+                <div className="flex justify-end">
+                  <Button size="sm" variant="outline" onClick={() => handleRemove(role.id)}>
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Remove
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
 
-        <TabsContent value="functions" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {allSMFs.map((smf) => (
-              <Card key={smf.id} className="hover:shadow-md transition-shadow">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="flex items-center gap-2">
-                        {getCategoryIcon(smf.category)}
+      <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Assign Senior Management Function</DialogTitle>
+            <DialogDescription>
+              Link an SMF to a named individual and define entity responsibility.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleAssign} className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <Label>Person *</Label>
+                <Select
+                  value={assignForm.personId}
+                  onValueChange={(value) => setAssignForm((prev) => ({ ...prev, personId: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select person" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {people.length === 0 ? (
+                      <SelectItem value="">No people available</SelectItem>
+                    ) : (
+                      people.map((person) => (
+                        <SelectItem key={person.id} value={person.id}>
+                          {person.name} ({person.employeeId})
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>SMF Function *</Label>
+                <Select
+                  value={assignForm.smfId}
+                  onValueChange={(value) => setAssignForm((prev) => ({ ...prev, smfId: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select SMF" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {allSMFs.map((smf) => (
+                      <SelectItem key={smf.id} value={smf.id}>
                         {smf.smf_number} - {smf.title}
-                      </CardTitle>
-                      <Badge variant="outline" className="mt-2 text-xs">
-                        {smf.category.replace('_', ' ')}
-                      </Badge>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-gray-600 mb-3">{smf.description}</p>
-                  <div className="space-y-2">
-                    <div>
-                      <p className="text-xs font-medium text-gray-700">Required For:</p>
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {smf.required_for.map((req, index) => (
-                          <Badge key={index} variant="secondary" className="text-xs">
-                            {req}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-      </Tabs>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <Label htmlFor="entity">Entity / Booking Centre</Label>
+                <Input
+                  id="entity"
+                  value={assignForm.entity}
+                  onChange={(event) => setAssignForm((prev) => ({ ...prev, entity: event.target.value }))}
+                  placeholder="e.g. Nasara Payments Ltd"
+                />
+              </div>
+              <div>
+                <Label>Approval Status</Label>
+                <Select
+                  value={assignForm.approvalStatus}
+                  onValueChange={(value) => setAssignForm((prev) => ({ ...prev, approvalStatus: value as RoleApprovalStatus }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {statusOptions
+                      .filter((option) => option.value !== "all")
+                      .map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <DatePickerField
+                label="Start Date *"
+                placeholder="Select start date"
+                value={assignForm.startDate}
+                onChange={(date) => setAssignForm((prev) => ({ ...prev, startDate: date ?? undefined }))}
+              />
+              <DatePickerField
+                label="End Date"
+                placeholder="Optional end date"
+                value={assignForm.endDate}
+                onChange={(date) => setAssignForm((prev) => ({ ...prev, endDate: date ?? undefined }))}
+              />
+              <DatePickerField
+                label="Assessment Date"
+                placeholder="Latest assessment"
+                value={assignForm.assessmentDate}
+                onChange={(date) => setAssignForm((prev) => ({ ...prev, assessmentDate: date ?? undefined }))}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="notes">Notes</Label>
+              <textarea
+                id="notes"
+                className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-200"
+                rows={3}
+                value={assignForm.notes}
+                onChange={(event) => setAssignForm((prev) => ({ ...prev, notes: event.target.value }))}
+                placeholder="Optional supporting context or prescribed responsibilities"
+              />
+            </div>
+
+            <div className="flex justify-end">
+              <Button type="submit" disabled={!assignForm.personId || !assignForm.smfId || !assignForm.startDate}>
+                Assign Function
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
-  )
+  );
+}
+
+type DatePickerFieldProps = {
+  label: string;
+  placeholder: string;
+  value?: Date;
+  onChange: (date: Date | undefined) => void;
+};
+
+function DatePickerField({ label, placeholder, value, onChange }: DatePickerFieldProps) {
+  return (
+    <div>
+      <Label className="text-sm text-slate-700">{label}</Label>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            type="button"
+            variant="outline"
+            className={cn(
+              "w-full justify-start text-left font-normal",
+              !value && "text-slate-400",
+            )}
+          >
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            {value ? format(value, "PPP") : placeholder}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="start">
+          <Calendar mode="single" selected={value} onSelect={onChange} initialFocus />
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+}
+
+type InfoBlockProps = {
+  label: string;
+  value?: string;
+};
+
+function InfoBlock({ label, value }: InfoBlockProps) {
+  let display = "—";
+  if (value) {
+    try {
+      display = format(new Date(value), "PPP");
+    } catch {
+      display = value;
+    }
+  }
+  return (
+    <div>
+      <p className="text-xs uppercase tracking-wide text-slate-500">{label}</p>
+      <p className="text-sm font-medium text-slate-700">{display}</p>
+    </div>
+  );
 }

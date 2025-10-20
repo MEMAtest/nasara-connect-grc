@@ -8,15 +8,12 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar } from "@/components/ui/calendar";
 import {
-  BarChart3,
   TrendingUp,
   Target,
   Clock,
   Award,
   BookOpen,
   CheckCircle2,
-  AlertCircle,
-  Calendar as CalendarIcon,
   Download,
   Eye,
   Filter,
@@ -24,7 +21,6 @@ import {
   Trophy,
   Flame,
   Brain,
-  Users,
   FileText,
   ArrowUp,
   ArrowDown,
@@ -65,7 +61,6 @@ interface LearningGoal {
 
 export function ProgressTracker() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [viewMode, setViewMode] = useState<'overview' | 'detailed'>('overview');
 
   const learningRecords: LearningRecord[] = [
     {

@@ -5,11 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
 import {
-  Play,
-  Pause,
-  SkipForward,
   Clock,
   Target,
   BookOpen,
@@ -24,7 +20,6 @@ import {
   Shield,
   Search,
   FileText,
-  Download,
   Star,
   Brain,
   Zap,
@@ -34,19 +29,6 @@ import {
 import { getTrainingModule } from "../content";
 import { AMLTrainingRenderer } from "./AMLTrainingRenderer";
 import { KYCTrainingRenderer } from "./KYCTrainingRenderer";
-
-interface ContentSection {
-  title: string;
-  content: string;
-  visual?: {
-    type: string;
-    elements?: Record<string, unknown>[];
-    steps?: Record<string, unknown>[];
-    categories?: Record<string, unknown>[];
-    patterns?: Record<string, unknown>[];
-    data?: string;
-  };
-}
 
 interface TrainingContentRendererProps {
   contentId: string;
@@ -90,15 +72,15 @@ export function TrainingContentRenderer({ contentId, onComplete, onProgress }: T
 }
 
 // Generic renderer for modules without specialized components
+type GenericStageKey = 'hook' | 'content' | 'practice' | 'summary';
+const GENERIC_STAGE_ORDER: GenericStageKey[] = ['hook', 'content', 'practice', 'summary'];
+
 function GenericTrainingRenderer({ module, onComplete, onProgress }: {
   module: Record<string, unknown>;
   onComplete?: (score: number, timeSpent: number) => void;
   onProgress?: (progress: number) => void;
 }) {
-  const [currentStage, setCurrentStage] = useState<'hook' | 'content' | 'practice' | 'summary'>('hook');
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [timeSpent, setTimeSpent] = useState(0);
-  const [progress, setProgress] = useState(0);
+  const [currentStage, setCurrentStage] = useState<GenericStageKey>('hook');
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
 
   // Convert module to legacy content format for compatibility
@@ -280,17 +262,48 @@ function GenericTrainingRenderer({ module, onComplete, onProgress }: {
     }
   };
 
+  useEffect(() => {
+    const stageIndex = GENERIC_STAGE_ORDER.indexOf(currentStage);
+    const progressValue = ((stageIndex + 1) / GENERIC_STAGE_ORDER.length) * 100;
+    onProgress?.(Math.round(progressValue));
+  }, [currentStage, onProgress]);
+
   const getStageProgress = () => {
-    const stages = ['hook', 'content', 'practice', 'summary'];
-    const currentIndex = stages.indexOf(currentStage);
-    return ((currentIndex + 1) / stages.length) * 100;
+    const currentIndex = GENERIC_STAGE_ORDER.indexOf(currentStage);
+    return ((currentIndex + 1) / GENERIC_STAGE_ORDER.length) * 100;
+  };
+
+  const calculatePracticeScore = () => {
+    const scenarios = content.stages.practice?.scenarios as Array<Record<string, unknown>> | undefined;
+    if (!Array.isArray(scenarios) || scenarios.length === 0) {
+      return 100;
+    }
+
+    const correctCount = scenarios.reduce((count, scenario) => {
+      const scenarioId = scenario.id as string | undefined;
+      if (!scenarioId) return count;
+
+      const selected = selectedAnswers[scenarioId];
+      const options = scenario.options as Array<Record<string, unknown>> | undefined;
+      const matchedOption = options?.find((option) => option.id === selected);
+
+      return matchedOption?.isCorrect ? count + 1 : count;
+    }, 0);
+
+    return Math.round((correctCount / scenarios.length) * 100);
   };
 
   const nextStage = () => {
-    const stages = ['hook', 'content', 'practice', 'summary'];
-    const currentIndex = stages.indexOf(currentStage);
-    if (currentIndex < stages.length - 1) {
-      setCurrentStage(stages[currentIndex + 1] as string);
+    const currentIndex = GENERIC_STAGE_ORDER.indexOf(currentStage);
+    if (currentIndex < GENERIC_STAGE_ORDER.length - 1) {
+      setCurrentStage(GENERIC_STAGE_ORDER[currentIndex + 1]);
+    } else {
+      const practiceScore = calculatePracticeScore();
+      const estimatedMinutes = typeof content.estimatedDuration === 'number'
+        ? content.estimatedDuration
+        : Number(content.estimatedDuration ?? 0);
+
+      onComplete?.(practiceScore, Number.isFinite(estimatedMinutes) ? estimatedMinutes : 0);
     }
   };
 
@@ -549,7 +562,7 @@ function GenericTrainingRenderer({ module, onComplete, onProgress }: {
         Test Your Red Flag Detection Skills
       </h2>
 
-      {content.stages.practice.scenarios.map((scenario: Record<string, unknown>, index: number) => (
+      {content.stages.practice.scenarios.map((scenario: Record<string, unknown>) => (
         <Card key={scenario.id} className="border border-emerald-200">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">

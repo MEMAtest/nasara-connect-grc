@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable react/no-unescaped-entities */
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,7 +12,6 @@ import { Label } from "@/components/ui/label";
 import {
   Play,
   Pause,
-  SkipForward,
   CheckCircle2,
   AlertCircle,
   Clock,
@@ -23,6 +24,41 @@ import {
 } from "lucide-react";
 import { MicroLesson } from "../types";
 
+type LessonStage = "hook" | "content" | "practice" | "summary";
+
+interface ScenarioOption {
+  description: string;
+  options: string[];
+  correct: string;
+  explanation: string;
+}
+
+interface ScenarioExercise {
+  scenarios: ScenarioOption[];
+}
+
+interface InteractiveExample {
+  scenario: string;
+  flag: string;
+  action: string;
+}
+
+interface InteractiveContentData {
+  redFlags?: string[];
+  examples?: InteractiveExample[];
+}
+
+const stageOrder: LessonStage[] = ["hook", "content", "practice", "summary"];
+
+const isScenarioExercise = (value: unknown): value is ScenarioExercise => {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const candidate = value as { scenarios?: unknown };
+  return Array.isArray(candidate.scenarios);
+};
+
 interface MicroLearningProps {
   lesson: MicroLesson;
   onComplete?: (score: number, timeSpent: number) => void;
@@ -30,16 +66,16 @@ interface MicroLearningProps {
 }
 
 export function MicroLearning({ lesson, onComplete, onProgress }: MicroLearningProps) {
-  const [currentStage, setCurrentStage] = useState<'hook' | 'content' | 'practice' | 'summary'>('hook');
+  const [currentStage, setCurrentStage] = useState<LessonStage>("hook");
   const [startTime] = useState<Date>(new Date());
   const [stageProgress, setStageProgress] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [practiceAnswers, setPracticeAnswers] = useState<Record<string, any>>({});
+  const [practiceAnswers, setPracticeAnswers] = useState<Record<string, string>>({});
   const [showFeedback, setShowFeedback] = useState(false);
   const [score, setScore] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
 
-  const stages = ['hook', 'content', 'practice', 'summary'] as const;
+  const stages = stageOrder;
   const currentStageIndex = stages.indexOf(currentStage);
   const overallProgress = ((currentStageIndex + (stageProgress / 100)) / stages.length) * 100;
 
@@ -91,25 +127,27 @@ export function MicroLearning({ lesson, onComplete, onProgress }: MicroLearningP
     }
   };
 
-  const handlePracticeAnswer = (questionId: string, answer: any) => {
+  const handlePracticeAnswer = (questionId: string, answer: string) => {
     setPracticeAnswers(prev => ({ ...prev, [questionId]: answer }));
   };
 
   const checkPracticeAnswers = () => {
     if (currentStage === 'practice' && lesson.components.practice.type === 'scenario') {
-      const exercise = lesson.components.practice.exercise as any;
+      const exercise = lesson.components.practice.exercise;
+      if (!isScenarioExercise(exercise)) {
+        return;
+      }
+
       let correctAnswers = 0;
       let totalQuestions = 0;
 
-      if (exercise.scenarios) {
-        exercise.scenarios.forEach((scenario: any, index: number) => {
-          totalQuestions++;
-          const userAnswer = practiceAnswers[`scenario_${index}`];
-          if (userAnswer === scenario.correct) {
-            correctAnswers++;
-          }
-        });
-      }
+      exercise.scenarios.forEach((scenario, index) => {
+        totalQuestions++;
+        const userAnswer = practiceAnswers[`scenario_${index}`];
+        if (userAnswer === scenario.correct) {
+          correctAnswers++;
+        }
+      });
 
       const practiceScore = totalQuestions > 0 ? (correctAnswers / totalQuestions) * 100 : 0;
       setScore(practiceScore);
@@ -155,6 +193,7 @@ export function MicroLearning({ lesson, onComplete, onProgress }: MicroLearningP
 
   const renderContent = () => {
     const content = lesson.components.content;
+    const interactiveData = (content.data ?? {}) as InteractiveContentData;
 
     return (
       <div className="space-y-6">
@@ -165,13 +204,13 @@ export function MicroLearning({ lesson, onComplete, onProgress }: MicroLearningP
           <h3 className="text-lg font-semibold text-slate-900 mb-2">Core Learning</h3>
         </div>
 
-        {content.type === 'interactive' && content.data && (
+        {content.type === 'interactive' && (
           <div className="space-y-4">
-            {content.data.redFlags && (
+            {interactiveData.redFlags?.length ? (
               <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-6">
                 <h4 className="font-semibold text-emerald-800 mb-3">Key Red Flags to Identify:</h4>
                 <ul className="space-y-2">
-                  {content.data.redFlags.map((flag: string, index: number) => (
+                  {interactiveData.redFlags.map((flag, index) => (
                     <li key={index} className="flex items-start gap-2 text-emerald-700">
                       <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
                       {flag}
@@ -179,12 +218,12 @@ export function MicroLearning({ lesson, onComplete, onProgress }: MicroLearningP
                   ))}
                 </ul>
               </div>
-            )}
+            ) : null}
 
-            {content.data.examples && (
+            {interactiveData.examples?.length ? (
               <div className="space-y-3">
                 <h4 className="font-semibold text-slate-800">Practical Examples:</h4>
-                {content.data.examples.map((example: any, index: number) => (
+                {interactiveData.examples.map((example, index) => (
                   <div key={index} className="border border-slate-200 rounded-lg p-4">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                       <div>
@@ -203,7 +242,7 @@ export function MicroLearning({ lesson, onComplete, onProgress }: MicroLearningP
                   </div>
                 ))}
               </div>
-            )}
+            ) : null}
           </div>
         )}
 
@@ -236,6 +275,7 @@ export function MicroLearning({ lesson, onComplete, onProgress }: MicroLearningP
 
   const renderPractice = () => {
     const practice = lesson.components.practice;
+    const scenarioExercise = isScenarioExercise(practice.exercise) ? practice.exercise : null;
 
     return (
       <div className="space-y-6">
@@ -247,9 +287,9 @@ export function MicroLearning({ lesson, onComplete, onProgress }: MicroLearningP
           <p className="text-slate-600">Apply what you've learned</p>
         </div>
 
-        {practice.type === 'scenario' && practice.exercise && (
+        {practice.type === 'scenario' && scenarioExercise && (
           <div className="space-y-6">
-            {practice.exercise.scenarios?.map((scenario: any, index: number) => (
+            {scenarioExercise.scenarios.map((scenario, index) => (
               <Card key={index} className="border border-amber-200">
                 <CardContent className="p-6">
                   <h4 className="font-medium text-slate-900 mb-3">Scenario {index + 1}</h4>

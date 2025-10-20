@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { saveAssessmentResponse, getAssessmentResponses, updateSectionProgress } from '@/lib/database';
-import { getQuestionsBySection, getSectionSummary } from '@/app/(dashboard)/authorization-pack/lib/questionBank';
+import { getQuestionsBySection } from '@/app/(dashboard)/authorization-pack/lib/questionBank';
 
 export async function GET(
   request: NextRequest,

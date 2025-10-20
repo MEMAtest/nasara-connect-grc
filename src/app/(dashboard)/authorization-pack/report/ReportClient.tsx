@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -53,13 +53,7 @@ export function ReportClient() {
 
   const assessmentId = searchParams.get('assessmentId');
 
-  useEffect(() => {
-    if (assessmentId) {
-      loadAssessmentData();
-    }
-  }, [assessmentId]);
-
-  const loadAssessmentData = async () => {
+  const loadAssessmentData = useCallback(async () => {
     if (!assessmentId) return;
 
     try {
@@ -120,7 +114,13 @@ export function ReportClient() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [assessmentId]);
+
+  useEffect(() => {
+    if (assessmentId) {
+      loadAssessmentData();
+    }
+  }, [assessmentId, loadAssessmentData]);
 
   const overallScore = sectionScores.length > 0
     ? Math.round(sectionScores.reduce((sum, s) => sum + s.percentage, 0) / sectionScores.length)

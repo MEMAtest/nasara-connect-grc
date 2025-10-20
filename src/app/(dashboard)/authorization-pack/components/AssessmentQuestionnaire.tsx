@@ -34,11 +34,6 @@ interface QuestionnaireResponse {
   notes?: string;
 }
 
-interface AssessmentProgress {
-  id: string;
-  progress: number;
-}
-
 interface AssessmentQuestionnaireProps {
   sectionId: string;
   assessmentId?: string;

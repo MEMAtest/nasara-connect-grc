@@ -86,7 +86,7 @@ export async function POST(
         // Simulate successful generation
         const filePath = `/reports/${assessmentId}/${reportId}.pdf`;
         await updateReportStatus(reportId, 'completed', filePath);
-      } catch (error) {
+      } catch {
         await updateReportStatus(reportId, 'failed');
       }
     }, 2000);

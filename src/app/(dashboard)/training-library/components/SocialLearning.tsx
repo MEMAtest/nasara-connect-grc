@@ -28,7 +28,6 @@ import {
   Plus,
   HelpCircle,
   Lightbulb,
-  AlertCircle
 } from "lucide-react";
 
 interface Discussion {

@@ -1,15 +1,13 @@
 "use client";
 
+/* eslint-disable react/no-unescaped-entities */
+
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
 import {
-  Play,
-  Pause,
-  SkipForward,
   Clock,
   Target,
   BookOpen,
@@ -18,16 +16,10 @@ import {
   ArrowRight,
   Lightbulb,
   Users,
-  TrendingUp,
   BarChart3,
-  MapPin,
   Shield,
-  Search,
   FileText,
-  Download,
   Star,
-  Brain,
-  Zap,
   Award,
   Trophy,
   XCircle,
@@ -42,21 +34,22 @@ import {
   AlertCircle
 } from "lucide-react";
 
+type Stage = "hook" | "content" | "practice" | "summary";
+const stageOrder: Stage[] = ["hook", "content", "practice", "summary"];
+
 interface AMLTrainingRendererProps {
   onComplete?: (score: number, timeSpent: number) => void;
   onProgress?: (progress: number) => void;
 }
 
 export function AMLTrainingRenderer({ onComplete, onProgress }: AMLTrainingRendererProps) {
-  const [currentStage, setCurrentStage] = useState<'hook' | 'content' | 'practice' | 'summary'>('hook');
+  const [currentStage, setCurrentStage] = useState<Stage>("hook");
   const [currentContentSection, setCurrentContentSection] = useState(0);
-  const [timeSpent, setTimeSpent] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
 
   const getStageProgress = () => {
-    const stages = ['hook', 'content', 'practice', 'summary'];
-    const currentIndex = stages.indexOf(currentStage);
-    let baseProgress = (currentIndex / stages.length) * 100;
+    const currentIndex = stageOrder.indexOf(currentStage);
+    let baseProgress = (currentIndex / stageOrder.length) * 100;
 
     if (currentStage === 'content') {
       const sectionProgress = (currentContentSection / 4) * 25;
@@ -66,12 +59,31 @@ export function AMLTrainingRenderer({ onComplete, onProgress }: AMLTrainingRende
     return Math.min(baseProgress, 100);
   };
 
+  useEffect(() => {
+    const stageIndex = stageOrder.indexOf(currentStage);
+    let progressValue = (stageIndex / stageOrder.length) * 100;
+
+    if (currentStage === 'content') {
+      const sectionProgress = (currentContentSection / 4) * 25;
+      progressValue += sectionProgress;
+    }
+
+    onProgress?.(Math.round(Math.min(progressValue, 100)));
+  }, [currentStage, currentContentSection, onProgress]);
+
+  const calculatePracticeScore = () => {
+    const totalQuestions = 2;
+    const correctCount = Number(selectedAnswers.corp === "corp_b") + Number(selectedAnswers.change === "change_c");
+    return Math.round((correctCount / totalQuestions) * 100);
+  };
+
   const nextStage = () => {
-    const stages = ['hook', 'content', 'practice', 'summary'];
-    const currentIndex = stages.indexOf(currentStage);
-    if (currentIndex < stages.length - 1) {
-      setCurrentStage(stages[currentIndex + 1] as any);
+    const currentIndex = stageOrder.indexOf(currentStage);
+    if (currentIndex < stageOrder.length - 1) {
+      setCurrentStage(stageOrder[currentIndex + 1]);
       setCurrentContentSection(0);
+    } else {
+      onComplete?.(calculatePracticeScore(), 0);
     }
   };
 

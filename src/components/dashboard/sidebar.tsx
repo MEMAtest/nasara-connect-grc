@@ -56,7 +56,7 @@ const navigationItems: NavigationItem[] = [
     badge: { text: "3", variant: "danger" },
   },
   {
-    label: "SM&amp;CR Management",
+    label: "SM&CR Management",
     icon: Shield,
     href: "/smcr",
     badge: { text: "NEW", variant: "success" },

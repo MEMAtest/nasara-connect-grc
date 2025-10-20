@@ -1,8 +1,8 @@
 "use client";
 
 import { FormEvent, useMemo } from "react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
 import {
   Bell,
   Building2,
@@ -47,6 +47,18 @@ const breadcrumbsMap: Record<string, string> = {
   training: "Training Library",
   "regulatory-news": "Regulatory News",
   "ai-chat": "AI Assistant",
+  smcr: "SM&CR",
+  people: "People",
+  smfs: "SMF Assignments",
+  certifications: "Certification Functions",
+  "fitness-propriety": "Fitness & Propriety",
+  "conduct-rules": "Conduct Rules",
+  workflows: "Workflows",
+};
+
+type BreadcrumbItem = {
+  label: string;
+  href: string;
 };
 
 export function Header({ onToggleSidebar, isSidebarOpen }: HeaderProps) {
@@ -54,14 +66,25 @@ export function Header({ onToggleSidebar, isSidebarOpen }: HeaderProps) {
 
   const crumbs = useMemo(() => {
     const segments = pathname?.split("/").filter(Boolean) ?? [];
+    const items: BreadcrumbItem[] = [];
+
+    items.push({ label: breadcrumbsMap[""], href: "/" });
+
     if (segments.length === 0) {
-      return [breadcrumbsMap[""], "Overview"];
+      return items;
     }
-    const mapped = segments.map((segment) => breadcrumbsMap[segment] ?? segment);
-    return ["Dashboard", ...mapped];
+
+    let cumulativePath = "";
+    segments.forEach((segment) => {
+      cumulativePath += `/${segment}`;
+      const label = breadcrumbsMap[segment] ?? segment.replace(/-/g, " ");
+      items.push({ label, href: cumulativePath });
+    });
+
+    return items;
   }, [pathname]);
 
-  const pageTitle = crumbs[crumbs.length - 1] ?? "Dashboard";
+  const pageTitle = crumbs[crumbs.length - 1]?.label ?? "Dashboard";
 
   const handleSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -101,12 +124,24 @@ export function Header({ onToggleSidebar, isSidebarOpen }: HeaderProps) {
 
           <div className="flex flex-col">
             <nav aria-label="Breadcrumb" className="flex items-center gap-1 text-xs text-slate-500">
-              {crumbs.map((crumb, index) => (
-                <div key={crumb} className="flex items-center gap-1">
-                  {index !== 0 && <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />}
-                  <span className={cn("capitalize", index === crumbs.length - 1 && "text-slate-700 font-semibold")}>{crumb}</span>
-                </div>
-              ))}
+              {crumbs.map((crumb, index) => {
+                const isLast = index === crumbs.length - 1;
+                return (
+                  <div key={crumb.href} className="flex items-center gap-1">
+                    {index !== 0 && <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />}
+                    {isLast ? (
+                      <span className="capitalize text-slate-700 font-semibold">{crumb.label}</span>
+                    ) : (
+                      <Link
+                        href={crumb.href}
+                        className="capitalize transition hover:text-slate-700 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-400"
+                      >
+                        {crumb.label}
+                      </Link>
+                    )}
+                  </div>
+                );
+              })}
             </nav>
             <h1 className="mt-1 text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">
               {pageTitle}

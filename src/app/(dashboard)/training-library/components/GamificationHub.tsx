@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+/* eslint-disable react/no-unescaped-entities */
+
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,11 +16,8 @@ import {
   Zap,
   Target,
   Crown,
-  Award,
   Users,
-  TrendingUp,
   Calendar,
-  Clock,
   CheckCircle2,
   Rocket,
   Shield,
@@ -62,7 +61,7 @@ interface UserStats {
 }
 
 export function GamificationHub() {
-  const [userStats, setUserStats] = useState<UserStats>({
+  const [userStats] = useState<UserStats>({
     currentStreak: 7,
     longestStreak: 14,
     totalPoints: 2450,
@@ -75,7 +74,7 @@ export function GamificationHub() {
     weeklyProgress: 3
   });
 
-  const [achievements, setAchievements] = useState<Achievement[]>([
+  const [achievements] = useState<Achievement[]>([
     {
       id: 'first-lesson',
       title: 'Getting Started',
@@ -142,7 +141,7 @@ export function GamificationHub() {
     }
   ]);
 
-  const [leaderboard, setLeaderboard] = useState<Leaderboard[]>([
+  const [leaderboard] = useState<Leaderboard[]>([
     {
       rank: 1,
       name: 'Sarah Chen',
@@ -421,7 +420,7 @@ export function GamificationHub() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {leaderboard.map((user, index) => (
+                {leaderboard.map((user) => (
                   <div
                     key={user.rank}
                     className={`flex items-center gap-4 p-4 border rounded-lg ${

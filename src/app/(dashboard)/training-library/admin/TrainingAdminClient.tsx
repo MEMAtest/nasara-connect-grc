@@ -19,21 +19,17 @@ import {
   Users,
   BookOpen,
   Target,
-  BarChart3,
   Clock,
   Award,
-  Settings,
   Download,
   Upload
 } from "lucide-react";
 import { getTrainingContent } from "../lib/trainingContent";
-import { TrainingModule, LearningPathway, MicroLesson, BranchingScenario } from "../types";
 
 export function TrainingAdminClient() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPersona, setSelectedPersona] = useState<string>("all");
   const [isCreating, setIsCreating] = useState(false);
-  const [selectedContent, setSelectedContent] = useState<TrainingModule | LearningPathway | MicroLesson | BranchingScenario | null>(null);
 
   const trainingData = getTrainingContent();
   const filteredPathways = trainingData.pathways.filter(pathway => {

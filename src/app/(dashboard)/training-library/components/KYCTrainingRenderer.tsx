@@ -36,8 +36,8 @@ export function KYCTrainingRenderer({ onComplete, onProgress }: KYCTrainingRende
   const [showResults, setShowResults] = useState<Record<string, boolean>>({});
   const [completedSections, setCompletedSections] = useState<Set<number>>(new Set());
 
-  const module = kycFundamentalsModule;
-  const totalSections = 1 + module.lessons.length + module.practiceScenarios.length + 1; // Hook + Lessons + Scenarios + Summary
+  const kycModule = kycFundamentalsModule;
+  const totalSections = 1 + kycModule.lessons.length + kycModule.practiceScenarios.length + 1; // Hook + Lessons + Scenarios + Summary
   const progress = (completedSections.size / totalSections) * 100;
 
   const handleSectionComplete = (sectionIndex: number) => {
@@ -63,7 +63,7 @@ export function KYCTrainingRenderer({ onComplete, onProgress }: KYCTrainingRende
           <AlertTriangle className="w-4 h-4 mr-2" />
           Critical Alert
         </Badge>
-        <h2 className="text-3xl font-bold text-red-600 mb-4">{module.hook.title}</h2>
+        <h2 className="text-3xl font-bold text-red-600 mb-4">{kycModule.hook.title}</h2>
       </div>
 
       <Card className="border-red-200 bg-red-50">
@@ -84,14 +84,14 @@ export function KYCTrainingRenderer({ onComplete, onProgress }: KYCTrainingRende
           </div>
 
           <div className="prose max-w-none">
-            {module.hook.content.split('\n\n').map((paragraph, index) => (
+            {kycModule.hook.content.split('\n\n').map((paragraph, index) => (
               <p key={index} className="mb-4 text-gray-700">{paragraph}</p>
             ))}
           </div>
 
           <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
             <h4 className="font-semibold text-yellow-800 mb-2">Critical Question:</h4>
-            <p className="text-yellow-700">{module.hook.keyQuestion}</p>
+            <p className="text-yellow-700">{kycModule.hook.keyQuestion}</p>
           </div>
         </CardContent>
       </Card>
@@ -99,7 +99,7 @@ export function KYCTrainingRenderer({ onComplete, onProgress }: KYCTrainingRende
   );
 
   const renderCDDPillars = () => {
-    const lesson = module.lessons[0];
+    const lesson = kycModule.lessons[0];
     return (
       <div className="space-y-6">
         <div className="text-center mb-8">
@@ -219,7 +219,7 @@ export function KYCTrainingRenderer({ onComplete, onProgress }: KYCTrainingRende
   };
 
   const renderRiskAssessment = () => {
-    const lesson = module.lessons[1];
+    const lesson = kycModule.lessons[1];
     return (
       <div className="space-y-6">
         <div className="text-center mb-8">
@@ -342,7 +342,7 @@ export function KYCTrainingRenderer({ onComplete, onProgress }: KYCTrainingRende
   };
 
   const renderOngoingMonitoring = () => {
-    const lesson = module.lessons[2];
+    const lesson = kycModule.lessons[2];
     return (
       <div className="space-y-6">
         <div className="text-center mb-8">
@@ -470,7 +470,7 @@ export function KYCTrainingRenderer({ onComplete, onProgress }: KYCTrainingRende
     );
   };
 
-  const renderScenario = (scenario: typeof module.practiceScenarios[0], index: number) => {
+  const renderScenario = (scenario: typeof kycModule.practiceScenarios[0], index: number) => {
     const isAnswered = showResults[scenario.id];
     const selectedAnswer = selectedAnswers[scenario.id];
     const isCorrect = selectedAnswer === scenario.correctAnswer;
@@ -566,7 +566,7 @@ export function KYCTrainingRenderer({ onComplete, onProgress }: KYCTrainingRende
         </CardHeader>
         <CardContent>
           <ul className="space-y-3">
-            {module.summary.keyTakeaways.map((takeaway, index) => (
+            {kycModule.summary.keyTakeaways.map((takeaway, index) => (
               <li key={index} className="flex items-start">
                 <CheckCircle className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
                 <span>{takeaway}</span>
@@ -586,7 +586,7 @@ export function KYCTrainingRenderer({ onComplete, onProgress }: KYCTrainingRende
           </CardHeader>
           <CardContent>
             <ul className="space-y-2">
-              {module.summary.nextSteps.map((step, index) => (
+              {kycModule.summary.nextSteps.map((step, index) => (
                 <li key={index} className="flex items-start">
                   <Target className="w-4 h-4 text-blue-500 mr-2 mt-0.5 flex-shrink-0" />
                   <span className="text-sm">{step}</span>
@@ -605,7 +605,7 @@ export function KYCTrainingRenderer({ onComplete, onProgress }: KYCTrainingRende
           </CardHeader>
           <CardContent>
             <ul className="space-y-2">
-              {module.summary.quickReference.map((ref, index) => (
+              {kycModule.summary.quickReference.map((ref, index) => (
                 <li key={index} className="flex items-start">
                   <Shield className="w-4 h-4 text-purple-500 mr-2 mt-0.5 flex-shrink-0" />
                   <span className="text-sm font-mono bg-gray-100 px-2 py-1 rounded">{ref}</span>
@@ -623,7 +623,7 @@ export function KYCTrainingRenderer({ onComplete, onProgress }: KYCTrainingRende
     { id: 'pillars', title: 'CDD Pillars', component: renderCDDPillars },
     { id: 'risk', title: 'Risk Assessment', component: renderRiskAssessment },
     { id: 'monitoring', title: 'Ongoing Monitoring', component: renderOngoingMonitoring },
-    ...module.practiceScenarios.map((scenario, index) => ({
+    ...kycModule.practiceScenarios.map((scenario, index) => ({
       id: `scenario-${index}`,
       title: `Scenario ${index + 1}`,
       component: () => renderScenario(scenario, index)
@@ -636,17 +636,17 @@ export function KYCTrainingRenderer({ onComplete, onProgress }: KYCTrainingRende
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-3xl font-bold">{module.title}</h1>
-            <p className="text-muted-foreground mt-2">{module.description}</p>
+            <h1 className="text-3xl font-bold">{kycModule.title}</h1>
+            <p className="text-muted-foreground mt-2">{kycModule.description}</p>
           </div>
           <Badge variant="secondary" className="bg-blue-100 text-blue-800">
             <Clock className="w-4 h-4 mr-1" />
-            {module.duration} min
+            {kycModule.duration} min
           </Badge>
         </div>
 
         <div className="flex items-center gap-2 mb-4">
-          {module.tags.map((tag) => (
+          {kycModule.tags.map((tag) => (
             <Badge key={tag} variant="outline">{tag}</Badge>
           ))}
         </div>
@@ -673,7 +673,7 @@ export function KYCTrainingRenderer({ onComplete, onProgress }: KYCTrainingRende
           ))}
         </TabsList>
 
-        {sections.map((section, index) => (
+        {sections.map((section) => (
           <TabsContent key={section.id} value={section.id} className="mt-6">
             {section.component()}
             <div className="flex justify-between mt-8">
