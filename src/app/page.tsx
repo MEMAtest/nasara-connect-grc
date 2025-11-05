@@ -31,6 +31,14 @@ import ControlFrameworkDemo from '@/components/landing/ControlFrameworkDemo'
 import AuthPackDemo from '@/components/landing/AuthPackDemo'
 import ContactForm from '@/components/landing/ContactForm'
 
+// 3D Illustration Components
+import dynamic from 'next/dynamic'
+
+const PaymentCard3D = dynamic(() => import('@/components/landing/3d/PaymentCard3D'), { ssr: false })
+const RiskGauge3D = dynamic(() => import('@/components/landing/3d/RiskGauge3D'), { ssr: false })
+const ClarityGlass3D = dynamic(() => import('@/components/landing/3d/ClarityGlass3D'), { ssr: false })
+const ComplianceShield3D = dynamic(() => import('@/components/landing/3d/ComplianceShield3D'), { ssr: false })
+
 export default function LandingPage() {
   const containerRef = useRef<HTMLDivElement>(null)
   const { scrollYProgress } = useScroll({
@@ -60,6 +68,9 @@ export default function LandingPage() {
 
       {/* Unified GRC Theme Section */}
       <UnifiedGRCSection />
+
+      {/* 3D Illustrations Showcase */}
+      <ThreeDShowcaseSection />
 
       {/* Interactive Feature Showcases */}
       <section className="py-32 px-4">
@@ -393,6 +404,113 @@ function UnifiedGRCSection() {
             </motion.div>
           ))}
         </div>
+      </div>
+    </section>
+  )
+}
+
+function ThreeDShowcaseSection() {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: "-100px" })
+
+  const features3D = [
+    {
+      title: 'Real-Time Payments',
+      description: 'Monitor and secure every transaction',
+      component: <PaymentCard3D />,
+      gradient: 'from-emerald-500 to-teal-600'
+    },
+    {
+      title: 'Risk Intelligence',
+      description: 'AI-powered threat detection',
+      component: <RiskGauge3D />,
+      gradient: 'from-orange-500 to-rose-600'
+    },
+    {
+      title: 'Data Clarity',
+      description: 'Transparent compliance insights',
+      component: <ClarityGlass3D />,
+      gradient: 'from-blue-500 to-indigo-600'
+    },
+    {
+      title: 'Compliance Shield',
+      description: 'FCA-certified protection',
+      component: <ComplianceShield3D />,
+      gradient: 'from-purple-500 to-pink-600'
+    },
+  ]
+
+  return (
+    <section ref={ref} className="py-32 px-4 bg-slate-950 text-white overflow-hidden relative">
+      {/* Background Effects */}
+      <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900" />
+      <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
+
+      <div className="max-w-7xl mx-auto relative z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.8 }}
+          className="text-center mb-20"
+        >
+          <Badge className="mb-4 bg-gradient-to-r from-teal-500 to-blue-500 text-white border-0">
+            <Sparkles className="w-3 h-3 mr-1" />
+            Powered by Advanced 3D Visualization
+          </Badge>
+
+          <h2 className="text-4xl sm:text-5xl font-bold mb-6 bg-gradient-to-r from-white via-teal-400 to-white bg-clip-text text-transparent">
+            Experience GRC in 3D
+          </h2>
+
+          <p className="text-xl text-slate-400 max-w-3xl mx-auto">
+            Interactive 3D visualizations bring your compliance data to life with stunning clarity and precision
+          </p>
+        </motion.div>
+
+        <div className="grid md:grid-cols-2 gap-12">
+          {features3D.map((feature, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 50 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ delay: i * 0.2, duration: 0.8 }}
+            >
+              <Card className="overflow-hidden border-2 border-slate-800 bg-slate-900/50 backdrop-blur-sm hover:border-teal-500 transition-all duration-300 group">
+                <div className="relative">
+                  {/* 3D Canvas Container */}
+                  <div className="bg-gradient-to-br from-slate-950 to-slate-900">
+                    {feature.component}
+                  </div>
+
+                  {/* Gradient Overlay */}
+                  <div className={`absolute inset-0 bg-gradient-to-t ${feature.gradient} opacity-0 group-hover:opacity-10 transition-opacity pointer-events-none`} />
+                </div>
+
+                <div className="p-6">
+                  <h3 className={`text-2xl font-bold mb-2 bg-gradient-to-r ${feature.gradient} bg-clip-text text-transparent`}>
+                    {feature.title}
+                  </h3>
+                  <p className="text-slate-400">{feature.description}</p>
+                </div>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.8, duration: 0.8 }}
+          className="text-center mt-16"
+        >
+          <p className="text-slate-500 mb-6">
+            All visualizations update in real-time with your compliance data
+          </p>
+          <Button className="bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 text-lg px-8">
+            Explore Interactive Demos
+            <ChevronRight className="ml-2 w-5 h-5" />
+          </Button>
+        </motion.div>
       </div>
     </section>
   )
