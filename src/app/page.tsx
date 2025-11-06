@@ -39,6 +39,18 @@ const RiskGauge3D = dynamic(() => import('@/components/landing/3d/RiskGauge3D'),
 const ClarityGlass3D = dynamic(() => import('@/components/landing/3d/ClarityGlass3D'), { ssr: false })
 const ComplianceShield3D = dynamic(() => import('@/components/landing/3d/ComplianceShield3D'), { ssr: false })
 
+// Premium Icons
+import {
+  PaymentIcon,
+  RiskIcon,
+  ControlIcon,
+  AuthorizationIcon,
+  ComplianceIcon,
+  DashboardIcon,
+  IntegrationIcon,
+  AIPoweredIcon
+} from '@/components/landing/PremiumIcons'
+
 export default function LandingPage() {
   const containerRef = useRef<HTMLDivElement>(null)
   const { scrollYProgress } = useScroll({
@@ -50,7 +62,7 @@ export default function LandingPage() {
   const heroScale = useTransform(scrollYProgress, [0, 0.2], [1, 0.95])
 
   return (
-    <div ref={containerRef} className="relative overflow-hidden bg-gradient-to-b from-slate-50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+    <div ref={containerRef} className="relative overflow-hidden bg-gradient-to-b from-slate-50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 scroll-smooth">
       {/* Navigation */}
       <Navigation />
 
@@ -73,12 +85,12 @@ export default function LandingPage() {
       <ThreeDShowcaseSection />
 
       {/* Interactive Feature Showcases */}
-      <section className="py-32 px-4">
+      <section id="features" className="py-32 px-4">
         <div className="max-w-7xl mx-auto space-y-48">
           <FeatureShowcase
             title="Real-Time Payment Compliance"
             description="Monitor transactions, detect anomalies, and ensure regulatory compliance across all B2B payments in real-time."
-            icon={<CreditCard className="w-12 h-12" />}
+            icon={<PaymentIcon />}
             demo={<PaymentsDemo />}
             gradient="from-emerald-500 to-teal-600"
           />
@@ -86,7 +98,7 @@ export default function LandingPage() {
           <FeatureShowcase
             title="Intelligent Risk Assessment"
             description="Identify, evaluate, and mitigate risks with AI-powered insights and interactive risk heatmaps."
-            icon={<AlertTriangle className="w-12 h-12" />}
+            icon={<RiskIcon />}
             demo={<RiskAssessmentDemo />}
             gradient="from-orange-500 to-rose-600"
             reverse
@@ -95,7 +107,7 @@ export default function LandingPage() {
           <FeatureShowcase
             title="Dynamic Control Framework"
             description="Map regulatory requirements to controls, track implementation, and maintain continuous compliance."
-            icon={<Shield className="w-12 h-12" />}
+            icon={<ControlIcon />}
             demo={<ControlFrameworkDemo />}
             gradient="from-blue-500 to-indigo-600"
           />
@@ -103,7 +115,7 @@ export default function LandingPage() {
           <FeatureShowcase
             title="FCA Authorization Pack"
             description="Streamline your FCA authorization journey with guided questionnaires and real-time progress tracking."
-            icon={<FileCheck className="w-12 h-12" />}
+            icon={<AuthorizationIcon />}
             demo={<AuthPackDemo />}
             gradient="from-purple-500 to-pink-600"
             reverse
@@ -113,6 +125,12 @@ export default function LandingPage() {
 
       {/* Integration Section */}
       <IntegrationSection />
+
+      {/* How It Works Section */}
+      <HowItWorksSection />
+
+      {/* Pricing Section */}
+      <PricingSection />
 
       {/* Social Proof */}
       <SocialProofSection />
@@ -157,18 +175,20 @@ function Navigation() {
           </div>
 
           <div className="hidden md:flex items-center space-x-8">
-            <a href="#features" className="text-slate-600 dark:text-slate-300 hover:text-teal-600 transition-colors">Features</a>
-            <a href="#how-it-works" className="text-slate-600 dark:text-slate-300 hover:text-teal-600 transition-colors">How It Works</a>
-            <a href="#pricing" className="text-slate-600 dark:text-slate-300 hover:text-teal-600 transition-colors">Pricing</a>
-            <Link href="/(dashboard)">
+            <a href="#features" className="text-slate-600 dark:text-slate-300 hover:text-teal-600 transition-colors scroll-smooth">Features</a>
+            <a href="#how-it-works" className="text-slate-600 dark:text-slate-300 hover:text-teal-600 transition-colors scroll-smooth">How It Works</a>
+            <a href="#pricing" className="text-slate-600 dark:text-slate-300 hover:text-teal-600 transition-colors scroll-smooth">Pricing</a>
+            <Link href="/authorization-pack">
               <Button variant="ghost" className="text-slate-600 dark:text-slate-300">
                 Sign In
               </Button>
             </Link>
-            <Button className="bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800">
-              Get Started
-              <ArrowRight className="ml-2 w-4 h-4" />
-            </Button>
+            <a href="#contact">
+              <Button className="bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800">
+                Get Started
+                <ArrowRight className="ml-2 w-4 h-4" />
+              </Button>
+            </a>
           </div>
         </div>
       </div>
@@ -383,10 +403,10 @@ function UnifiedGRCSection() {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mt-16">
           {[
-            { icon: FileCheck, title: 'Authorization', desc: 'FCA-ready packs', color: 'purple' },
-            { icon: CreditCard, title: 'Payments', desc: 'Real-time monitoring', color: 'emerald' },
-            { icon: AlertTriangle, title: 'Risk', desc: 'AI-powered insights', color: 'orange' },
-            { icon: Shield, title: 'Controls', desc: 'Regulatory mapping', color: 'blue' },
+            { icon: <AuthorizationIcon />, title: 'Authorization', desc: 'FCA-ready packs' },
+            { icon: <PaymentIcon />, title: 'Payments', desc: 'Real-time monitoring' },
+            { icon: <RiskIcon />, title: 'Risk', desc: 'AI-powered insights' },
+            { icon: <ControlIcon />, title: 'Controls', desc: 'Regulatory mapping' },
           ].map((item, i) => (
             <motion.div
               key={i}
@@ -395,8 +415,8 @@ function UnifiedGRCSection() {
               transition={{ delay: i * 0.1, duration: 0.6 }}
             >
               <Card className="p-6 hover:shadow-xl transition-all cursor-pointer group border-2 hover:border-teal-500">
-                <div className={`w-14 h-14 rounded-xl bg-gradient-to-br from-${item.color}-500 to-${item.color}-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                  <item.icon className="w-7 h-7 text-white" />
+                <div className="mb-4 group-hover:scale-110 transition-transform">
+                  {item.icon}
                 </div>
                 <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
                 <p className="text-slate-600 dark:text-slate-400">{item.desc}</p>
@@ -594,6 +614,241 @@ function IntegrationSection() {
   )
 }
 
+function HowItWorksSection() {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: "-100px" })
+
+  const steps = [
+    {
+      number: "01",
+      title: "Connect Your Systems",
+      description: "Integrate Nasara Connect with your existing banking core, payment processors, and compliance tools in minutes.",
+      icon: <IntegrationIcon className="w-16 h-16" />
+    },
+    {
+      number: "02",
+      title: "Configure Your Framework",
+      description: "Map your regulatory requirements, define controls, and set up automated monitoring across all compliance areas.",
+      icon: <ControlIcon className="w-16 h-16" />
+    },
+    {
+      number: "03",
+      title: "Monitor in Real-Time",
+      description: "Watch as transactions, risks, and compliance metrics update live with AI-powered insights and alerts.",
+      icon: <DashboardIcon className="w-16 h-16" />
+    },
+    {
+      number: "04",
+      title: "Stay Compliant",
+      description: "Maintain continuous compliance with automated reporting, evidence collection, and regulatory change tracking.",
+      icon: <ComplianceIcon className="w-16 h-16" />
+    }
+  ]
+
+  return (
+    <section id="how-it-works" ref={ref} className="py-32 px-4 bg-gradient-to-b from-white to-slate-50 dark:from-slate-900 dark:to-slate-950">
+      <div className="max-w-7xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.8 }}
+          className="text-center mb-20"
+        >
+          <Badge className="mb-4 bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-800">
+            Simple Process
+          </Badge>
+          <h2 className="text-4xl sm:text-5xl font-bold mb-6">How It Works</h2>
+          <p className="text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto">
+            Get up and running in days, not months. Our streamlined onboarding process gets you compliant faster.
+          </p>
+        </motion.div>
+
+        <div className="grid md:grid-cols-2 gap-12">
+          {steps.map((step, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 40 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ delay: i * 0.2, duration: 0.6 }}
+            >
+              <Card className="p-8 hover:shadow-xl transition-all border-2 hover:border-teal-500 h-full">
+                <div className="flex items-start gap-6">
+                  <div className="flex-shrink-0">
+                    {step.icon}
+                  </div>
+                  <div>
+                    <div className="text-6xl font-bold text-teal-100 dark:text-teal-900/30 mb-2">{step.number}</div>
+                    <h3 className="text-2xl font-bold mb-3">{step.title}</h3>
+                    <p className="text-slate-600 dark:text-slate-400 leading-relaxed">{step.description}</p>
+                  </div>
+                </div>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.8, duration: 0.6 }}
+          className="text-center mt-16"
+        >
+          <Button size="lg" className="bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800">
+            Start Your Journey
+            <ArrowRight className="ml-2 w-5 h-5" />
+          </Button>
+        </motion.div>
+      </div>
+    </section>
+  )
+}
+
+function PricingSection() {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: "-100px" })
+
+  const plans = [
+    {
+      name: "Starter",
+      price: "£2,500",
+      period: "/month",
+      description: "Perfect for growing SME firms getting started with GRC",
+      features: [
+        "FCA Authorization Pack",
+        "Up to 1,000 transactions/month",
+        "Basic risk assessment",
+        "Policy management",
+        "Email support",
+        "2 user seats"
+      ],
+      highlighted: false
+    },
+    {
+      name: "Professional",
+      price: "£5,000",
+      period: "/month",
+      description: "For established firms needing comprehensive compliance",
+      features: [
+        "Everything in Starter",
+        "Up to 10,000 transactions/month",
+        "Advanced risk & control framework",
+        "Real-time payment monitoring",
+        "AI-powered insights",
+        "Priority support",
+        "10 user seats",
+        "Custom integrations"
+      ],
+      highlighted: true
+    },
+    {
+      name: "Enterprise",
+      price: "Custom",
+      period: "",
+      description: "For large organizations with complex requirements",
+      features: [
+        "Everything in Professional",
+        "Unlimited transactions",
+        "Dedicated account manager",
+        "Custom workflows",
+        "API access",
+        "24/7 phone support",
+        "Unlimited users",
+        "SLA guarantees",
+        "On-premise deployment option"
+      ],
+      highlighted: false
+    }
+  ]
+
+  return (
+    <section id="pricing" ref={ref} className="py-32 px-4 bg-slate-100 dark:bg-slate-900">
+      <div className="max-w-7xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.8 }}
+          className="text-center mb-16"
+        >
+          <Badge className="mb-4 bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-800">
+            Transparent Pricing
+          </Badge>
+          <h2 className="text-4xl sm:text-5xl font-bold mb-6">Choose Your Plan</h2>
+          <p className="text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto">
+            Simple, transparent pricing that scales with your business. No hidden fees.
+          </p>
+        </motion.div>
+
+        <div className="grid md:grid-cols-3 gap-8">
+          {plans.map((plan, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 40 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ delay: i * 0.1, duration: 0.6 }}
+            >
+              <Card className={`p-8 h-full flex flex-col ${
+                plan.highlighted
+                  ? 'border-4 border-teal-500 shadow-2xl relative'
+                  : 'border-2 hover:border-teal-500 transition-all'
+              }`}>
+                {plan.highlighted && (
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                    <Badge className="bg-gradient-to-r from-teal-500 to-teal-600 text-white px-4 py-1 text-sm">
+                      Most Popular
+                    </Badge>
+                  </div>
+                )}
+
+                <div className="mb-6">
+                  <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
+                  <p className="text-slate-600 dark:text-slate-400 text-sm mb-4">{plan.description}</p>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-5xl font-bold bg-gradient-to-r from-teal-600 to-teal-800 bg-clip-text text-transparent">
+                      {plan.price}
+                    </span>
+                    {plan.period && <span className="text-slate-600 dark:text-slate-400">{plan.period}</span>}
+                  </div>
+                </div>
+
+                <ul className="space-y-3 mb-8 flex-1">
+                  {plan.features.map((feature, j) => (
+                    <li key={j} className="flex items-start gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-teal-600 flex-shrink-0 mt-0.5" />
+                      <span className="text-slate-600 dark:text-slate-400">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <Button
+                  className={`w-full ${
+                    plan.highlighted
+                      ? 'bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 text-white'
+                      : 'bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-white hover:bg-slate-300 dark:hover:bg-slate-700'
+                  }`}
+                  size="lg"
+                >
+                  {plan.price === "Custom" ? "Contact Sales" : "Get Started"}
+                </Button>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.6, duration: 0.6 }}
+          className="text-center mt-12"
+        >
+          <p className="text-slate-600 dark:text-slate-400">
+            All plans include a 14-day free trial. No credit card required.
+          </p>
+        </motion.div>
+      </div>
+    </section>
+  )
+}
+
 function SocialProofSection() {
   return (
     <section className="py-32 px-4 bg-slate-100 dark:bg-slate-900">
@@ -655,7 +910,7 @@ function SocialProofSection() {
 
 function CTASection() {
   return (
-    <section className="py-32 px-4">
+    <section id="contact" className="py-32 px-4">
       <div className="max-w-5xl mx-auto">
         <div className="bg-gradient-to-br from-teal-600 via-teal-700 to-teal-900 rounded-3xl p-12 md:p-16 text-center text-white relative overflow-hidden">
           {/* Background Pattern */}
