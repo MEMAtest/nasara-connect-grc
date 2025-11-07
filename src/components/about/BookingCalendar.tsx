@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, ChevronRight, Clock, Video, MessageSquare, CheckCircle2, Calendar } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 
 interface TimeSlot {
   time: string
@@ -16,6 +15,7 @@ interface ConsultationType {
   id: string
   name: string
   duration: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   icon: any
   description: string
   gradient: string
@@ -343,7 +343,7 @@ export default function BookingCalendar() {
                         Your consultation is scheduled for {selectedDate?.toLocaleDateString()} at {selectedTime}.
                       </p>
                       <p className="text-xs text-slate-400">
-                        You'll receive a confirmation email with calendar invite and meeting link shortly.
+                        You&apos;ll receive a confirmation email with calendar invite and meeting link shortly.
                       </p>
                     </div>
                   </div>

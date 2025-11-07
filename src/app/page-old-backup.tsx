@@ -10,11 +10,9 @@ import {
   CheckCircle2,
   BarChart3,
   Users,
-  Lock,
   Zap,
   Globe,
   TrendingUp,
-  FileCheck,
   Sparkles,
   PlayCircle,
   ChevronRight
@@ -47,8 +45,7 @@ import {
   AuthorizationIcon,
   ComplianceIcon,
   DashboardIcon,
-  IntegrationIcon,
-  AIPoweredIcon
+  IntegrationIcon
 } from '@/components/landing/PremiumIcons'
 
 export default function LandingPage() {
@@ -889,7 +886,7 @@ function SocialProofSection() {
               transition={{ delay: i * 0.1 }}
             >
               <Card className="p-6 h-full">
-                <p className="text-slate-600 dark:text-slate-400 mb-6 italic">"{testimonial.quote}"</p>
+                <p className="text-slate-600 dark:text-slate-400 mb-6 italic">&quot;{testimonial.quote}&quot;</p>
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center text-white font-semibold">
                     {testimonial.avatar}

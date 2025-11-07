@@ -311,7 +311,7 @@ export default function AuthPackDemo() {
           <div>
             <h4 className="font-semibold mb-2">Estimated Timeline</h4>
             <p className="text-sm text-slate-600 dark:text-slate-400">
-              Based on your current progress, you're on track to submit in 14 days
+              Based on your current progress, you&apos;re on track to submit in 14 days
             </p>
           </div>
           <div className="flex items-center gap-2">

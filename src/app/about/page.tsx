@@ -1,8 +1,8 @@
 'use client'
 
 import { motion, useInView } from 'framer-motion'
-import { useRef, useState } from 'react'
-import { ArrowRight, Calendar, Users, Target, Shield, Sparkles, Clock, Video, MessageSquare, CheckCircle2 } from 'lucide-react'
+import { useRef } from 'react'
+import { ArrowRight, Calendar, Users, Target, Shield, Sparkles, CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -69,7 +69,7 @@ function HeroSection() {
           </h1>
 
           <p className="text-xl lg:text-2xl text-slate-400 leading-relaxed max-w-4xl mx-auto">
-            We're on a mission to transform regulatory compliance from a burden into a competitive advantage.
+            We&apos;re on a mission to transform regulatory compliance from a burden into a competitive advantage.
             Founded by industry experts, built for the future.
           </p>
 
@@ -132,8 +132,8 @@ function StorySection() {
                 had to be a better way.
               </p>
               <p>
-                We built MEMA Connect to be the platform we wish we'd had: intelligent, integrated,
-                and genuinely useful. Today, we're proud to serve 50+ financial institutions across
+                We built MEMA Connect to be the platform we wish we&apos;d had: intelligent, integrated,
+                and genuinely useful. Today, we&apos;re proud to serve 50+ financial institutions across
                 banking, FinTech, payments, and wealth management.
               </p>
             </div>
@@ -200,7 +200,7 @@ function BookingSection() {
             Book a Consultation
           </Badge>
           <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
-            Let's Talk About Your Compliance Challenges
+            Let&apos;s Talk About Your Compliance Challenges
           </h2>
           <p className="text-xl text-slate-400 max-w-3xl mx-auto">
             Schedule a personalized consultation with our compliance experts. Choose a date and time that works for you.
@@ -437,7 +437,7 @@ function FinalCTA() {
             Ready to Transform Your Compliance Operations?
           </h2>
           <p className="text-xl text-slate-400 mb-8 max-w-2xl mx-auto">
-            Join 50+ financial institutions who've chosen MEMA Connect to simplify compliance and accelerate growth.
+            Join 50+ financial institutions who&apos;ve chosen MEMA Connect to simplify compliance and accelerate growth.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">

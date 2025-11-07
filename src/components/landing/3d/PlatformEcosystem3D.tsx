@@ -153,7 +153,6 @@ function ExpandedPlatform() {
             {/* Data Flow Particles */}
             {[...Array(3)].map((_, j) => {
               const progress = (state.clock?.getElapsedTime() || 0 + i + j * 0.3) % 1
-              const distance = Math.sqrt(module.position[0]**2 + module.position[1]**2)
               const x = -module.position[0] / 2 + (module.position[0] / 2) * progress
               const y = -module.position[1] / 2 + (module.position[1] / 2) * progress
 

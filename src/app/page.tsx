@@ -1,6 +1,6 @@
 'use client'
 
-import { motion, useScroll, useTransform, useInView } from 'framer-motion'
+import { motion, useInView } from 'framer-motion'
 import { useRef, useState, useEffect } from 'react'
 import {
   ArrowRight,
@@ -21,7 +21,6 @@ import {
   BarChart3
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
 
@@ -551,7 +550,7 @@ function FinalCTASection() {
           </h2>
 
           <p className="text-2xl text-slate-400 mb-12 max-w-3xl mx-auto leading-relaxed">
-            Discover how our AI-powered platform can transform your firm's regulatory operations
+            Discover how our AI-powered platform can transform your firm&apos;s regulatory operations
             and strategic advantage.
           </p>
 

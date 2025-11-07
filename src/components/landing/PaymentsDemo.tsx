@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { CheckCircle2, AlertCircle, ArrowUpRight, ArrowDownRight, TrendingUp } from 'lucide-react'
+import { CheckCircle2, AlertCircle, ArrowUpRight, TrendingUp } from 'lucide-react'
 
 interface Transaction {
   id: string
@@ -25,7 +25,6 @@ const mockTransactions: Transaction[] = [
 
 export default function PaymentsDemo() {
   const [transactions, setTransactions] = useState(mockTransactions)
-  const [selectedTx, setSelectedTx] = useState<Transaction | null>(null)
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -34,7 +33,9 @@ export default function PaymentsDemo() {
         from: ['Acme Corp', 'TechStart', 'Finance Ltd', 'Global Trade'][Math.floor(Math.random() * 4)],
         to: ['Supplier', 'Vendor', 'Service Provider', 'Logistics'][Math.floor(Math.random() * 4)],
         amount: Math.floor(Math.random() * 150000) + 5000,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         status: ['approved', 'flagged', 'reviewing'][Math.floor(Math.random() * 3)] as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         risk: ['low', 'medium', 'high'][Math.floor(Math.random() * 3)] as any,
         timestamp: 'Just now'
       }

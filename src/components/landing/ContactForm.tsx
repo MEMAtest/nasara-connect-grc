@@ -75,7 +75,7 @@ export default function ContactForm() {
             </motion.div>
             <h3 className="text-2xl font-bold mb-2">Thank You!</h3>
             <p className="text-teal-100">
-              We'll be in touch within 24 hours to schedule your personalized demo.
+              We&apos;ll be in touch within 24 hours to schedule your personalized demo.
             </p>
           </motion.div>
         ) : (

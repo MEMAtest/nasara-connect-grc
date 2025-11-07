@@ -2,7 +2,7 @@
 
 import { motion, useInView } from 'framer-motion'
 import { useRef } from 'react'
-import { ArrowRight, Brain, Activity, Database, Shield, Zap, CheckCircle2, Network } from 'lucide-react'
+import { ArrowRight, Brain, Shield, Zap, CheckCircle2, Network } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'

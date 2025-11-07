@@ -182,7 +182,6 @@ function IntegrationNetwork() {
               {/* Data Flow Particles */}
               {[...Array(2)].map((_, j) => {
                 const progress = ((Date.now() * 0.001 + i + j * 0.5) % 1)
-                const distance = Math.sqrt(system.position[0]**2 + system.position[1]**2)
                 const x = -system.position[0] / 2 + (system.position[0] / 2) * progress
                 const y = -system.position[1] / 2 + (system.position[1] / 2) * progress
 

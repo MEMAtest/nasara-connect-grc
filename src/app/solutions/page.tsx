@@ -59,7 +59,7 @@ function HeroSection() {
           <h1 className="text-5xl lg:text-7xl font-bold mb-6 leading-tight">
             <span className="text-white">Built for Your </span>
             <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-emerald-400 bg-clip-text text-transparent">
-              Industry's Unique Challenges
+              Industry&apos;s Unique Challenges
             </span>
           </h1>
 
@@ -256,8 +256,6 @@ function SectorsSection({ activeTab, setActiveTab }: { activeTab: string, setAct
     }
   ]
 
-  const activeSector = sectors.find(s => s.id === activeTab) || sectors[0]
-
   return (
     <section ref={ref} className="py-32 px-4">
       <div className="max-w-7xl mx-auto">
@@ -402,7 +400,7 @@ function FinalCTA() {
             Ready to Transform Your Compliance Operations?
           </h2>
           <p className="text-xl text-slate-400 mb-8 max-w-2xl mx-auto">
-            Book a consultation with our industry specialists to see how MEMA Connect solves your sector's unique challenges.
+            Book a consultation with our industry specialists to see how MEMA Connect solves your sector&apos;s unique challenges.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">

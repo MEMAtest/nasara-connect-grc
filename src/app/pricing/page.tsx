@@ -71,7 +71,7 @@ function HeroSection({ billingCycle, setBillingCycle }: { billingCycle: 'monthly
           </h1>
 
           <p className="text-xl lg:text-2xl text-slate-400 leading-relaxed max-w-4xl mx-auto">
-            Choose the plan that fits your firm's needs. All plans include our core compliance platform
+            Choose the plan that fits your firm&apos;s needs. All plans include our core compliance platform
             with scalable pricing as you grow.
           </p>
 
@@ -409,7 +409,7 @@ function ComparisonSection() {
             Feature Comparison
           </h2>
           <p className="text-xl text-slate-400 max-w-3xl mx-auto">
-            See exactly what's included in each plan
+            See exactly what&apos;s included in each plan
           </p>
         </motion.div>
 
@@ -567,7 +567,7 @@ function FAQSection() {
             Frequently Asked Questions
           </Badge>
           <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
-            Got Questions? We've Got Answers
+            Got Questions? We&apos;ve Got Answers
           </h2>
         </motion.div>
 
