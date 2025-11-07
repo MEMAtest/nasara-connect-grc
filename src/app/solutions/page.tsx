@@ -64,7 +64,7 @@ function HeroSection() {
           </h1>
 
           <p className="text-xl lg:text-2xl text-slate-400 leading-relaxed max-w-4xl mx-auto">
-            From traditional banking to cutting-edge FinTech, MEMA Connect delivers sector-specific
+            From traditional banking to cutting-edge FinTech, Nasara Connect delivers sector-specific
             compliance solutions that understand your regulatory landscape, operational complexity, and strategic goals.
           </p>
 
@@ -107,7 +107,7 @@ function SectorsSection({ activeTab, setActiveTab }: { activeTab: string, setAct
       gradient: 'from-blue-500 to-cyan-600',
       visual: <BankingSector3D />,
       headline: 'Fortify Traditional Banking with Modern Compliance Intelligence',
-      description: 'Navigate complex regulatory frameworks with confidence. From prudential regulation to customer protection, MEMA Connect provides end-to-end compliance orchestration for retail, commercial, and private banking operations.',
+      description: 'Navigate complex regulatory frameworks with confidence. From prudential regulation to customer protection, Nasara Connect provides end-to-end compliance orchestration for retail, commercial, and private banking operations.',
       challenges: [
         'Ever-evolving prudential requirements (CRR, CRD, Basel III/IV)',
         'Complex customer onboarding and KYC obligations',
@@ -138,7 +138,7 @@ function SectorsSection({ activeTab, setActiveTab }: { activeTab: string, setAct
       gradient: 'from-emerald-500 to-teal-600',
       visual: <FinTechSector3D />,
       headline: 'Scale Your FinTech with Confidence, Not Compliance Overhead',
-      description: 'Built for the pace of innovation. MEMA Connect enables rapid scaling while maintaining robust compliance infrastructure that keeps regulators happy and investors confident.',
+      description: 'Built for the pace of innovation. Nasara Connect enables rapid scaling while maintaining robust compliance infrastructure that keeps regulators happy and investors confident.',
       challenges: [
         'Rapid regulatory change with limited compliance resources',
         'Authorization pack preparation and variation management',
@@ -169,7 +169,7 @@ function SectorsSection({ activeTab, setActiveTab }: { activeTab: string, setAct
       gradient: 'from-purple-500 to-pink-600',
       visual: <AssetManagementSector3D />,
       headline: 'Precision Governance for Portfolio Excellence',
-      description: 'From fund governance to investor protection, MEMA Connect delivers sophisticated compliance infrastructure for asset managers, wealth advisers, and investment platforms navigating FCA COLL, FUND, and MiFID II.',
+      description: 'From fund governance to investor protection, Nasara Connect delivers sophisticated compliance infrastructure for asset managers, wealth advisers, and investment platforms navigating FCA COLL, FUND, and MiFID II.',
       challenges: [
         'Complex fund governance and depositary oversight',
         'MiFID II/III transaction reporting and best execution',
@@ -200,7 +200,7 @@ function SectorsSection({ activeTab, setActiveTab }: { activeTab: string, setAct
       gradient: 'from-orange-500 to-rose-600',
       visual: <InsuranceSector3D />,
       headline: 'Solvency II Mastery Meets Operational Excellence',
-      description: 'Navigate the intersection of prudential regulation, conduct oversight, and operational resilience. MEMA Connect provides integrated compliance infrastructure for insurers, MGAs, and insurance intermediaries.',
+      description: 'Navigate the intersection of prudential regulation, conduct oversight, and operational resilience. Nasara Connect provides integrated compliance infrastructure for insurers, MGAs, and insurance intermediaries.',
       challenges: [
         'Solvency II/UK Solvency pillars I, II, III compliance',
         'Insurance Distribution Directive (IDD) obligations',
@@ -231,7 +231,7 @@ function SectorsSection({ activeTab, setActiveTab }: { activeTab: string, setAct
       gradient: 'from-cyan-500 to-blue-600',
       visual: <PaymentServicesSector3D />,
       headline: 'Process Billions. Comply Effortlessly.',
-      description: 'Built for the velocity of payment processing. MEMA Connect enables PSPs, e-money issuers, and payment institutions to maintain compliance at transaction scale while meeting evolving regulatory demands.',
+      description: 'Built for the velocity of payment processing. Nasara Connect enables PSPs, e-money issuers, and payment institutions to maintain compliance at transaction scale while meeting evolving regulatory demands.',
       challenges: [
         'Real-time transaction monitoring and fraud detection',
         'Safeguarding and reconciliation requirements',
@@ -400,7 +400,7 @@ function FinalCTA() {
             Ready to Transform Your Compliance Operations?
           </h2>
           <p className="text-xl text-slate-400 mb-8 max-w-2xl mx-auto">
-            Book a consultation with our industry specialists to see how MEMA Connect solves your sector&apos;s unique challenges.
+            Book a consultation with our industry specialists to see how Nasara Connect solves your sector&apos;s unique challenges.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">

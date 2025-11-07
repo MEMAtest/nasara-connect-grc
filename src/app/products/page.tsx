@@ -65,7 +65,7 @@ function HeroSection() {
             </h1>
 
             <p className="text-xl text-slate-400 leading-relaxed">
-              MEMA Connect combines cutting-edge AI, robust automation, and intuitive governance tools
+              Nasara Connect combines cutting-edge AI, robust automation, and intuitive governance tools
               into a single, powerful ecosystem engineered for financial institutions.
             </p>
           </div>
@@ -243,7 +243,7 @@ function IntegrationSection() {
             Seamless Integration. <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">Unrivaled Synergy</span>
           </h2>
           <p className="text-xl text-slate-400 max-w-3xl mx-auto">
-            MEMA Connect integrates effortlessly with your existing systems while our modules work in perfect harmony to amplify your compliance capabilities.
+            Nasara Connect integrates effortlessly with your existing systems while our modules work in perfect harmony to amplify your compliance capabilities.
           </p>
         </motion.div>
 
@@ -311,7 +311,7 @@ function FinalCTA() {
             See All Products in Action
           </h2>
           <p className="text-xl text-slate-400 mb-8 max-w-2xl mx-auto">
-            Experience the power of the integrated MEMA Connect platform with a personalized product tour.
+            Experience the power of the integrated Nasara Connect platform with a personalized product tour.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">

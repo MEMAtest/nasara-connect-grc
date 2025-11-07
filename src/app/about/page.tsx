@@ -58,7 +58,7 @@ function HeroSection() {
           className="space-y-8"
         >
           <Badge className="mb-4 bg-purple-500/10 text-purple-400 border-purple-500/30">
-            About MEMA Connect
+            About Nasara Connect
           </Badge>
 
           <h1 className="text-5xl lg:text-7xl font-bold mb-6 leading-tight">
@@ -122,7 +122,7 @@ function StorySection() {
             </h2>
             <div className="space-y-4 text-lg text-slate-400 leading-relaxed">
               <p>
-                MEMA Connect was founded in 2022 by a team of regulatory experts, compliance officers,
+                Nasara Connect was founded in 2022 by a team of regulatory experts, compliance officers,
                 and technologists who shared a common frustration: compliance tools were outdated,
                 fragmented, and impossibly complex.
               </p>
@@ -132,7 +132,7 @@ function StorySection() {
                 had to be a better way.
               </p>
               <p>
-                We built MEMA Connect to be the platform we wish we&apos;d had: intelligent, integrated,
+                We built Nasara Connect to be the platform we wish we&apos;d had: intelligent, integrated,
                 and genuinely useful. Today, we&apos;re proud to serve 50+ financial institutions across
                 banking, FinTech, payments, and wealth management.
               </p>
@@ -224,7 +224,7 @@ function TimelineSection() {
   const isInView = useInView(ref, { once: true, margin: "-100px" })
 
   const milestones = [
-    { year: '2022', quarter: 'Q1', title: 'Company Founded', desc: 'MEMA Connect established by regulatory veterans' },
+    { year: '2022', quarter: 'Q1', title: 'Company Founded', desc: 'Nasara Connect established by regulatory veterans' },
     { year: '2022', quarter: 'Q3', title: 'First Client Onboarded', desc: 'FinTech authorization pack success' },
     { year: '2023', quarter: 'Q1', title: 'Product Suite Launch', desc: 'Intelligence, Reconciliation, Framework modules live' },
     { year: '2023', quarter: 'Q3', title: 'Series A Funding', desc: '£5M raised to accelerate growth' },
@@ -322,7 +322,7 @@ function TeamSection() {
             Our Team
           </Badge>
           <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
-            Meet the Experts Behind MEMA Connect
+            Meet the Experts Behind Nasara Connect
           </h2>
           <p className="text-xl text-slate-400 max-w-3xl mx-auto">
             A world-class team combining deep regulatory expertise with cutting-edge technology
@@ -437,7 +437,7 @@ function FinalCTA() {
             Ready to Transform Your Compliance Operations?
           </h2>
           <p className="text-xl text-slate-400 mb-8 max-w-2xl mx-auto">
-            Join 50+ financial institutions who&apos;ve chosen MEMA Connect to simplify compliance and accelerate growth.
+            Join 50+ financial institutions who&apos;ve chosen Nasara Connect to simplify compliance and accelerate growth.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">

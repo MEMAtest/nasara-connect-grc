@@ -83,14 +83,13 @@ function Navigation() {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/50">
-              <Shield className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-2xl font-bold text-white">
-              MEMA Connect
-            </span>
-          </div>
+          <Link href="/" className="flex items-center space-x-3">
+            <img
+              src="/nasara-logo.png"
+              alt="Nasara Connect Logo"
+              className="h-10 w-auto"
+            />
+          </Link>
 
           <div className="hidden md:flex items-center space-x-8">
             <a href="#intelligence" className="text-slate-300 hover:text-emerald-400 transition-colors text-sm font-medium">Intelligence</a>
@@ -144,7 +143,7 @@ function HeroSection() {
             </h1>
 
             <p className="text-xl text-slate-400 leading-relaxed mb-8">
-              MEMA Connect is the AI-powered platform that transforms regulatory chaos into strategic advantage,
+              Nasara Connect is the AI-powered platform that transforms regulatory chaos into strategic advantage,
               ensuring precision, resilience, and growth.
             </p>
           </div>
@@ -290,7 +289,7 @@ function IntelligenceSection() {
               Regulatory Intelligence, <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">Decoded</span>
             </h2>
             <p className="text-xl text-slate-400 leading-relaxed">
-              From millions of data points, MEMA Connect distills actionable insights, empowering proactive
+              From millions of data points, Nasara Connect distills actionable insights, empowering proactive
               decision-making and strategic resilience.
             </p>
           </div>
@@ -360,7 +359,7 @@ function ReconciliationSection() {
               <span className="bg-gradient-to-r from-orange-400 to-rose-400 bg-clip-text text-transparent">Precision</span> Automation for Complex Workflows
             </h2>
             <p className="text-xl text-slate-400 leading-relaxed">
-              MEMA Connect automates complex financial reconciliations, identifies anomalies with surgical precision,
+              Nasara Connect automates complex financial reconciliations, identifies anomalies with surgical precision,
               and orchestrates remediation workflows, saving hours and minimizing errors.
             </p>
           </div>
@@ -467,7 +466,7 @@ function GovernanceSection() {
               Unshakeable Governance. <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Seamless Audits</span>
             </h2>
             <p className="text-xl text-slate-400 leading-relaxed">
-              MEMA Connect provides the robust framework you need for comprehensive policy management,
+              Nasara Connect provides the robust framework you need for comprehensive policy management,
               clear record-keeping, and irrefutable audit trails.
             </p>
           </div>
@@ -580,10 +579,11 @@ function Footer() {
         <div className="grid md:grid-cols-4 gap-8 mb-8">
           <div>
             <div className="flex items-center space-x-2 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
-                <Shield className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-white font-bold text-lg">MEMA Connect</span>
+              <img
+                src="/nasara-logo.png"
+                alt="Nasara Connect Logo"
+                className="h-8 w-auto"
+              />
             </div>
             <p className="text-slate-400 text-sm">
               Next-generation compliance platform for modern financial institutions.
@@ -621,7 +621,7 @@ function Footer() {
         </div>
 
         <div className="border-t border-slate-800 pt-8 text-center">
-          <p className="text-slate-500 text-sm">&copy; 2025 MEMA Connect. All rights reserved.</p>
+          <p className="text-slate-500 text-sm">&copy; 2025 Nasara Connect. All rights reserved.</p>
         </div>
       </div>
     </footer>

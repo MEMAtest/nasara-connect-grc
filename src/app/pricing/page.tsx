@@ -332,7 +332,7 @@ function ValueSection() {
                 More Than Just Software
               </h2>
               <p className="text-xl text-slate-400">
-                MEMA Connect delivers measurable ROI through automation, risk reduction, and expert-built compliance intelligence.
+                Nasara Connect delivers measurable ROI through automation, risk reduction, and expert-built compliance intelligence.
               </p>
             </div>
 
@@ -538,7 +538,7 @@ function FAQSection() {
     },
     {
       question: 'What about data security and compliance?',
-      answer: 'MEMA Connect is SOC 2 Type II certified, ISO 27001 compliant, and GDPR-ready. All data is encrypted in transit (TLS 1.3) and at rest (AES-256). We undergo annual penetration testing and maintain detailed audit logs for all user actions.'
+      answer: 'Nasara Connect is SOC 2 Type II certified, ISO 27001 compliant, and GDPR-ready. All data is encrypted in transit (TLS 1.3) and at rest (AES-256). We undergo annual penetration testing and maintain detailed audit logs for all user actions.'
     },
     {
       question: 'Can I cancel anytime?',

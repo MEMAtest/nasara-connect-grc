@@ -18,6 +18,7 @@ import {
   Newspaper,
   Shield,
   CreditCard,
+  Globe,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -220,31 +221,42 @@ export function Sidebar({ onNavigate, onClose, isMobile = false }: SidebarProps)
             <p className="text-xs text-teal-100/70">Chief Compliance Officer</p>
           </div>
         </div>
-        <div className="mt-5 flex items-center gap-2">
-          <Link
-            href="/settings"
-            onClick={onNavigate}
-            className="group flex flex-1 items-center justify-center gap-2 rounded-lg bg-white/15 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-white transition duration-200 hover:bg-white/25"
+        <div className="mt-5 space-y-2">
+          <div className="flex items-center gap-2">
+            <Link
+              href="/settings"
+              onClick={onNavigate}
+              className="group flex flex-1 items-center justify-center gap-2 rounded-lg bg-white/15 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-white transition duration-200 hover:bg-white/25"
+            >
+              <Settings className="h-4 w-4 group-hover:rotate-6" aria-hidden="true" />
+              Settings
+            </Link>
+            <Link
+              href="/support"
+              onClick={onNavigate}
+              className="group flex h-10 w-10 items-center justify-center rounded-lg border border-white/15 text-white transition duration-200 hover:border-white/30 hover:bg-white/15"
+              aria-label="Get support"
+            >
+              <LifeBuoy className="h-5 w-5 group-hover:scale-110" aria-hidden="true" />
+            </Link>
+            <Link
+              href="/logout"
+              onClick={onNavigate}
+              className="group flex h-10 w-10 items-center justify-center rounded-lg border border-white/15 text-white transition duration-200 hover:border-white/30 hover:bg-white/15"
+              aria-label="Log out"
+            >
+              <LogOut className="h-5 w-5 group-hover:-translate-x-0.5" aria-hidden="true" />
+            </Link>
+          </div>
+          <a
+            href="/page"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group flex w-full items-center justify-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-emerald-300 transition duration-200 hover:border-emerald-500/50 hover:bg-emerald-500/20"
           >
-            <Settings className="h-4 w-4 group-hover:rotate-6" aria-hidden="true" />
-            Settings
-          </Link>
-          <Link
-            href="/support"
-            onClick={onNavigate}
-            className="group flex h-10 w-10 items-center justify-center rounded-lg border border-white/15 text-white transition duration-200 hover:border-white/30 hover:bg-white/15"
-            aria-label="Get support"
-          >
-            <LifeBuoy className="h-5 w-5 group-hover:scale-110" aria-hidden="true" />
-          </Link>
-          <Link
-            href="/logout"
-            onClick={onNavigate}
-            className="group flex h-10 w-10 items-center justify-center rounded-lg border border-white/15 text-white transition duration-200 hover:border-white/30 hover:bg-white/15"
-            aria-label="Log out"
-          >
-            <LogOut className="h-5 w-5 group-hover:-translate-x-0.5" aria-hidden="true" />
-          </Link>
+            <Globe className="h-4 w-4 group-hover:rotate-12" aria-hidden="true" />
+            Marketing Site
+          </a>
         </div>
       </div>
     </aside>
