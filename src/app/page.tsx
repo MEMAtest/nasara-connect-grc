@@ -1,0 +1,629 @@
+'use client'
+
+import { motion, useInView } from 'framer-motion'
+import { useRef, useState, useEffect } from 'react'
+import {
+  ArrowRight,
+  Shield,
+  Sparkles,
+  PlayCircle,
+  ChevronRight,
+  CheckCircle2,
+  Brain,
+  Activity,
+  Database,
+  Network,
+  Zap,
+  Lock,
+  FileCheck,
+  TrendingUp,
+  AlertCircle,
+  BarChart3
+} from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import Link from 'next/link'
+
+// 3D Illustration Components
+import dynamic from 'next/dynamic'
+
+const ComplianceEcosystem3D = dynamic(() => import('@/components/landing/3d/ComplianceEcosystem3D'), { ssr: false })
+const IntelligenceEngine3D = dynamic(() => import('@/components/landing/3d/IntelligenceEngine3D'), { ssr: false })
+const WorkflowEngine3D = dynamic(() => import('@/components/landing/3d/WorkflowEngine3D'), { ssr: false })
+const GovernanceFramework3D = dynamic(() => import('@/components/landing/3d/GovernanceFramework3D'), { ssr: false })
+
+export default function LandingPage() {
+  return (
+    <div className="relative overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
+      {/* Navigation */}
+      <Navigation />
+
+      {/* Hero Section */}
+      <HeroSection />
+
+      {/* Client Logos */}
+      <ClientLogosSection />
+
+      {/* Regulatory Intelligence */}
+      <IntelligenceSection />
+
+      {/* Risk & Reconciliation */}
+      <ReconciliationSection />
+
+      {/* Governance */}
+      <GovernanceSection />
+
+      {/* Final CTA */}
+      <FinalCTASection />
+
+      {/* Footer */}
+      <Footer />
+    </div>
+  )
+}
+
+function Navigation() {
+  const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 50)
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  return (
+    <motion.nav
+      initial={{ y: -100 }}
+      animate={{ y: 0 }}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        scrolled
+          ? 'bg-slate-950/90 backdrop-blur-xl border-b border-slate-800'
+          : 'bg-transparent'
+      }`}
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-20">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/50">
+              <Shield className="w-6 h-6 text-white" />
+            </div>
+            <span className="text-2xl font-bold text-white">
+              MEMA Connect
+            </span>
+          </div>
+
+          <div className="hidden md:flex items-center space-x-8">
+            <a href="#intelligence" className="text-slate-300 hover:text-emerald-400 transition-colors text-sm font-medium">Intelligence</a>
+            <a href="#automation" className="text-slate-300 hover:text-emerald-400 transition-colors text-sm font-medium">Automation</a>
+            <a href="#governance" className="text-slate-300 hover:text-emerald-400 transition-colors text-sm font-medium">Governance</a>
+            <Link href="/authorization-pack">
+              <Button variant="ghost" className="text-slate-300 hover:text-white">
+                Sign In
+              </Button>
+            </Link>
+            <Button className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 shadow-lg shadow-emerald-500/50">
+              Request Demo
+              <ArrowRight className="ml-2 w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      </div>
+    </motion.nav>
+  )
+}
+
+function HeroSection() {
+  return (
+    <section className="relative min-h-screen flex items-center pt-20 px-4 overflow-hidden">
+      {/* Gradient Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950/20" />
+
+      {/* Ambient Glow */}
+      <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl" />
+      <div className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
+
+      <div className="relative z-10 max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
+        {/* Left: Text Column */}
+        <motion.div
+          initial={{ opacity: 0, x: -50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8 }}
+          className="space-y-8"
+        >
+          <div>
+            <Badge className="mb-4 bg-emerald-500/10 text-emerald-400 border-emerald-500/30 backdrop-blur-sm">
+              <Sparkles className="w-3 h-3 mr-1" />
+              Next-Generation Compliance Platform
+            </Badge>
+
+            <h1 className="text-5xl lg:text-7xl font-bold mb-6 leading-tight">
+              <span className="text-white">Future-Proof Your Firm with </span>
+              <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
+                Intelligent Compliance
+              </span>
+            </h1>
+
+            <p className="text-xl text-slate-400 leading-relaxed mb-8">
+              MEMA Connect is the AI-powered platform that transforms regulatory chaos into strategic advantage,
+              ensuring precision, resilience, and growth.
+            </p>
+          </div>
+
+          {/* Key Value Props */}
+          <div className="space-y-4">
+            {[
+              { icon: Brain, text: 'Automated Regulatory Intelligence' },
+              { icon: Activity, text: 'Predictive Risk Mitigation' },
+              { icon: Lock, text: 'Audit-Ready Governance' }
+            ].map((item, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 + i * 0.1, duration: 0.5 }}
+                className="flex items-center gap-3"
+              >
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 flex items-center justify-center">
+                  <item.icon className="w-5 h-5 text-emerald-400" />
+                </div>
+                <span className="text-slate-200 font-medium">{item.text}</span>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* CTAs */}
+          <div className="flex flex-col sm:flex-row gap-4">
+            <Button size="lg" className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 shadow-lg shadow-emerald-500/50 text-lg px-8">
+              Request a Demo
+              <ArrowRight className="ml-2 w-5 h-5" />
+            </Button>
+            <Button size="lg" variant="outline" className="border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white text-lg px-8">
+              <PlayCircle className="mr-2 w-5 h-5" />
+              Explore Platform
+            </Button>
+          </div>
+        </motion.div>
+
+        {/* Right: 3D Ecosystem Visual */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1, delay: 0.3 }}
+          className="relative h-[600px]"
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent rounded-3xl" />
+          <ComplianceEcosystem3D />
+
+          {/* Floating Compliance Score */}
+          <motion.div
+            animate={{ y: [-10, 10, -10] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute top-10 right-10 bg-slate-900/90 backdrop-blur-xl border border-emerald-500/30 rounded-2xl p-6 shadow-2xl shadow-emerald-500/20"
+          >
+            <div className="text-sm text-slate-400 mb-1">Compliance Score</div>
+            <div className="text-4xl font-bold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">98%</div>
+            <div className="flex items-center gap-1 mt-2 text-emerald-400 text-xs">
+              <TrendingUp className="w-3 h-3" />
+              <span>+5% this month</span>
+            </div>
+          </motion.div>
+        </motion.div>
+      </div>
+    </section>
+  )
+}
+
+function ClientLogosSection() {
+  const logos = [
+    'Tier 1 Bank', 'Leading FinTech', 'Global Issuer', 'Payment Provider',
+    'Asset Manager', 'Digital Bank'
+  ]
+
+  return (
+    <section className="py-20 px-4 border-y border-slate-800 bg-slate-900/50">
+      <div className="max-w-7xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-center mb-12"
+        >
+          <h2 className="text-2xl font-bold text-white mb-2">
+            Trusted by Forward-Thinking Financial Institutions
+          </h2>
+          <a href="#" className="text-emerald-400 hover:text-emerald-300 text-sm inline-flex items-center gap-1">
+            Read Our Case Studies
+            <ChevronRight className="w-4 h-4" />
+          </a>
+        </motion.div>
+
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8">
+          {logos.map((logo, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1 }}
+              className="flex items-center justify-center p-6 rounded-xl bg-slate-800/50 border border-slate-700 hover:border-emerald-500/50 transition-all group"
+            >
+              <span className="text-slate-400 group-hover:text-slate-300 font-medium text-sm text-center">
+                {logo}
+              </span>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function IntelligenceSection() {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: "-100px" })
+
+  return (
+    <section id="intelligence" ref={ref} className="py-32 px-4 relative overflow-hidden">
+      {/* Background */}
+      <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-blue-950/20 to-slate-950" />
+
+      <div className="relative z-10 max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
+        {/* Left: 3D Intelligence Engine */}
+        <motion.div
+          initial={{ opacity: 0, x: -50 }}
+          animate={isInView ? { opacity: 1, x: 0 } : {}}
+          transition={{ duration: 0.8 }}
+          className="relative h-[500px]"
+        >
+          <IntelligenceEngine3D />
+        </motion.div>
+
+        {/* Right: Text Column */}
+        <motion.div
+          initial={{ opacity: 0, x: 50 }}
+          animate={isInView ? { opacity: 1, x: 0 } : {}}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="space-y-6"
+        >
+          <div>
+            <h2 className="text-4xl lg:text-5xl font-bold text-white mb-4 leading-tight">
+              Regulatory Intelligence, <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">Decoded</span>
+            </h2>
+            <p className="text-xl text-slate-400 leading-relaxed">
+              From millions of data points, MEMA Connect distills actionable insights, empowering proactive
+              decision-making and strategic resilience.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            {[
+              {
+                icon: AlertCircle,
+                title: 'Predictive Alerting',
+                desc: 'Receive early warnings on emerging risks and regulatory shifts before they impact your business.'
+              },
+              {
+                icon: BarChart3,
+                title: 'Impact Analysis',
+                desc: 'Understand the precise implications of new regulations on your firm\'s specific operations.'
+              },
+              {
+                icon: Network,
+                title: 'Global Horizon Scanning',
+                desc: 'Track global regulatory landscapes, not just local, to anticipate future challenges.'
+              }
+            ].map((feature, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ delay: 0.4 + i * 0.1, duration: 0.5 }}
+                className="flex gap-4 p-4 rounded-xl bg-slate-800/30 border border-slate-700/50 hover:border-blue-500/50 transition-all"
+              >
+                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-blue-500/30 flex items-center justify-center flex-shrink-0">
+                  <feature.icon className="w-6 h-6 text-blue-400" />
+                </div>
+                <div>
+                  <h3 className="text-white font-semibold mb-1">{feature.title}</h3>
+                  <p className="text-slate-400 text-sm">{feature.desc}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          <Button className="bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 shadow-lg shadow-blue-500/50">
+            See Intelligence in Action
+            <ArrowRight className="ml-2 w-4 h-4" />
+          </Button>
+        </motion.div>
+      </div>
+    </section>
+  )
+}
+
+function ReconciliationSection() {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: "-100px" })
+
+  return (
+    <section id="automation" ref={ref} className="py-32 px-4 bg-slate-900/50">
+      <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
+        {/* Left: Text Column */}
+        <motion.div
+          initial={{ opacity: 0, x: -50 }}
+          animate={isInView ? { opacity: 1, x: 0 } : {}}
+          transition={{ duration: 0.8 }}
+          className="space-y-6"
+        >
+          <div>
+            <h2 className="text-4xl lg:text-5xl font-bold text-white mb-4 leading-tight">
+              <span className="bg-gradient-to-r from-orange-400 to-rose-400 bg-clip-text text-transparent">Precision</span> Automation for Complex Workflows
+            </h2>
+            <p className="text-xl text-slate-400 leading-relaxed">
+              MEMA Connect automates complex financial reconciliations, identifies anomalies with surgical precision,
+              and orchestrates remediation workflows, saving hours and minimizing errors.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            {[
+              {
+                icon: Database,
+                title: 'Dynamic Reconciliation Rules',
+                desc: 'Configure custom rules for various fund types and regulatory requirements.'
+              },
+              {
+                icon: Zap,
+                title: 'Automated Anomaly Detection',
+                desc: 'Leverage AI to flag genuine shortfalls from timing differences, reducing false positives.'
+              },
+              {
+                icon: Activity,
+                title: 'Streamlined Remediation',
+                desc: 'Automate top-up workflows and generate immutable audit trails for every action.'
+              }
+            ].map((feature, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ delay: 0.2 + i * 0.1, duration: 0.5 }}
+                className="flex gap-4 p-4 rounded-xl bg-slate-800/30 border border-slate-700/50 hover:border-orange-500/50 transition-all"
+              >
+                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-orange-500/20 to-rose-500/20 border border-orange-500/30 flex items-center justify-center flex-shrink-0">
+                  <feature.icon className="w-6 h-6 text-orange-400" />
+                </div>
+                <div>
+                  <h3 className="text-white font-semibold mb-1">{feature.title}</h3>
+                  <p className="text-slate-400 text-sm">{feature.desc}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          <Button className="bg-gradient-to-r from-orange-500 to-rose-600 hover:from-orange-600 hover:to-rose-700 shadow-lg shadow-orange-500/50">
+            Learn More About Automation
+            <ArrowRight className="ml-2 w-4 h-4" />
+          </Button>
+        </motion.div>
+
+        {/* Right: 3D Workflow Engine */}
+        <motion.div
+          initial={{ opacity: 0, x: 50 }}
+          animate={isInView ? { opacity: 1, x: 0 } : {}}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="relative h-[500px]"
+        >
+          <WorkflowEngine3D />
+
+          {/* Floating Stats */}
+          <motion.div
+            animate={{ y: [-10, 10, -10] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute bottom-10 left-10 bg-slate-900/90 backdrop-blur-xl border border-orange-500/30 rounded-2xl p-6 shadow-2xl shadow-orange-500/20"
+          >
+            <div className="text-sm text-slate-400 mb-1">Reconciliation Match</div>
+            <div className="text-4xl font-bold bg-gradient-to-r from-orange-400 to-rose-400 bg-clip-text text-transparent">99.8%</div>
+            <div className="flex items-center gap-1 mt-2 text-green-400 text-xs">
+              <CheckCircle2 className="w-3 h-3" />
+              <span>All checks passed</span>
+            </div>
+          </motion.div>
+        </motion.div>
+      </div>
+    </section>
+  )
+}
+
+function GovernanceSection() {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: "-100px" })
+
+  return (
+    <section id="governance" ref={ref} className="py-32 px-4 relative overflow-hidden">
+      {/* Background */}
+      <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-purple-950/20 to-slate-950" />
+
+      <div className="relative z-10 max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
+        {/* Left: 3D Governance Framework */}
+        <motion.div
+          initial={{ opacity: 0, x: -50 }}
+          animate={isInView ? { opacity: 1, x: 0 } : {}}
+          transition={{ duration: 0.8 }}
+          className="relative h-[500px]"
+        >
+          <GovernanceFramework3D />
+        </motion.div>
+
+        {/* Right: Text Column */}
+        <motion.div
+          initial={{ opacity: 0, x: 50 }}
+          animate={isInView ? { opacity: 1, x: 0 } : {}}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="space-y-6"
+        >
+          <div>
+            <h2 className="text-4xl lg:text-5xl font-bold text-white mb-4 leading-tight">
+              Unshakeable Governance. <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Seamless Audits</span>
+            </h2>
+            <p className="text-xl text-slate-400 leading-relaxed">
+              MEMA Connect provides the robust framework you need for comprehensive policy management,
+              clear record-keeping, and irrefutable audit trails.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            {[
+              {
+                icon: FileCheck,
+                title: 'Policy Lifecycle Management',
+                desc: 'Track policies from creation to review, ensuring continuous compliance.'
+              },
+              {
+                icon: Shield,
+                title: 'Acknowledgement Letter Toolkit',
+                desc: 'End-to-end management and tracking for all safeguarding acknowledgements.'
+              },
+              {
+                icon: Lock,
+                title: 'Automated Audit Trails',
+                desc: 'Generate comprehensive, immutable records to simplify regulatory scrutiny.'
+              },
+              {
+                icon: Database,
+                title: 'Resolution Pack Readiness',
+                desc: 'Ensure orderly client payouts with clean, exportable data in a wind-down scenario.'
+              }
+            ].map((feature, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ delay: 0.4 + i * 0.1, duration: 0.5 }}
+                className="flex gap-4 p-4 rounded-xl bg-slate-800/30 border border-slate-700/50 hover:border-purple-500/50 transition-all"
+              >
+                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30 flex items-center justify-center flex-shrink-0">
+                  <feature.icon className="w-6 h-6 text-purple-400" />
+                </div>
+                <div>
+                  <h3 className="text-white font-semibold mb-1">{feature.title}</h3>
+                  <p className="text-slate-400 text-sm">{feature.desc}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          <Button className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 shadow-lg shadow-purple-500/50">
+            Explore Governance Tools
+            <ArrowRight className="ml-2 w-4 h-4" />
+          </Button>
+        </motion.div>
+      </div>
+    </section>
+  )
+}
+
+function FinalCTASection() {
+  return (
+    <section className="py-32 px-4 relative overflow-hidden">
+      {/* Immersive Dark Background */}
+      <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-emerald-950/30 to-slate-950" />
+      <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5" />
+
+      {/* Ambient Glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-500/10 rounded-full blur-3xl" />
+
+      <div className="relative z-10 max-w-5xl mx-auto text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+        >
+          <Badge className="mb-6 bg-emerald-500/10 text-emerald-400 border-emerald-500/30 backdrop-blur-sm text-base px-4 py-2">
+            <Sparkles className="w-4 h-4 mr-2" />
+            Transform Your Compliance Operations
+          </Badge>
+
+          <h2 className="text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
+            Experience the Future of Compliance
+          </h2>
+
+          <p className="text-2xl text-slate-400 mb-12 max-w-3xl mx-auto leading-relaxed">
+            Discover how our AI-powered platform can transform your firm&apos;s regulatory operations
+            and strategic advantage.
+          </p>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Button size="lg" className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 shadow-lg shadow-emerald-500/50 text-xl px-10 py-7">
+              Request a Demo
+              <ArrowRight className="ml-2 w-6 h-6" />
+            </Button>
+            <Button size="lg" variant="outline" className="border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white text-xl px-10 py-7">
+              Contact Sales
+            </Button>
+          </div>
+
+          <p className="text-slate-500 mt-8 text-sm">
+            Join 500+ financial institutions already transforming their compliance operations
+          </p>
+        </motion.div>
+      </div>
+    </section>
+  )
+}
+
+function Footer() {
+  return (
+    <footer className="bg-slate-950 border-t border-slate-800 py-12 px-4">
+      <div className="max-w-7xl mx-auto">
+        <div className="grid md:grid-cols-4 gap-8 mb-8">
+          <div>
+            <div className="flex items-center space-x-2 mb-4">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+                <Shield className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-white font-bold text-lg">MEMA Connect</span>
+            </div>
+            <p className="text-slate-400 text-sm">
+              Next-generation compliance platform for modern financial institutions.
+            </p>
+          </div>
+
+          <div>
+            <h4 className="text-white font-semibold mb-4">Product</h4>
+            <ul className="space-y-2 text-sm">
+              <li><a href="#" className="text-slate-400 hover:text-emerald-400 transition-colors">Intelligence</a></li>
+              <li><a href="#" className="text-slate-400 hover:text-emerald-400 transition-colors">Automation</a></li>
+              <li><a href="#" className="text-slate-400 hover:text-emerald-400 transition-colors">Governance</a></li>
+              <li><a href="#" className="text-slate-400 hover:text-emerald-400 transition-colors">Integrations</a></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="text-white font-semibold mb-4">Company</h4>
+            <ul className="space-y-2 text-sm">
+              <li><a href="#" className="text-slate-400 hover:text-emerald-400 transition-colors">About</a></li>
+              <li><a href="#" className="text-slate-400 hover:text-emerald-400 transition-colors">Case Studies</a></li>
+              <li><a href="#" className="text-slate-400 hover:text-emerald-400 transition-colors">Careers</a></li>
+              <li><a href="#" className="text-slate-400 hover:text-emerald-400 transition-colors">Contact</a></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="text-white font-semibold mb-4">Legal</h4>
+            <ul className="space-y-2 text-sm">
+              <li><a href="#" className="text-slate-400 hover:text-emerald-400 transition-colors">Privacy</a></li>
+              <li><a href="#" className="text-slate-400 hover:text-emerald-400 transition-colors">Terms</a></li>
+              <li><a href="#" className="text-slate-400 hover:text-emerald-400 transition-colors">Security</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="border-t border-slate-800 pt-8 text-center">
+          <p className="text-slate-500 text-sm">&copy; 2025 MEMA Connect. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
+  )
+}

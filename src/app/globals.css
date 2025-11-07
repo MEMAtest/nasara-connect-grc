@@ -120,3 +120,22 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* 3D Effects and Perspectives */
+@layer utilities {
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+
+  .perspective-2000 {
+    perspective: 2000px;
+  }
+
+  .transform-gpu {
+    transform: translate3d(0, 0, 0);
+  }
+
+  .shadow-3xl {
+    box-shadow: 0 35px 60px -15px rgba(0, 0, 0, 0.3);
+  }
+}

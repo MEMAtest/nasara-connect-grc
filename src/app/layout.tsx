@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Nasara Connect Dashboard",
-  description: "Governance, risk, and compliance command center for Nasara Connect.",
+  title: "Nasara Connect - Complete GRC Platform for Modern Finance",
+  description: "Streamline governance, risk, and compliance with AI-powered tools built for SME firms, fintechs, and financial services providers. Real-time payment monitoring, risk assessment, control frameworks, and FCA authorization support.",
 };
 
 export default function RootLayout({
