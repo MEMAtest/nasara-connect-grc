@@ -3,40 +3,34 @@
  * Handles CRUD operations for firm profiles
  */
 
+import { pool } from '../database';
 import type {
   FirmProfile,
   FirmProfileCreate,
   FirmAttributes,
   FirmBranding,
 } from '../policies/types';
+import type { QueryResult } from 'pg';
 
 // =====================================================
-// DATABASE CLIENT (Placeholder - replace with your DB client)
+// DATABASE CLIENT
 // =====================================================
 
-// This is a placeholder. Replace with your actual database client:
-// import { db } from './db';
-// import { Pool } from 'pg';
-// etc.
-
-// For now, we'll use a mock implementation that you can replace
 interface DatabaseClient {
-  query: (sql: string, params: any[]) => Promise<{ rows: any[] }>;
+  query: <T = any>(sql: string, params: any[]) => Promise<QueryResult<T>>;
 }
 
-// Mock database client - REPLACE THIS with your actual DB client
-let dbClient: DatabaseClient | null = null;
+const defaultDbClient: DatabaseClient = {
+  query: (sql, params) => pool.query(sql, params),
+};
 
-export function setDatabaseClient(client: DatabaseClient) {
-  dbClient = client;
+let dbClient: DatabaseClient = defaultDbClient;
+
+export function setDatabaseClient(client?: DatabaseClient) {
+  dbClient = client ?? defaultDbClient;
 }
 
 function getDbClient(): DatabaseClient {
-  if (!dbClient) {
-    throw new Error(
-      'Database client not initialized. Call setDatabaseClient() first or replace with your DB client.'
-    );
-  }
   return dbClient;
 }
 

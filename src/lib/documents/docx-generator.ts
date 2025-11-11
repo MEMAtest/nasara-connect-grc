@@ -236,6 +236,10 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } {
 export function generateDocx(options: DocumentGenerationOptions): Document {
   const { policyTitle, policyVersion, firmName, branding, clauses, metadata, watermark } =
     options;
+  const primaryHex = branding?.primary_color ?? '#4F46E5';
+  const normalizedPrimaryColor =
+    primaryHex.replace('#', '').trim().toUpperCase() || '4F46E5';
+  const documentFont = branding?.font ?? 'Calibri';
 
   const sections: any[] = [];
 
@@ -489,7 +493,7 @@ export function generateDocx(options: DocumentGenerationOptions): Document {
                 indent: { left: convertInchesToTwip(0.5) },
                 border: {
                   left: {
-                    color: branding.primary_color.replace('#', ''),
+                    color: normalizedPrimaryColor,
                     space: 1,
                     style: BorderStyle.SINGLE,
                     size: 12,
@@ -555,7 +559,7 @@ export function generateDocx(options: DocumentGenerationOptions): Document {
       default: {
         document: {
           run: {
-            font: branding.font || 'Calibri',
+            font: documentFont,
             size: 22, // 11pt
           },
           paragraph: {
@@ -574,7 +578,7 @@ export function generateDocx(options: DocumentGenerationOptions): Document {
           basedOn: 'Normal',
           next: 'Normal',
           run: {
-            color: branding.primary_color.replace('#', ''),
+            color: normalizedPrimaryColor,
             size: 32, // 16pt
             bold: true,
           },
@@ -588,7 +592,7 @@ export function generateDocx(options: DocumentGenerationOptions): Document {
           basedOn: 'Normal',
           next: 'Normal',
           run: {
-            color: branding.primary_color.replace('#', ''),
+            color: normalizedPrimaryColor,
             size: 28, // 14pt
             bold: true,
           },

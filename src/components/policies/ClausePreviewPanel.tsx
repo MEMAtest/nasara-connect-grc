@@ -6,6 +6,8 @@
  */
 
 import { useMemo, useState } from 'react'
+import DOMPurify from 'dompurify'
+import { marked } from 'marked'
 import { renderClause } from '@/lib/policies/liquid-renderer'
 import type { Clause, RulesEngineResult } from '@/lib/policies/types'
 
@@ -204,7 +206,7 @@ export default function ClausePreviewPanel({
                   <div className="prose prose-invert prose-sm max-w-none">
                     <div
                       className="text-slate-300 leading-relaxed whitespace-pre-wrap"
-                      dangerouslySetInnerHTML={{ __html: formatMarkdown(clause.rendered_body) }}
+                      dangerouslySetInnerHTML={{ __html: renderMarkdown(clause.rendered_body) }}
                     />
                   </div>
 
@@ -259,28 +261,12 @@ export default function ClausePreviewPanel({
   )
 }
 
-// Simple Markdown-to-HTML formatter
-function formatMarkdown(markdown: string): string {
-  let html = markdown;
+function renderMarkdown(markdown: string): string {
+  const raw = marked.parse(markdown ?? '', {
+    gfm: true,
+    breaks: true,
+  });
 
-  // Headers
-  html = html.replace(/^### (.*$)/gim, '<h3 class="text-lg font-semibold text-slate-200 mt-4 mb-2">$1</h3>');
-  html = html.replace(/^## (.*$)/gim, '<h2 class="text-xl font-semibold text-slate-100 mt-6 mb-3">$1</h2>');
-  html = html.replace(/^# (.*$)/gim, '<h1 class="text-2xl font-bold text-slate-100 mt-8 mb-4">$1</h1>');
-
-  // Bold
-  html = html.replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-slate-200">$1</strong>');
-
-  // Italic
-  html = html.replace(/\*(.*?)\*/g, '<em class="italic">$1</em>');
-
-  // Lists
-  html = html.replace(/^\- (.*$)/gim, '<li class="ml-4">$1</li>');
-  html = html.replace(/(<li.*<\/li>)/s, '<ul class="list-disc list-inside space-y-1 my-2">$1</ul>');
-
-  // Line breaks
-  html = html.replace(/\n\n/g, '</p><p class="mb-3">');
-  html = '<p class="mb-3">' + html + '</p>';
-
-  return html;
+  const html = typeof raw === 'string' ? raw : ''
+  return DOMPurify.sanitize(html)
 }

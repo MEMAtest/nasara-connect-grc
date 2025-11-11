@@ -67,11 +67,15 @@ export function useWizardState({
         setIsLoading(true);
         setError(null);
 
+        let combinedAnswers: Record<string, any> = {};
+
         // Load firm defaults
         const defaultsResponse = await fetch(`/api/firms/${firmId}/defaults`);
         if (defaultsResponse.ok) {
           const { defaults } = await defaultsResponse.json();
-          setAnswers(defaults);
+          if (defaults && typeof defaults === 'object') {
+            combinedAnswers = { ...defaults };
+          }
         }
 
         // If runId exists, load existing answers
@@ -79,10 +83,15 @@ export function useWizardState({
           const runResponse = await fetch(`/api/runs/${runId}`);
           if (runResponse.ok) {
             const run = await runResponse.json();
-            setAnswers(run.answers || {});
+            combinedAnswers = {
+              ...combinedAnswers,
+              ...(run.answers || {}),
+            };
             setLastSavedAt(run.last_saved_at || null);
           }
         }
+
+        setAnswers(combinedAnswers);
       } catch (err) {
         console.error('Error initializing wizard:', err);
         setError(err instanceof Error ? err.message : 'Failed to initialize wizard');
