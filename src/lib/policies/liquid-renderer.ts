@@ -15,52 +15,63 @@ export function renderLiquidTemplate(
   context: Record<string, any>
 ): string {
   let output = template;
+  let hasChanges = true;
+  let iterations = 0;
+  const maxIterations = 10; // Prevent infinite loops
 
-  // Process conditionals: {% if variable %}...{% endif %}
-  output = output.replace(
-    /{%\s*if\s+(\w+)\s*%}([\s\S]*?){%\s*endif\s*%}/g,
-    (match, variable, content) => {
+  // Process templates iteratively to handle nested structures
+  while (hasChanges && iterations < maxIterations) {
+    hasChanges = false;
+    iterations++;
+
+    // Process conditionals: {% if variable %}...{% endif %}
+    // Use non-global regex and loop to process from innermost first
+    const ifMatch = /{%\s*if\s+(\w+)\s*%}([\s\S]*?){%\s*endif\s*%}/.exec(output);
+    if (ifMatch) {
+      const [match, variable, content] = ifMatch;
       const value = context[variable];
-      // Truthy check
-      if (value) {
-        return content;
-      }
-      return '';
+      // Truthy check - if true, keep content, else remove
+      const replacement = value ? content : '';
+      output = output.substring(0, ifMatch.index) + replacement + output.substring(ifMatch.index + match.length);
+      hasChanges = true;
+      continue;
     }
-  );
 
-  // Process negation conditionals: {% unless variable %}...{% endunless %}
-  output = output.replace(
-    /{%\s*unless\s+(\w+)\s*%}([\s\S]*?){%\s*endunless\s*%}/g,
-    (match, variable, content) => {
+    // Process negation conditionals: {% unless variable %}...{% endunless %}
+    const unlessMatch = /{%\s*unless\s+(\w+)\s*%}([\s\S]*?){%\s*endunless\s*%}/.exec(output);
+    if (unlessMatch) {
+      const [match, variable, content] = unlessMatch;
       const value = context[variable];
-      // Falsy check
-      if (!value) {
-        return content;
-      }
-      return '';
+      // Falsy check - if false, keep content, else remove
+      const replacement = !value ? content : '';
+      output = output.substring(0, unlessMatch.index) + replacement + output.substring(unlessMatch.index + match.length);
+      hasChanges = true;
+      continue;
     }
-  );
 
-  // Process loops: {% for item in items %}...{% endfor %}
-  output = output.replace(
-    /{%\s*for\s+(\w+)\s+in\s+(\w+)\s*%}([\s\S]*?){%\s*endfor\s*%}/g,
-    (match, itemName, arrayName, content) => {
+    // Process loops: {% for item in items %}...{% endfor %}
+    const forMatch = /{%\s*for\s+(\w+)\s+in\s+(\w+)\s*%}([\s\S]*?){%\s*endfor\s*%}/.exec(output);
+    if (forMatch) {
+      const [match, itemName, arrayName, content] = forMatch;
       const array = context[arrayName];
-      if (!Array.isArray(array)) {
-        return '';
+      let replacement = '';
+
+      if (Array.isArray(array)) {
+        replacement = array
+          .map((item) => {
+            // Create a new context with the loop item
+            const loopContext = { ...context, [itemName]: item };
+            // Recursively render the content
+            return renderLiquidTemplate(content, loopContext);
+          })
+          .join('');
       }
 
-      return array
-        .map((item) => {
-          // Create a new context with the loop item
-          const loopContext = { ...context, [itemName]: item };
-          // Recursively render the content
-          return renderLiquidTemplate(content, loopContext);
-        })
-        .join('');
+      output = output.substring(0, forMatch.index) + replacement + output.substring(forMatch.index + match.length);
+      hasChanges = true;
+      continue;
     }
-  );
+  }
 
   // Process variable interpolation: {{ variable_name }}
   output = output.replace(/{{\s*(\w+(?:\.\w+)*)\s*}}/g, (match, path) => {
