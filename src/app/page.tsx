@@ -97,6 +97,11 @@ function Navigation() {
             <a href="#intelligence" className="text-slate-300 hover:text-emerald-400 transition-colors text-sm font-medium">Intelligence</a>
             <a href="#automation" className="text-slate-300 hover:text-emerald-400 transition-colors text-sm font-medium">Automation</a>
             <a href="#governance" className="text-slate-300 hover:text-emerald-400 transition-colors text-sm font-medium">Governance</a>
+            <Link href="/dashboard">
+              <Button variant="ghost" className="text-slate-300 hover:text-white">
+                Dashboard
+              </Button>
+            </Link>
             <Link href="/authorization-pack">
               <Button variant="ghost" className="text-slate-300 hover:text-white">
                 Sign In
