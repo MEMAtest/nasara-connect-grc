@@ -10,6 +10,7 @@ import { RiskForm } from "./components/RiskForm";
 import { RiskMetrics } from "./components/RiskMetrics";
 import { KRIManager } from "./components/KRIManager";
 import { RiskReporting } from "./components/RiskReporting";
+import { RiskControlCoverage } from "./components/RiskControlCoverage";
 import { RiskDetails } from "./components/RiskDetails";
 import { useRiskData } from "./hooks/useRiskData";
 import { useRiskCalculations } from "./hooks/useRiskCalculations";
@@ -261,11 +262,14 @@ export function RiskAssessmentClient() {
         <DialogContent className="max-w-4xl">
           <RiskDetails risk={selectedRisk} onClose={() => setIsDetailsOpen(false)}>
             {selectedRisk ? (
-              <KRIManager
-                riskId={selectedRisk.id}
-                kris={selectedRisk.keyRiskIndicators ?? []}
-                onUpdate={(next) => handleKriUpdate(selectedRisk.id, next)}
-              />
+              <div className="space-y-6">
+                <RiskControlCoverage riskId={selectedRisk.riskId} />
+                <KRIManager
+                  riskId={selectedRisk.id}
+                  kris={selectedRisk.keyRiskIndicators ?? []}
+                  onUpdate={(next) => handleKriUpdate(selectedRisk.id, next)}
+                />
+              </div>
             ) : null}
           </RiskDetails>
         </DialogContent>

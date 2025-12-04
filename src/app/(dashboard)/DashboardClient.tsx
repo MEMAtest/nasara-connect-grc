@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
-import { FileText, ShieldAlert, Sparkles } from "lucide-react";
+import { FileText, ShieldAlert, Sparkles, ClipboardList } from "lucide-react";
 import { ModuleCard } from "@/components/dashboard/module-card";
 import { ModuleCardSkeleton } from "@/components/dashboard/module-card-skeleton";
 import { MetricCard } from "@/components/dashboard/metric-card";
@@ -21,6 +21,8 @@ import {
 } from "@/lib/dashboard-data";
 import type { DashboardModule } from "@/lib/dashboard-data";
 import { usePolicyMetrics } from "@/lib/policies";
+import { useCmpSummary } from "./compliance-framework/cmp/hooks/useCmpSummary";
+import { DEFAULT_ORGANIZATION_ID } from "@/lib/constants";
 
 const ActivityFeed = dynamic(() => import("@/components/dashboard/activity-feed").then((mod) => mod.ActivityFeed), {
   ssr: false,
@@ -89,6 +91,7 @@ export function DashboardClient() {
   const [hasError, setHasError] = useState(false);
 
   const { metrics: policyMetrics, isLoading: isPolicyLoading, refresh: refreshPolicyMetrics } = usePolicyMetrics();
+  const { summary: cmpSummary } = useCmpSummary({ organizationId: DEFAULT_ORGANIZATION_ID });
 
   const policyMetricCard = useMemo(() => ({
     title: "Policy Completion",
@@ -102,6 +105,18 @@ export function DashboardClient() {
         : "orange") as "green" | "blue" | "purple" | "orange",
   }), [policyMetrics]);
 
+  const cmpMetricCard = useMemo(() => ({
+    title: "CMP Pass Rate",
+    value: cmpSummary ? `${Math.round(cmpSummary.avgPassRate * 100)}%` : "--",
+    change: null,
+    icon: ClipboardList,
+    color: (cmpSummary && cmpSummary.avgPassRate >= 0.9
+        ? "green"
+        : cmpSummary && cmpSummary.avgPassRate >= 0.75
+        ? "orange"
+        : "purple") as "green" | "blue" | "purple" | "orange",
+  }), [cmpSummary]);
+
   const moduleBlueprint = useMemo(() => {
     return dashboardModules.map((module) =>
       module.id === "policies"
@@ -111,13 +126,20 @@ export function DashboardClient() {
             alerts: policyMetrics.overduePolicies + policyMetrics.policyGaps,
             isLocked: false,
           }
+        : module.id === "complianceFramework"
+        ? {
+            ...module,
+            progress: cmpSummary ? Math.round(cmpSummary.avgPassRate * 100) : module.progress,
+            alerts: cmpSummary ? cmpSummary.overdue : module.alerts,
+            description: "Monitor CMP testing and link controls to risks",
+          }
         : module
     );
-  }, [policyMetrics]);
+  }, [policyMetrics, cmpSummary]);
 
   const metricsWithPolicy = useMemo(() => {
-    return [...dashboardMetrics, policyMetricCard];
-  }, [policyMetricCard]);
+    return [...dashboardMetrics, policyMetricCard, cmpMetricCard];
+  }, [policyMetricCard, cmpMetricCard]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {

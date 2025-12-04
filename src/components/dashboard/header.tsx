@@ -3,13 +3,8 @@
 import { FormEvent, useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  Bell,
-  Building2,
-  ChevronRight,
-  Menu,
-  Search,
-} from "lucide-react";
+import { useSession } from "next-auth/react";
+import { Building2, ChevronRight, Menu, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -21,17 +16,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import { CmpNotificationsBell } from "@/components/dashboard/CmpNotificationsBell";
 
 interface HeaderProps {
   onToggleSidebar?: () => void;
@@ -63,6 +53,7 @@ type BreadcrumbItem = {
 
 export function Header({ onToggleSidebar, isSidebarOpen }: HeaderProps) {
   const pathname = usePathname();
+  const { data: session } = useSession();
 
   const crumbs = useMemo(() => {
     const segments = pathname?.split("/").filter(Boolean) ?? [];
@@ -160,28 +151,7 @@ export function Header({ onToggleSidebar, isSidebarOpen }: HeaderProps) {
             />
           </form>
 
-          <TooltipProvider>
-            <Tooltip delayDuration={150}>
-              <TooltipTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="relative text-slate-600 transition hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-teal-400"
-                  aria-label="View notifications"
-                >
-                  <Bell className="h-5 w-5" aria-hidden="true" />
-                  <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-[10px] font-semibold text-white shadow-lg">
-                    3
-                  </span>
-                  <span className="absolute -top-2 -right-2 h-7 w-7 animate-ping rounded-full bg-rose-500/40" aria-hidden="true" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent sideOffset={6} className="text-xs font-medium text-slate-600">
-                New notifications
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <CmpNotificationsBell />
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -190,18 +160,22 @@ export function Header({ onToggleSidebar, isSidebarOpen }: HeaderProps) {
                 className="flex items-center gap-3 rounded-full px-2.5 py-1.5 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-100"
               >
                 <Avatar className="h-9 w-9 border border-teal-100 shadow-sm">
-                  <AvatarImage src="https://i.pravatar.cc/100?img=12" alt="Regina Miles" />
-                  <AvatarFallback className="bg-teal-600 text-white">RM</AvatarFallback>
+                  <AvatarImage src={session?.user?.image || undefined} alt={session?.user?.name || "User"} />
+                  <AvatarFallback className="bg-teal-600 text-white">
+                    {session?.user?.name?.charAt(0).toUpperCase() || "U"}
+                  </AvatarFallback>
                 </Avatar>
                 <div className="hidden flex-col leading-tight sm:flex">
-                  <span className="font-semibold">Regina Miles</span>
+                  <span className="font-semibold">{session?.user?.name || "User"}</span>
                   <span className="text-xs text-slate-500">Nasara Connect</span>
                 </div>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end" forceMount>
               <DropdownMenuLabel>Signed in as</DropdownMenuLabel>
-              <DropdownMenuLabel className="text-sm font-semibold text-slate-700">regina.miles@nasara.co</DropdownMenuLabel>
+              <DropdownMenuLabel className="text-sm font-semibold text-slate-700">
+                {session?.user?.email || "user@example.com"}
+              </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
                 <DropdownMenuItem>Profile</DropdownMenuItem>
@@ -209,7 +183,11 @@ export function Header({ onToggleSidebar, isSidebarOpen }: HeaderProps) {
                 <DropdownMenuItem>Notifications</DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-rose-600 focus:text-rose-600">Sign out</DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/logout" className="text-rose-600 focus:text-rose-600 cursor-pointer">
+                  Sign out
+                </Link>
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

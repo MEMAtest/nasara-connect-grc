@@ -31,8 +31,9 @@ export default function FirmProfilePage() {
             Firm Profile Settings
           </h1>
           <p className="text-slate-400">
-            Configure your firm's attributes and branding preferences. These settings will
-            be used to pre-fill policy questionnaires and customize generated documents.
+            Configure your firm&apos;s attributes and branding preferences. These settings
+            will be used to pre-fill policy questionnaires and customize generated
+            documents.
           </p>
         </div>
 

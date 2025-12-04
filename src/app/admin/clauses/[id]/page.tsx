@@ -7,7 +7,6 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import type { Clause } from '@/lib/policies/types'
 
 export default function ClauseEditorPage() {
   const params = useParams()

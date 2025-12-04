@@ -7,7 +7,7 @@
 
 import { useState } from 'react'
 import { evaluateRules } from '@/lib/policies/rules-engine'
-import type { Rule, RuleCondition, RuleAction } from '@/lib/policies/types'
+import type { Rule, RuleCondition, RuleAction, JsonValue, RulesEngineResult } from '@/lib/policies/types'
 
 export default function RuleTestHarnessPage() {
   const [policyId, setPolicyId] = useState('aml')
@@ -24,7 +24,7 @@ export default function RuleTestHarnessPage() {
   "size": "medium"
 }`)
 
-  const [testResult, setTestResult] = useState<any>(null)
+  const [testResult, setTestResult] = useState<RulesEngineResult | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [testing, setTesting] = useState(false)
 
@@ -84,8 +84,8 @@ export default function RuleTestHarnessPage() {
       setTestResult(null)
 
       // Parse JSON inputs
-      let answers: Record<string, any>
-      let firmAttributes: Record<string, any> | undefined
+      let answers: Record<string, JsonValue>
+      let firmAttributes: Record<string, JsonValue> | undefined
 
       try {
         answers = JSON.parse(answersJson)
@@ -236,7 +236,7 @@ export default function RuleTestHarnessPage() {
                   </div>
                   <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
                     <div className="text-2xl font-bold text-blue-400">
-                      {testResult.rules_fired.filter((r: any) => r.condition_met).length}
+                      {testResult.rules_fired.filter((r) => r.condition_met).length}
                     </div>
                     <div className="text-sm text-blue-300">Rules Fired</div>
                   </div>
@@ -287,7 +287,7 @@ export default function RuleTestHarnessPage() {
                       Suggested Clauses
                     </h3>
                     <div className="space-y-2">
-                      {testResult.suggested_clauses.map((suggestion: any, i: number) => (
+                      {testResult.suggested_clauses.map((suggestion, i) => (
                         <div
                           key={i}
                           className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg"
@@ -331,7 +331,7 @@ export default function RuleTestHarnessPage() {
               <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl p-6">
                 <h2 className="text-xl font-semibold text-slate-200 mb-4">Rules Evaluation</h2>
                 <div className="space-y-3">
-                  {testResult.rules_fired.map((fired: any, i: number) => (
+                  {testResult.rules_fired.map((fired, i) => (
                     <div
                       key={i}
                       className={`p-4 rounded-lg border ${

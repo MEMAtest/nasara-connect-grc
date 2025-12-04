@@ -9,15 +9,16 @@ import type {
   FirmProfileCreate,
   FirmAttributes,
   FirmBranding,
+  JsonValue,
 } from '../policies/types';
-import type { QueryResult } from 'pg';
+import type { QueryResult, QueryResultRow } from 'pg';
 
 // =====================================================
 // DATABASE CLIENT
 // =====================================================
 
 interface DatabaseClient {
-  query: <T = any>(sql: string, params: any[]) => Promise<QueryResult<T>>;
+  query: (sql: string, params: unknown[]) => Promise<QueryResult<QueryResultRow>>;
 }
 
 const defaultDbClient: DatabaseClient = {
@@ -271,8 +272,8 @@ export async function listFirmProfiles(): Promise<FirmProfile[]> {
  */
 export function generateDefaultAnswers(
   attributes: FirmAttributes
-): Record<string, any> {
-  const defaults: Record<string, any> = {};
+): Record<string, JsonValue> {
+  const defaults: Record<string, JsonValue> = {};
 
   // Map firm attributes to common question codes
   // These mappings should align with your actual question codes
@@ -317,7 +318,7 @@ export function generateDefaultAnswers(
  */
 export async function getFirmDefaults(
   firmId: string
-): Promise<Record<string, any>> {
+): Promise<Record<string, JsonValue>> {
   const profile = await getFirmProfile(firmId);
 
   if (!profile) {
