@@ -1,0 +1,50 @@
+import { auth } from "@/auth"
+import { NextResponse } from "next/server"
+
+export default auth((req) => {
+  const { pathname } = req.nextUrl
+  const isLoggedIn = !!req.auth
+
+  // Define protected routes
+  const isProtectedRoute =
+    pathname.startsWith('/authorization-pack') ||
+    pathname.startsWith('/risk-assessment') ||
+    pathname.startsWith('/smcr') ||
+    pathname.startsWith('/policies') ||
+    pathname.startsWith('/compliance-framework') ||
+    pathname.startsWith('/training-library') ||
+    pathname.startsWith('/regulatory-news') ||
+    pathname.startsWith('/payments') ||
+    pathname.startsWith('/ai-chat') ||
+    pathname.startsWith('/settings') ||
+    pathname.startsWith('/support') ||
+    pathname.startsWith('/admin')
+
+  // Redirect to login if trying to access protected route while not logged in
+  if (isProtectedRoute && !isLoggedIn) {
+    const loginUrl = new URL('/auth/login', req.url)
+    loginUrl.searchParams.set('callbackUrl', pathname)
+    return NextResponse.redirect(loginUrl)
+  }
+
+  // Redirect to dashboard if trying to access login while already logged in
+  if (pathname === '/auth/login' && isLoggedIn) {
+    return NextResponse.redirect(new URL('/authorization-pack', req.url))
+  }
+
+  return NextResponse.next()
+})
+
+export const config = {
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api/auth (auth endpoints)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico, icon.png, apple-icon.png (favicon files)
+     * - public files (images, etc.)
+     */
+    '/((?!api/auth|_next/static|_next/image|favicon.ico|icon.png|apple-icon.png|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
+}

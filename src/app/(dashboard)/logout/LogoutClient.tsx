@@ -1,24 +1,17 @@
 "use client";
 
 import { useEffect } from "react";
+import { useSession, signOut } from "next-auth/react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LogOut, ArrowLeft, CheckCircle } from "lucide-react";
 
 export function LogoutClient() {
-  useEffect(() => {
-    // In a real app, this would clear auth tokens, session data, etc.
-    // For now, just simulate the logout process
-    console.log("Logout process initiated");
-  }, []);
+  const { data: session } = useSession();
 
-  const handleConfirmLogout = () => {
-    // In a real app, this would:
-    // 1. Clear authentication tokens
-    // 2. Clear local storage/session storage
-    // 3. Redirect to login page
-    // 4. Invalidate server session
-    alert("Logout functionality would be implemented here");
+  const handleConfirmLogout = async () => {
+    // Sign out using NextAuth and redirect to home page
+    await signOut({ callbackUrl: "/" });
   };
 
   const handleCancel = () => {
@@ -75,7 +68,7 @@ export function LogoutClient() {
 
           <div className="text-center pt-4 border-t">
             <p className="text-xs text-muted-foreground">
-              Signed in as <strong>regina.miles@nasara.co</strong>
+              Signed in as <strong>{session?.user?.email || "user@example.com"}</strong>
             </p>
           </div>
         </CardContent>
