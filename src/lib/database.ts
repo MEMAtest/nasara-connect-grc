@@ -186,6 +186,49 @@ export async function initDatabase() {
       CREATE INDEX IF NOT EXISTS idx_policy_triggers_org ON policy_triggers (organization_id, triggered_at DESC)
     `);
 
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS cmp_controls (
+        id TEXT PRIMARY KEY,
+        organization_id TEXT NOT NULL,
+        data JSONB NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_cmp_controls_org ON cmp_controls (organization_id)
+    `);
+
+    // Create case_studies table for landing page case studies
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS case_studies (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        title VARCHAR(255) NOT NULL,
+        subtitle VARCHAR(500),
+        description TEXT,
+        icon_key VARCHAR(100) NOT NULL DEFAULT 'network-nodes',
+        metrics JSONB DEFAULT '[]'::jsonb,
+        before_after JSONB DEFAULT '{}'::jsonb,
+        industry VARCHAR(100),
+        category VARCHAR(100),
+        display_name VARCHAR(100) NOT NULL,
+        sort_order INTEGER DEFAULT 0,
+        is_published BOOLEAN DEFAULT false,
+        featured BOOLEAN DEFAULT false,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_case_studies_published ON case_studies (is_published, sort_order)
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_case_studies_industry ON case_studies (industry)
+    `);
+
     // Database tables initialized successfully
   } catch (error) {
     // Log error for production monitoring - replace with proper logging service
@@ -832,6 +875,391 @@ export async function updateReportStatus(
       SET ${updates.join(', ')}
       WHERE id = $${values.length}
     `, values);
+  } finally {
+    client.release();
+  }
+}
+
+// Case Studies interfaces and CRUD operations
+export interface CaseStudyMetric {
+  label: string;
+  value: string;
+  description?: string;
+  icon?: string;
+}
+
+export interface BeforeAfterData {
+  before: {
+    label: string;
+    value: string;
+    details?: string[];
+  };
+  after: {
+    label: string;
+    value: string;
+    details?: string[];
+  };
+}
+
+export interface CaseStudy {
+  id: string;
+  title: string;
+  subtitle?: string;
+  description?: string;
+  iconKey: string;
+  metrics: CaseStudyMetric[];
+  beforeAfter?: BeforeAfterData;
+  industry?: string;
+  category?: string;
+  displayName: string;
+  sortOrder: number;
+  isPublished: boolean;
+  featured: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Transform database row to CaseStudy interface
+function transformCaseStudy(row: Record<string, unknown>): CaseStudy {
+  return {
+    id: row.id as string,
+    title: row.title as string,
+    subtitle: row.subtitle as string | undefined,
+    description: row.description as string | undefined,
+    iconKey: row.icon_key as string,
+    metrics: (row.metrics as CaseStudyMetric[]) || [],
+    beforeAfter: row.before_after as BeforeAfterData | undefined,
+    industry: row.industry as string | undefined,
+    category: row.category as string | undefined,
+    displayName: row.display_name as string,
+    sortOrder: row.sort_order as number,
+    isPublished: row.is_published as boolean,
+    featured: row.featured as boolean,
+    createdAt: row.created_at as Date,
+    updatedAt: row.updated_at as Date,
+  };
+}
+
+export async function getCaseStudies(publishedOnly: boolean = true): Promise<CaseStudy[]> {
+  const client = await pool.connect();
+
+  try {
+    const query = publishedOnly
+      ? `SELECT * FROM case_studies WHERE is_published = true ORDER BY sort_order ASC, created_at DESC`
+      : `SELECT * FROM case_studies ORDER BY sort_order ASC, created_at DESC`;
+
+    const result = await client.query(query);
+    return result.rows.map(transformCaseStudy);
+  } finally {
+    client.release();
+  }
+}
+
+export async function getCaseStudy(id: string): Promise<CaseStudy | null> {
+  const client = await pool.connect();
+
+  try {
+    const result = await client.query(
+      `SELECT * FROM case_studies WHERE id = $1`,
+      [id]
+    );
+
+    if (result.rows.length === 0) return null;
+    return transformCaseStudy(result.rows[0]);
+  } finally {
+    client.release();
+  }
+}
+
+export async function createCaseStudy(data: {
+  title: string;
+  subtitle?: string;
+  description?: string;
+  iconKey?: string;
+  metrics?: CaseStudyMetric[];
+  beforeAfter?: BeforeAfterData;
+  industry?: string;
+  category?: string;
+  displayName: string;
+  sortOrder?: number;
+  isPublished?: boolean;
+  featured?: boolean;
+}): Promise<CaseStudy> {
+  const client = await pool.connect();
+
+  try {
+    const result = await client.query(`
+      INSERT INTO case_studies (
+        title, subtitle, description, icon_key, metrics, before_after,
+        industry, category, display_name, sort_order, is_published, featured
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      RETURNING *
+    `, [
+      data.title,
+      data.subtitle || null,
+      data.description || null,
+      data.iconKey || 'network-nodes',
+      JSON.stringify(data.metrics || []),
+      JSON.stringify(data.beforeAfter || {}),
+      data.industry || null,
+      data.category || null,
+      data.displayName,
+      data.sortOrder || 0,
+      data.isPublished || false,
+      data.featured || false,
+    ]);
+
+    return transformCaseStudy(result.rows[0]);
+  } finally {
+    client.release();
+  }
+}
+
+export async function updateCaseStudy(
+  id: string,
+  data: Partial<Omit<CaseStudy, 'id' | 'createdAt' | 'updatedAt'>>
+): Promise<CaseStudy | null> {
+  const client = await pool.connect();
+
+  try {
+    // Build dynamic update query
+    const updates: string[] = [];
+    const values: unknown[] = [];
+    let paramIndex = 1;
+
+    if (data.title !== undefined) {
+      updates.push(`title = $${paramIndex++}`);
+      values.push(data.title);
+    }
+    if (data.subtitle !== undefined) {
+      updates.push(`subtitle = $${paramIndex++}`);
+      values.push(data.subtitle);
+    }
+    if (data.description !== undefined) {
+      updates.push(`description = $${paramIndex++}`);
+      values.push(data.description);
+    }
+    if (data.iconKey !== undefined) {
+      updates.push(`icon_key = $${paramIndex++}`);
+      values.push(data.iconKey);
+    }
+    if (data.metrics !== undefined) {
+      updates.push(`metrics = $${paramIndex++}`);
+      values.push(JSON.stringify(data.metrics));
+    }
+    if (data.beforeAfter !== undefined) {
+      updates.push(`before_after = $${paramIndex++}`);
+      values.push(JSON.stringify(data.beforeAfter));
+    }
+    if (data.industry !== undefined) {
+      updates.push(`industry = $${paramIndex++}`);
+      values.push(data.industry);
+    }
+    if (data.category !== undefined) {
+      updates.push(`category = $${paramIndex++}`);
+      values.push(data.category);
+    }
+    if (data.displayName !== undefined) {
+      updates.push(`display_name = $${paramIndex++}`);
+      values.push(data.displayName);
+    }
+    if (data.sortOrder !== undefined) {
+      updates.push(`sort_order = $${paramIndex++}`);
+      values.push(data.sortOrder);
+    }
+    if (data.isPublished !== undefined) {
+      updates.push(`is_published = $${paramIndex++}`);
+      values.push(data.isPublished);
+    }
+    if (data.featured !== undefined) {
+      updates.push(`featured = $${paramIndex++}`);
+      values.push(data.featured);
+    }
+
+    if (updates.length === 0) {
+      return getCaseStudy(id);
+    }
+
+    updates.push(`updated_at = NOW()`);
+    values.push(id);
+
+    const result = await client.query(`
+      UPDATE case_studies
+      SET ${updates.join(', ')}
+      WHERE id = $${paramIndex}
+      RETURNING *
+    `, values);
+
+    if (result.rows.length === 0) return null;
+    return transformCaseStudy(result.rows[0]);
+  } finally {
+    client.release();
+  }
+}
+
+export async function deleteCaseStudy(id: string): Promise<boolean> {
+  const client = await pool.connect();
+
+  try {
+    const result = await client.query(
+      `DELETE FROM case_studies WHERE id = $1`,
+      [id]
+    );
+    return (result.rowCount ?? 0) > 0;
+  } finally {
+    client.release();
+  }
+}
+
+// Seed initial case studies for the landing page
+export async function seedCaseStudies(): Promise<void> {
+  const client = await pool.connect();
+
+  try {
+    // Check if case studies already exist
+    const existing = await client.query(`SELECT COUNT(*) FROM case_studies`);
+    if (parseInt(existing.rows[0].count) > 0) {
+      return; // Already seeded
+    }
+
+    const initialCaseStudies = [
+      {
+        title: "Automated AML Compliance Transformation",
+        subtitle: "How a Tier 1 Bank reduced compliance overhead by 85%",
+        displayName: "Tier 1 Bank",
+        iconKey: "shield-matrix",
+        industry: "banking",
+        category: "compliance",
+        metrics: [
+          { label: "Time Reduction", value: "85%", description: "in manual review processes" },
+          { label: "Cost Savings", value: "$2.4M", description: "annual operational savings" },
+          { label: "Accuracy", value: "99.9%", description: "detection rate" }
+        ],
+        beforeAfter: {
+          before: { label: "Manual Process", value: "40 hrs/week", details: ["5 FTE dedicated", "High error rate", "2-week backlog"] },
+          after: { label: "Automated System", value: "4 hrs/week", details: ["1 FTE oversight", "99.9% accuracy", "Real-time processing"] }
+        },
+        sortOrder: 1,
+        isPublished: true,
+      },
+      {
+        title: "Real-time Risk Monitoring Platform",
+        subtitle: "Enabling predictive risk management for a leading FinTech",
+        displayName: "Leading FinTech",
+        iconKey: "risk-radar",
+        industry: "fintech",
+        category: "risk-management",
+        metrics: [
+          { label: "Risk Detection", value: "3x", description: "faster threat identification" },
+          { label: "False Positives", value: "-70%", description: "reduction in alerts" },
+          { label: "Response Time", value: "< 5min", description: "average incident response" }
+        ],
+        beforeAfter: {
+          before: { label: "Reactive Approach", value: "24hr response", details: ["Manual monitoring", "Daily reports", "Limited visibility"] },
+          after: { label: "Proactive Defense", value: "5min response", details: ["AI-powered alerts", "Real-time dashboards", "Predictive analytics"] }
+        },
+        sortOrder: 2,
+        isPublished: true,
+      },
+      {
+        title: "Global Regulatory Compliance Unification",
+        subtitle: "Streamlining multi-jurisdictional compliance for a global issuer",
+        displayName: "Global Issuer",
+        iconKey: "integration-mesh",
+        industry: "issuing",
+        category: "compliance",
+        metrics: [
+          { label: "Jurisdictions", value: "45+", description: "markets covered" },
+          { label: "Time to Market", value: "60%", description: "faster regulatory approval" },
+          { label: "Compliance Cost", value: "-40%", description: "operational reduction" }
+        ],
+        beforeAfter: {
+          before: { label: "Fragmented Systems", value: "12 platforms", details: ["Siloed data", "Manual reconciliation", "Inconsistent reporting"] },
+          after: { label: "Unified Platform", value: "1 system", details: ["Centralized data", "Automated workflows", "Consistent compliance"] }
+        },
+        sortOrder: 3,
+        isPublished: true,
+      },
+      {
+        title: "Payment Reconciliation Automation",
+        subtitle: "Achieving 99.9% accuracy in high-volume transaction processing",
+        displayName: "Payment Provider",
+        iconKey: "data-flow",
+        industry: "payments",
+        category: "automation",
+        metrics: [
+          { label: "Transactions", value: "1M+", description: "processed daily" },
+          { label: "Match Rate", value: "99.9%", description: "automatic reconciliation" },
+          { label: "Processing", value: "< 1sec", description: "average transaction time" }
+        ],
+        beforeAfter: {
+          before: { label: "Manual Matching", value: "98% accuracy", details: ["End-of-day processing", "Manual exceptions", "24hr settlement"] },
+          after: { label: "AI Matching", value: "99.9% accuracy", details: ["Real-time processing", "Auto-resolution", "Instant settlement"] }
+        },
+        sortOrder: 4,
+        isPublished: true,
+      },
+      {
+        title: "Investment Portfolio Governance Framework",
+        subtitle: "Building institutional-grade compliance for an asset manager",
+        displayName: "Asset Manager",
+        iconKey: "compliance-nodes",
+        industry: "asset-management",
+        category: "governance",
+        metrics: [
+          { label: "AUM Coverage", value: "$50B+", description: "assets under management" },
+          { label: "Audit Time", value: "-75%", description: "reduction in audit prep" },
+          { label: "Violations", value: "Zero", description: "regulatory findings" }
+        ],
+        beforeAfter: {
+          before: { label: "Spreadsheet Tracking", value: "Manual oversight", details: ["Quarterly reviews", "Paper trails", "Reactive compliance"] },
+          after: { label: "Automated Governance", value: "Continuous monitoring", details: ["Real-time alerts", "Digital audit trail", "Proactive compliance"] }
+        },
+        sortOrder: 5,
+        isPublished: true,
+      },
+      {
+        title: "Digital Banking Compliance Acceleration",
+        subtitle: "Fast-tracking FCA authorization for a digital bank",
+        displayName: "Digital Bank",
+        iconKey: "speed-lines",
+        industry: "digital-banking",
+        category: "compliance",
+        metrics: [
+          { label: "Authorization", value: "6 months", description: "time to FCA approval" },
+          { label: "Documentation", value: "100%", description: "audit-ready from day 1" },
+          { label: "Launch Speed", value: "2x", description: "faster than industry average" }
+        ],
+        beforeAfter: {
+          before: { label: "Traditional Path", value: "12-18 months", details: ["Manual applications", "Consultant-heavy", "Fragmented evidence"] },
+          after: { label: "Accelerated Path", value: "6 months", details: ["Guided workflows", "Integrated platform", "Complete documentation"] }
+        },
+        sortOrder: 6,
+        isPublished: true,
+      },
+    ];
+
+    for (const cs of initialCaseStudies) {
+      await client.query(`
+        INSERT INTO case_studies (
+          title, subtitle, display_name, icon_key, industry, category,
+          metrics, before_after, sort_order, is_published
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      `, [
+        cs.title,
+        cs.subtitle,
+        cs.displayName,
+        cs.iconKey,
+        cs.industry,
+        cs.category,
+        JSON.stringify(cs.metrics),
+        JSON.stringify(cs.beforeAfter),
+        cs.sortOrder,
+        cs.isPublished,
+      ]);
+    }
   } finally {
     client.release();
   }
