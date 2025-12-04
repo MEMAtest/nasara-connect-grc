@@ -8,6 +8,9 @@
 import { useState, useEffect } from 'react'
 import type { FirmProfile, FirmAttributes, FirmBranding } from '@/lib/policies/types'
 
+const PRINCIPAL_OPTIONS = ['principal', 'appointed_representative'] as const
+const FIRM_SIZES = ['small', 'medium', 'large'] as const
+
 interface FirmProfileFormProps {
   firmId: string
   onSaved?: (profile: FirmProfile) => void
@@ -161,12 +164,12 @@ export default function FirmProfileForm({
             Principal or Appointed Representative
           </label>
           <div className="grid grid-cols-2 gap-3">
-            {['principal', 'appointed_representative'].map((type) => (
+            {PRINCIPAL_OPTIONS.map((type) => (
               <button
                 key={type}
                 type="button"
                 onClick={() =>
-                  setAttributes({ ...attributes, ar_or_principal: type as any })
+                  setAttributes({ ...attributes, ar_or_principal: type })
                 }
                 className={`px-4 py-3 rounded-lg border text-sm font-medium transition-colors ${
                   attributes.ar_or_principal === type
@@ -186,11 +189,11 @@ export default function FirmProfileForm({
             Firm Size
           </label>
           <div className="grid grid-cols-3 gap-3">
-            {['small', 'medium', 'large'].map((size) => (
+            {FIRM_SIZES.map((size) => (
               <button
                 key={size}
                 type="button"
-                onClick={() => setAttributes({ ...attributes, size: size as any })}
+                onClick={() => setAttributes({ ...attributes, size })}
                 className={`px-4 py-3 rounded-lg border text-sm font-medium capitalize transition-colors ${
                   attributes.size === size
                     ? 'bg-violet-500/20 border-violet-500 text-violet-300'

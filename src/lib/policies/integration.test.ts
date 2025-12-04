@@ -15,7 +15,6 @@ import type {
   Question,
   Rule,
   FirmAttributes,
-  RulesEngineResult,
 } from './types';
 
 describe('Phase 1 Integration Tests', () => {

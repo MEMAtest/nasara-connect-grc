@@ -11,6 +11,7 @@ import type {
   Run,
   FirmProfile,
   RulesEngineResult,
+  JsonValue,
 } from '../policies/types';
 
 // =====================================================
@@ -51,7 +52,7 @@ export interface AuditBundle {
   firm_name: string;
   generated_at: string;
   generated_by?: string;
-  answers: Record<string, any>;
+  answers: Record<string, JsonValue>;
   visible_questions: string[];
   rules_fired: Array<{
     rule_name: string;
@@ -63,8 +64,8 @@ export interface AuditBundle {
     code: string;
     reason: string;
   }>;
-  variables: Record<string, any>;
-  metadata?: Record<string, any>;
+  variables: Record<string, JsonValue>;
+  metadata?: Record<string, JsonValue>;
 }
 
 // =====================================================
@@ -215,6 +216,8 @@ export async function convertDocxToPdf(
   //   return null;
   // }
 
+  void docxBuffer;
+  void options;
   console.warn('PDF conversion not implemented. Returning null.');
   return null;
 }

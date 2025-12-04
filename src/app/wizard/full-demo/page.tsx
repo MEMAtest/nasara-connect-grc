@@ -6,9 +6,11 @@
  */
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import PolicyWizard from '@/components/policies/PolicyWizard'
 import ClausePreviewPanel from '@/components/policies/ClausePreviewPanel'
-import type { Question, Rule, Clause } from '@/lib/policies/types'
+import type { Question, Rule, Clause, JsonValue, RulesEngineResult } from '@/lib/policies/types'
 
 // Mock clauses for demonstration
 const MOCK_CLAUSES: Clause[] = [
@@ -132,14 +134,15 @@ The firm must maintain transaction monitoring systems capable of:
 ];
 
 export default function FullWizardDemoPage() {
+  const router = useRouter()
   const [questions, setQuestions] = useState<Question[]>([])
   const [rules, setRules] = useState<Rule[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   // State for preview
-  const [currentAnswers, setCurrentAnswers] = useState<Record<string, any>>({})
-  const [currentRulesResult, setCurrentRulesResult] = useState<any>({
+  const [currentAnswers, setCurrentAnswers] = useState<Record<string, JsonValue>>({})
+  const [currentRulesResult, setCurrentRulesResult] = useState<RulesEngineResult>({
     included_clauses: [],
     excluded_clauses: [],
     suggested_clauses: [],
@@ -173,7 +176,7 @@ export default function FullWizardDemoPage() {
   }, [])
 
   // Handle save - update preview
-  async function handleSave(answers: Record<string, any>, rulesResult: any) {
+  async function handleSave(answers: Record<string, JsonValue>, rulesResult: RulesEngineResult) {
     console.log('Updating preview:', { answers, rulesResult })
     setCurrentAnswers(answers)
     setCurrentRulesResult(rulesResult)
@@ -209,10 +212,7 @@ export default function FullWizardDemoPage() {
         {/* Page Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">
-            <a
-              href="/"
-              className="text-slate-400 hover:text-slate-300 transition-colors"
-            >
+            <Link href="/" className="text-slate-400 hover:text-slate-300 transition-colors">
               <svg
                 className="w-6 h-6"
                 fill="none"
@@ -226,7 +226,7 @@ export default function FullWizardDemoPage() {
                   d="M10 19l-7-7m0 0l7-7m-7 7h18"
                 />
               </svg>
-            </a>
+            </Link>
             <h1 className="text-4xl font-bold bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent">
               Full Wizard Demo
             </h1>
@@ -256,6 +256,7 @@ export default function FullWizardDemoPage() {
               questions={questions}
               rules={rules}
               onSave={handleSave}
+              onComplete={() => router.push('/documents/review/demo-run')}
             />
           </div>
 

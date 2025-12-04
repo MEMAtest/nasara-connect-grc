@@ -5,7 +5,8 @@
  * Review and download generated policy documents
  */
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import type { AuditBundle } from '@/lib/documents/document-generator'
 
@@ -23,7 +24,6 @@ export default function DocumentReviewPage() {
   const params = useParams()
   const runId = params.runId as string
 
-  const [loading, setLoading] = useState(false)
   const [generating, setGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [documents, setDocuments] = useState<GeneratedDocuments | null>(null)
@@ -86,7 +86,7 @@ export default function DocumentReviewPage() {
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">
-            <a
+            <Link
               href="/wizard/full-demo"
               className="text-slate-400 hover:text-slate-300 transition-colors"
             >
@@ -103,7 +103,7 @@ export default function DocumentReviewPage() {
                   d="M10 19l-7-7m0 0l7-7m-7 7h18"
                 />
               </svg>
-            </a>
+            </Link>
             <h1 className="text-4xl font-bold bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent">
               Document Review
             </h1>

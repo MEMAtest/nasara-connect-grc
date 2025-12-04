@@ -125,10 +125,10 @@ const MOCK_RULES = [
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { policyId: string } }
+  { params }: { params: Promise<{ policyId: string }> }
 ) {
   try {
-    const policyId = params.policyId;
+    const { policyId } = await params;
 
     // In production, fetch from database:
     // const questions = await getQuestionsForPolicy(policyId);

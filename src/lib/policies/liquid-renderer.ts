@@ -2,6 +2,7 @@
  * Liquid Template Renderer
  * Renders Markdown with Liquid variables using a simple template engine
  */
+import type { JsonValue } from "@/lib/policies/types";
 
 /**
  * Simple Liquid-style template renderer
@@ -12,7 +13,7 @@
  */
 export function renderLiquidTemplate(
   template: string,
-  context: Record<string, any>
+  context: Record<string, JsonValue>
 ): string {
   let output = template;
   let hasChanges = true;
@@ -60,7 +61,7 @@ export function renderLiquidTemplate(
         replacement = array
           .map((item) => {
             // Create a new context with the loop item
-            const loopContext = { ...context, [itemName]: item };
+            const loopContext: Record<string, JsonValue> = { ...context, [itemName]: item as JsonValue };
             // Recursively render the content
             return renderLiquidTemplate(content, loopContext);
           })
@@ -74,14 +75,19 @@ export function renderLiquidTemplate(
   }
 
   // Process variable interpolation: {{ variable_name }}
-  output = output.replace(/{{\s*(\w+(?:\.\w+)*)\s*}}/g, (match, path) => {
+  output = output.replace(/{{\s*(\w+(?:\.\w+)*)\s*}}/g, (_match, path) => {
     // Support nested properties: {{ firm.name }}
     const parts = path.split('.');
-    let value: any = context;
+    let value: JsonValue | Record<string, JsonValue> = context;
 
     for (const part of parts) {
-      if (value && typeof value === 'object' && part in value) {
-        value = value[part];
+      if (
+        value &&
+        typeof value === 'object' &&
+        !Array.isArray(value) &&
+        part in value
+      ) {
+        value = (value as Record<string, JsonValue>)[part];
       } else {
         value = undefined;
         break;
@@ -99,8 +105,8 @@ export function renderLiquidTemplate(
  */
 export function renderClause(
   clauseBodyMd: string,
-  variables: Record<string, any>,
-  answers: Record<string, any>
+  variables: Record<string, JsonValue>,
+  answers: Record<string, JsonValue>
 ): string {
   // Combine variables and answers into a single context
   const context = {

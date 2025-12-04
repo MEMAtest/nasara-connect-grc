@@ -10,10 +10,11 @@ import type {
   Rule,
   FirmAttributes,
   RulesEngineResult,
+  JsonValue,
 } from '@/lib/policies/types';
 
 export interface WizardState {
-  answers: Record<string, any>;
+  answers: Record<string, JsonValue>;
   visibleQuestionCodes: string[];
   rulesResult: RulesEngineResult;
   progress: number;
@@ -30,7 +31,7 @@ export interface UseWizardStateOptions {
   questions: Question[];
   rules: Rule[];
   firmAttributes?: FirmAttributes;
-  onSave?: (answers: Record<string, any>, rulesResult: RulesEngineResult) => Promise<void>;
+  onSave?: (answers: Record<string, JsonValue>, rulesResult: RulesEngineResult) => Promise<void>;
   autoSaveInterval?: number; // milliseconds, default 30000 (30 seconds)
 }
 
@@ -44,7 +45,7 @@ export function useWizardState({
   onSave,
   autoSaveInterval = 30000,
 }: UseWizardStateOptions) {
-  const [answers, setAnswers] = useState<Record<string, any>>({});
+  const [answers, setAnswers] = useState<Record<string, JsonValue>>({});
   const [visibleQuestionCodes, setVisibleQuestionCodes] = useState<string[]>([]);
   const [rulesResult, setRulesResult] = useState<RulesEngineResult>({
     included_clauses: [],
@@ -67,7 +68,7 @@ export function useWizardState({
         setIsLoading(true);
         setError(null);
 
-        let combinedAnswers: Record<string, any> = {};
+        let combinedAnswers: Record<string, JsonValue> = {};
 
         // Load firm defaults
         const defaultsResponse = await fetch(`/api/firms/${firmId}/defaults`);
@@ -151,7 +152,7 @@ export function useWizardState({
   }, [hasUnsavedChanges, answers, rulesResult, onSave, autoSaveInterval, isLoading]);
 
   // Update answer
-  const updateAnswer = useCallback((questionCode: string, value: any) => {
+  const updateAnswer = useCallback((questionCode: string, value: JsonValue) => {
     setAnswers((prev) => ({
       ...prev,
       [questionCode]: value,

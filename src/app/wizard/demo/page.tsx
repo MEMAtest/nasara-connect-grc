@@ -6,8 +6,9 @@
  */
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import PolicyWizard from '@/components/policies/PolicyWizard'
-import type { Question, Rule } from '@/lib/policies/types'
+import type { Question, Rule, JsonValue, RulesEngineResult } from '@/lib/policies/types'
 
 export default function WizardDemoPage() {
   const [questions, setQuestions] = useState<Question[]>([])
@@ -41,7 +42,7 @@ export default function WizardDemoPage() {
   }, [])
 
   // Handle save
-  async function handleSave(answers: Record<string, any>, rulesResult: any) {
+  async function handleSave(answers: Record<string, JsonValue>, rulesResult: RulesEngineResult) {
     console.log('Saving wizard state:', { answers, rulesResult })
     // In production, save to /api/runs/:runId
     await new Promise((resolve) => setTimeout(resolve, 500)) // Simulate API call
@@ -81,10 +82,7 @@ export default function WizardDemoPage() {
         {/* Page Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">
-            <a
-              href="/"
-              className="text-slate-400 hover:text-slate-300 transition-colors"
-            >
+            <Link href="/" className="text-slate-400 hover:text-slate-300 transition-colors">
               <svg
                 className="w-6 h-6"
                 fill="none"
@@ -98,7 +96,7 @@ export default function WizardDemoPage() {
                   d="M10 19l-7-7m0 0l7-7m-7 7h18"
                 />
               </svg>
-            </a>
+            </Link>
             <h1 className="text-4xl font-bold bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent">
               Policy Wizard Demo
             </h1>

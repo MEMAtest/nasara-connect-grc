@@ -4,8 +4,16 @@
  */
 
 // =====================================================
-// ENUMS
+// ENUMS & GENERAL TYPES
 // =====================================================
+
+export type JsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | JsonValue[]
+  | { [key: string]: JsonValue };
 
 export type RunStatus = 'draft' | 'pending_approval' | 'approved' | 'published' | 'archived';
 export type ApprovalStatus = 'pending' | 'approved' | 'rejected' | 'changes_requested';
@@ -24,12 +32,12 @@ export interface Policy {
   version: string;
   jurisdiction: string;
   is_active: boolean;
-  metadata: Record<string, any>;
+  metadata: Record<string, JsonValue>;
   created_at: string;
   updated_at: string;
 }
 
-export interface PolicyCreate extends Omit<Policy, 'id' | 'created_at' | 'updated_at'> {}
+export type PolicyCreate = Omit<Policy, 'id' | 'created_at' | 'updated_at'>;
 
 // =====================================================
 // 2. CLAUSE
@@ -46,12 +54,12 @@ export interface Clause {
   is_mandatory: boolean;
   display_order: number;
   version: string;
-  metadata: Record<string, any>;
+  metadata: Record<string, JsonValue>;
   created_at: string;
   updated_at: string;
 }
 
-export interface ClauseCreate extends Omit<Clause, 'id' | 'created_at' | 'updated_at'> {}
+export type ClauseCreate = Omit<Clause, 'id' | 'created_at' | 'updated_at'>;
 
 // =====================================================
 // 3. QUESTION
@@ -68,7 +76,7 @@ export interface QuestionValidation {
 export interface QuestionDependency {
   question_code: string;
   operator?: 'eq' | 'neq' | 'in' | 'nin' | 'gt' | 'lt'; // Default: 'eq'
-  value: any;
+  value: JsonValue;
 }
 
 export interface Question {
@@ -79,17 +87,17 @@ export interface Question {
   help?: string;
   type: QuestionType;
   options?: string[] | { value: string; label: string }[]; // For select/multiselect
-  default_value?: any;
+  default_value?: JsonValue;
   validation?: QuestionValidation;
   depends_on?: QuestionDependency | QuestionDependency[]; // Conditional display
   display_order: number;
   section?: string; // Group questions
-  metadata: Record<string, any>;
+  metadata: Record<string, JsonValue>;
   created_at: string;
   updated_at: string;
 }
 
-export interface QuestionCreate extends Omit<Question, 'id' | 'created_at' | 'updated_at'> {}
+export type QuestionCreate = Omit<Question, 'id' | 'created_at' | 'updated_at'>;
 
 // =====================================================
 // 4. RULE
@@ -105,11 +113,11 @@ export interface QuestionCreate extends Omit<Question, 'id' | 'created_at' | 'up
  */
 export interface RuleCondition {
   q?: string; // Question code
-  eq?: any; // Equals
-  neq?: any; // Not equals
-  in?: any[]; // Value is in array
-  nin?: any[]; // Value is not in array
-  includes?: any; // Array includes value (for multiselect)
+  eq?: JsonValue; // Equals
+  neq?: JsonValue; // Not equals
+  in?: JsonValue[]; // Value is in array
+  nin?: JsonValue[]; // Value is not in array
+  includes?: JsonValue; // Array includes value (for multiselect)
   gt?: number; // Greater than
   lt?: number; // Less than
   gte?: number; // Greater than or equal
@@ -130,7 +138,7 @@ export interface RuleCondition {
 export interface RuleAction {
   include_clause_codes?: string[];
   exclude_clause_codes?: string[];
-  set_vars?: Record<string, any>;
+  set_vars?: Record<string, JsonValue>;
   suggest_clause_codes?: string[];
   reason?: string; // For suggestions
 }
@@ -144,12 +152,12 @@ export interface Rule {
   condition: RuleCondition;
   action: RuleAction;
   is_active: boolean;
-  metadata: Record<string, any>;
+  metadata: Record<string, JsonValue>;
   created_at: string;
   updated_at: string;
 }
 
-export interface RuleCreate extends Omit<Rule, 'id' | 'created_at' | 'updated_at'> {}
+export type RuleCreate = Omit<Rule, 'id' | 'created_at' | 'updated_at'>;
 
 // =====================================================
 // 5. FIRM PROFILE
@@ -164,7 +172,7 @@ export interface FirmAttributes {
   outsourcing?: string[]; // kyc_vendor, tm_system, call_center
   high_risk_jurisdictions?: string[];
   products?: string[];
-  [key: string]: any; // Allow custom attributes
+  [key: string]: JsonValue | undefined; // Allow custom attributes
 }
 
 export interface FirmBranding {
@@ -184,7 +192,7 @@ export interface FirmProfile {
   updated_at: string;
 }
 
-export interface FirmProfileCreate extends Omit<FirmProfile, 'created_at' | 'updated_at'> {}
+export type FirmProfileCreate = Omit<FirmProfile, 'created_at' | 'updated_at'>;
 
 // =====================================================
 // 6. RUN (Policy Generation Instance)
@@ -203,9 +211,9 @@ export interface Run {
   policy_id: string;
   title: string;
   status: RunStatus;
-  answers: Record<string, any>; // Question answers
+  answers: Record<string, JsonValue>; // Question answers
   selected_clause_codes: string[];
-  variables: Record<string, any>; // Computed variables from rules
+  variables: Record<string, JsonValue>; // Computed variables from rules
   outputs?: RunOutputs;
   version: number;
   published_at?: string;
@@ -223,9 +231,9 @@ export interface RunCreate extends Omit<Run, 'id' | 'created_at' | 'updated_at' 
 export interface RunUpdate {
   title?: string;
   status?: RunStatus;
-  answers?: Record<string, any>;
+  answers?: Record<string, JsonValue>;
   selected_clause_codes?: string[];
-  variables?: Record<string, any>;
+  variables?: Record<string, JsonValue>;
   outputs?: RunOutputs;
   review_due_date?: string;
   published_at?: string;
@@ -254,7 +262,7 @@ export interface Approval {
   updated_at: string;
 }
 
-export interface ApprovalCreate extends Omit<Approval, 'id' | 'created_at' | 'updated_at' | 'signed_at'> {}
+export type ApprovalCreate = Omit<Approval, 'id' | 'created_at' | 'updated_at' | 'signed_at'>;
 
 export interface ApprovalUpdate {
   status?: ApprovalStatus;
@@ -285,13 +293,13 @@ export interface AuditLog {
   run_id?: string;
   actor_id: string; // User ID
   action: AuditAction;
-  payload: Record<string, any>;
+  payload: Record<string, JsonValue>;
   ip_address?: string;
   user_agent?: string;
   created_at: string;
 }
 
-export interface AuditLogCreate extends Omit<AuditLog, 'id' | 'created_at'> {}
+export type AuditLogCreate = Omit<AuditLog, 'id' | 'created_at'>;
 
 // =====================================================
 // 9. POLICY REGISTER
@@ -316,12 +324,12 @@ export interface PolicyRegister {
   next_review_reminder?: string; // ISO date
   document_urls: PolicyRegisterDocuments;
   owner_id: string; // User ID
-  metadata: Record<string, any>;
+  metadata: Record<string, JsonValue>;
   created_at: string;
   updated_at: string;
 }
 
-export interface PolicyRegisterCreate extends Omit<PolicyRegister, 'id' | 'created_at' | 'updated_at'> {}
+export type PolicyRegisterCreate = Omit<PolicyRegister, 'id' | 'created_at' | 'updated_at'>;
 
 // =====================================================
 // WIZARD-SPECIFIC TYPES
@@ -339,13 +347,13 @@ export interface WizardState {
   run_id?: string;
   policy_key: string;
   current_step: number;
-  answers: Record<string, any>;
+  answers: Record<string, JsonValue>;
   selected_clauses: string[];
   suggested_clauses: Array<{
     code: string;
     reason: string;
   }>;
-  variables: Record<string, any>;
+  variables: Record<string, JsonValue>;
   is_saving: boolean;
   last_saved_at?: string;
 }
@@ -371,7 +379,7 @@ export interface RulesEngineResult {
     code: string;
     reason: string;
   }>;
-  variables: Record<string, any>;
+  variables: Record<string, JsonValue>;
   rules_fired: Array<{
     rule_id: string;
     rule_name: string;
@@ -381,7 +389,7 @@ export interface RulesEngineResult {
 
 export interface EvaluateRulesInput {
   policy_id: string;
-  answers: Record<string, any>;
+  answers: Record<string, JsonValue>;
   firm_attributes?: FirmAttributes;
 }
 
@@ -392,8 +400,8 @@ export interface EvaluateRulesInput {
 export interface DocumentGenerationInput {
   run_id: string;
   clauses: Clause[];
-  answers: Record<string, any>;
-  variables: Record<string, any>;
+  answers: Record<string, JsonValue>;
+  variables: Record<string, JsonValue>;
   firm_branding: FirmBranding;
   metadata: {
     policy_name: string;
@@ -419,7 +427,7 @@ export interface CreateRunRequest {
   title: string;
   firm_id: string;
   created_by: string;
-  initial_answers?: Record<string, any>;
+  initial_answers?: Record<string, JsonValue>;
 }
 
 export interface CreateRunResponse {
@@ -429,7 +437,7 @@ export interface CreateRunResponse {
 }
 
 export interface UpdateRunRequest {
-  answers?: Record<string, any>;
+  answers?: Record<string, JsonValue>;
   selected_clause_codes?: string[];
 }
 

@@ -9,12 +9,12 @@ import { useMemo, useState } from 'react'
 import DOMPurify from 'dompurify'
 import { marked } from 'marked'
 import { renderClause } from '@/lib/policies/liquid-renderer'
-import type { Clause, RulesEngineResult } from '@/lib/policies/types'
+import type { Clause, RulesEngineResult, JsonValue } from '@/lib/policies/types'
 
 interface ClausePreviewPanelProps {
   clauses: Clause[]
   rulesResult: RulesEngineResult
-  answers: Record<string, any>
+  answers: Record<string, JsonValue>
 }
 
 export default function ClausePreviewPanel({

@@ -5,12 +5,12 @@
  * Renders individual questions with various input types
  */
 
-import type { Question } from '@/lib/policies/types'
+import type { JsonValue, Question } from '@/lib/policies/types'
 
 interface WizardQuestionProps {
   question: Question
-  value: any
-  onChange: (value: any) => void
+  value: JsonValue
+  onChange: (value: JsonValue) => void
   error?: string
 }
 
@@ -75,7 +75,7 @@ export default function WizardQuestion({
               type="button"
               onClick={() => onChange(true)}
               className={`px-6 py-3 rounded-lg border font-medium transition-colors ${
-                value === true
+                (value as boolean | null) === true
                   ? 'bg-violet-500/20 border-violet-500 text-violet-300'
                   : 'bg-slate-800/30 border-slate-700 text-slate-400 hover:border-slate-600'
               }`}
@@ -86,7 +86,7 @@ export default function WizardQuestion({
               type="button"
               onClick={() => onChange(false)}
               className={`px-6 py-3 rounded-lg border font-medium transition-colors ${
-                value === false
+                (value as boolean | null) === false
                   ? 'bg-violet-500/20 border-violet-500 text-violet-300'
                   : 'bg-slate-800/30 border-slate-700 text-slate-400 hover:border-slate-600'
               }`}

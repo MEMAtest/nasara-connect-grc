@@ -9,7 +9,7 @@ import { useMemo } from 'react'
 import { useWizardState } from '@/hooks/useWizardState'
 import { validateAnswers } from '@/lib/policies/rules-engine'
 import WizardQuestion from './WizardQuestion'
-import type { Question, Rule, FirmAttributes } from '@/lib/policies/types'
+import type { Question, Rule, FirmAttributes, JsonValue, RulesEngineResult } from '@/lib/policies/types'
 
 interface PolicyWizardProps {
   policyId: string
@@ -20,7 +20,7 @@ interface PolicyWizardProps {
   rules: Rule[]
   firmAttributes?: FirmAttributes
   onComplete?: () => void
-  onSave?: (answers: Record<string, any>, rulesResult: any) => Promise<void>
+  onSave?: (answers: Record<string, JsonValue>, rulesResult: RulesEngineResult) => Promise<void>
 }
 
 export default function PolicyWizard({

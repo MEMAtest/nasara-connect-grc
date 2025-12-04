@@ -10,7 +10,15 @@ import type {
   RulesEngineResult,
   EvaluateRulesInput,
   FirmAttributes,
+  Question,
+  QuestionDependency,
+  JsonValue,
 } from './types';
+
+type AnswersMap = Record<string, JsonValue | undefined>;
+type QuestionWithDependencies = Pick<Question, 'depends_on'>;
+type QuestionWithValidation = Pick<Question, 'code' | 'validation'>;
+type QuestionForVisibility = Pick<Question, 'code' | 'depends_on'>;
 
 // =====================================================
 // CONDITION EVALUATOR
@@ -21,7 +29,7 @@ import type {
  */
 export function evaluateCondition(
   condition: RuleCondition,
-  answers: Record<string, any>,
+  answers: AnswersMap,
   firmAttributes?: FirmAttributes
 ): boolean {
   // Handle logical operators first
@@ -45,9 +53,9 @@ export function evaluateCondition(
   }
 
   // Check both answers and firm attributes
-  let value = answers[questionCode];
+  let value: JsonValue | undefined = answers[questionCode];
   if (value === undefined && firmAttributes) {
-    value = (firmAttributes as any)[questionCode];
+    value = firmAttributes[questionCode];
   }
 
   // If value is still undefined, condition fails
@@ -218,14 +226,14 @@ export function evaluateRules(
  * Determines if a question should be displayed based on dependencies
  */
 export function isQuestionVisible(
-  question: { depends_on?: any },
-  answers: Record<string, any>
+  question: QuestionWithDependencies,
+  answers: AnswersMap
 ): boolean {
   if (!question.depends_on) {
     return true; // No dependencies = always visible
   }
 
-  const deps = Array.isArray(question.depends_on)
+  const deps: QuestionDependency[] = Array.isArray(question.depends_on)
     ? question.depends_on
     : [question.depends_on];
 
@@ -266,8 +274,8 @@ export function isQuestionVisible(
  * Validates answers against question requirements
  */
 export function validateAnswers(
-  questions: Array<{ code: string; validation?: any }>,
-  answers: Record<string, any>,
+  questions: QuestionWithValidation[],
+  answers: AnswersMap,
   visibleQuestionCodes: string[]
 ): Array<{ field: string; message: string; code: string }> {
   const errors: Array<{ field: string; message: string; code: string }> = [];
@@ -342,23 +350,27 @@ export function validateAnswers(
  * Merges firm profile attributes with wizard answers for rule evaluation
  */
 export function mergeAnswersWithFirmProfile(
-  answers: Record<string, any>,
+  answers: AnswersMap,
   firmAttributes?: FirmAttributes
-): Record<string, any> {
+): AnswersMap {
   if (!firmAttributes) {
     return answers;
   }
 
   // Firm attributes are defaults; answers override them
-  return { ...firmAttributes, ...answers };
+  const merged: AnswersMap = {
+    ...(firmAttributes ?? {}),
+    ...answers,
+  };
+  return merged;
 }
 
 /**
  * Computes progress percentage based on answered questions
  */
 export function calculateProgress(
-  questions: Array<{ code: string; validation?: any }>,
-  answers: Record<string, any>,
+  questions: QuestionWithValidation[],
+  answers: AnswersMap,
   visibleQuestionCodes: string[]
 ): number {
   const visibleQuestions = questions.filter((q) =>
@@ -381,8 +393,8 @@ export function calculateProgress(
  * Gets all visible question codes based on current answers
  */
 export function getVisibleQuestionCodes(
-  questions: Array<{ code: string; depends_on?: any }>,
-  answers: Record<string, any>
+  questions: QuestionForVisibility[],
+  answers: AnswersMap
 ): string[] {
   return questions
     .filter((q) => isQuestionVisible(q, answers))

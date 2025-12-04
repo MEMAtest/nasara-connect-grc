@@ -9,19 +9,14 @@ import {
   TextRun,
   HeadingLevel,
   AlignmentType,
-  UnderlineType,
   BorderStyle,
   Table,
   TableRow,
   TableCell,
   WidthType,
-  VerticalAlign,
-  ImageRun,
-  HyperlinkType,
   convertInchesToTwip,
 } from 'docx';
-import { marked } from 'marked';
-import type { FirmBranding, Clause } from '../policies/types';
+import type { FirmBranding } from '../policies/types';
 
 // =====================================================
 // TYPES
@@ -217,20 +212,6 @@ export function parseInlineFormatting(text: string): TextRun[] {
 // =====================================================
 
 /**
- * Convert hex color to RGB object
- */
-function hexToRgb(hex: string): { r: number; g: number; b: number } {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return result
-    ? {
-        r: parseInt(result[1], 16),
-        g: parseInt(result[2], 16),
-        b: parseInt(result[3], 16),
-      }
-    : { r: 0, g: 0, b: 0 };
-}
-
-/**
  * Generate DOCX document from clauses
  */
 export function generateDocx(options: DocumentGenerationOptions): Document {
@@ -241,7 +222,7 @@ export function generateDocx(options: DocumentGenerationOptions): Document {
     primaryHex.replace('#', '').trim().toUpperCase() || '4F46E5';
   const documentFont = branding?.font ?? 'Calibri';
 
-  const sections: any[] = [];
+  const sections: Array<Paragraph | Table> = [];
 
   // Title Page
   sections.push(
@@ -470,7 +451,7 @@ export function generateDocx(options: DocumentGenerationOptions): Document {
 
         case 'list':
           if (item.items) {
-            item.items.forEach((listItem, idx) => {
+            item.items.forEach((listItem) => {
               sections.push(
                 new Paragraph({
                   children: parseInlineFormatting(listItem),
