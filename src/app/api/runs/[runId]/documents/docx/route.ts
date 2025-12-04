@@ -159,10 +159,10 @@ All monitoring alerts must be:
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { runId: string } }
+  { params }: { params: Promise<{ runId: string }> }
 ) {
   try {
-    const runId = params.runId;
+    const { runId } = await params;
 
     // In production, check if document already exists in storage
     // If yes, return signed URL or stream from storage

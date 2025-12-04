@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { generateDocumentWithPdf, generateAuditBundleBuffer } from '@/lib/documents/document-generator';
+import { generateDocumentWithPdf } from '@/lib/documents/document-generator';
 // import { getRunById } from '@/lib/server/run-store';
 // import { getPolicyById } from '@/lib/server/policy-store';
 // import { getFirmProfile } from '@/lib/server/firm-profile-store';
@@ -162,10 +162,10 @@ All monitoring alerts must be:
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { runId: string } }
+  { params }: { params: Promise<{ runId: string }> }
 ) {
   try {
-    const runId = params.runId;
+    const { runId } = await params;
     const body = await request.json();
 
     // In production, fetch from database:

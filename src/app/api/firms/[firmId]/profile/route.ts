@@ -22,10 +22,10 @@ import type { FirmProfileCreate } from '@/lib/policies/types';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { firmId: string } }
+  { params }: { params: Promise<{ firmId: string }> }
 ) {
   try {
-    const firmId = params.firmId;
+    const { firmId } = await params;
 
     const profile = await getFirmProfile(firmId);
 
@@ -56,10 +56,10 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { firmId: string } }
+  { params }: { params: Promise<{ firmId: string }> }
 ) {
   try {
-    const firmId = params.firmId;
+    const { firmId } = await params;
     const body = await request.json();
 
     // Validate required fields
@@ -103,10 +103,10 @@ export async function POST(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { firmId: string } }
+  { params }: { params: Promise<{ firmId: string }> }
 ) {
   try {
-    const firmId = params.firmId;
+    const { firmId } = await params;
     const body = await request.json();
 
     let profile;
@@ -160,10 +160,10 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { firmId: string } }
+  { params }: { params: Promise<{ firmId: string }> }
 ) {
   try {
-    const firmId = params.firmId;
+    const { firmId } = await params;
 
     const deleted = await deleteFirmProfile(firmId);
 

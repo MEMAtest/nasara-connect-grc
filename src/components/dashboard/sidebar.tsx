@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useMemo } from "react";
+import { useSession } from "next-auth/react";
 import {
   BookOpenCheck,
   ClipboardList,
@@ -74,6 +75,12 @@ const navigationItems: NavigationItem[] = [
     href: "/compliance-framework",
   },
   {
+    label: "CMP Monitoring",
+    icon: Globe,
+    href: "/compliance-framework/cmp",
+    badge: { text: "NEW", variant: "success" },
+  },
+  {
     label: "Training Library",
     icon: BookOpenCheck,
     href: "/training-library",
@@ -113,6 +120,7 @@ const glowByPath: Record<string, string> = {
   "/smcr": "shadow-[0_0_18px_rgba(34,197,94,0.45)]",
   "/policies": "shadow-[0_0_18px_rgba(79,70,229,0.45)]",
   "/compliance-framework": "shadow-[0_0_18px_rgba(99,102,241,0.45)]",
+  "/compliance-framework/cmp": "shadow-[0_0_18px_rgba(20,184,166,0.45)]",
   "/training-library": "shadow-[0_0_18px_rgba(249,115,22,0.45)]",
   "/regulatory-news": "shadow-[0_0_18px_rgba(244,63,94,0.45)]",
   "/payments": "shadow-[0_0_18px_rgba(34,197,94,0.45)]",
@@ -121,6 +129,7 @@ const glowByPath: Record<string, string> = {
 
 export function Sidebar({ onNavigate, onClose, isMobile = false }: SidebarProps) {
   const pathname = usePathname();
+  const { data: session } = useSession();
 
   const activePath = useMemo(() => {
     if (!pathname) return "/";
@@ -213,12 +222,20 @@ export function Sidebar({ onNavigate, onClose, isMobile = false }: SidebarProps)
 
       <div className="border-t border-white/10 bg-white/5 px-6 py-5 backdrop-blur-sm">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white">
-            <UserCog className="h-5 w-5" aria-hidden="true" />
-          </div>
+          {session?.user?.image ? (
+            <img
+              src={session.user.image}
+              alt={session.user.name || "User"}
+              className="h-10 w-10 rounded-full bg-white/15"
+            />
+          ) : (
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white">
+              <UserCog className="h-5 w-5" aria-hidden="true" />
+            </div>
+          )}
           <div className="flex-1">
-            <p className="text-sm font-semibold leading-none">Regina Miles</p>
-            <p className="text-xs text-teal-100/70">Chief Compliance Officer</p>
+            <p className="text-sm font-semibold leading-none">{session?.user?.name || "User"}</p>
+            <p className="text-xs text-teal-100/70">{session?.user?.email || "user@example.com"}</p>
           </div>
         </div>
         <div className="mt-5 space-y-2">
