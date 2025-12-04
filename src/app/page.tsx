@@ -16,16 +16,22 @@ import {
   Zap,
   Lock,
   FileCheck,
-  TrendingUp,
   AlertCircle,
-  BarChart3
+  BarChart3,
+  TrendingUp
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
+import Image from 'next/image'
 
 // 3D Illustration Components
 import dynamic from 'next/dynamic'
+import { AnimatedComplianceScore } from '@/components/landing/AnimatedComplianceScore'
+import { CaseStudiesSection } from '@/components/landing/CaseStudiesSection'
+import { LegalModal, useLegalModals } from '@/components/landing/LegalModals'
+import { AnimatedCounter, PercentCounter, PlusCounter } from '@/components/landing/AnimatedCounter'
+import { ParallaxElements } from '@/components/landing/ParallaxElements'
 
 const ComplianceEcosystem3D = dynamic(() => import('@/components/landing/3d/ComplianceEcosystem3D'), { ssr: false })
 const IntelligenceEngine3D = dynamic(() => import('@/components/landing/3d/IntelligenceEngine3D'), { ssr: false })
@@ -35,14 +41,17 @@ const GovernanceFramework3D = dynamic(() => import('@/components/landing/3d/Gove
 export default function LandingPage() {
   return (
     <div className="relative overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
+      {/* Parallax Background Elements */}
+      <ParallaxElements />
+
       {/* Navigation */}
       <Navigation />
 
       {/* Hero Section */}
       <HeroSection />
 
-      {/* Client Logos */}
-      <ClientLogosSection />
+      {/* Case Studies */}
+      <CaseStudiesSection />
 
       {/* Regulatory Intelligence */}
       <IntelligenceSection />
@@ -84,10 +93,13 @@ function Navigation() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           <Link href="/" className="flex items-center space-x-3">
-            <img
+            <Image
               src="/nasara-logo.png"
               alt="Nasara Connect Logo"
-              className="h-10 w-auto"
+              width={320}
+              height={80}
+              className="h-16 w-auto"
+              priority
             />
           </Link>
 
@@ -95,8 +107,11 @@ function Navigation() {
             <a href="#intelligence" className="text-slate-300 hover:text-emerald-400 transition-colors text-sm font-medium">Intelligence</a>
             <a href="#automation" className="text-slate-300 hover:text-emerald-400 transition-colors text-sm font-medium">Automation</a>
             <a href="#governance" className="text-slate-300 hover:text-emerald-400 transition-colors text-sm font-medium">Governance</a>
-            <Link href="/authorization-pack">
-              <Button variant="ghost" className="text-slate-300 hover:text-white">
+            <Link href="/auth/login">
+              <Button
+                variant="outline"
+                className="border-emerald-500/50 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-400 hover:text-emerald-300 transition-all"
+              >
                 Sign In
               </Button>
             </Link>
@@ -193,19 +208,8 @@ function HeroSection() {
           <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent rounded-3xl" />
           <ComplianceEcosystem3D />
 
-          {/* Floating Compliance Score */}
-          <motion.div
-            animate={{ y: [-10, 10, -10] }}
-            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute top-10 right-10 bg-slate-900/90 backdrop-blur-xl border border-emerald-500/30 rounded-2xl p-6 shadow-2xl shadow-emerald-500/20"
-          >
-            <div className="text-sm text-slate-400 mb-1">Compliance Score</div>
-            <div className="text-4xl font-bold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">98%</div>
-            <div className="flex items-center gap-1 mt-2 text-emerald-400 text-xs">
-              <TrendingUp className="w-3 h-3" />
-              <span>+5% this month</span>
-            </div>
-          </motion.div>
+          {/* Animated Compliance Score */}
+          <AnimatedComplianceScore />
         </motion.div>
       </div>
     </section>
@@ -422,7 +426,9 @@ function ReconciliationSection() {
             className="absolute bottom-10 left-10 bg-slate-900/90 backdrop-blur-xl border border-orange-500/30 rounded-2xl p-6 shadow-2xl shadow-orange-500/20"
           >
             <div className="text-sm text-slate-400 mb-1">Reconciliation Match</div>
-            <div className="text-4xl font-bold bg-gradient-to-r from-orange-400 to-rose-400 bg-clip-text text-transparent">99.8%</div>
+            <div className="text-4xl font-bold bg-gradient-to-r from-orange-400 to-rose-400 bg-clip-text text-transparent">
+              <PercentCounter value={99.8} duration={2.5} />
+            </div>
             <div className="flex items-center gap-1 mt-2 text-green-400 text-xs">
               <CheckCircle2 className="w-3 h-3" />
               <span>All checks passed</span>
@@ -564,7 +570,7 @@ function FinalCTASection() {
           </div>
 
           <p className="text-slate-500 mt-8 text-sm">
-            Join 500+ financial institutions already transforming their compliance operations
+            Join <span className="text-emerald-400 font-semibold"><PlusCounter value={500} duration={2} /></span> financial institutions already transforming their compliance operations
           </p>
         </motion.div>
       </div>
@@ -573,57 +579,80 @@ function FinalCTASection() {
 }
 
 function Footer() {
+  const { termsOpen, setTermsOpen, privacyOpen, setPrivacyOpen } = useLegalModals()
+
   return (
-    <footer className="bg-slate-950 border-t border-slate-800 py-12 px-4">
-      <div className="max-w-7xl mx-auto">
-        <div className="grid md:grid-cols-4 gap-8 mb-8">
-          <div>
-            <div className="flex items-center space-x-2 mb-4">
-              <img
-                src="/nasara-logo.png"
-                alt="Nasara Connect Logo"
-                className="h-8 w-auto"
-              />
+    <>
+      <footer className="bg-slate-950 border-t border-slate-800 py-12 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid md:grid-cols-4 gap-8 mb-8">
+            <div>
+              <div className="flex items-center space-x-2 mb-4">
+                <Image
+                  src="/nasara-logo.png"
+                  alt="Nasara Connect Logo"
+                  width={140}
+                  height={32}
+                  className="h-8 w-auto"
+                />
+              </div>
+              <p className="text-slate-400 text-sm">
+                Next-generation compliance platform for modern financial institutions.
+              </p>
             </div>
-            <p className="text-slate-400 text-sm">
-              Next-generation compliance platform for modern financial institutions.
-            </p>
+
+            <div>
+              <h4 className="text-white font-semibold mb-4">Product</h4>
+              <ul className="space-y-2 text-sm">
+                <li><a href="#intelligence" className="text-slate-400 hover:text-emerald-400 transition-colors">Intelligence</a></li>
+                <li><a href="#automation" className="text-slate-400 hover:text-emerald-400 transition-colors">Automation</a></li>
+                <li><a href="#governance" className="text-slate-400 hover:text-emerald-400 transition-colors">Governance</a></li>
+                <li><a href="#" className="text-slate-400 hover:text-emerald-400 transition-colors">Integrations</a></li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="text-white font-semibold mb-4">Company</h4>
+              <ul className="space-y-2 text-sm">
+                <li><a href="#" className="text-slate-400 hover:text-emerald-400 transition-colors">About</a></li>
+                <li><a href="#" className="text-slate-400 hover:text-emerald-400 transition-colors">Case Studies</a></li>
+                <li><a href="#" className="text-slate-400 hover:text-emerald-400 transition-colors">Careers</a></li>
+                <li><Link href="/contact" className="text-slate-400 hover:text-emerald-400 transition-colors">Contact</Link></li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="text-white font-semibold mb-4">Legal</h4>
+              <ul className="space-y-2 text-sm">
+                <li>
+                  <button
+                    onClick={() => setPrivacyOpen(true)}
+                    className="text-slate-400 hover:text-emerald-400 transition-colors"
+                  >
+                    Privacy
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => setTermsOpen(true)}
+                    className="text-slate-400 hover:text-emerald-400 transition-colors"
+                  >
+                    Terms
+                  </button>
+                </li>
+              </ul>
+            </div>
           </div>
 
-          <div>
-            <h4 className="text-white font-semibold mb-4">Product</h4>
-            <ul className="space-y-2 text-sm">
-              <li><a href="#" className="text-slate-400 hover:text-emerald-400 transition-colors">Intelligence</a></li>
-              <li><a href="#" className="text-slate-400 hover:text-emerald-400 transition-colors">Automation</a></li>
-              <li><a href="#" className="text-slate-400 hover:text-emerald-400 transition-colors">Governance</a></li>
-              <li><a href="#" className="text-slate-400 hover:text-emerald-400 transition-colors">Integrations</a></li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="text-white font-semibold mb-4">Company</h4>
-            <ul className="space-y-2 text-sm">
-              <li><a href="#" className="text-slate-400 hover:text-emerald-400 transition-colors">About</a></li>
-              <li><a href="#" className="text-slate-400 hover:text-emerald-400 transition-colors">Case Studies</a></li>
-              <li><a href="#" className="text-slate-400 hover:text-emerald-400 transition-colors">Careers</a></li>
-              <li><a href="#" className="text-slate-400 hover:text-emerald-400 transition-colors">Contact</a></li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="text-white font-semibold mb-4">Legal</h4>
-            <ul className="space-y-2 text-sm">
-              <li><a href="#" className="text-slate-400 hover:text-emerald-400 transition-colors">Privacy</a></li>
-              <li><a href="#" className="text-slate-400 hover:text-emerald-400 transition-colors">Terms</a></li>
-              <li><a href="#" className="text-slate-400 hover:text-emerald-400 transition-colors">Security</a></li>
-            </ul>
+          <div className="border-t border-slate-800 pt-8 text-center">
+            <p className="text-slate-500 text-sm">&copy; 2025 Nasara Connect. All rights reserved.</p>
           </div>
         </div>
+      </footer>
 
-        <div className="border-t border-slate-800 pt-8 text-center">
-          <p className="text-slate-500 text-sm">&copy; 2025 Nasara Connect. All rights reserved.</p>
-        </div>
-      </div>
-    </footer>
+      {/* Legal Modals */}
+      <LegalModal type="privacy" open={privacyOpen} onOpenChange={setPrivacyOpen} />
+      <LegalModal type="terms" open={termsOpen} onOpenChange={setTermsOpen} />
+    </>
   )
 }
