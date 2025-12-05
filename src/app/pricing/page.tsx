@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
+import { Navigation } from '@/components/landing/Navigation'
 
 // 3D Component
 import dynamic from 'next/dynamic'
@@ -18,6 +19,8 @@ export default function PricingPage() {
 
   return (
     <div className="relative overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
+      <Navigation variant="solid" />
+
       {/* Hero Section */}
       <HeroSection billingCycle={billingCycle} setBillingCycle={setBillingCycle} />
 
@@ -573,7 +576,7 @@ function FAQSection() {
     },
     {
       question: 'What about data security and compliance?',
-      answer: 'Nasara Connect is SOC 2 Type II certified, ISO 27001 compliant, and GDPR-ready. All data is encrypted in transit (TLS 1.3) and at rest (AES-256). We undergo annual penetration testing and maintain detailed audit logs for all user actions.'
+      answer: 'Nasara Connect is working towards Cyber Essentials certification (in progress). All data is encrypted in transit (TLS 1.3) and at rest (AES-256). We maintain detailed audit logs for all user actions and follow security best practices.'
     },
     {
       question: 'Can I cancel anytime?',

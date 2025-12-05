@@ -1,13 +1,12 @@
 'use client'
 
 import { motion, useInView } from 'framer-motion'
-import { useRef, useState, useEffect } from 'react'
+import { useRef } from 'react'
 import {
   ArrowRight,
   Shield,
   Sparkles,
   PlayCircle,
-  ChevronRight,
   CheckCircle2,
   Brain,
   Activity,
@@ -32,6 +31,7 @@ import { CaseStudiesSection } from '@/components/landing/CaseStudiesSection'
 import { LegalModal, useLegalModals } from '@/components/landing/LegalModals'
 import { AnimatedCounter, PercentCounter, PlusCounter } from '@/components/landing/AnimatedCounter'
 import { ParallaxElements } from '@/components/landing/ParallaxElements'
+import { Navigation } from '@/components/landing/Navigation'
 
 const ComplianceEcosystem3D = dynamic(() => import('@/components/landing/3d/ComplianceEcosystem3D'), { ssr: false })
 const IntelligenceEngine3D = dynamic(() => import('@/components/landing/3d/IntelligenceEngine3D'), { ssr: false })
@@ -68,143 +68,6 @@ export default function LandingPage() {
       {/* Footer */}
       <Footer />
     </div>
-  )
-}
-
-function Navigation() {
-  const [scrolled, setScrolled] = useState(false)
-  const [openDropdown, setOpenDropdown] = useState<string | null>(null)
-
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50)
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
-
-  const navItems = [
-    {
-      label: 'Features',
-      href: '/features',
-      dropdown: [
-        { label: 'Authorization Pack', href: '/features#authorization', icon: '📋' },
-        { label: 'Risk Assessment', href: '/features#risk', icon: '⚠️' },
-        { label: 'SM&CR Management', href: '/features#smcr', icon: '👔' },
-        { label: 'Policy Management', href: '/features#policies', icon: '📄' },
-        { label: 'Compliance Monitoring', href: '/features#cmp', icon: '📊' },
-        { label: 'Training Library', href: '/features#training', icon: '🎓' },
-        { label: 'AI Assistant', href: '/features#ai', icon: '🤖' },
-      ]
-    },
-    {
-      label: 'Audience',
-      href: '/audience',
-      dropdown: [
-        { label: 'Fintech & Payments', href: '/audience/fintech', icon: '💳' },
-        { label: 'Banks & Credit', href: '/audience/banks', icon: '🏦' },
-        { label: 'Investment Firms', href: '/audience/investment', icon: '📈' },
-        { label: 'Insurance', href: '/audience/insurance', icon: '🛡️' },
-        { label: 'Crypto & Digital Assets', href: '/audience/crypto', icon: '₿' },
-        { label: 'Consumer Finance', href: '/audience/consumer', icon: '💰' },
-      ]
-    },
-    {
-      label: 'Resources',
-      href: '/resources',
-      dropdown: [
-        { label: 'Documentation', href: '/resources#docs', icon: '📚' },
-        { label: 'Guides & Tutorials', href: '/resources#guides', icon: '🎯' },
-        { label: 'Blog', href: '/resources#blog', icon: '✍️' },
-        { label: 'Webinars', href: '/resources#webinars', icon: '🎥' },
-      ]
-    },
-    {
-      label: 'Pricing',
-      href: '/pricing',
-    },
-  ]
-
-  return (
-    <motion.nav
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled
-          ? 'bg-slate-950/90 backdrop-blur-xl border-b border-slate-800'
-          : 'bg-transparent'
-      }`}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
-          <Link href="/" className="flex items-center space-x-3">
-            <Image
-              src="/nasara-logo.png"
-              alt="Nasara Connect Logo"
-              width={320}
-              height={80}
-              className="h-16 w-auto"
-              priority
-            />
-          </Link>
-
-          <div className="hidden md:flex items-center space-x-1">
-            {navItems.map((item) => (
-              <div
-                key={item.label}
-                className="relative"
-                onMouseEnter={() => item.dropdown && setOpenDropdown(item.label)}
-                onMouseLeave={() => setOpenDropdown(null)}
-              >
-                <Link
-                  href={item.href}
-                  className="flex items-center gap-1 px-4 py-2 text-slate-300 hover:text-emerald-400 transition-colors text-sm font-medium"
-                >
-                  {item.label}
-                  {item.dropdown && (
-                    <ChevronRight className={`w-3 h-3 transition-transform ${openDropdown === item.label ? 'rotate-90' : ''}`} />
-                  )}
-                </Link>
-
-                {item.dropdown && openDropdown === item.label && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="absolute top-full left-0 mt-1 w-64 bg-slate-900/95 backdrop-blur-xl border border-slate-700 rounded-xl shadow-2xl shadow-black/50 overflow-hidden"
-                  >
-                    {item.dropdown.map((subItem) => (
-                      <Link
-                        key={subItem.label}
-                        href={subItem.href}
-                        className="flex items-center gap-3 px-4 py-3 text-slate-300 hover:text-white hover:bg-emerald-500/10 transition-all border-b border-slate-800/50 last:border-0"
-                      >
-                        <span className="text-lg">{subItem.icon}</span>
-                        <span className="text-sm font-medium">{subItem.label}</span>
-                      </Link>
-                    ))}
-                  </motion.div>
-                )}
-              </div>
-            ))}
-
-            <div className="flex items-center gap-3 ml-4">
-              <Link href="/auth/login">
-                <Button
-                  variant="outline"
-                  className="border-emerald-500/50 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-400 hover:text-emerald-300 transition-all"
-                >
-                  Sign In
-                </Button>
-              </Link>
-              <Link href="/contact">
-                <Button className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 shadow-lg shadow-emerald-500/25">
-                  Request Demo
-                  <ArrowRight className="ml-2 w-4 h-4" />
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
-    </motion.nav>
   )
 }
 

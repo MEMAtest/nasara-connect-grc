@@ -8,23 +8,17 @@ import {
   ShieldAlert,
   Shield,
   FileText,
-  ClipboardList,
   Globe,
   BookOpenCheck,
   MessageCircle,
   Sparkles,
   Check,
-  Zap,
-  Brain,
-  BarChart3,
-  Lock,
-  Users
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import Link from 'next/link'
-import Image from 'next/image'
+import { Navigation } from '@/components/landing/Navigation'
 
 const features = [
   {
@@ -137,36 +131,7 @@ const features = [
 export default function FeaturesPage() {
   return (
     <div className="relative overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 min-h-screen">
-      {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-slate-950/90 backdrop-blur-xl border-b border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
-            <Link href="/" className="flex items-center space-x-3">
-              <Image
-                src="/nasara-logo.png"
-                alt="Nasara Connect Logo"
-                width={320}
-                height={80}
-                className="h-16 w-auto"
-                priority
-              />
-            </Link>
-            <div className="flex items-center gap-4">
-              <Link href="/pricing">
-                <Button variant="outline" className="border-emerald-500/50 text-emerald-400">
-                  View Pricing
-                </Button>
-              </Link>
-              <Link href="/contact">
-                <Button className="bg-gradient-to-r from-emerald-500 to-teal-600">
-                  Request Demo
-                  <ArrowRight className="ml-2 w-4 h-4" />
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Navigation variant="solid" />
 
       {/* Hero */}
       <section className="pt-40 pb-20 px-4">
