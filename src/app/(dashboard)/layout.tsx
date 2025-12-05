@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Header } from "@/components/dashboard/header";
+import { AssistantLauncher } from "@/components/dashboard/AssistantLauncher";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -66,6 +67,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
         </main>
       </div>
+      <AssistantLauncher />
     </div>
   );
 }

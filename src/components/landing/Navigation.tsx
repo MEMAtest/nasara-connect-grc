@@ -74,12 +74,30 @@ export function Navigation({ variant = 'transparent' }: NavigationProps) {
   const [scrolled, setScrolled] = useState(false)
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [dropdownTimeout, setDropdownTimeout] = useState<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50)
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+  const handleMouseEnter = (label: string, hasDropdown: boolean) => {
+    if (dropdownTimeout) {
+      clearTimeout(dropdownTimeout)
+      setDropdownTimeout(null)
+    }
+    if (hasDropdown) {
+      setOpenDropdown(label)
+    }
+  }
+
+  const handleMouseLeave = () => {
+    const timeout = setTimeout(() => {
+      setOpenDropdown(null)
+    }, 150) // Small delay to allow moving to dropdown
+    setDropdownTimeout(timeout)
+  }
 
   const isTransparent = variant === 'transparent' && !scrolled
 
@@ -114,8 +132,8 @@ export function Navigation({ variant = 'transparent' }: NavigationProps) {
                 <div
                   key={item.label}
                   className="relative"
-                  onMouseEnter={() => item.dropdown && setOpenDropdown(item.label)}
-                  onMouseLeave={() => setOpenDropdown(null)}
+                  onMouseEnter={() => handleMouseEnter(item.label, !!item.dropdown)}
+                  onMouseLeave={handleMouseLeave}
                 >
                   <Link
                     href={item.href}
@@ -129,28 +147,34 @@ export function Navigation({ variant = 'transparent' }: NavigationProps) {
 
                   {/* Dropdown Menu */}
                   {item.dropdown && openDropdown === item.label && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                      transition={{ duration: 0.15 }}
-                      className="absolute top-full left-0 mt-2 w-72 bg-slate-900/98 backdrop-blur-xl border border-slate-700/50 rounded-2xl shadow-2xl shadow-black/40 overflow-hidden"
-                    >
-                      <div className="p-2">
-                        {item.dropdown.map((subItem) => (
-                          <Link
-                            key={subItem.label}
-                            href={subItem.href}
-                            className="flex items-center gap-3 px-4 py-3 text-slate-300 hover:text-white hover:bg-gradient-to-r hover:from-emerald-500/10 hover:to-teal-500/10 rounded-xl transition-all group"
-                          >
-                            <div className="w-10 h-10 rounded-xl bg-slate-800/50 flex items-center justify-center group-hover:bg-slate-800 transition-colors">
-                              <subItem.Icon size={22} />
-                            </div>
-                            <span className="text-sm font-medium">{subItem.label}</span>
-                          </Link>
-                        ))}
-                      </div>
-                    </motion.div>
+                    <>
+                      {/* Invisible bridge to prevent gap */}
+                      <div className="absolute top-full left-0 h-4 w-full" />
+                      <motion.div
+                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute top-full left-0 pt-2 w-72"
+                      >
+                        <div className="bg-slate-900/98 backdrop-blur-xl border border-slate-700/50 rounded-2xl shadow-2xl shadow-black/40 overflow-hidden">
+                          <div className="p-2">
+                            {item.dropdown.map((subItem) => (
+                              <Link
+                                key={subItem.label}
+                                href={subItem.href}
+                                className="flex items-center gap-3 px-4 py-3 text-slate-300 hover:text-white hover:bg-gradient-to-r hover:from-emerald-500/10 hover:to-teal-500/10 rounded-xl transition-all group"
+                              >
+                                <div className="w-10 h-10 rounded-xl bg-slate-800/50 flex items-center justify-center group-hover:bg-slate-800 transition-colors">
+                                  <subItem.Icon size={22} />
+                                </div>
+                                <span className="text-sm font-medium">{subItem.label}</span>
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+                      </motion.div>
+                    </>
                   )}
                 </div>
               ))}

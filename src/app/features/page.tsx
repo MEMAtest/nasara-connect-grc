@@ -1,7 +1,7 @@
 'use client'
 
 import { motion, useInView } from 'framer-motion'
-import { useRef } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import {
   ArrowRight,
   FileCheck2,
@@ -19,6 +19,16 @@ import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import Link from 'next/link'
 import { Navigation } from '@/components/landing/Navigation'
+import dynamic from 'next/dynamic'
+
+// Dynamic 3D component imports
+const ComplianceEcosystem3D = dynamic(() => import('@/components/landing/3d/ComplianceEcosystem3D'), { ssr: false })
+const RiskGauge3D = dynamic(() => import('@/components/landing/3d/RiskGauge3D'), { ssr: false })
+const GovernanceFramework3D = dynamic(() => import('@/components/landing/3d/GovernanceFramework3D'), { ssr: false })
+const FrameworkModule3D = dynamic(() => import('@/components/landing/3d/FrameworkModule3D'), { ssr: false })
+const IntegrationEcosystem3D = dynamic(() => import('@/components/landing/3d/IntegrationEcosystem3D'), { ssr: false })
+const WorkflowEngine3D = dynamic(() => import('@/components/landing/3d/WorkflowEngine3D'), { ssr: false })
+const IntelligenceEngine3D = dynamic(() => import('@/components/landing/3d/IntelligenceEngine3D'), { ssr: false })
 
 const features = [
   {
@@ -28,6 +38,7 @@ const features = [
     tagline: 'FCA-ready in weeks, not months',
     description: 'Build your complete FCA authorization application with intelligent document generation, gap analysis, and regulatory guidance.',
     gradient: 'from-blue-500 to-cyan-600',
+    Component3D: ComplianceEcosystem3D,
     benefits: [
       'Auto-generate required FCA documents',
       'Real-time completeness tracking',
@@ -43,6 +54,7 @@ const features = [
     tagline: 'Proactive risk management',
     description: 'Comprehensive risk identification, assessment, and monitoring with automated control testing and real-time dashboards.',
     gradient: 'from-red-500 to-orange-600',
+    Component3D: RiskGauge3D,
     benefits: [
       'Risk register management',
       'Control effectiveness testing',
@@ -58,6 +70,7 @@ const features = [
     tagline: 'Senior manager accountability made simple',
     description: 'End-to-end Senior Managers & Certification Regime compliance including responsibilities mapping, fitness assessments, and breach reporting.',
     gradient: 'from-emerald-500 to-teal-600',
+    Component3D: GovernanceFramework3D,
     benefits: [
       'Statement of Responsibilities builder',
       'Certification regime tracking',
@@ -73,6 +86,7 @@ const features = [
     tagline: 'Living documents that evolve with regulation',
     description: 'AI-powered policy creation with automatic updates when regulations change. Version control, attestations, and gap analysis included.',
     gradient: 'from-violet-500 to-purple-600',
+    Component3D: FrameworkModule3D,
     benefits: [
       'Template library with 50+ policies',
       'Auto-update on regulatory changes',
@@ -88,6 +102,7 @@ const features = [
     tagline: 'Continuous compliance assurance',
     description: 'Build and execute your Compliance Monitoring Plan with scheduled testing, evidence collection, and regulatory reporting.',
     gradient: 'from-amber-500 to-yellow-600',
+    Component3D: IntegrationEcosystem3D,
     benefits: [
       'CMP builder & scheduler',
       'Test execution tracking',
@@ -103,6 +118,7 @@ const features = [
     tagline: 'Compliance knowledge at scale',
     description: 'Comprehensive training modules covering FCA requirements, conduct rules, financial crime, and more. Track completions and certifications.',
     gradient: 'from-pink-500 to-rose-600',
+    Component3D: WorkflowEngine3D,
     benefits: [
       'CPD-accredited courses',
       'Progress tracking & reporting',
@@ -118,6 +134,7 @@ const features = [
     tagline: 'Your 24/7 compliance expert',
     description: 'Ask questions, get instant answers on FCA rules, draft documents, and receive proactive compliance guidance powered by AI.',
     gradient: 'from-cyan-500 to-blue-600',
+    Component3D: IntelligenceEngine3D,
     benefits: [
       'Natural language queries',
       'Document drafting assistance',
@@ -128,13 +145,95 @@ const features = [
   }
 ]
 
+// Animated floating nodes component
+function FloatingNodes() {
+  const [nodes, setNodes] = useState<Array<{ id: number; x: number; y: number; size: number; delay: number; duration: number }>>([])
+
+  useEffect(() => {
+    // Generate random nodes
+    const newNodes = Array.from({ length: 30 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: Math.random() * 4 + 2,
+      delay: Math.random() * 5,
+      duration: Math.random() * 10 + 15
+    }))
+    setNodes(newNodes)
+  }, [])
+
+  return (
+    <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+      {nodes.map((node) => (
+        <motion.div
+          key={node.id}
+          className="absolute rounded-full bg-emerald-500/20"
+          style={{
+            left: `${node.x}%`,
+            top: `${node.y}%`,
+            width: node.size,
+            height: node.size,
+          }}
+          animate={{
+            y: [0, -100, 0],
+            x: [0, Math.random() * 50 - 25, 0],
+            opacity: [0.2, 0.6, 0.2],
+            scale: [1, 1.5, 1],
+          }}
+          transition={{
+            duration: node.duration,
+            delay: node.delay,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+      ))}
+      {/* Connecting lines */}
+      <svg className="absolute inset-0 w-full h-full">
+        <defs>
+          <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#10b981" stopOpacity="0.1" />
+            <stop offset="50%" stopColor="#14b8a6" stopOpacity="0.3" />
+            <stop offset="100%" stopColor="#10b981" stopOpacity="0.1" />
+          </linearGradient>
+        </defs>
+        {nodes.slice(0, 15).map((node, i) => {
+          const nextNode = nodes[(i + 1) % nodes.length]
+          return (
+            <motion.line
+              key={`line-${node.id}`}
+              x1={`${node.x}%`}
+              y1={`${node.y}%`}
+              x2={`${nextNode.x}%`}
+              y2={`${nextNode.y}%`}
+              stroke="url(#lineGradient)"
+              strokeWidth="1"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: [0, 0.3, 0] }}
+              transition={{
+                duration: 8,
+                delay: i * 0.5,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            />
+          )
+        })}
+      </svg>
+    </div>
+  )
+}
+
 export default function FeaturesPage() {
   return (
     <div className="relative overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 min-h-screen">
       <Navigation variant="solid" />
 
+      {/* Floating Nodes Background */}
+      <FloatingNodes />
+
       {/* Hero */}
-      <section className="pt-40 pb-20 px-4">
+      <section className="relative pt-40 pb-20 px-4 z-10">
         <div className="max-w-7xl mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -159,7 +258,7 @@ export default function FeaturesPage() {
       </section>
 
       {/* Features Grid */}
-      <section className="py-20 px-4">
+      <section className="relative py-20 px-4 z-10">
         <div className="max-w-7xl mx-auto">
           {features.map((feature, i) => (
             <FeatureSection key={feature.id} feature={feature} index={i} />
@@ -168,7 +267,7 @@ export default function FeaturesPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-32 px-4">
+      <section className="relative py-32 px-4 z-10">
         <div className="max-w-4xl mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -214,34 +313,51 @@ function FeatureSection({ feature, index }: { feature: typeof features[0], index
       initial={{ opacity: 0, y: 50 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.6 }}
-      className={`flex flex-col ${isEven ? 'lg:flex-row' : 'lg:flex-row-reverse'} gap-12 items-center py-20 border-b border-slate-800 last:border-0`}
+      className={`relative flex flex-col ${isEven ? 'lg:flex-row' : 'lg:flex-row-reverse'} gap-12 items-center py-20 border-b border-slate-800/50 last:border-0`}
     >
-      {/* 3D Icon Card */}
+      {/* Decorative node connector */}
+      <div className="absolute left-1/2 top-0 w-px h-full bg-gradient-to-b from-transparent via-emerald-500/20 to-transparent hidden lg:block" />
+
+      {/* 3D Component */}
       <div className="flex-1 flex justify-center">
-        <div className="relative">
+        <div className="relative w-full max-w-md">
           {/* Glow effect */}
-          <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-20 blur-3xl rounded-full`} />
+          <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-10 blur-3xl rounded-full`} />
 
-          {/* 3D Card */}
-          <Card className="relative w-72 h-72 bg-slate-900/80 border-2 border-slate-700 flex items-center justify-center overflow-hidden group hover:border-slate-600 transition-all">
-            {/* Background gradient */}
-            <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-5`} />
+          {/* 3D Canvas */}
+          <div className="relative h-[400px] w-full">
+            <feature.Component3D />
+          </div>
 
-            {/* Icon */}
-            <div className="relative z-10 text-center">
-              <div className={`w-24 h-24 mx-auto mb-4 rounded-2xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform`}>
-                <feature.icon className="w-12 h-12 text-white" />
-              </div>
-              <div className={`text-4xl font-bold bg-gradient-to-r ${feature.gradient} bg-clip-text text-transparent`}>
-                {feature.stats.value}
-              </div>
-              <div className="text-slate-400 text-sm">{feature.stats.label}</div>
+          {/* Floating stat badge */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={isInView ? { opacity: 1, scale: 1 } : {}}
+            transition={{ delay: 0.3 }}
+            className={`absolute -bottom-4 left-1/2 -translate-x-1/2 bg-gradient-to-r ${feature.gradient} rounded-2xl px-6 py-3 shadow-lg`}
+          >
+            <div className="text-center">
+              <div className="text-2xl font-bold text-white">{feature.stats.value}</div>
+              <div className="text-xs text-white/80">{feature.stats.label}</div>
             </div>
+          </motion.div>
 
-            {/* Decorative elements */}
-            <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <div className="absolute bottom-4 left-4 w-2 h-2 rounded-full bg-blue-500 animate-pulse delay-300" />
-          </Card>
+          {/* Small floating nodes around 3D */}
+          <motion.div
+            className="absolute top-4 right-4 w-3 h-3 rounded-full bg-emerald-500"
+            animate={{ y: [0, -10, 0], opacity: [0.5, 1, 0.5] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          />
+          <motion.div
+            className="absolute top-1/4 left-4 w-2 h-2 rounded-full bg-cyan-400"
+            animate={{ y: [0, 10, 0], opacity: [0.5, 1, 0.5] }}
+            transition={{ duration: 3, repeat: Infinity, delay: 0.5 }}
+          />
+          <motion.div
+            className="absolute bottom-1/4 right-8 w-2 h-2 rounded-full bg-teal-400"
+            animate={{ x: [0, 10, 0], opacity: [0.5, 1, 0.5] }}
+            transition={{ duration: 2.5, repeat: Infinity, delay: 1 }}
+          />
         </div>
       </div>
 
@@ -259,12 +375,18 @@ function FeatureSection({ feature, index }: { feature: typeof features[0], index
 
         <ul className="space-y-3">
           {feature.benefits.map((benefit, i) => (
-            <li key={i} className="flex items-center gap-3 text-slate-300">
+            <motion.li
+              key={i}
+              className="flex items-center gap-3 text-slate-300"
+              initial={{ opacity: 0, x: -20 }}
+              animate={isInView ? { opacity: 1, x: 0 } : {}}
+              transition={{ delay: 0.2 + i * 0.1 }}
+            >
               <div className={`w-6 h-6 rounded-full bg-gradient-to-r ${feature.gradient} flex items-center justify-center flex-shrink-0`}>
                 <Check className="w-4 h-4 text-white" />
               </div>
               {benefit}
-            </li>
+            </motion.li>
           ))}
         </ul>
 
