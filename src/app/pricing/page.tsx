@@ -110,69 +110,100 @@ function PricingTiersSection({ billingCycle }: { billingCycle: 'monthly' | 'annu
   const tiers = [
     {
       name: 'Starter',
-      description: 'Perfect for small FinTechs and growing firms',
+      description: 'For small firms with 1-5 employees',
+      firmSize: '1-5 employees',
       icon: Zap,
       gradient: 'from-blue-500 to-cyan-600',
       price: {
-        monthly: 3500,
-        annual: 2800
+        monthly: 299,
+        annual: 249
       },
       features: [
-        { included: true, text: 'Regulatory Intelligence Engine' },
-        { included: true, text: 'Up to 3 users' },
-        { included: true, text: 'Basic reconciliation (1,000 transactions/month)' },
-        { included: true, text: 'Policy management (up to 20 policies)' },
+        { included: true, text: 'Full compliance dashboard' },
+        { included: true, text: 'Up to 5 users' },
+        { included: true, text: 'Authorization Pack builder' },
+        { included: true, text: 'Risk assessment tools' },
+        { included: true, text: 'Policy management (20 policies)' },
+        { included: true, text: 'Training library access' },
         { included: true, text: 'Email support' },
-        { included: true, text: 'Quarterly regulatory updates' },
-        { included: false, text: 'Custom integrations' },
-        { included: false, text: 'Dedicated account manager' },
-        { included: false, text: 'API access' },
+        { included: false, text: 'SM&CR management' },
+        { included: false, text: 'CMP monitoring' },
+        { included: false, text: 'AI Assistant' },
       ],
       cta: 'Start Free Trial',
       popular: false
     },
     {
-      name: 'Professional',
-      description: 'For established firms scaling operations',
+      name: 'Growth',
+      description: 'For growing firms with 5-15 employees',
+      firmSize: '5-15 employees',
       icon: Building2,
       gradient: 'from-emerald-500 to-teal-600',
       price: {
-        monthly: 7000,
-        annual: 5600
+        monthly: 599,
+        annual: 499
       },
       features: [
         { included: true, text: 'Everything in Starter, plus:' },
-        { included: true, text: 'Up to 10 users' },
-        { included: true, text: 'Advanced reconciliation (10,000 transactions/month)' },
+        { included: true, text: 'Up to 15 users' },
+        { included: true, text: 'SM&CR management' },
+        { included: true, text: 'Compliance framework builder' },
         { included: true, text: 'Unlimited policies' },
-        { included: true, text: 'AI-powered anomaly detection' },
-        { included: true, text: 'Custom workflows & automations' },
-        { included: true, text: 'Priority support (24/7)' },
-        { included: true, text: 'Monthly compliance health reports' },
-        { included: true, text: 'API access' },
+        { included: true, text: 'CMP monitoring' },
+        { included: true, text: 'Priority support' },
+        { included: true, text: 'Monthly compliance reports' },
+        { included: false, text: 'AI Assistant' },
+        { included: false, text: 'API access' },
       ],
       cta: 'Start Free Trial',
       popular: true
     },
     {
-      name: 'Enterprise',
-      description: 'For complex organizations and groups',
+      name: 'Scale',
+      description: 'For established firms with 15-25 employees',
+      firmSize: '15-25 employees',
       icon: Rocket,
-      gradient: 'from-purple-500 to-pink-600',
+      gradient: 'from-violet-500 to-purple-600',
+      price: {
+        monthly: 999,
+        annual: 849
+      },
+      features: [
+        { included: true, text: 'Everything in Growth, plus:' },
+        { included: true, text: 'Up to 25 users' },
+        { included: true, text: 'AI Compliance Assistant' },
+        { included: true, text: 'Advanced analytics & insights' },
+        { included: true, text: 'Custom workflows' },
+        { included: true, text: 'API access' },
+        { included: true, text: '24/7 priority support' },
+        { included: true, text: 'Quarterly strategy reviews' },
+        { included: false, text: 'Dedicated account manager' },
+        { included: false, text: 'Custom integrations' },
+      ],
+      cta: 'Start Free Trial',
+      popular: false
+    },
+    {
+      name: 'Enterprise',
+      description: 'For large organizations with 25+ employees',
+      firmSize: '25+ employees',
+      icon: Shield,
+      gradient: 'from-amber-500 to-orange-600',
       price: {
         monthly: null,
         annual: null
       },
       features: [
-        { included: true, text: 'Everything in Professional, plus:' },
+        { included: true, text: 'Everything in Scale, plus:' },
         { included: true, text: 'Unlimited users' },
-        { included: true, text: 'Unlimited transactions' },
-        { included: true, text: 'White-label options' },
         { included: true, text: 'Dedicated account manager' },
-        { included: true, text: 'Custom integrations & development' },
-        { included: true, text: 'On-premise deployment options' },
-        { included: true, text: 'SLA guarantees (99.9% uptime)' },
-        { included: true, text: 'Bespoke training & onboarding' },
+        { included: true, text: 'Custom integrations' },
+        { included: true, text: 'White-label options' },
+        { included: true, text: 'On-premise deployment' },
+        { included: true, text: 'SLA guarantees (99.9%)' },
+        { included: true, text: 'Bespoke training' },
+        { included: true, text: 'Board-level reporting' },
+        { included: true, text: 'Multi-entity support' },
       ],
       cta: 'Contact Sales',
       popular: false
@@ -195,7 +226,7 @@ function PricingTiersSection({ billingCycle }: { billingCycle: 'monthly' | 'annu
           </p>
         </motion.div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6">
           {tiers.map((tier, i) => (
             <motion.div
               key={i}
@@ -233,7 +264,11 @@ function PricingTiersSection({ billingCycle }: { billingCycle: 'monthly' | 'annu
                     <h3 className="text-2xl font-bold text-white">{tier.name}</h3>
                   </div>
 
-                  <p className="text-slate-400 mb-6">{tier.description}</p>
+                  <Badge className={`mb-3 bg-gradient-to-r ${tier.gradient} text-white border-0 text-xs`}>
+                    <Users className="w-3 h-3 mr-1 inline" />
+                    {tier.firmSize}
+                  </Badge>
+                  <p className="text-slate-400 mb-6 text-sm">{tier.description}</p>
 
                   {/* Price */}
                   <div className="mb-6">
