@@ -10,9 +10,11 @@ import { ClipboardList, RefreshCcw, Flag, Gauge, Target, AlertTriangle } from "l
 import { DEFAULT_ORGANIZATION_ID } from "@/lib/constants";
 import { useCmpSummary } from "./cmp/hooks/useCmpSummary";
 import { buildCmpAlerts } from "@/lib/cmp-alerts";
+import { useAssistantContext } from "@/components/dashboard/useAssistantContext";
 
 export function ComplianceFrameworkClient() {
   const router = useRouter();
+  const { setContext } = useAssistantContext();
   const {
     summary,
     isLoading,
@@ -64,7 +66,12 @@ export function ComplianceFrameworkClient() {
           <Button variant="outline" onClick={refresh}>
             Refresh
           </Button>
-          <Button onClick={() => router.push("/compliance-framework/cmp")}>
+          <Button
+            onClick={() => {
+              setContext({ path: "/compliance-framework/cmp", cmpId: "cmp-workspace" });
+              router.push("/compliance-framework/cmp");
+            }}
+          >
             <Target className="mr-2 h-4 w-4" />
             CMP Workspace
           </Button>

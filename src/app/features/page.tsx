@@ -21,14 +21,14 @@ import Link from 'next/link'
 import { Navigation } from '@/components/landing/Navigation'
 import dynamic from 'next/dynamic'
 
-// Dynamic 3D component imports
-const ComplianceEcosystem3D = dynamic(() => import('@/components/landing/3d/ComplianceEcosystem3D'), { ssr: false })
-const RiskGauge3D = dynamic(() => import('@/components/landing/3d/RiskGauge3D'), { ssr: false })
-const GovernanceFramework3D = dynamic(() => import('@/components/landing/3d/GovernanceFramework3D'), { ssr: false })
-const FrameworkModule3D = dynamic(() => import('@/components/landing/3d/FrameworkModule3D'), { ssr: false })
-const IntegrationEcosystem3D = dynamic(() => import('@/components/landing/3d/IntegrationEcosystem3D'), { ssr: false })
-const WorkflowEngine3D = dynamic(() => import('@/components/landing/3d/WorkflowEngine3D'), { ssr: false })
-const IntelligenceEngine3D = dynamic(() => import('@/components/landing/3d/IntelligenceEngine3D'), { ssr: false })
+// Dynamic 3D component imports - Feature-specific visualizations
+const AuthorizationPack3D = dynamic(() => import('@/components/landing/3d/AuthorizationPack3D'), { ssr: false })
+const RiskAssessment3D = dynamic(() => import('@/components/landing/3d/RiskAssessment3D'), { ssr: false })
+const SmcrManagement3D = dynamic(() => import('@/components/landing/3d/SmcrManagement3D'), { ssr: false })
+const PolicyManagement3D = dynamic(() => import('@/components/landing/3d/PolicyManagement3D'), { ssr: false })
+const ComplianceMonitoring3D = dynamic(() => import('@/components/landing/3d/ComplianceMonitoring3D'), { ssr: false })
+const TrainingLibrary3D = dynamic(() => import('@/components/landing/3d/TrainingLibrary3D'), { ssr: false })
+const AiAssistant3D = dynamic(() => import('@/components/landing/3d/AiAssistant3D'), { ssr: false })
 
 const features = [
   {
@@ -38,7 +38,7 @@ const features = [
     tagline: 'FCA-ready in weeks, not months',
     description: 'Build your complete FCA authorization application with intelligent document generation, gap analysis, and regulatory guidance.',
     gradient: 'from-blue-500 to-cyan-600',
-    Component3D: ComplianceEcosystem3D,
+    Component3D: AuthorizationPack3D,
     benefits: [
       'Auto-generate required FCA documents',
       'Real-time completeness tracking',
@@ -54,7 +54,7 @@ const features = [
     tagline: 'Proactive risk management',
     description: 'Comprehensive risk identification, assessment, and monitoring with automated control testing and real-time dashboards.',
     gradient: 'from-red-500 to-orange-600',
-    Component3D: RiskGauge3D,
+    Component3D: RiskAssessment3D,
     benefits: [
       'Risk register management',
       'Control effectiveness testing',
@@ -70,7 +70,7 @@ const features = [
     tagline: 'Senior manager accountability made simple',
     description: 'End-to-end Senior Managers & Certification Regime compliance including responsibilities mapping, fitness assessments, and breach reporting.',
     gradient: 'from-emerald-500 to-teal-600',
-    Component3D: GovernanceFramework3D,
+    Component3D: SmcrManagement3D,
     benefits: [
       'Statement of Responsibilities builder',
       'Certification regime tracking',
@@ -86,7 +86,7 @@ const features = [
     tagline: 'Living documents that evolve with regulation',
     description: 'AI-powered policy creation with automatic updates when regulations change. Version control, attestations, and gap analysis included.',
     gradient: 'from-violet-500 to-purple-600',
-    Component3D: FrameworkModule3D,
+    Component3D: PolicyManagement3D,
     benefits: [
       'Template library with 50+ policies',
       'Auto-update on regulatory changes',
@@ -102,7 +102,7 @@ const features = [
     tagline: 'Continuous compliance assurance',
     description: 'Build and execute your Compliance Monitoring Plan with scheduled testing, evidence collection, and regulatory reporting.',
     gradient: 'from-amber-500 to-yellow-600',
-    Component3D: IntegrationEcosystem3D,
+    Component3D: ComplianceMonitoring3D,
     benefits: [
       'CMP builder & scheduler',
       'Test execution tracking',
@@ -118,7 +118,7 @@ const features = [
     tagline: 'Compliance knowledge at scale',
     description: 'Comprehensive training modules covering FCA requirements, conduct rules, financial crime, and more. Track completions and certifications.',
     gradient: 'from-pink-500 to-rose-600',
-    Component3D: WorkflowEngine3D,
+    Component3D: TrainingLibrary3D,
     benefits: [
       'CPD-accredited courses',
       'Progress tracking & reporting',
@@ -134,7 +134,7 @@ const features = [
     tagline: 'Your 24/7 compliance expert',
     description: 'Ask questions, get instant answers on FCA rules, draft documents, and receive proactive compliance guidance powered by AI.',
     gradient: 'from-cyan-500 to-blue-600',
-    Component3D: IntelligenceEngine3D,
+    Component3D: AiAssistant3D,
     benefits: [
       'Natural language queries',
       'Document drafting assistance',

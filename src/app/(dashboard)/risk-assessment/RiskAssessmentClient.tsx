@@ -22,6 +22,7 @@ import {
 } from "./lib/riskConstants";
 import type { RiskFormValues } from "./lib/riskValidation";
 import { DEFAULT_ORGANIZATION_ID } from "@/lib/constants";
+import { useAssistantContext } from "@/components/dashboard/useAssistantContext";
 
 const ORGANIZATION_ID = DEFAULT_ORGANIZATION_ID;
 
@@ -65,6 +66,7 @@ export function RiskAssessmentClient() {
   const [editingRisk, setEditingRisk] = useState<RiskRecord | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [suggestionStatus, setSuggestionStatus] = useState<string | null>(null);
+  const { setContext } = useAssistantContext();
 
   const categories = useMemo(
     () => (risks.length ? Array.from(new Set(risks.map((risk) => risk.category))) : Array.from(RISK_CATEGORIES)),
@@ -103,6 +105,7 @@ export function RiskAssessmentClient() {
 
   const handleViewRisk = (risk: RiskRecord) => {
     setSelectedRisk(risk);
+    setContext({ path: "/risk-assessment", cmpId: risk.id });
     setIsDetailsOpen(true);
   };
 

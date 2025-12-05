@@ -4,6 +4,7 @@ import { useState } from "react";
 import { X, Sparkles, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AiChatClient } from "@/app/(dashboard)/ai-chat/AiChatClient";
+import { useAssistantContext } from "@/components/dashboard/useAssistantContext";
 
 /**
  * Floating assistant launcher that can be dropped into dashboard layouts.
@@ -11,6 +12,7 @@ import { AiChatClient } from "@/app/(dashboard)/ai-chat/AiChatClient";
  */
 export function AssistantLauncher() {
   const [open, setOpen] = useState(false);
+  const { context } = useAssistantContext();
 
   return (
     <>
@@ -26,7 +28,9 @@ export function AssistantLauncher() {
         </Button>
         <div className="flex items-center gap-1 rounded-full bg-white/90 px-3 py-1 text-xs text-slate-600 shadow-sm ring-1 ring-slate-200">
           <MessageCircle className="h-3 w-3" />
-          Available across dashboard
+          {context.policyId || context.runId
+            ? `Context: ${context.policyId ?? ""} ${context.runId ?? ""}`.trim()
+            : "Available across dashboard"}
         </div>
       </div>
 

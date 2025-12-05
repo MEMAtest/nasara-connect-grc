@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { buildAssistantContext } from "@/lib/ai/context";
+import { fetchPolicyContext } from "@/lib/ai/policies";
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const DEFAULT_MODEL = process.env.OPENROUTER_MODEL ?? "openai/gpt-4o-mini";
@@ -72,7 +74,20 @@ export async function POST(request: Request) {
   }
 
   const mode: Mode = body.mode ?? "qa";
-  const systemPrompt = buildSystemPrompt(mode, body.context);
+  const lastUserMessage =
+    [...(body.messages ?? [])].reverse().find((m) => m.role === "user")?.content ?? "";
+  const storedPolicy = body.context?.policyId
+    ? await fetchPolicyContext(body.context.policyId)
+    : null;
+
+  const retrievedContext = buildAssistantContext(
+    lastUserMessage,
+    body.context?.selection,
+    storedPolicy?.code ?? body.context?.policyId,
+    body.context?.runId,
+    storedPolicy ?? undefined
+  );
+  const systemPrompt = [buildSystemPrompt(mode, body.context), retrievedContext.text].filter(Boolean).join("\n\n");
 
   const messages: Array<{ role: "system" | "user" | "assistant"; content: string }> = [
     { role: "system", content: systemPrompt },
@@ -129,6 +144,7 @@ export async function POST(request: Request) {
           role: "assistant",
           content: assistantMessage.content,
         },
+        citations: retrievedContext.citations,
       });
     }
 
@@ -176,7 +192,10 @@ export async function POST(request: Request) {
 
     return new Response(stream, {
       status: 200,
-      headers: { "Content-Type": "text/plain; charset=utf-8" },
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+        "X-Assistant-Citations": JSON.stringify(retrievedContext.citations),
+      },
     });
   } catch (error) {
     console.error("AI chat route error", error);

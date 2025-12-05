@@ -7,10 +7,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AssistantCitations } from "@/components/dashboard/AssistantCitations";
+import { useAssistantContext } from "@/components/dashboard/useAssistantContext";
 
 type ChatMessage = {
   role: "user" | "assistant";
   content: string;
+  citations?: Array<{ type: "cmp" | "policy" | "clause" | "run"; label: string }>;
 };
 
 type Mode = "qa" | "draft" | "explain" | "insights";
@@ -31,6 +34,7 @@ const QUICK_PROMPTS = [
 
 export function AiChatClient() {
   const pathname = usePathname();
+  const assistantCtx = useAssistantContext();
   const [mode, setMode] = useState<Mode>("qa");
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -45,6 +49,8 @@ export function AiChatClient() {
   const [error, setError] = useState<string | null>(null);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
   const [extraContext, setExtraContext] = useState("");
+  const [policyId, setPolicyId] = useState(assistantCtx.context.policyId ?? "");
+  const [runId, setRunId] = useState(assistantCtx.context.runId ?? "");
   const [useContext, setUseContext] = useState(true);
 
   const stats = useMemo(
@@ -80,6 +86,8 @@ export function AiChatClient() {
             ? {
                 path: pathname,
                 selection: extraContext || undefined,
+                policyId: policyId || undefined,
+                runId: runId || undefined,
               }
             : undefined,
           stream: true,
@@ -92,6 +100,11 @@ export function AiChatClient() {
       }
 
       const contentType = response.headers.get("content-type") ?? "";
+      const citationsHeader = response.headers.get("x-assistant-citations");
+      const headerCitations =
+        citationsHeader && citationsHeader.startsWith("[")
+          ? (JSON.parse(citationsHeader) as ChatMessage["citations"])
+          : undefined;
       // Streaming path (text/plain)
       if (contentType.includes("text/plain")) {
         const reader = response.body?.getReader();
@@ -110,7 +123,7 @@ export function AiChatClient() {
           acc += decoder.decode(value, { stream: true });
           setMessages((prev) => {
             const updated = [...prev];
-            const lastAssistantIndex = updated.findLastIndex((m) => m.role === "assistant");
+              const lastAssistantIndex = updated.findLastIndex((m) => m.role === "assistant");
             if (lastAssistantIndex >= 0) {
               updated[lastAssistantIndex] = { role: "assistant", content: acc };
             } else {
@@ -120,11 +133,25 @@ export function AiChatClient() {
           });
         }
         setStreamingId(null);
+        if (headerCitations?.length) {
+          setMessages((prev) => {
+            const updated = [...prev];
+            const lastAssistantIndex = updated.findLastIndex((m) => m.role === "assistant");
+            if (lastAssistantIndex >= 0) {
+              updated[lastAssistantIndex] = {
+                ...updated[lastAssistantIndex],
+                citations: headerCitations,
+              };
+            }
+            return updated;
+          });
+        }
       } else {
         // Non-streaming fallback
-        const data = (await response.json()) as { message?: ChatMessage };
+        const data = (await response.json()) as { message?: ChatMessage; citations?: ChatMessage["citations"] };
         if (data.message) {
-          setMessages((prev) => [...prev, data.message as ChatMessage]);
+          const msg: ChatMessage = data.citations ? { ...data.message, citations: data.citations } : (data.message as ChatMessage);
+          setMessages((prev) => [...prev, msg]);
         } else {
           throw new Error("No response from assistant");
         }
@@ -251,14 +278,19 @@ export function AiChatClient() {
                     <Bot className="h-4 w-4" />
                   </div>
                 ) : null}
-                <div
-                  className={`max-w-3xl rounded-2xl px-4 py-3 text-sm leading-6 shadow-sm ${
-                    msg.role === "assistant"
-                      ? "bg-white text-slate-800 border border-slate-200"
-                      : "bg-emerald-600 text-white"
-                  }`}
-                >
-                  {msg.content}
+                <div className="space-y-1">
+                  <div
+                    className={`max-w-3xl rounded-2xl px-4 py-3 text-sm leading-6 shadow-sm ${
+                      msg.role === "assistant"
+                        ? "bg-white text-slate-800 border border-slate-200"
+                        : "bg-emerald-600 text-white"
+                    }`}
+                  >
+                    {msg.content}
+                  </div>
+                  {msg.role === "assistant" && msg.citations ? (
+                    <AssistantCitations citations={msg.citations} />
+                  ) : null}
                 </div>
               </div>
             ))}
@@ -309,6 +341,20 @@ export function AiChatClient() {
                 />
                 Include page context
               </label>
+            </div>
+            <div className="grid gap-2 md:grid-cols-2">
+              <input
+                value={policyId}
+                onChange={(e) => setPolicyId(e.target.value)}
+                placeholder="Optional: Policy code/ID (e.g., AML_CTF)"
+                className="w-full rounded-lg border border-slate-200 bg-white p-2 text-xs text-slate-700 shadow-inner focus:outline-none focus:ring-2 focus:ring-emerald-200"
+              />
+              <input
+                value={runId}
+                onChange={(e) => setRunId(e.target.value)}
+                placeholder="Optional: Run ID (e.g., run-demo-aml)"
+                className="w-full rounded-lg border border-slate-200 bg-white p-2 text-xs text-slate-700 shadow-inner focus:outline-none focus:ring-2 focus:ring-emerald-200"
+              />
             </div>
             <textarea
               value={extraContext}
