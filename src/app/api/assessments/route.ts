@@ -6,6 +6,7 @@ import {
   initDatabase,
   Assessment,
 } from '@/lib/database';
+import { logger, logError } from '@/lib/logger';
 
 type AssessmentDto = {
   id: string;
@@ -104,13 +105,7 @@ export async function GET(request: NextRequest) {
     const assessments = await getAssessments(organizationId);
     return NextResponse.json(assessments.map(mapAssessmentToDto));
   } catch (error) {
-    // Log error for production monitoring - replace with proper logging service
-    if (process.env.NODE_ENV === 'production') {
-      // TODO: Replace with proper logging service (e.g., Winston, DataDog, etc.)
-      // logError('assessments-fetch-failed', error);
-    } else {
-      console.error('Error fetching assessments:', error);
-    }
+    logError(error, 'Failed to fetch assessments', { organizationId: 'default-org' });
     // Fall back to mock data so the dashboard still renders in dev environments
     return NextResponse.json(fallbackAssessments);
   }
@@ -142,13 +137,7 @@ export async function POST(request: NextRequest) {
     const dto = mapAssessmentToDto(created);
     return NextResponse.json(dto, { status: 201 });
   } catch (error) {
-    // Log error for production monitoring - replace with proper logging service
-    if (process.env.NODE_ENV === 'production') {
-      // TODO: Replace with proper logging service (e.g., Winston, DataDog, etc.)
-      // logError('assessment-creation-failed', error);
-    } else {
-      console.error('Error creating assessment:', error);
-    }
+    logError(error, 'Failed to create assessment', { name, businessType });
     const fallback = createFallbackAssessment({
       name,
       description,

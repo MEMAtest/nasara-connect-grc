@@ -1,4 +1,5 @@
 import { Pool } from 'pg';
+import { logger, logError, logDbOperation } from '@/lib/logger';
 
 const connectionString = process.env.DATABASE_URL || "postgresql://neondb_owner:npg_Vtu9NK8ThRbB@ep-royal-queen-abitcphb-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require";
 
@@ -229,15 +230,9 @@ export async function initDatabase() {
       CREATE INDEX IF NOT EXISTS idx_case_studies_industry ON case_studies (industry)
     `);
 
-    // Database tables initialized successfully
+    logger.info('Database tables initialized successfully');
   } catch (error) {
-    // Log error for production monitoring - replace with proper logging service
-    if (process.env.NODE_ENV === 'production') {
-      // TODO: Replace with proper logging service (e.g., Winston, DataDog, etc.)
-      // logError('database-initialization-failed', error);
-    } else {
-      console.error('Error initializing database:', error);
-    }
+    logError(error, 'Failed to initialize database');
     throw error;
   } finally {
     client.release();

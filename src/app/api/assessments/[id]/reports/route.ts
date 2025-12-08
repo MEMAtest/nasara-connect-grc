@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getReports, initializeReports, updateReportStatus } from '@/lib/database';
+import { logError } from '@/lib/logger';
 
 export async function GET(
   request: NextRequest,
@@ -23,13 +24,7 @@ export async function GET(
 
     return NextResponse.json(reports);
   } catch (error) {
-    // Log error for production monitoring - replace with proper logging service
-    if (process.env.NODE_ENV === 'production') {
-      // TODO: Replace with proper logging service (e.g., Winston, DataDog, etc.)
-      // logError('reports-fetch-failed', error, { assessmentId });
-    } else {
-      console.error('Error fetching reports:', error);
-    }
+    logError(error, 'Failed to fetch reports', { assessmentId: 'unknown' });
     return NextResponse.json({ error: 'Failed to fetch reports' }, { status: 500 });
   }
 }
@@ -54,13 +49,7 @@ export async function PATCH(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    // Log error for production monitoring - replace with proper logging service
-    if (process.env.NODE_ENV === 'production') {
-      // TODO: Replace with proper logging service (e.g., Winston, DataDog, etc.)
-      // logError('report-status-update-failed', error, { assessmentId, reportId, status });
-    } else {
-      console.error('Error updating report status:', error);
-    }
+    logError(error, 'Failed to update report status');
     return NextResponse.json({ error: 'Failed to update report status' }, { status: 500 });
   }
 }
@@ -93,13 +82,7 @@ export async function POST(
 
     return NextResponse.json({ success: true, message: 'Report generation started' });
   } catch (error) {
-    // Log error for production monitoring - replace with proper logging service
-    if (process.env.NODE_ENV === 'production') {
-      // TODO: Replace with proper logging service (e.g., Winston, DataDog, etc.)
-      // logError('report-generation-failed', error, { assessmentId, reportId });
-    } else {
-      console.error('Error generating report:', error);
-    }
+    logError(error, 'Failed to generate report');
     return NextResponse.json({ error: 'Failed to generate report' }, { status: 500 });
   }
 }

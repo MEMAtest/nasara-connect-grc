@@ -52,6 +52,7 @@ export function AiChatClient() {
   const [policyId, setPolicyId] = useState(assistantCtx.context.policyId ?? "");
   const [runId, setRunId] = useState(assistantCtx.context.runId ?? "");
   const [useContext, setUseContext] = useState(true);
+  const [healthStatus, setHealthStatus] = useState<"idle" | "ok" | "fail" | "checking">("idle");
 
   const stats = useMemo(
     () => ({
@@ -117,20 +118,46 @@ export function AiChatClient() {
         if (!reader) {
           throw new Error("No response body");
         }
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          acc += decoder.decode(value, { stream: true });
-          setMessages((prev) => {
-            const updated = [...prev];
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            acc += decoder.decode(value, { stream: true });
+            setMessages((prev) => {
+              const updated = [...prev];
               const lastAssistantIndex = updated.findLastIndex((m) => m.role === "assistant");
-            if (lastAssistantIndex >= 0) {
-              updated[lastAssistantIndex] = { role: "assistant", content: acc };
-            } else {
-              updated.push({ role: "assistant", content: acc });
-            }
-            return updated;
+              if (lastAssistantIndex >= 0) {
+                updated[lastAssistantIndex] = { role: "assistant", content: acc };
+              } else {
+                updated.push({ role: "assistant", content: acc });
+              }
+              return updated;
+            });
+          }
+        } catch (streamErr) {
+          console.error("Stream failed, retrying non-stream", streamErr);
+          const fallback = await fetch("/api/ai/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              mode,
+              messages: nextMessages,
+              context: useContext
+                ? {
+                    path: pathname,
+                    selection: extraContext || undefined,
+                    policyId: policyId || undefined,
+                    runId: runId || undefined,
+                  }
+                : undefined,
+              stream: false,
+            }),
           });
+          const data = (await fallback.json()) as { message?: ChatMessage; citations?: ChatMessage["citations"] };
+          if (data.message) {
+            const msg: ChatMessage = data.citations ? { ...data.message, citations: data.citations } : (data.message as ChatMessage);
+            setMessages((prev) => [...prev, msg]);
+          }
         }
         setStreamingId(null);
         if (headerCitations?.length) {
@@ -160,6 +187,25 @@ export function AiChatClient() {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setIsSending(false);
+    }
+  };
+
+  const testConnection = async () => {
+    setHealthStatus("checking");
+    try {
+      const res = await fetch("/api/ai/health");
+      if (!res.ok) throw new Error("Healthcheck failed");
+      const data = await res.json();
+      if (data.ok) {
+        setHealthStatus("ok");
+      } else {
+        setHealthStatus("fail");
+      }
+    } catch (error) {
+      console.error("Healthcheck error", error);
+      setHealthStatus("fail");
+    } finally {
+      setTimeout(() => setHealthStatus("idle"), 3000);
     }
   };
 
@@ -248,6 +294,21 @@ export function AiChatClient() {
                 {item.label}
               </Button>
             ))}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={testConnection}
+              disabled={healthStatus === "checking"}
+            >
+              {healthStatus === "checking"
+                ? "Testing…"
+                : healthStatus === "ok"
+                  ? "Model: OK"
+                  : healthStatus === "fail"
+                    ? "Model: Unreachable"
+                    : "Test OpenRouter"}
+            </Button>
           </div>
         </CardHeader>
 

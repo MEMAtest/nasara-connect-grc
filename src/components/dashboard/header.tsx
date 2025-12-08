@@ -1,10 +1,11 @@
 "use client";
 
-import { FormEvent, useMemo } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Building2, ChevronRight, Menu, Search } from "lucide-react";
+import { Building2, ChevronRight, Menu } from "lucide-react";
+import { GlobalSearch } from "@/components/dashboard/GlobalSearch";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -77,18 +78,6 @@ export function Header({ onToggleSidebar, isSidebarOpen }: HeaderProps) {
 
   const pageTitle = crumbs[crumbs.length - 1]?.label ?? "Dashboard";
 
-  const handleSearch = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const value = formData.get("query")?.toString();
-    // Placeholder: integrate with real search endpoint when available.
-    // In production, replace with actual search functionality
-    if (process.env.NODE_ENV !== 'production') {
-      console.debug("Search submitted", value);
-    }
-    // TODO: Implement real search functionality
-  };
-
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200/60 bg-white/70 backdrop-blur supports-[backdrop-filter]:bg-white/75">
       <div className="flex h-16 items-center justify-between px-4 sm:px-6">
@@ -141,15 +130,9 @@ export function Header({ onToggleSidebar, isSidebarOpen }: HeaderProps) {
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
-          <form onSubmit={handleSearch} className="hidden items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm transition focus-within:border-teal-300 focus-within:ring-2 focus-within:ring-teal-200 md:flex">
-            <Search className="h-4 w-4 text-slate-400" aria-hidden="true" />
-            <input
-              name="query"
-              type="search"
-              placeholder="Search modules, tasks..."
-              className="w-44 bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none lg:w-64"
-            />
-          </form>
+          <div className="hidden md:block">
+            <GlobalSearch />
+          </div>
 
           <CmpNotificationsBell />
 

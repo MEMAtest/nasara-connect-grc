@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getGapAnalysis, initializeGapAnalysis, updateGapStatus } from '@/lib/database';
+import { logError } from '@/lib/logger';
 
 export async function GET(
   request: NextRequest,
@@ -23,13 +24,7 @@ export async function GET(
 
     return NextResponse.json(gaps);
   } catch (error) {
-    // Log error for production monitoring - replace with proper logging service
-    if (process.env.NODE_ENV === 'production') {
-      // TODO: Replace with proper logging service (e.g., Winston, DataDog, etc.)
-      // logError('gap-analysis-fetch-failed', error, { assessmentId });
-    } else {
-      console.error('Error fetching gap analysis:', error);
-    }
+    logError(error, 'Failed to fetch gap analysis');
     return NextResponse.json({ error: 'Failed to fetch gap analysis' }, { status: 500 });
   }
 }
@@ -54,13 +49,7 @@ export async function PATCH(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    // Log error for production monitoring - replace with proper logging service
-    if (process.env.NODE_ENV === 'production') {
-      // TODO: Replace with proper logging service (e.g., Winston, DataDog, etc.)
-      // logError('gap-status-update-failed', error, { assessmentId, gapId, status });
-    } else {
-      console.error('Error updating gap status:', error);
-    }
+    logError(error, 'Failed to update gap status');
     return NextResponse.json({ error: 'Failed to update gap status' }, { status: 500 });
   }
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,18 +23,76 @@ import {
   Gamepad2,
   MessageSquare,
   Crown,
-  Shield
+  Shield,
+  Loader2
 } from "lucide-react";
 import { featuredModules, learningPathways } from "./content";
 import { GamificationHub } from "./components/GamificationHub";
 import { SocialLearning } from "./components/SocialLearning";
 import { ProgressTracker } from "./components/ProgressTracker";
 
+interface UserProgress {
+  completed_pathways: number;
+  total_pathways: number;
+  completed_lessons: number;
+  total_lessons: number;
+  current_streak: number;
+  longest_streak: number;
+  total_points: number;
+  weekly_goal: number;
+  weekly_progress: number;
+  badges_count: number;
+}
+
+const defaultProgress: UserProgress = {
+  completed_pathways: 0,
+  total_pathways: 6,
+  completed_lessons: 0,
+  total_lessons: 45,
+  current_streak: 0,
+  longest_streak: 0,
+  total_points: 0,
+  weekly_goal: 80,
+  weekly_progress: 0,
+  badges_count: 0,
+};
+
 export function TrainingLibraryClient() {
   const [selectedPersona, setSelectedPersona] = useState<string>("all");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [userProgress, setUserProgress] = useState<UserProgress>(defaultProgress);
+  const [isLoadingProgress, setIsLoadingProgress] = useState(true);
 
   const pathways = learningPathways;
+
+  // Fetch user progress from API
+  useEffect(() => {
+    async function loadProgress() {
+      try {
+        const response = await fetch("/api/training/progress");
+        if (response.ok) {
+          const data = await response.json();
+          setUserProgress({
+            completed_pathways: data.completed_pathways || 0,
+            total_pathways: data.total_pathways || 6,
+            completed_lessons: data.completed_lessons || 0,
+            total_lessons: data.total_lessons || 45,
+            current_streak: data.current_streak || 0,
+            longest_streak: data.longest_streak || 0,
+            total_points: data.total_points || 0,
+            weekly_goal: data.weekly_goal || 80,
+            weekly_progress: data.weekly_progress || 0,
+            badges_count: data.badges_count || 0,
+          });
+        }
+      } catch (error) {
+        console.error("Failed to load training progress:", error);
+      } finally {
+        setIsLoadingProgress(false);
+      }
+    }
+    loadProgress();
+  }, []);
 
   // Mock data for micro-learning components
   const microLessons = [
@@ -95,18 +153,6 @@ export function TrainingLibraryClient() {
     }
   ];
 
-  // Mock user progress data
-  const userProgress = {
-    completedPathways: 2,
-    totalPathways: 6,
-    completedLessons: 24,
-    totalLessons: 45,
-    currentStreak: 7,
-    totalPoints: 2450,
-    badges: 8,
-    weeklyGoal: 80,
-    weeklyProgress: 65
-  };
 
   const personas = {
     'compliance-officer': { name: 'Compliance Officer' },
@@ -167,7 +213,7 @@ export function TrainingLibraryClient() {
         <div className="flex items-center gap-3">
           <Badge variant="outline" className="text-teal-600 border-teal-200 bg-teal-50">
             <TrendingUp className="mr-1 h-3 w-3" />
-            {userProgress.weeklyProgress}% Weekly Goal
+            {userProgress.weekly_progress}% Weekly Goal
           </Badge>
           <Button className="bg-teal-600 hover:bg-teal-700">
             <Play className="mr-2 h-4 w-4" />
@@ -184,7 +230,7 @@ export function TrainingLibraryClient() {
               <div>
                 <p className="text-sm font-medium text-slate-600">Pathways Complete</p>
                 <p className="text-2xl font-semibold text-slate-900">
-                  {userProgress.completedPathways}/{userProgress.totalPathways}
+                  {userProgress.completed_pathways}/{userProgress.total_pathways}
                 </p>
                 <p className="text-xs text-slate-500 mt-1">Learning paths</p>
               </div>
@@ -200,7 +246,7 @@ export function TrainingLibraryClient() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-slate-600">Current Streak</p>
-                <p className="text-2xl font-semibold text-slate-900">{userProgress.currentStreak}</p>
+                <p className="text-2xl font-semibold text-slate-900">{userProgress.current_streak}</p>
                 <p className="text-xs text-slate-500 mt-1">Days in a row</p>
               </div>
               <div className="p-3 rounded-xl bg-amber-50">
@@ -215,7 +261,7 @@ export function TrainingLibraryClient() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-slate-600">Points Earned</p>
-                <p className="text-2xl font-semibold text-slate-900">{userProgress.totalPoints}</p>
+                <p className="text-2xl font-semibold text-slate-900">{userProgress.total_points}</p>
                 <p className="text-xs text-slate-500 mt-1">Total points</p>
               </div>
               <div className="p-3 rounded-xl bg-purple-50">
@@ -230,7 +276,7 @@ export function TrainingLibraryClient() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-slate-600">Badges Earned</p>
-                <p className="text-2xl font-semibold text-slate-900">{userProgress.badges}</p>
+                <p className="text-2xl font-semibold text-slate-900">{userProgress.badges_count}</p>
                 <p className="text-xs text-slate-500 mt-1">Achievements</p>
               </div>
               <div className="p-3 rounded-xl bg-emerald-50">
@@ -250,15 +296,15 @@ export function TrainingLibraryClient() {
               <CardDescription>Track your weekly learning progress</CardDescription>
             </div>
             <Badge className="bg-teal-600 hover:bg-teal-700">
-              {userProgress.weeklyProgress}% Complete
+              {userProgress.weekly_progress}% Complete
             </Badge>
           </div>
         </CardHeader>
         <CardContent>
-          <Progress value={userProgress.weeklyProgress} className="h-3" />
+          <Progress value={Math.min((userProgress.weekly_progress / userProgress.weekly_goal) * 100, 100)} className="h-3" />
           <div className="flex justify-between text-sm text-slate-500 mt-2">
-            <span>{userProgress.weeklyProgress} minutes this week</span>
-            <span>Goal: {userProgress.weeklyGoal} minutes</span>
+            <span>{userProgress.weekly_progress} points this week</span>
+            <span>Goal: {userProgress.weekly_goal} points</span>
           </div>
         </CardContent>
       </Card>

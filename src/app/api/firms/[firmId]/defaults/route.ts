@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getFirmDefaults } from '@/lib/server/firm-profile-store';
 import type { JsonValue } from '@/lib/policies/types';
+import { logError } from '@/lib/logger';
 
 const fallbackDefaults: Record<string, JsonValue> = {
   firm_role: 'principal',
@@ -39,7 +40,7 @@ export async function GET(
       { status: 200 }
     );
   } catch (error) {
-    console.error('Error fetching firm defaults:', error);
+    logError(error, 'Failed to fetch firm defaults');
     return NextResponse.json(
       {
         firm_id: 'demo-firm',

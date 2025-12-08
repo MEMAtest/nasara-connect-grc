@@ -55,6 +55,17 @@ function summarizeTemplate(template: (typeof POLICY_TEMPLATES)[number] | StoredP
   ].join("\n");
 }
 
+function summarizeStoredClauses(policy?: StoredPolicy): string[] {
+  if (!policy?.clauses?.length) return [];
+  return policy.clauses.slice(0, 5).map((clause) => {
+    return [
+      `Clause: ${clause.title} (${clause.id})`,
+      `Summary: ${clause.summary ?? clause.body_md?.slice(0, 160) ?? ""}`,
+      `Mandatory: ${clause.isMandatory ? "yes" : "no"}`,
+    ].join("\n");
+  });
+}
+
 /**
  * Build lightweight contextual grounding from CMP controls based on the user query/selection.
  */
@@ -116,6 +127,18 @@ export function buildAssistantContext(
         label: item.tpl.code,
       }))
     );
+  }
+  if (storedPolicy) {
+    const clauseSummaries = summarizeStoredClauses(storedPolicy);
+    if (clauseSummaries.length) {
+      sections.push(`Policy clauses (stored):\n\n${clauseSummaries.join("\n\n")}`);
+      citations.push(
+        ...storedPolicy.clauses.slice(0, 5).map((clause) => ({
+          type: "clause" as const,
+          label: clause.id,
+        }))
+      );
+    }
   }
   if (clauseHits.length > 0) {
     sections.push(`Policy clauses:\n\n${clauseHits.map((item) => summarizeClause(item.clause)).join("\n\n")}`);

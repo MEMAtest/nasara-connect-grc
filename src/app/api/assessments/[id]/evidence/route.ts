@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getEvidenceDocuments, initializeEvidenceDocuments, updateEvidenceDocument } from '@/lib/database';
+import { logError } from '@/lib/logger';
 
 export async function GET(
   request: NextRequest,
@@ -23,13 +24,7 @@ export async function GET(
 
     return NextResponse.json(documents);
   } catch (error) {
-    // Log error for production monitoring - replace with proper logging service
-    if (process.env.NODE_ENV === 'production') {
-      // TODO: Replace with proper logging service (e.g., Winston, DataDog, etc.)
-      // logError('evidence-documents-fetch-failed', error, { assessmentId });
-    } else {
-      console.error('Error fetching evidence documents:', error);
-    }
+    logError(error, 'Failed to fetch evidence documents');
     return NextResponse.json({ error: 'Failed to fetch evidence documents' }, { status: 500 });
   }
 }
@@ -55,13 +50,7 @@ export async function PATCH(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    // Log error for production monitoring - replace with proper logging service
-    if (process.env.NODE_ENV === 'production') {
-      // TODO: Replace with proper logging service (e.g., Winston, DataDog, etc.)
-      // logError('evidence-document-update-failed', error, { assessmentId, documentId });
-    } else {
-      console.error('Error updating evidence document:', error);
-    }
+    logError(error, 'Failed to update evidence document');
     return NextResponse.json({ error: 'Failed to update evidence document' }, { status: 500 });
   }
 }

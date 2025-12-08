@@ -15,6 +15,7 @@ import {
   deleteFirmProfile,
 } from '@/lib/server/firm-profile-store';
 import type { FirmProfileCreate } from '@/lib/policies/types';
+import { logError } from '@/lib/logger';
 
 // =====================================================
 // GET - Retrieve firm profile
@@ -38,7 +39,7 @@ export async function GET(
 
     return NextResponse.json(profile, { status: 200 });
   } catch (error) {
-    console.error('Error fetching firm profile:', error);
+    logError(error, 'Failed to fetch firm profile');
     return NextResponse.json(
       {
         error: 'Failed to fetch firm profile',
@@ -85,7 +86,7 @@ export async function POST(
 
     return NextResponse.json(profile, { status: 200 });
   } catch (error) {
-    console.error('Error creating/updating firm profile:', error);
+    logError(error, 'Failed to create/update firm profile');
     return NextResponse.json(
       {
         error: 'Failed to save firm profile',
@@ -134,7 +135,7 @@ export async function PATCH(
 
     return NextResponse.json(profile, { status: 200 });
   } catch (error) {
-    console.error('Error updating firm profile:', error);
+    logError(error, 'Failed to update firm profile');
 
     if (error instanceof Error && error.message.includes('not found')) {
       return NextResponse.json(
@@ -176,7 +177,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
-    console.error('Error deleting firm profile:', error);
+    logError(error, 'Failed to delete firm profile');
     return NextResponse.json(
       {
         error: 'Failed to delete firm profile',

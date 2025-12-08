@@ -5,10 +5,11 @@
  * Smart, branching questionnaire with dynamic clause selection
  */
 
-import { useMemo } from 'react'
+import { useMemo, useEffect } from 'react'
 import { useWizardState } from '@/hooks/useWizardState'
 import { validateAnswers } from '@/lib/policies/rules-engine'
 import WizardQuestion from './WizardQuestion'
+import { useAssistantContext } from '@/components/dashboard/useAssistantContext'
 import type { Question, Rule, FirmAttributes, JsonValue, RulesEngineResult } from '@/lib/policies/types'
 
 interface PolicyWizardProps {
@@ -34,6 +35,7 @@ export default function PolicyWizard({
   onComplete,
   onSave,
 }: PolicyWizardProps) {
+  const { setContext } = useAssistantContext()
   const {
     state,
     updateAnswer,
@@ -49,6 +51,11 @@ export default function PolicyWizard({
     onSave,
     autoSaveInterval: 30000, // 30 seconds
   })
+
+  // Prefill assistant context so chat uses policy/run grounding
+  useEffect(() => {
+    setContext({ policyId, runId, path: `/wizard/${policyId}` })
+  }, [policyId, runId, setContext])
 
   // Group questions by section
   const sections = useMemo(() => {

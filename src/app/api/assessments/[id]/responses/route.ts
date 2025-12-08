@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { saveAssessmentResponse, getAssessmentResponses, updateSectionProgress } from '@/lib/database';
 import { getQuestionsBySection } from '@/app/(dashboard)/authorization-pack/lib/questionBank';
+import { logError } from '@/lib/logger';
 
 export async function GET(
   request: NextRequest,
@@ -20,13 +21,7 @@ export async function GET(
 
     return NextResponse.json(filteredResponses);
   } catch (error) {
-    // Log error for production monitoring - replace with proper logging service
-    if (process.env.NODE_ENV === 'production') {
-      // TODO: Replace with proper logging service (e.g., Winston, DataDog, etc.)
-      // logError('assessment-responses-fetch-failed', error, { assessmentId: id });
-    } else {
-      console.error('Error fetching assessment responses:', error);
-    }
+    logError(error, 'Failed to fetch assessment responses');
     return NextResponse.json(
       { error: 'Failed to fetch responses' },
       { status: 500 }
@@ -79,13 +74,7 @@ export async function POST(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    // Log error for production monitoring - replace with proper logging service
-    if (process.env.NODE_ENV === 'production') {
-      // TODO: Replace with proper logging service (e.g., Winston, DataDog, etc.)
-      // logError('assessment-response-save-failed', error, { assessmentId, questionId, section });
-    } else {
-      console.error('Error saving assessment response:', error);
-    }
+    logError(error, 'Failed to save assessment response');
     return NextResponse.json(
       { error: 'Failed to save response' },
       { status: 500 }

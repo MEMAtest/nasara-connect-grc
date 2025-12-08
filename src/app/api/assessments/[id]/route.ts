@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAssessment } from '@/lib/database';
+import { logError } from '@/lib/logger';
 
 export async function GET(
   request: NextRequest,
@@ -18,13 +19,7 @@ export async function GET(
 
     return NextResponse.json(assessment);
   } catch (error) {
-    // Log error for production monitoring - replace with proper logging service
-    if (process.env.NODE_ENV === 'production') {
-      // TODO: Replace with proper logging service (e.g., Winston, DataDog, etc.)
-      // logError('assessment-fetch-failed', error, { assessmentId: id });
-    } else {
-      console.error('Error fetching assessment:', error);
-    }
+    logError(error, 'Failed to fetch assessment', { assessmentId: 'unknown' });
     return NextResponse.json(
       { error: 'Failed to fetch assessment' },
       { status: 500 }

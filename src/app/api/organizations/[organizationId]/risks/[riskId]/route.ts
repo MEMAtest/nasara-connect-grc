@@ -1,42 +1,49 @@
 import { NextResponse } from "next/server";
 import {
   deleteRisk,
-  getRisksForOrganization,
-  upsertRisk,
-} from "@/lib/server/risk-store";
+  getRiskById,
+  updateRisk,
+} from "@/lib/server/risk-database";
 import type { RiskFormValues } from "@/app/(dashboard)/risk-assessment/lib/riskValidation";
-import type { RiskRecord } from "@/app/(dashboard)/risk-assessment/lib/riskConstants";
 
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ organizationId: string; riskId: string }> },
 ) {
-  const { organizationId, riskId } = await params;
-  const payload = (await request.json()) as Partial<RiskFormValues>;
-  const existing = getRisksForOrganization(organizationId).find(
-    (risk) => risk.id === riskId || risk.riskId === riskId,
-  );
-  if (!existing) {
-    return NextResponse.json({ error: "Risk not found" }, { status: 404 });
+  try {
+    const { organizationId, riskId } = await params;
+    const payload = (await request.json()) as Partial<RiskFormValues>;
+
+    const existing = await getRiskById(organizationId, riskId);
+    if (!existing) {
+      return NextResponse.json({ error: "Risk not found" }, { status: 404 });
+    }
+
+    const updates = {
+      ...payload,
+      residualLikelihood: payload.residualLikelihood ?? payload.likelihood ?? existing.residualLikelihood,
+      residualImpact: payload.residualImpact ?? payload.impact ?? existing.residualImpact,
+      keyRiskIndicators: payload.keyRiskIndicators ?? existing.keyRiskIndicators ?? [],
+    };
+
+    const result = await updateRisk(organizationId, riskId, updates);
+    return NextResponse.json(result);
+  } catch (error) {
+    console.error("Error updating risk:", error);
+    return NextResponse.json({ error: "Failed to update risk" }, { status: 500 });
   }
-
-  const updated: RiskRecord = {
-    ...existing,
-    ...payload,
-    residualLikelihood: payload.residualLikelihood ?? payload.likelihood ?? existing.residualLikelihood,
-    residualImpact: payload.residualImpact ?? payload.impact ?? existing.residualImpact,
-    keyRiskIndicators: payload.keyRiskIndicators ?? existing.keyRiskIndicators ?? [],
-  };
-
-  const result = upsertRisk(organizationId, updated);
-  return NextResponse.json(result);
 }
 
 export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ organizationId: string; riskId: string }> },
 ) {
-  const { organizationId, riskId } = await params;
-  deleteRisk(organizationId, riskId);
-  return NextResponse.json({ success: true });
+  try {
+    const { organizationId, riskId } = await params;
+    await deleteRisk(organizationId, riskId);
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Error deleting risk:", error);
+    return NextResponse.json({ error: "Failed to delete risk" }, { status: 500 });
+  }
 }

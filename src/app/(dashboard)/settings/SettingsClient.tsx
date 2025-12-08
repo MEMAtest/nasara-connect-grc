@@ -1,13 +1,144 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Settings, User, Bell, Shield, Save } from "lucide-react";
+import { Settings, User, Bell, Shield, Save, Loader2, CheckCircle, AlertCircle } from "lucide-react";
+
+interface UserSettings {
+  first_name: string;
+  last_name: string;
+  user_email: string;
+  role: string;
+  phone: string;
+  organization: string;
+  email_notifications: boolean;
+  push_notifications: boolean;
+  weekly_reports: boolean;
+  two_factor_enabled: boolean;
+  session_timeout: boolean;
+  dark_mode: boolean;
+  compact_view: boolean;
+  language: string;
+}
+
+const defaultSettings: UserSettings = {
+  first_name: "",
+  last_name: "",
+  user_email: "",
+  role: "",
+  phone: "",
+  organization: "",
+  email_notifications: true,
+  push_notifications: true,
+  weekly_reports: true,
+  two_factor_enabled: false,
+  session_timeout: true,
+  dark_mode: false,
+  compact_view: false,
+  language: "en",
+};
 
 export function SettingsClient() {
+  const [settings, setSettings] = useState<UserSettings>(defaultSettings);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "success" | "error">("idle");
+  const [hasChanges, setHasChanges] = useState(false);
+
+  // Load settings on mount
+  useEffect(() => {
+    async function loadSettings() {
+      try {
+        const response = await fetch("/api/settings");
+        if (response.ok) {
+          const data = await response.json();
+          setSettings({
+            first_name: data.first_name || "",
+            last_name: data.last_name || "",
+            user_email: data.user_email || "",
+            role: data.role || "",
+            phone: data.phone || "",
+            organization: data.organization || "",
+            email_notifications: data.email_notifications ?? true,
+            push_notifications: data.push_notifications ?? true,
+            weekly_reports: data.weekly_reports ?? true,
+            two_factor_enabled: data.two_factor_enabled ?? false,
+            session_timeout: data.session_timeout ?? true,
+            dark_mode: data.dark_mode ?? false,
+            compact_view: data.compact_view ?? false,
+            language: data.language || "en",
+          });
+        }
+      } catch (error) {
+        console.error("Failed to load settings:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadSettings();
+  }, []);
+
+  // Update a setting
+  const updateSetting = <K extends keyof UserSettings>(key: K, value: UserSettings[K]) => {
+    setSettings((prev) => ({ ...prev, [key]: value }));
+    setHasChanges(true);
+    setSaveStatus("idle");
+  };
+
+  // Save settings
+  const handleSave = async () => {
+    setIsSaving(true);
+    setSaveStatus("idle");
+
+    try {
+      const response = await fetch("/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName: settings.first_name,
+          lastName: settings.last_name,
+          role: settings.role,
+          phone: settings.phone,
+          organization: settings.organization,
+          emailNotifications: settings.email_notifications,
+          pushNotifications: settings.push_notifications,
+          weeklyReports: settings.weekly_reports,
+          twoFactorEnabled: settings.two_factor_enabled,
+          sessionTimeout: settings.session_timeout,
+          darkMode: settings.dark_mode,
+          compactView: settings.compact_view,
+          language: settings.language,
+        }),
+      });
+
+      if (response.ok) {
+        setSaveStatus("success");
+        setHasChanges(false);
+        // Clear success message after 3 seconds
+        setTimeout(() => setSaveStatus("idle"), 3000);
+      } else {
+        setSaveStatus("error");
+      }
+    } catch (error) {
+      console.error("Failed to save settings:", error);
+      setSaveStatus("error");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-96 items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -17,10 +148,28 @@ export function SettingsClient() {
             Manage your account preferences and platform settings
           </p>
         </div>
-        <Button>
-          <Save className="mr-2 h-4 w-4" />
-          Save Changes
-        </Button>
+        <div className="flex items-center gap-3">
+          {saveStatus === "success" && (
+            <span className="flex items-center gap-1 text-sm text-green-600">
+              <CheckCircle className="h-4 w-4" />
+              Saved successfully
+            </span>
+          )}
+          {saveStatus === "error" && (
+            <span className="flex items-center gap-1 text-sm text-red-600">
+              <AlertCircle className="h-4 w-4" />
+              Failed to save
+            </span>
+          )}
+          <Button onClick={handleSave} disabled={isSaving || !hasChanges}>
+            {isSaving ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Save className="mr-2 h-4 w-4" />
+            )}
+            Save Changes
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-6">
@@ -38,20 +187,65 @@ export function SettingsClient() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="firstName">First Name</Label>
-                <Input id="firstName" defaultValue="Regina" />
+                <Input
+                  id="firstName"
+                  value={settings.first_name}
+                  onChange={(e) => updateSetting("first_name", e.target.value)}
+                  placeholder="Enter your first name"
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="lastName">Last Name</Label>
-                <Input id="lastName" defaultValue="Miles" />
+                <Input
+                  id="lastName"
+                  value={settings.last_name}
+                  onChange={(e) => updateSetting("last_name", e.target.value)}
+                  placeholder="Enter your last name"
+                />
               </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" defaultValue="regina.miles@nasara.co" />
+              <Input
+                id="email"
+                type="email"
+                value={settings.user_email}
+                disabled
+                className="bg-slate-50"
+              />
+              <p className="text-xs text-muted-foreground">
+                Email cannot be changed. Contact support if needed.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="role">Role</Label>
+                <Input
+                  id="role"
+                  value={settings.role}
+                  onChange={(e) => updateSetting("role", e.target.value)}
+                  placeholder="e.g., Compliance Officer"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={settings.phone}
+                  onChange={(e) => updateSetting("phone", e.target.value)}
+                  placeholder="+44 20 1234 5678"
+                />
+              </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="role">Role</Label>
-              <Input id="role" defaultValue="Chief Compliance Officer" />
+              <Label htmlFor="organization">Organization</Label>
+              <Input
+                id="organization"
+                value={settings.organization}
+                onChange={(e) => updateSetting("organization", e.target.value)}
+                placeholder="Enter your organization name"
+              />
             </div>
           </CardContent>
         </Card>
@@ -74,7 +268,10 @@ export function SettingsClient() {
                   Receive regulatory updates and compliance alerts via email
                 </p>
               </div>
-              <Switch defaultChecked />
+              <Switch
+                checked={settings.email_notifications}
+                onCheckedChange={(checked) => updateSetting("email_notifications", checked)}
+              />
             </div>
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
@@ -83,7 +280,10 @@ export function SettingsClient() {
                   Get instant alerts for high-priority compliance matters
                 </p>
               </div>
-              <Switch defaultChecked />
+              <Switch
+                checked={settings.push_notifications}
+                onCheckedChange={(checked) => updateSetting("push_notifications", checked)}
+              />
             </div>
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
@@ -92,7 +292,10 @@ export function SettingsClient() {
                   Receive weekly compliance summary reports
                 </p>
               </div>
-              <Switch defaultChecked />
+              <Switch
+                checked={settings.weekly_reports}
+                onCheckedChange={(checked) => updateSetting("weekly_reports", checked)}
+              />
             </div>
           </CardContent>
         </Card>
@@ -115,9 +318,10 @@ export function SettingsClient() {
                   Add an extra layer of security to your account
                 </p>
               </div>
-              <Button variant="outline" size="sm">
-                Enable 2FA
-              </Button>
+              <Switch
+                checked={settings.two_factor_enabled}
+                onCheckedChange={(checked) => updateSetting("two_factor_enabled", checked)}
+              />
             </div>
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
@@ -126,7 +330,10 @@ export function SettingsClient() {
                   Automatically log out after 30 minutes of inactivity
                 </p>
               </div>
-              <Switch defaultChecked />
+              <Switch
+                checked={settings.session_timeout}
+                onCheckedChange={(checked) => updateSetting("session_timeout", checked)}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Change Password</Label>
@@ -156,7 +363,10 @@ export function SettingsClient() {
                   Toggle between light and dark themes
                 </p>
               </div>
-              <Switch />
+              <Switch
+                checked={settings.dark_mode}
+                onCheckedChange={(checked) => updateSetting("dark_mode", checked)}
+              />
             </div>
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
@@ -165,14 +375,23 @@ export function SettingsClient() {
                   Display more information in less space
                 </p>
               </div>
-              <Switch />
+              <Switch
+                checked={settings.compact_view}
+                onCheckedChange={(checked) => updateSetting("compact_view", checked)}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="language">Language</Label>
-              <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background">
+              <select
+                id="language"
+                value={settings.language}
+                onChange={(e) => updateSetting("language", e.target.value)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              >
                 <option value="en">English</option>
                 <option value="es">Spanish</option>
                 <option value="fr">French</option>
+                <option value="de">German</option>
               </select>
             </div>
           </CardContent>

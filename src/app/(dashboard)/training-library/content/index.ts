@@ -7,6 +7,15 @@ import { sanctionsTrainingModule } from './sanctions-training';
 import { pepsTrainingModule } from './peps-training';
 import { sarsTrainingModule } from './sars-training';
 import { smcrTrainingModule } from './smcr-training';
+import { consumerDutyModule } from './consumer-duty';
+import { financialCrimeAmlModule } from './financial-crime-aml';
+import { vulnerableCustomersModule } from './vulnerable-customers';
+import { clientCategorisationModule } from './client-categorisation';
+import { suitabilityAppropriatenessModule } from './suitability-appropriateness';
+import { complaintsHandlingModule } from './complaints-handling';
+import { financialPromotionsModule } from './financial-promotions';
+import { outsourcingThirdPartyModule } from './outsourcing-third-party';
+import { operationalResilienceModule } from './operational-resilience';
 
 // Core Training Modules Registry
 export const trainingModules: Record<string, TrainingModule> = {
@@ -16,6 +25,15 @@ export const trainingModules: Record<string, TrainingModule> = {
   'peps-training': pepsTrainingModule,
   'sars-training': sarsTrainingModule,
   'smcr-training': smcrTrainingModule,
+  'consumer-duty': consumerDutyModule,
+  'financial-crime-aml': financialCrimeAmlModule,
+  'vulnerable-customers': vulnerableCustomersModule,
+  'client-categorisation': clientCategorisationModule,
+  'suitability-appropriateness': suitabilityAppropriatenessModule,
+  'complaints-handling': complaintsHandlingModule,
+  'financial-promotions': financialPromotionsModule,
+  'outsourcing-third-party': outsourcingThirdPartyModule,
+  'operational-resilience': operationalResilienceModule,
 };
 
 // Helper function to get module by ID
@@ -90,42 +108,85 @@ export const personaRecommendations = {
     'kyc-fundamentals',
     'sanctions-training',
     'peps-training',
-    'sars-training'
+    'sars-training',
+    'consumer-duty',
+    'financial-crime-aml',
+    'vulnerable-customers',
+    'client-categorisation',
+    'suitability-appropriateness',
+    'complaints-handling',
+    'financial-promotions',
+    'outsourcing-third-party',
+    'operational-resilience'
   ],
   'senior-manager': [
     'smcr-training',
+    'consumer-duty',
     'aml-fundamentals',
-    'sars-training'
+    'sars-training',
+    'financial-crime-aml',
+    'vulnerable-customers',
+    'client-categorisation',
+    'suitability-appropriateness',
+    'complaints-handling',
+    'financial-promotions',
+    'outsourcing-third-party',
+    'operational-resilience'
   ],
   'mlro': [
     'sars-training',
     'aml-fundamentals',
     'kyc-fundamentals',
     'sanctions-training',
-    'peps-training'
+    'peps-training',
+    'financial-crime-aml'
   ],
   'relationship-manager': [
+    'consumer-duty',
     'kyc-fundamentals',
     'peps-training',
-    'sanctions-training'
+    'sanctions-training',
+    'vulnerable-customers',
+    'client-categorisation',
+    'suitability-appropriateness'
   ],
   'operations-staff': [
     'sanctions-training',
-    'aml-fundamentals'
+    'aml-fundamentals',
+    'financial-crime-aml',
+    'client-categorisation',
+    'outsourcing-third-party',
+    'operational-resilience'
   ],
   'customer-service': [
+    'consumer-duty',
     'kyc-fundamentals',
-    'aml-fundamentals'
+    'aml-fundamentals',
+    'vulnerable-customers',
+    'suitability-appropriateness',
+    'complaints-handling'
   ],
   'kyc-specialist': [
     'kyc-fundamentals',
-    'peps-training'
+    'peps-training',
+    'financial-crime-aml'
   ],
   'certified-person': [
-    'smcr-training'
+    'smcr-training',
+    'consumer-duty',
+    'vulnerable-customers',
+    'client-categorisation',
+    'suitability-appropriateness'
   ],
   'hr-professional': [
-    'smcr-training'
+    'smcr-training',
+    'vulnerable-customers'
+  ],
+  'investment-adviser': [
+    'suitability-appropriateness',
+    'client-categorisation',
+    'consumer-duty',
+    'vulnerable-customers'
   ]
 };
 
@@ -196,6 +257,165 @@ export const learningPathways = {
     ],
     prerequisites: [],
     certification: true
+  },
+  'consumer-duty-pathway': {
+    id: 'consumer-duty-pathway',
+    title: 'Consumer Duty & Customer Outcomes',
+    description: 'Comprehensive pathway covering the FCA Consumer Duty, fair value, vulnerable customers, and delivering good outcomes',
+    category: 'mandatory',
+    estimatedDuration: 75,
+    modules: [
+      'consumer-duty',
+      'kyc-fundamentals'
+    ],
+    targetRoles: ['senior-manager', 'compliance-officer', 'relationship-manager', 'customer-service', 'certified-person'],
+    outcomes: [
+      'Understand Principle 12 and the four Consumer Duty outcomes',
+      'Apply cross-cutting rules to product design, sales and servicing',
+      'Conduct and document fair value assessments',
+      'Identify and support vulnerable customers appropriately',
+      'Implement outcome-focused governance and MI'
+    ],
+    prerequisites: [],
+    certification: true
+  },
+  'financial-crime-specialist-pathway': {
+    id: 'financial-crime-specialist-pathway',
+    title: 'Financial Crime Specialist Programme',
+    description: 'Advanced pathway covering UK financial crime framework, POCA 2002, MLR 2017, and practical application of risk-based approaches',
+    category: 'mandatory',
+    estimatedDuration: 85,
+    modules: [
+      'financial-crime-aml',
+      'aml-fundamentals',
+      'sars-training',
+      'sanctions-training'
+    ],
+    targetRoles: ['compliance-officer', 'mlro', 'kyc-specialist'],
+    outcomes: [
+      'Master the UK financial crime legislative and regulatory framework',
+      'Apply risk-based approaches to customer due diligence',
+      'Implement effective suspicious activity identification and reporting',
+      'Understand sanctions obligations and screening requirements',
+      'Design and operate effective financial crime governance structures'
+    ],
+    prerequisites: [],
+    certification: true
+  },
+  'vulnerable-customers-pathway': {
+    id: 'vulnerable-customers-pathway',
+    title: 'Vulnerable Customer Excellence',
+    description: 'Comprehensive pathway on identifying, supporting and protecting vulnerable customers in line with FCA FG21/1 guidance',
+    category: 'mandatory',
+    estimatedDuration: 80,
+    modules: [
+      'vulnerable-customers',
+      'consumer-duty',
+      'kyc-fundamentals'
+    ],
+    targetRoles: ['customer-service', 'relationship-manager', 'compliance-officer', 'senior-manager'],
+    outcomes: [
+      'Understand the FCA definition and four drivers of vulnerability',
+      'Recognise indicators of vulnerability across customer interactions',
+      'Apply practical support strategies for vulnerable customers',
+      'Link vulnerability considerations to Consumer Duty requirements',
+      'Implement governance and MI frameworks for vulnerability'
+    ],
+    prerequisites: [],
+    certification: true
+  },
+  'investment-advice-pathway': {
+    id: 'investment-advice-pathway',
+    title: 'Investment Advice & Client Classification',
+    description: 'Comprehensive pathway covering COBS 3 client categorisation, COBS 9A suitability, and COBS 10A appropriateness requirements for investment services',
+    category: 'mandatory',
+    estimatedDuration: 135,
+    modules: [
+      'client-categorisation',
+      'suitability-appropriateness',
+      'consumer-duty',
+      'vulnerable-customers'
+    ],
+    targetRoles: ['relationship-manager', 'compliance-officer', 'certified-person', 'investment-adviser'],
+    outcomes: [
+      'Apply COBS 3 client categorisation framework correctly',
+      'Distinguish between retail, professional and eligible counterparty status',
+      'Conduct robust suitability assessments for advised business',
+      'Apply appropriateness tests for non-advised complex products',
+      'Design defendable documentation for categorisation and suitability decisions',
+      'Integrate Consumer Duty fair value requirements with advice processes'
+    ],
+    prerequisites: [],
+    certification: true
+  },
+  'corporate-finance-pathway': {
+    id: 'corporate-finance-pathway',
+    title: 'Corporate Finance Compliance Essentials',
+    description: 'Essential compliance training for corporate finance teams covering client categorisation, professional client requirements, and FCA 2025 expectations',
+    category: 'mandatory',
+    estimatedDuration: 95,
+    modules: [
+      'client-categorisation',
+      'consumer-duty',
+      'financial-crime-aml'
+    ],
+    targetRoles: ['senior-manager', 'compliance-officer', 'certified-person'],
+    outcomes: [
+      'Master elective professional client categorisation requirements',
+      'Avoid common categorisation weaknesses identified in FCA 2025 review',
+      'Document categorisation decisions to withstand regulatory scrutiny',
+      'Apply Consumer Duty to wholesale client relationships',
+      'Understand financial crime risks in corporate transactions'
+    ],
+    prerequisites: [],
+    certification: true
+  },
+  'customer-experience-pathway': {
+    id: 'customer-experience-pathway',
+    title: 'Customer Experience & Communications Excellence',
+    description: 'Comprehensive pathway covering complaints handling, financial promotions, and customer communications in line with DISP and COBS 4',
+    category: 'mandatory',
+    estimatedDuration: 135,
+    modules: [
+      'complaints-handling',
+      'financial-promotions',
+      'consumer-duty',
+      'vulnerable-customers'
+    ],
+    targetRoles: ['customer-service', 'compliance-officer', 'senior-manager', 'relationship-manager'],
+    outcomes: [
+      'Master DISP complaints handling requirements and FOS jurisdiction',
+      'Conduct effective root cause analysis and drive continuous improvement',
+      'Ensure financial promotions are fair, clear and not misleading',
+      'Apply s21 gateway requirements for approving promotions',
+      'Integrate complaints and communications MI into Consumer Duty monitoring',
+      'Support vulnerable customers through complaints and communications processes'
+    ],
+    prerequisites: [],
+    certification: true
+  },
+  'operational-resilience-pathway': {
+    id: 'operational-resilience-pathway',
+    title: 'Operational Resilience & Third-Party Risk Management',
+    description: 'Comprehensive pathway covering FCA operational resilience requirements, outsourcing, third-party risk, and incident management in line with PS21/3 and SYSC 15A',
+    category: 'mandatory',
+    estimatedDuration: 140,
+    modules: [
+      'outsourcing-third-party',
+      'operational-resilience',
+      'consumer-duty'
+    ],
+    targetRoles: ['senior-manager', 'compliance-officer', 'operations-staff', 'certified-person'],
+    outcomes: [
+      'Master the SYSC outsourcing framework and regulatory accountability',
+      'Identify important business services and set meaningful impact tolerances',
+      'Map dependencies including third parties and concentration risks',
+      'Design and execute severe but plausible scenario testing',
+      'Operate effective incident management aligned to operational resilience',
+      'Integrate operational resilience with Consumer Duty and Board reporting'
+    ],
+    prerequisites: [],
+    certification: true
   }
 };
 
@@ -260,6 +480,96 @@ export const featuredModules = [
     duration: 20,
     difficulty: 'advanced',
     points: 250
+  },
+  {
+    id: 'consumer-duty',
+    title: 'Consumer Duty – Core Responsibilities',
+    description: 'FCA Consumer Duty, fair value and customer outcomes',
+    icon: 'users',
+    color: 'green',
+    duration: 60,
+    difficulty: 'intermediate',
+    points: 300
+  },
+  {
+    id: 'financial-crime-aml',
+    title: 'Financial Crime & AML Framework',
+    description: 'UK financial crime legislation, POCA 2002, MLR 2017 and risk-based approaches',
+    icon: 'shield',
+    color: 'red',
+    duration: 65,
+    difficulty: 'intermediate',
+    points: 325
+  },
+  {
+    id: 'vulnerable-customers',
+    title: 'Vulnerable Customers & FG21/1',
+    description: 'FCA guidance on supporting vulnerable customers and the four drivers of vulnerability',
+    icon: 'heart',
+    color: 'purple',
+    duration: 65,
+    difficulty: 'intermediate',
+    points: 325
+  },
+  {
+    id: 'client-categorisation',
+    title: 'Client Categorisation – COBS 3',
+    description: 'FCA client classification: retail, professional and eligible counterparty status',
+    icon: 'layers',
+    color: 'blue',
+    duration: 65,
+    difficulty: 'intermediate',
+    points: 325
+  },
+  {
+    id: 'suitability-appropriateness',
+    title: 'Suitability & Appropriateness – COBS 9A/10A',
+    description: 'Advised vs non-advised business, fact-finds, and defendable documentation',
+    icon: 'check-circle',
+    color: 'teal',
+    duration: 70,
+    difficulty: 'intermediate',
+    points: 350
+  },
+  {
+    id: 'complaints-handling',
+    title: 'Complaints Handling & DISP',
+    description: 'FCA complaints framework, FOS jurisdiction, and root cause analysis',
+    icon: 'message-circle',
+    color: 'amber',
+    duration: 65,
+    difficulty: 'intermediate',
+    points: 325
+  },
+  {
+    id: 'financial-promotions',
+    title: 'Financial Promotions – COBS 4',
+    description: 'Fair, clear, not misleading communications, s21 gateway, and social media',
+    icon: 'megaphone',
+    color: 'pink',
+    duration: 70,
+    difficulty: 'intermediate',
+    points: 350
+  },
+  {
+    id: 'outsourcing-third-party',
+    title: 'Outsourcing & Third-Party Risk',
+    description: 'SYSC outsourcing framework, cloud guidance (FG16/5), and critical third parties',
+    icon: 'link',
+    color: 'cyan',
+    duration: 70,
+    difficulty: 'intermediate',
+    points: 350
+  },
+  {
+    id: 'operational-resilience',
+    title: 'Operational Resilience – PS21/3',
+    description: 'Important business services, impact tolerances, scenario testing and incident management',
+    icon: 'shield-check',
+    color: 'emerald',
+    duration: 70,
+    difficulty: 'intermediate',
+    points: 350
   }
 ];
 

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { buildAssistantContext } from "@/lib/ai/context";
 import { fetchPolicyContext } from "@/lib/ai/policies";
+import { logError } from "@/lib/logger";
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const DEFAULT_MODEL = process.env.OPENROUTER_MODEL ?? "openai/gpt-4o-mini";
@@ -198,7 +199,7 @@ export async function POST(request: Request) {
       },
     });
   } catch (error) {
-    console.error("AI chat route error", error);
+    logError(error, "AI chat route error");
     return NextResponse.json(
       { error: "Failed to contact model", details: error instanceof Error ? error.message : "Unknown error" },
       { status: 500 }
