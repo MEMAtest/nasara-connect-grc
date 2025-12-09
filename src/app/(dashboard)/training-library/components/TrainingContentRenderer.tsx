@@ -75,190 +75,80 @@ export function TrainingContentRenderer({ contentId, onComplete, onProgress }: T
 type GenericStageKey = 'hook' | 'content' | 'practice' | 'summary';
 const GENERIC_STAGE_ORDER: GenericStageKey[] = ['hook', 'content', 'practice', 'summary'];
 
+interface TrainingModuleData {
+  title: string;
+  description: string;
+  duration: number;
+  difficulty: string;
+  hook?: {
+    title?: string;
+    content?: string;
+    statistic?: string;
+    caseStudy?: string;
+  };
+  learningOutcomes?: string[];
+  lessons?: Array<{
+    title: string;
+    content: string;
+    keyConcepts?: string[];
+    realExamples?: string[];
+  }>;
+  practiceScenarios?: Array<{
+    id: string;
+    title: string;
+    scenario: string;
+    question: string;
+    options: Array<{
+      id: string;
+      text: string;
+      isCorrect: boolean;
+      feedback: string;
+    }>;
+    learningPoint: string;
+  }>;
+  assessmentQuestions?: Array<{
+    id: string;
+    question: string;
+    options: Array<{
+      id: string;
+      text: string;
+      isCorrect: boolean;
+    }>;
+    explanation: string;
+  }>;
+  summary?: {
+    keyTakeaways?: string[];
+    nextSteps?: string[];
+  };
+}
+
 function GenericTrainingRenderer({ module, onComplete, onProgress }: {
-  module: Record<string, unknown>;
+  module: TrainingModuleData;
   onComplete?: (score: number, timeSpent: number) => void;
   onProgress?: (progress: number) => void;
 }) {
   const [currentStage, setCurrentStage] = useState<GenericStageKey>('hook');
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
+  const [currentLessonIndex, setCurrentLessonIndex] = useState(0);
 
-  // Convert module to legacy content format for compatibility
+  // Use actual module content
   const content = {
     title: module.title,
     description: module.description,
     estimatedDuration: module.duration,
     difficulty: module.difficulty,
-    stages: {
-      hook: {
-        duration: 1,
-        title: module.hook?.title || "Training Introduction",
-        content: module.hook?.content || "Welcome to this training module.",
-        visual: {
-          type: "scenario_illustration",
-          description: "Training scenario illustration"
-        }
-      },
-      content: {
-        duration: 5,
-        sections: [
-          {
-            title: "What Are Money Laundering Red Flags?",
-            content: `Red flags are indicators that suggest a transaction or customer behavior may be linked to money laundering or other financial crimes. Think of them as warning signals that require closer examination.`,
-            visual: {
-              type: "infographic",
-              elements: [
-                { icon: "alert-triangle", text: "Warning Signals", color: "red", description: "Indicators of potential criminal activity" },
-                { icon: "search", text: "Require Investigation", color: "amber", description: "Need enhanced due diligence" },
-                { icon: "shield", text: "Protect Institution", color: "green", description: "Safeguard against regulatory breach" }
-              ]
-            }
-          },
-          {
-            title: "The Three Stages of Money Laundering",
-            content: `Understanding how money laundering works helps identify red flags at each stage:`,
-            visual: {
-              type: "process_flow",
-              steps: [
-                {
-                  number: 1,
-                  title: "Placement",
-                  description: "Introducing illicit funds into the financial system",
-                  examples: ["Large cash deposits", "Structured transactions", "Use of money service businesses"],
-                  redFlags: ["Frequent cash deposits just under reporting thresholds", "Reluctance to provide identification"],
-                  color: "red"
-                },
-                {
-                  number: 2,
-                  title: "Layering",
-                  description: "Creating complex layers of transactions to obscure the trail",
-                  examples: ["Multiple transfers", "Complex corporate structures", "Cross-border movements"],
-                  redFlags: ["Unusual transaction patterns", "Transactions with no clear business purpose"],
-                  color: "amber"
-                },
-                {
-                  number: 3,
-                  title: "Integration",
-                  description: "Making laundered money appear legitimate",
-                  examples: ["Property purchases", "Business investments", "Luxury goods"],
-                  redFlags: ["Transactions inconsistent with customer profile", "Source of wealth unclear"],
-                  color: "green"
-                }
-              ]
-            }
-          },
-          {
-            title: "Common Red Flag Categories",
-            content: `Red flags fall into several key categories that you should monitor:`,
-            visual: {
-              type: "category_grid",
-              categories: [
-                {
-                  icon: "user",
-                  title: "Customer Behavior",
-                  description: "How customers act and respond during interactions",
-                  examples: ["Nervousness or anxiety", "Avoidance of questions", "Unusual knowledge of AML procedures", "Reluctance to provide standard information"],
-                  riskLevel: "high"
-                },
-                {
-                  icon: "credit-card",
-                  title: "Transaction Patterns",
-                  description: "Unusual characteristics in transaction data",
-                  examples: ["Structuring (amounts just under thresholds)", "Round number preferences", "Frequent just-below-threshold amounts", "Rapid fund movements"],
-                  riskLevel: "high"
-                },
-                {
-                  icon: "map-pin",
-                  title: "Geographic Indicators",
-                  description: "Location-based concerns and patterns",
-                  examples: ["High-risk jurisdictions", "Unusual travel patterns", "PEP connections", "Sanctions list matches"],
-                  riskLevel: "medium"
-                },
-                {
-                  icon: "briefcase",
-                  title: "Business Activity",
-                  description: "Commercial and business-related red flags",
-                  examples: ["Cash-intensive businesses", "Inconsistent business purpose", "Complex ownership structures", "Unusual employee payments"],
-                  riskLevel: "medium"
-                }
-              ]
-            }
-          }
-        ]
-      },
-      practice: {
-        duration: 2,
-        scenarios: [
-          {
-            id: "scenario_1",
-            title: "The Cash Deposit Pattern",
-            description: "John Smith, described as a taxi driver, deposits £9,800 in cash every Friday for 6 consecutive weeks. He's always in a hurry and becomes irritated when asked routine questions.",
-            question: "What red flags do you identify, and what action should you take?",
-            options: [
-              { id: "a", text: "Normal for cash business - no action needed", isCorrect: false },
-              { id: "b", text: "Potential structuring pattern - investigate and consider SAR", isCorrect: true },
-              { id: "c", text: "Below threshold - process normally", isCorrect: false },
-              { id: "d", text: "Refuse service due to customer behavior", isCorrect: false }
-            ],
-            feedback: {
-              correct: "Excellent analysis! This shows classic structuring behavior - consistent amounts just below the £10,000 threshold combined with suspicious customer behavior. The pattern, timing, and defensive attitude all warrant investigation and likely SAR filing.",
-              incorrect: "This pattern demonstrates structuring - making deposits just below reporting thresholds to avoid detection. The consistency, timing, and customer behavior are all red flags that require investigation."
-            },
-            learningPoints: [
-              "Structuring often involves consistent amounts just below reporting thresholds",
-              "Customer behavior (irritation, hurry) can be as important as transaction patterns",
-              "Patterns over time are more significant than individual transactions"
-            ]
-          },
-          {
-            id: "scenario_2",
-            title: "The International Wire Request",
-            description: "A well-dressed businesswoman requests to wire £45,000 to Dubai for 'business investments'. When asked for supporting documentation, she becomes agitated and asks if the bank 'trusts its customers'.",
-            question: "How should you handle this situation?",
-            options: [
-              { id: "a", text: "Complete transaction - amount is within legal limits", isCorrect: false },
-              { id: "b", text: "Refuse transaction immediately due to suspicious behavior", isCorrect: false },
-              { id: "c", text: "Request enhanced due diligence documentation before proceeding", isCorrect: true },
-              { id: "d", text: "Process transaction but file SAR afterwards", isCorrect: false }
-            ],
-            feedback: {
-              correct: "Correct approach! High-value international transfers require proper documentation regardless of customer attitude. Enhanced due diligence should be completed before processing, and the customer's reaction to reasonable requests is itself a red flag.",
-              incorrect: "International transfers of significant amounts require enhanced due diligence documentation. The customer's defensive reaction to reasonable documentation requests is itself suspicious and warrants careful handling."
-            }
-          }
-        ]
-      },
-      summary: {
-        duration: 1,
-        keyTakeaways: [
-          {
-            icon: "alert-triangle",
-            title: "Trust Your Professional Judgment",
-            description: "If something feels wrong, investigate further. Your experience and intuition are valuable detection tools."
-          },
-          {
-            icon: "search",
-            title: "Look for Patterns Over Time",
-            description: "Individual transactions may appear normal, but patterns across multiple transactions often reveal suspicious activity."
-          },
-          {
-            icon: "clock",
-            title: "Act Within Required Timeframes",
-            description: "Report suspicious activities promptly - usually within 24-48 hours of identification to meet regulatory requirements."
-          },
-          {
-            icon: "file-text",
-            title: "Document Everything Thoroughly",
-            description: "Detailed documentation protects your institution and supports investigations while demonstrating compliance."
-          }
-        ],
-        nextSteps: [
-          "Continue to 'Transaction Pattern Analysis' lesson",
-          "Take the comprehensive Red Flags Assessment",
-          "Review your institution's SAR filing procedures",
-          "Practice with advanced scenario simulations"
-        ]
-      }
+    hook: {
+      title: module.hook?.title || module.title,
+      content: module.hook?.content || module.hook?.caseStudy || module.description,
+      statistic: module.hook?.statistic
+    },
+    learningOutcomes: module.learningOutcomes || [],
+    lessons: module.lessons || [],
+    practiceScenarios: module.practiceScenarios || [],
+    assessmentQuestions: module.assessmentQuestions || [],
+    summary: {
+      keyTakeaways: module.summary?.keyTakeaways || [],
+      nextSteps: module.summary?.nextSteps || []
     }
   };
 
@@ -274,23 +164,17 @@ function GenericTrainingRenderer({ module, onComplete, onProgress }: {
   };
 
   const calculatePracticeScore = () => {
-    const scenarios = content.stages.practice?.scenarios as Array<Record<string, unknown>> | undefined;
-    if (!Array.isArray(scenarios) || scenarios.length === 0) {
+    if (content.practiceScenarios.length === 0) {
       return 100;
     }
 
-    const correctCount = scenarios.reduce((count, scenario) => {
-      const scenarioId = scenario.id as string | undefined;
-      if (!scenarioId) return count;
-
-      const selected = selectedAnswers[scenarioId];
-      const options = scenario.options as Array<Record<string, unknown>> | undefined;
-      const matchedOption = options?.find((option) => option.id === selected);
-
+    const correctCount = content.practiceScenarios.reduce((count, scenario) => {
+      const selected = selectedAnswers[scenario.id];
+      const matchedOption = scenario.options.find((option) => option.id === selected);
       return matchedOption?.isCorrect ? count + 1 : count;
     }, 0);
 
-    return Math.round((correctCount / scenarios.length) * 100);
+    return Math.round((correctCount / content.practiceScenarios.length) * 100);
   };
 
   const nextStage = () => {
@@ -478,244 +362,319 @@ function GenericTrainingRenderer({ module, onComplete, onProgress }: {
       <div className="text-center">
         <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-100 text-amber-800 rounded-full text-sm font-medium mb-4">
           <Zap className="h-4 w-4" />
-          Hook - Capture Attention (1 minute)
+          Introduction
         </div>
       </div>
 
       <Card className="border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50">
         <CardContent className="p-8">
           <h2 className="text-2xl font-bold text-slate-900 mb-4 text-center">
-            {content.stages.hook.title}
+            {content.hook.title}
           </h2>
           <div className="text-lg text-slate-700 leading-relaxed mb-6 text-center">
-            {content.stages.hook.content}
+            {content.hook.content}
           </div>
-          {renderVisual(content.stages.hook.visual)}
 
-          <div className="mt-8 p-4 bg-white/50 rounded-lg border border-amber-200">
-            <h3 className="font-semibold text-amber-900 mb-2">💭 Think About This:</h3>
-            <ul className="space-y-1 text-sm text-amber-800">
-              <li>• What immediate red flags do you notice?</li>
-              <li>• What questions would you ask this customer?</li>
-              <li>• What&apos;s your gut instinct telling you?</li>
-            </ul>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-
-  const renderContentStage = () => (
-    <div className="space-y-8">
-      <div className="text-center">
-        <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium mb-6">
-          <BookOpen className="h-4 w-4" />
-          Core Content - Deep Learning (5 minutes)
-        </div>
-      </div>
-
-      {content.stages.content.sections.map((section: Record<string, unknown>, index: number) => (
-        <Card key={index} className="border border-slate-200">
-          <CardContent className="p-8">
-            <h3 className="text-xl font-semibold text-slate-900 mb-4">{section.title}</h3>
-            <div className="text-slate-700 leading-relaxed mb-6">{section.content}</div>
-            {renderVisual(section.visual)}
-          </CardContent>
-        </Card>
-      ))}
-
-      <Card className="border border-blue-200 bg-blue-50">
-        <CardContent className="p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <TrendingUp className="h-6 w-6 text-blue-600" />
-            <h3 className="text-lg font-semibold text-blue-900">Key Statistics</h3>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">$2-5T</div>
-              <div className="text-sm text-blue-700">Global ML cost annually</div>
+          {content.hook.statistic && (
+            <div className="my-6 p-4 bg-blue-50 border border-blue-200 rounded-lg text-center">
+              <p className="text-blue-800 font-medium">{content.hook.statistic}</p>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">&lt;1%</div>
-              <div className="text-sm text-blue-700">Detection rate</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">6-18mo</div>
-              <div className="text-sm text-blue-700">Avg investigation time</div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
+          )}
 
-  const renderPracticeStage = () => (
-    <div className="space-y-6">
-      <div className="text-center">
-        <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100 text-emerald-800 rounded-full text-sm font-medium mb-6">
-          <Target className="h-4 w-4" />
-          Practice - Apply Knowledge (2 minutes)
-        </div>
-      </div>
-
-      <h2 className="text-2xl font-bold text-slate-900 text-center mb-8">
-        Test Your Red Flag Detection Skills
-      </h2>
-
-      {content.stages.practice.scenarios.map((scenario: Record<string, unknown>) => (
-        <Card key={scenario.id} className="border border-emerald-200">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Brain className="h-5 w-5 text-emerald-600" />
-              {scenario.title}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg">
-              <h4 className="font-semibold text-slate-900 mb-2">Scenario:</h4>
-              <p className="text-slate-700">{scenario.description}</p>
-            </div>
-
-            <div>
-              <h4 className="font-semibold text-slate-900 mb-3">{scenario.question}</h4>
-              <div className="space-y-3">
-                {(scenario.options as Record<string, unknown>[]).map((option: Record<string, unknown>) => (
-                  <label
-                    key={option.id}
-                    className={`flex items-start gap-3 p-4 border rounded-lg cursor-pointer transition-colors ${
-                      selectedAnswers[scenario.id] === option.id
-                        ? 'border-emerald-500 bg-emerald-50'
-                        : 'border-slate-200 hover:border-slate-300'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name={scenario.id}
-                      value={option.id}
-                      checked={selectedAnswers[scenario.id] === option.id}
-                      onChange={() => setSelectedAnswers(prev => ({ ...prev, [scenario.id]: option.id }))}
-                      className="mt-1"
-                    />
-                    <span className="text-slate-700">{option.text}</span>
-                  </label>
+          {content.learningOutcomes.length > 0 && (
+            <div className="mt-8 p-4 bg-white/50 rounded-lg border border-amber-200">
+              <h3 className="font-semibold text-amber-900 mb-3">📚 What You&apos;ll Learn:</h3>
+              <ul className="space-y-2">
+                {content.learningOutcomes.slice(0, 5).map((outcome, index) => (
+                  <li key={index} className="text-sm text-amber-800 flex items-start gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
+                    {outcome}
+                  </li>
                 ))}
-              </div>
+              </ul>
             </div>
-
-            {selectedAnswers[scenario.id] && (
-              <div className={`p-4 rounded-lg border ${
-                (scenario.options as Record<string, unknown>[]).find((opt: Record<string, unknown>) => opt.id === selectedAnswers[scenario.id as string])?.isCorrect
-                  ? 'border-emerald-200 bg-emerald-50'
-                  : 'border-red-200 bg-red-50'
-              }`}>
-                <div className="flex items-center gap-2 mb-2">
-                  {(scenario.options as Record<string, unknown>[]).find((opt: Record<string, unknown>) => opt.id === selectedAnswers[scenario.id as string])?.isCorrect ? (
-                    <CheckCircle2 className="h-5 w-5 text-emerald-600" />
-                  ) : (
-                    <AlertTriangle className="h-5 w-5 text-red-600" />
-                  )}
-                  <span className="font-semibold">
-                    {(scenario.options as Record<string, unknown>[]).find((opt: Record<string, unknown>) => opt.id === selectedAnswers[scenario.id as string])?.isCorrect
-                      ? 'Correct!' : 'Not quite right'}
-                  </span>
-                </div>
-                <p className="text-sm mb-3">
-                  {(scenario.options as Record<string, unknown>[]).find((opt: Record<string, unknown>) => opt.id === selectedAnswers[scenario.id as string])?.isCorrect
-                    ? scenario.feedback.correct : scenario.feedback.incorrect}
-                </p>
-                {scenario.learningPoints && (
-                  <div>
-                    <h5 className="font-medium mb-2">Key Learning Points:</h5>
-                    <ul className="space-y-1">
-                      {scenario.learningPoints.map((point: string, i: number) => (
-                        <li key={i} className="text-sm flex items-start gap-2">
-                          <Lightbulb className="h-3 w-3 text-amber-500 mt-0.5 shrink-0" />
-                          {point}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      ))}
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
+
+  const renderContentStage = () => {
+    const currentLesson = content.lessons[currentLessonIndex];
+
+    if (!currentLesson && content.lessons.length === 0) {
+      return (
+        <div className="space-y-8">
+          <div className="text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium mb-6">
+              <BookOpen className="h-4 w-4" />
+              Core Content
+            </div>
+          </div>
+          <Card className="border border-slate-200">
+            <CardContent className="p-8 text-center">
+              <p className="text-slate-600">Content for this module is being developed.</p>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-8">
+        <div className="text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium mb-6">
+            <BookOpen className="h-4 w-4" />
+            Lesson {currentLessonIndex + 1} of {content.lessons.length}
+          </div>
+        </div>
+
+        {currentLesson && (
+          <Card className="border border-slate-200">
+            <CardContent className="p-8">
+              <h3 className="text-xl font-semibold text-slate-900 mb-4">{currentLesson.title}</h3>
+              <div className="text-slate-700 leading-relaxed mb-6 whitespace-pre-line">{currentLesson.content}</div>
+
+              {currentLesson.keyConcepts && currentLesson.keyConcepts.length > 0 && (
+                <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <h4 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
+                    <Lightbulb className="h-4 w-4" />
+                    Key Concepts
+                  </h4>
+                  <ul className="space-y-2">
+                    {currentLesson.keyConcepts.map((concept, i) => (
+                      <li key={i} className="text-sm text-blue-800 flex items-start gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" />
+                        {concept}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {currentLesson.realExamples && currentLesson.realExamples.length > 0 && (
+                <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                  <h4 className="font-semibold text-amber-900 mb-3 flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    Real-World Examples
+                  </h4>
+                  <ul className="space-y-2">
+                    {currentLesson.realExamples.map((example, i) => (
+                      <li key={i} className="text-sm text-amber-800 flex items-start gap-2">
+                        <ArrowRight className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
+                        {example}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Lesson navigation */}
+        {content.lessons.length > 1 && (
+          <div className="flex justify-between items-center">
+            <Button
+              variant="outline"
+              onClick={() => setCurrentLessonIndex(Math.max(0, currentLessonIndex - 1))}
+              disabled={currentLessonIndex === 0}
+            >
+              Previous Lesson
+            </Button>
+            <span className="text-sm text-slate-600">
+              Lesson {currentLessonIndex + 1} of {content.lessons.length}
+            </span>
+            <Button
+              variant="outline"
+              onClick={() => setCurrentLessonIndex(Math.min(content.lessons.length - 1, currentLessonIndex + 1))}
+              disabled={currentLessonIndex >= content.lessons.length - 1}
+            >
+              Next Lesson
+            </Button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderPracticeStage = () => {
+    if (content.practiceScenarios.length === 0) {
+      return (
+        <div className="space-y-6">
+          <div className="text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100 text-emerald-800 rounded-full text-sm font-medium mb-6">
+              <Target className="h-4 w-4" />
+              Practice
+            </div>
+          </div>
+          <Card className="border border-slate-200">
+            <CardContent className="p-8 text-center">
+              <p className="text-slate-600">Practice scenarios for this module are being developed.</p>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100 text-emerald-800 rounded-full text-sm font-medium mb-6">
+            <Target className="h-4 w-4" />
+            Practice Scenarios
+          </div>
+        </div>
+
+        <h2 className="text-2xl font-bold text-slate-900 text-center mb-8">
+          Apply Your Knowledge
+        </h2>
+
+        {content.practiceScenarios.map((scenario) => (
+          <Card key={scenario.id} className="border border-emerald-200">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Brain className="h-5 w-5 text-emerald-600" />
+                {scenario.title}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg">
+                <h4 className="font-semibold text-slate-900 mb-2">Scenario:</h4>
+                <p className="text-slate-700">{scenario.scenario}</p>
+              </div>
+
+              <div>
+                <h4 className="font-semibold text-slate-900 mb-3">{scenario.question}</h4>
+                <div className="space-y-3">
+                  {scenario.options.map((option) => (
+                    <label
+                      key={option.id}
+                      className={`flex items-start gap-3 p-4 border rounded-lg cursor-pointer transition-colors ${
+                        selectedAnswers[scenario.id] === option.id
+                          ? 'border-emerald-500 bg-emerald-50'
+                          : 'border-slate-200 hover:border-slate-300'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name={scenario.id}
+                        value={option.id}
+                        checked={selectedAnswers[scenario.id] === option.id}
+                        onChange={() => setSelectedAnswers(prev => ({ ...prev, [scenario.id]: option.id }))}
+                        className="mt-1"
+                      />
+                      <span className="text-slate-700">{option.text}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {selectedAnswers[scenario.id] && (
+                <div className={`p-4 rounded-lg border ${
+                  scenario.options.find((opt) => opt.id === selectedAnswers[scenario.id])?.isCorrect
+                    ? 'border-emerald-200 bg-emerald-50'
+                    : 'border-red-200 bg-red-50'
+                }`}>
+                  <div className="flex items-center gap-2 mb-2">
+                    {scenario.options.find((opt) => opt.id === selectedAnswers[scenario.id])?.isCorrect ? (
+                      <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                    ) : (
+                      <AlertTriangle className="h-5 w-5 text-red-600" />
+                    )}
+                    <span className="font-semibold">
+                      {scenario.options.find((opt) => opt.id === selectedAnswers[scenario.id])?.isCorrect
+                        ? 'Correct!' : 'Not quite right'}
+                    </span>
+                  </div>
+                  <p className="text-sm mb-3">
+                    {scenario.options.find((opt) => opt.id === selectedAnswers[scenario.id])?.feedback}
+                  </p>
+                  {scenario.learningPoint && (
+                    <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded">
+                      <h5 className="font-medium mb-1 flex items-center gap-2">
+                        <Lightbulb className="h-4 w-4 text-amber-500" />
+                        Key Learning Point
+                      </h5>
+                      <p className="text-sm text-amber-800">{scenario.learningPoint}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  };
 
   const renderSummaryStage = () => (
     <div className="space-y-6">
       <div className="text-center">
         <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-100 text-purple-800 rounded-full text-sm font-medium mb-6">
           <Award className="h-4 w-4" />
-          Summary - Reinforce Learning (1 minute)
+          Summary
         </div>
       </div>
 
       <Card className="border border-purple-200 bg-gradient-to-r from-purple-50 to-indigo-50">
         <CardContent className="p-8 text-center">
           <Trophy className="h-16 w-16 text-purple-600 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-slate-900 mb-2">Lesson Complete!</h2>
-          <p className="text-slate-600 mb-6">You&apos;ve mastered the fundamentals of money laundering red flag detection</p>
+          <h2 className="text-2xl font-bold text-slate-900 mb-2">Module Complete!</h2>
+          <p className="text-slate-600 mb-6">Congratulations on completing {content.title}</p>
 
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">8 min</div>
+              <div className="text-2xl font-bold text-purple-600">{content.estimatedDuration} min</div>
               <div className="text-sm text-slate-600">Time Spent</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">+150</div>
+              <div className="text-2xl font-bold text-purple-600">+{Math.round((content.estimatedDuration || 10) * 5)}</div>
               <div className="text-sm text-slate-600">Points Earned</div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      <Card className="border border-slate-200">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Star className="h-5 w-5 text-amber-500" />
-            Key Takeaways
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {content.stages.summary.keyTakeaways.map((takeaway: Record<string, unknown>, index: number) => (
-              <div key={index} className="flex items-start gap-3 p-4 border border-slate-200 rounded-lg">
-                {takeaway.icon === 'alert-triangle' && <AlertTriangle className="h-6 w-6 text-amber-500 mt-1" />}
-                {takeaway.icon === 'search' && <Search className="h-6 w-6 text-blue-500 mt-1" />}
-                {takeaway.icon === 'clock' && <Clock className="h-6 w-6 text-emerald-500 mt-1" />}
-                {takeaway.icon === 'file-text' && <FileText className="h-6 w-6 text-purple-500 mt-1" />}
-                <div>
-                  <h4 className="font-semibold text-slate-900 mb-1">{takeaway.title}</h4>
-                  <p className="text-sm text-slate-600">{takeaway.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      {content.summary.keyTakeaways.length > 0 && (
+        <Card className="border border-slate-200">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Star className="h-5 w-5 text-amber-500" />
+              Key Takeaways
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-3">
+              {content.summary.keyTakeaways.map((takeaway, index) => (
+                <li key={index} className="flex items-start gap-3 p-3 border border-slate-200 rounded-lg">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-500 mt-0.5 shrink-0" />
+                  <span className="text-slate-700">{takeaway}</span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
 
-      <Card className="border border-slate-200">
-        <CardHeader>
-          <CardTitle>Next Steps</CardTitle>
-          <CardDescription>Continue your learning journey</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {content.stages.summary.nextSteps.map((step: string, index: number) => (
-              <div key={index} className="flex items-center gap-3 p-3 border border-slate-200 rounded-lg hover:border-slate-300 transition-colors">
-                <ArrowRight className="h-4 w-4 text-slate-400" />
-                <span className="text-slate-700">{step}</span>
-                <Button variant="outline" size="sm" className="ml-auto">
-                  Start
-                </Button>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      {content.summary.nextSteps.length > 0 && (
+        <Card className="border border-slate-200">
+          <CardHeader>
+            <CardTitle>Next Steps</CardTitle>
+            <CardDescription>Continue your learning journey</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {content.summary.nextSteps.map((step, index) => (
+                <div key={index} className="flex items-center gap-3 p-3 border border-slate-200 rounded-lg hover:border-slate-300 transition-colors">
+                  <ArrowRight className="h-4 w-4 text-slate-400" />
+                  <span className="text-slate-700">{step}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 
