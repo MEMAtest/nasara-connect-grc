@@ -215,9 +215,11 @@ export function TrainingLibraryClient() {
             <TrendingUp className="mr-1 h-3 w-3" />
             {userProgress.weekly_progress}% Weekly Goal
           </Badge>
-          <Button className="bg-teal-600 hover:bg-teal-700">
-            <Play className="mr-2 h-4 w-4" />
-            Continue Learning
+          <Button className="bg-teal-600 hover:bg-teal-700" asChild>
+            <a href="/training-library/lesson/aml-fundamentals">
+              <Play className="mr-2 h-4 w-4" />
+              Continue Learning
+            </a>
           </Button>
         </div>
       </header>
@@ -494,8 +496,10 @@ export function TrainingLibraryClient() {
                         <div className="text-2xl font-bold text-teal-600">0%</div>
                         <div className="text-xs text-slate-500">Not started</div>
                       </div>
-                      <Button className="bg-teal-600 hover:bg-teal-700">
-                        Start Pathway
+                      <Button className="bg-teal-600 hover:bg-teal-700" asChild>
+                        <a href={`/training-library/lesson/${pathway.modules[0]}`}>
+                          Start Pathway
+                        </a>
                       </Button>
                     </div>
                   </div>
@@ -542,9 +546,11 @@ export function TrainingLibraryClient() {
                         </div>
                       </div>
                     </div>
-                    <Button className="bg-teal-600 hover:bg-teal-700">
-                      <Play className="mr-2 h-4 w-4" />
-                      Start Lesson
+                    <Button className="bg-teal-600 hover:bg-teal-700" asChild>
+                      <a href={`/training-library/lesson/${lesson.id}`}>
+                        <Play className="mr-2 h-4 w-4" />
+                        Start Lesson
+                      </a>
                     </Button>
                   </div>
                 </CardContent>
@@ -608,9 +614,11 @@ export function TrainingLibraryClient() {
                         <div className="text-2xl font-bold text-teal-600">-</div>
                         <div className="text-xs text-slate-500">Not attempted</div>
                       </div>
-                      <Button className="bg-teal-600 hover:bg-teal-700">
-                        <Play className="mr-2 h-4 w-4" />
-                        Launch Simulation
+                      <Button className="bg-teal-600 hover:bg-teal-700" asChild>
+                        <a href={`/training-library/lesson/${simulation.id}`}>
+                          <Play className="mr-2 h-4 w-4" />
+                          Launch Simulation
+                        </a>
                       </Button>
                     </div>
                   </div>
@@ -652,8 +660,10 @@ export function TrainingLibraryClient() {
                           <span>📋 {challenge.regulatoryArea}</span>
                         </div>
                       </div>
-                      <Button size="sm" className="bg-teal-600 hover:bg-teal-700">
-                        Take Challenge
+                      <Button size="sm" className="bg-teal-600 hover:bg-teal-700" asChild>
+                        <a href={`/training-library/lesson/${challenge.id}`}>
+                          Take Challenge
+                        </a>
                       </Button>
                     </div>
                   </div>
