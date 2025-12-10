@@ -75,6 +75,21 @@ export function TrainingContentRenderer({ contentId, onComplete, onProgress }: T
 type GenericStageKey = 'hook' | 'content' | 'practice' | 'summary';
 const GENERIC_STAGE_ORDER: GenericStageKey[] = ['hook', 'content', 'practice', 'summary'];
 
+// Key concept can be either a string or an object with term/definition
+interface KeyConceptObject {
+  term: string;
+  definition: string;
+}
+
+// Lesson content can be either a string or an object with detailed structure
+interface LessonContentObject {
+  learningPoint?: string;
+  mainContent?: string;
+  keyConcepts?: (string | KeyConceptObject)[];
+  realExamples?: string[];
+  regulatoryRequirements?: string[];
+}
+
 interface TrainingModuleData {
   title: string;
   description: string;
@@ -85,40 +100,53 @@ interface TrainingModuleData {
     content?: string;
     statistic?: string;
     caseStudy?: string;
+    keyQuestion?: string;
   };
   learningOutcomes?: string[];
   lessons?: Array<{
+    id?: string;
     title: string;
-    content: string;
-    keyConcepts?: string[];
+    type?: string;
+    duration?: number;
+    content: string | LessonContentObject;
+    keyConcepts?: (string | KeyConceptObject)[];
     realExamples?: string[];
   }>;
   practiceScenarios?: Array<{
     id: string;
     title: string;
-    scenario: string;
-    question: string;
+    scenario?: string;
+    situation?: string;
+    context?: string;
+    challenge?: string;
+    question?: string;
     options: Array<{
-      id: string;
-      text: string;
-      isCorrect: boolean;
-      feedback: string;
-    }>;
-    learningPoint: string;
+      id?: string;
+      text?: string;
+      isCorrect?: boolean;
+      feedback?: string;
+    } | string>;
+    correctAnswer?: number;
+    explanation?: string;
+    learningPoint?: string;
+    learningPoints?: string[];
   }>;
   assessmentQuestions?: Array<{
     id: string;
+    type?: string;
     question: string;
     options: Array<{
-      id: string;
-      text: string;
-      isCorrect: boolean;
-    }>;
+      id?: string;
+      text?: string;
+      isCorrect?: boolean;
+    } | string>;
+    correctAnswer?: number;
     explanation: string;
   }>;
   summary?: {
     keyTakeaways?: string[];
     nextSteps?: string[];
+    quickReference?: string[];
   };
 }
 
@@ -169,9 +197,27 @@ function GenericTrainingRenderer({ module, onComplete, onProgress }: {
     }
 
     const correctCount = content.practiceScenarios.reduce((count, scenario) => {
-      const selected = selectedAnswers[scenario.id];
-      const matchedOption = scenario.options.find((option) => option.id === selected);
-      return matchedOption?.isCorrect ? count + 1 : count;
+      const selectedId = selectedAnswers[scenario.id];
+      if (!selectedId) return count;
+
+      // Find the index of the selected option
+      const selectedIndex = scenario.options.findIndex((opt, idx) => {
+        if (typeof opt === 'string') return `opt-${idx}` === selectedId;
+        return (opt.id || `opt-${idx}`) === selectedId;
+      });
+
+      // If correctAnswer index is provided, use it
+      if (typeof scenario.correctAnswer === 'number') {
+        return selectedIndex === scenario.correctAnswer ? count + 1 : count;
+      }
+
+      // Otherwise check for isCorrect property on options
+      const selectedOption = scenario.options[selectedIndex];
+      if (typeof selectedOption === 'object' && selectedOption.isCorrect) {
+        return count + 1;
+      }
+
+      return count;
     }, 0);
 
     return Math.round((correctCount / content.practiceScenarios.length) * 100);
@@ -399,6 +445,43 @@ function GenericTrainingRenderer({ module, onComplete, onProgress }: {
     </div>
   );
 
+  // Helper function to extract lesson content string from either string or object
+  const getLessonContent = (lessonContent: string | LessonContentObject): string => {
+    if (typeof lessonContent === 'string') {
+      return lessonContent;
+    }
+    return lessonContent.mainContent || lessonContent.learningPoint || '';
+  };
+
+  // Helper function to extract key concepts from lesson
+  const getLessonKeyConcepts = (lesson: typeof content.lessons[0]): string[] => {
+    // First check if content is an object with keyConcepts
+    if (typeof lesson.content === 'object' && lesson.content.keyConcepts) {
+      return lesson.content.keyConcepts.map(concept => {
+        if (typeof concept === 'string') return concept;
+        return `${concept.term}: ${concept.definition}`;
+      });
+    }
+    // Then check lesson-level keyConcepts
+    if (lesson.keyConcepts) {
+      return lesson.keyConcepts.map(concept => {
+        if (typeof concept === 'string') return concept;
+        return `${concept.term}: ${concept.definition}`;
+      });
+    }
+    return [];
+  };
+
+  // Helper function to extract real examples from lesson
+  const getLessonRealExamples = (lesson: typeof content.lessons[0]): string[] => {
+    // First check if content is an object with realExamples
+    if (typeof lesson.content === 'object' && lesson.content.realExamples) {
+      return lesson.content.realExamples;
+    }
+    // Then check lesson-level realExamples
+    return lesson.realExamples || [];
+  };
+
   const renderContentStage = () => {
     const currentLesson = content.lessons[currentLessonIndex];
 
@@ -420,6 +503,10 @@ function GenericTrainingRenderer({ module, onComplete, onProgress }: {
       );
     }
 
+    const lessonContent = currentLesson ? getLessonContent(currentLesson.content) : '';
+    const keyConcepts = currentLesson ? getLessonKeyConcepts(currentLesson) : [];
+    const realExamples = currentLesson ? getLessonRealExamples(currentLesson) : [];
+
     return (
       <div className="space-y-8">
         <div className="text-center">
@@ -433,16 +520,16 @@ function GenericTrainingRenderer({ module, onComplete, onProgress }: {
           <Card className="border border-slate-200">
             <CardContent className="p-8">
               <h3 className="text-xl font-semibold text-slate-900 mb-4">{currentLesson.title}</h3>
-              <div className="text-slate-700 leading-relaxed mb-6 whitespace-pre-line">{currentLesson.content}</div>
+              <div className="text-slate-700 leading-relaxed mb-6 whitespace-pre-line">{lessonContent}</div>
 
-              {currentLesson.keyConcepts && currentLesson.keyConcepts.length > 0 && (
+              {keyConcepts.length > 0 && (
                 <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                   <h4 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
                     <Lightbulb className="h-4 w-4" />
                     Key Concepts
                   </h4>
                   <ul className="space-y-2">
-                    {currentLesson.keyConcepts.map((concept, i) => (
+                    {keyConcepts.map((concept, i) => (
                       <li key={i} className="text-sm text-blue-800 flex items-start gap-2">
                         <CheckCircle2 className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" />
                         {concept}
@@ -452,14 +539,14 @@ function GenericTrainingRenderer({ module, onComplete, onProgress }: {
                 </div>
               )}
 
-              {currentLesson.realExamples && currentLesson.realExamples.length > 0 && (
+              {realExamples.length > 0 && (
                 <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
                   <h4 className="font-semibold text-amber-900 mb-3 flex items-center gap-2">
                     <FileText className="h-4 w-4" />
                     Real-World Examples
                   </h4>
                   <ul className="space-y-2">
-                    {currentLesson.realExamples.map((example, i) => (
+                    {realExamples.map((example, i) => (
                       <li key={i} className="text-sm text-amber-800 flex items-start gap-2">
                         <ArrowRight className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
                         {example}
@@ -498,6 +585,71 @@ function GenericTrainingRenderer({ module, onComplete, onProgress }: {
     );
   };
 
+  // Helper to get scenario text (can be scenario, situation, or context)
+  const getScenarioText = (scenario: typeof content.practiceScenarios[0]): string => {
+    return scenario.scenario || scenario.situation || scenario.context || '';
+  };
+
+  // Helper to get question text (can be question or challenge)
+  const getQuestionText = (scenario: typeof content.practiceScenarios[0]): string => {
+    return scenario.question || scenario.challenge || 'What would you do?';
+  };
+
+  // Helper to get option text (handles both string and object options)
+  const getOptionText = (option: typeof content.practiceScenarios[0]['options'][0]): string => {
+    if (typeof option === 'string') return option;
+    return option.text || '';
+  };
+
+  // Helper to get option ID (handles both string and object options)
+  const getOptionId = (option: typeof content.practiceScenarios[0]['options'][0], index: number): string => {
+    if (typeof option === 'string') return `opt-${index}`;
+    return option.id || `opt-${index}`;
+  };
+
+  // Helper to check if an answer is correct
+  const isAnswerCorrect = (scenario: typeof content.practiceScenarios[0], selectedId: string): boolean => {
+    const selectedIndex = scenario.options.findIndex((opt, idx) => getOptionId(opt, idx) === selectedId);
+
+    // If correctAnswer index is provided, use it
+    if (typeof scenario.correctAnswer === 'number') {
+      return selectedIndex === scenario.correctAnswer;
+    }
+
+    // Otherwise check for isCorrect property on options
+    const selectedOption = scenario.options[selectedIndex];
+    if (typeof selectedOption === 'object' && selectedOption.isCorrect !== undefined) {
+      return selectedOption.isCorrect;
+    }
+
+    return false;
+  };
+
+  // Helper to get feedback for selected answer
+  const getAnswerFeedback = (scenario: typeof content.practiceScenarios[0], selectedId: string): string => {
+    const selectedIndex = scenario.options.findIndex((opt, idx) => getOptionId(opt, idx) === selectedId);
+    const selectedOption = scenario.options[selectedIndex];
+
+    // Check for feedback on the option itself
+    if (typeof selectedOption === 'object' && selectedOption.feedback) {
+      return selectedOption.feedback;
+    }
+
+    // Fall back to scenario-level explanation
+    return scenario.explanation || '';
+  };
+
+  // Helper to get learning points (handles both string and array)
+  const getLearningPoints = (scenario: typeof content.practiceScenarios[0]): string[] => {
+    if (scenario.learningPoints && Array.isArray(scenario.learningPoints)) {
+      return scenario.learningPoints;
+    }
+    if (scenario.learningPoint && typeof scenario.learningPoint === 'string') {
+      return [scenario.learningPoint];
+    }
+    return [];
+  };
+
   const renderPracticeStage = () => {
     if (content.practiceScenarios.length === 0) {
       return (
@@ -530,80 +682,103 @@ function GenericTrainingRenderer({ module, onComplete, onProgress }: {
           Apply Your Knowledge
         </h2>
 
-        {content.practiceScenarios.map((scenario) => (
-          <Card key={scenario.id} className="border border-emerald-200">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Brain className="h-5 w-5 text-emerald-600" />
-                {scenario.title}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg">
-                <h4 className="font-semibold text-slate-900 mb-2">Scenario:</h4>
-                <p className="text-slate-700">{scenario.scenario}</p>
-              </div>
+        {content.practiceScenarios.map((scenario) => {
+          const scenarioText = getScenarioText(scenario);
+          const questionText = getQuestionText(scenario);
+          const selectedId = selectedAnswers[scenario.id];
+          const isCorrect = selectedId ? isAnswerCorrect(scenario, selectedId) : false;
+          const feedback = selectedId ? getAnswerFeedback(scenario, selectedId) : '';
+          const learningPoints = getLearningPoints(scenario);
 
-              <div>
-                <h4 className="font-semibold text-slate-900 mb-3">{scenario.question}</h4>
-                <div className="space-y-3">
-                  {scenario.options.map((option) => (
-                    <label
-                      key={option.id}
-                      className={`flex items-start gap-3 p-4 border rounded-lg cursor-pointer transition-colors ${
-                        selectedAnswers[scenario.id] === option.id
-                          ? 'border-emerald-500 bg-emerald-50'
-                          : 'border-slate-200 hover:border-slate-300'
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name={scenario.id}
-                        value={option.id}
-                        checked={selectedAnswers[scenario.id] === option.id}
-                        onChange={() => setSelectedAnswers(prev => ({ ...prev, [scenario.id]: option.id }))}
-                        className="mt-1"
-                      />
-                      <span className="text-slate-700">{option.text}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {selectedAnswers[scenario.id] && (
-                <div className={`p-4 rounded-lg border ${
-                  scenario.options.find((opt) => opt.id === selectedAnswers[scenario.id])?.isCorrect
-                    ? 'border-emerald-200 bg-emerald-50'
-                    : 'border-red-200 bg-red-50'
-                }`}>
-                  <div className="flex items-center gap-2 mb-2">
-                    {scenario.options.find((opt) => opt.id === selectedAnswers[scenario.id])?.isCorrect ? (
-                      <CheckCircle2 className="h-5 w-5 text-emerald-600" />
-                    ) : (
-                      <AlertTriangle className="h-5 w-5 text-red-600" />
-                    )}
-                    <span className="font-semibold">
-                      {scenario.options.find((opt) => opt.id === selectedAnswers[scenario.id])?.isCorrect
-                        ? 'Correct!' : 'Not quite right'}
-                    </span>
+          return (
+            <Card key={scenario.id} className="border border-emerald-200">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Brain className="h-5 w-5 text-emerald-600" />
+                  {scenario.title}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {scenarioText && (
+                  <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg">
+                    <h4 className="font-semibold text-slate-900 mb-2">Scenario:</h4>
+                    <p className="text-slate-700 whitespace-pre-line">{scenarioText}</p>
                   </div>
-                  <p className="text-sm mb-3">
-                    {scenario.options.find((opt) => opt.id === selectedAnswers[scenario.id])?.feedback}
-                  </p>
-                  {scenario.learningPoint && (
-                    <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded">
-                      <h5 className="font-medium mb-1 flex items-center gap-2">
-                        <Lightbulb className="h-4 w-4 text-amber-500" />
-                        Key Learning Point
-                      </h5>
-                      <p className="text-sm text-amber-800">{scenario.learningPoint}</p>
-                    </div>
-                  )}
+                )}
+
+                <div>
+                  <h4 className="font-semibold text-slate-900 mb-3">{questionText}</h4>
+                  <div className="space-y-3">
+                    {scenario.options.map((option, index) => {
+                      const optionId = getOptionId(option, index);
+                      const optionText = getOptionText(option);
+                      const isSelected = selectedId === optionId;
+
+                      return (
+                        <label
+                          key={optionId}
+                          className={`flex items-start gap-3 p-4 border rounded-lg cursor-pointer transition-colors ${
+                            isSelected
+                              ? 'border-emerald-500 bg-emerald-50'
+                              : 'border-slate-200 hover:border-slate-300'
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name={scenario.id}
+                            value={optionId}
+                            checked={isSelected}
+                            onChange={() => setSelectedAnswers(prev => ({ ...prev, [scenario.id]: optionId }))}
+                            className="mt-1"
+                          />
+                          <span className="text-slate-700">{optionText}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
+
+                {selectedId && (
+                  <div className={`p-4 rounded-lg border ${
+                    isCorrect
+                      ? 'border-emerald-200 bg-emerald-50'
+                      : 'border-red-200 bg-red-50'
+                  }`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      {isCorrect ? (
+                        <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                      ) : (
+                        <AlertTriangle className="h-5 w-5 text-red-600" />
+                      )}
+                      <span className="font-semibold">
+                        {isCorrect ? 'Correct!' : 'Incorrect'}
+                      </span>
+                    </div>
+                    {feedback && (
+                      <p className="text-sm mb-3">{feedback}</p>
+                    )}
+                    {learningPoints.length > 0 && (
+                      <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded">
+                        <h5 className="font-medium mb-1 flex items-center gap-2">
+                          <Lightbulb className="h-4 w-4 text-amber-500" />
+                          Key Learning Points:
+                        </h5>
+                        <ul className="space-y-1">
+                          {learningPoints.map((point, i) => (
+                            <li key={i} className="text-sm text-amber-800 flex items-start gap-2">
+                              <CheckCircle2 className="h-3 w-3 text-amber-600 mt-1 shrink-0" />
+                              {point}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
     );
   };
