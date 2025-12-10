@@ -46,7 +46,7 @@ function MarkdownContent({ content, className = "" }: { content: string; classNa
 
   return (
     <div
-      className={`prose prose-slate max-w-none prose-headings:text-slate-900 prose-p:text-slate-700 prose-strong:text-slate-900 prose-ul:text-slate-700 prose-li:text-slate-700 ${className}`}
+      className={`prose prose-slate max-w-none ${className}`}
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );
