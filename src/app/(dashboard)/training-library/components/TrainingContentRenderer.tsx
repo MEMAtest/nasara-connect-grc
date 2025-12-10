@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -26,9 +26,31 @@ import {
   Award,
   Trophy
 } from "lucide-react";
+import { marked } from "marked";
 import { getTrainingModule } from "../content";
 import { AMLTrainingRenderer } from "./AMLTrainingRenderer";
 import { KYCTrainingRenderer } from "./KYCTrainingRenderer";
+
+// Configure marked for simple inline formatting
+marked.setOptions({
+  breaks: true,
+  gfm: true,
+});
+
+// Simple markdown renderer component
+function MarkdownContent({ content, className = "" }: { content: string; className?: string }) {
+  const html = useMemo(() => {
+    if (!content) return "";
+    return marked.parse(content, { async: false }) as string;
+  }, [content]);
+
+  return (
+    <div
+      className={`prose prose-slate max-w-none prose-headings:text-slate-900 prose-p:text-slate-700 prose-strong:text-slate-900 prose-ul:text-slate-700 prose-li:text-slate-700 ${className}`}
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
+  );
+}
 
 interface TrainingContentRendererProps {
   contentId: string;
@@ -417,9 +439,7 @@ function GenericTrainingRenderer({ module, onComplete, onProgress }: {
           <h2 className="text-2xl font-bold text-slate-900 mb-4 text-center">
             {content.hook.title}
           </h2>
-          <div className="text-lg text-slate-700 leading-relaxed mb-6 text-center">
-            {content.hook.content}
-          </div>
+          <MarkdownContent content={content.hook.content || ""} className="text-lg mb-6 text-center" />
 
           {content.hook.statistic && (
             <div className="my-6 p-4 bg-blue-50 border border-blue-200 rounded-lg text-center">
@@ -520,7 +540,7 @@ function GenericTrainingRenderer({ module, onComplete, onProgress }: {
           <Card className="border border-slate-200">
             <CardContent className="p-8">
               <h3 className="text-xl font-semibold text-slate-900 mb-4">{currentLesson.title}</h3>
-              <div className="text-slate-700 leading-relaxed mb-6 whitespace-pre-line">{lessonContent}</div>
+              <MarkdownContent content={lessonContent} className="mb-6" />
 
               {keyConcepts.length > 0 && (
                 <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
@@ -915,7 +935,6 @@ function GenericTrainingRenderer({ module, onComplete, onProgress }: {
       <div className="flex justify-center">
         <Button
           onClick={nextStage}
-          disabled={currentStage === 'summary'}
           className="bg-teal-600 hover:bg-teal-700"
         >
           {currentStage === 'summary' ? 'Complete' : 'Continue'}
