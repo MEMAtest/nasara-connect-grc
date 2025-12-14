@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { X, Sparkles, MessageCircle } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { AiChatClient } from "@/app/(dashboard)/ai-chat/AiChatClient";
 import { useAssistantContext } from "@/components/dashboard/useAssistantContext";
@@ -13,20 +14,32 @@ import { useAssistantContext } from "@/components/dashboard/useAssistantContext"
 export function AssistantLauncher() {
   const [open, setOpen] = useState(false);
   const { context } = useAssistantContext();
+  const pathname = usePathname();
+
+  const shouldAvoidBottomRight =
+    typeof pathname === "string" &&
+    (pathname.startsWith("/policies") || pathname.startsWith("/smcr") || pathname.startsWith("/risk-assessment"));
 
   return (
     <>
-      <div className="fixed bottom-5 right-5 z-40 flex flex-col items-end gap-2">
+      <div
+        className={[
+          "group fixed right-5 z-40 flex flex-col items-end gap-2",
+          shouldAvoidBottomRight ? "bottom-24 md:bottom-28" : "bottom-5",
+        ].join(" ")}
+      >
         <Button
           type="button"
-          size="lg"
-          className="shadow-lg shadow-emerald-500/30"
+          size="icon"
+          variant="default"
+          className="h-12 w-12 rounded-full shadow-lg shadow-emerald-500/30"
           onClick={() => setOpen(true)}
+          aria-label="Ask AI"
+          title="Ask AI"
         >
-          <Sparkles className="mr-2 h-4 w-4" />
-          Ask AI
+          <Sparkles className="h-5 w-5" />
         </Button>
-        <div className="flex items-center gap-1 rounded-full bg-white/90 px-3 py-1 text-xs text-slate-600 shadow-sm ring-1 ring-slate-200">
+        <div className="pointer-events-none flex items-center gap-1 rounded-full bg-white/90 px-3 py-1 text-xs text-slate-600 opacity-0 shadow-sm ring-1 ring-slate-200 transition group-hover:opacity-100 group-focus-within:opacity-100">
           <MessageCircle className="h-3 w-3" />
           {context.policyId || context.runId
             ? `Context: ${context.policyId ?? ""} ${context.runId ?? ""}`.trim()
