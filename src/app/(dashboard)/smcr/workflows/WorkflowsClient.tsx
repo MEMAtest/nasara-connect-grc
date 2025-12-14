@@ -85,6 +85,7 @@ export function WorkflowsClient() {
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
   const [launchForm, setLaunchForm] = useState<LaunchFormState>(initialLaunchForm);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [launchError, setLaunchError] = useState<string | null>(null);
   const [recentWorkflowId, setRecentWorkflowId] = useState<string | null>(null);
   const [activeTask, setActiveTask] = useState<{ workflowId: string; stepId: string } | null>(null);
   const [taskError, setTaskError] = useState<string | null>(null);
@@ -140,33 +141,50 @@ export function WorkflowsClient() {
   const trainingPlanDraft = activeTaskData?.step.trainingPlan;
   const statementOfResponsibilitiesDraft = activeTaskData?.step.statementOfResponsibilities;
 
+  const hasFirm = Boolean(activeFirmId && firms.length > 0);
+  const hasPeople = firmPeople.length > 0;
+
   useEffect(() => {
     const template = searchParams.get("template");
     if (!template) return;
     if (!getWorkflowTemplate(template)) return;
 
+    if (!hasFirm || !hasPeople) {
+      router.replace("/smcr/workflows", { scroll: false });
+      return;
+    }
+
     setSelectedTemplateId(template);
     setLaunchForm(initialLaunchForm);
+    setLaunchError(null);
     setLaunchDialogOpen(true);
     setFeedback(null);
 
     router.replace("/smcr/workflows", { scroll: false });
-  }, [searchParams, router]);
-
-  const hasFirm = Boolean(activeFirmId && firms.length > 0);
+  }, [searchParams, router, hasFirm, hasPeople]);
 
   const handleUseTemplate = (templateId: string) => {
+    if (!hasPeople) {
+      router.push("/smcr/people");
+      return;
+    }
     setSelectedTemplateId(templateId);
     setLaunchForm(initialLaunchForm);
+    setLaunchError(null);
     setLaunchDialogOpen(true);
   };
 
   const handleLaunchWorkflow = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!selectedTemplateId) return;
+    if (!launchForm.ownerId) {
+      setLaunchError("Select an owner before launching this workflow.");
+      return;
+    }
+    setLaunchError(null);
     const created = launchWorkflow({
       templateId: selectedTemplateId,
-      ownerPersonId: launchForm.ownerId || undefined,
+      ownerPersonId: launchForm.ownerId,
       dueDate: launchForm.dueDate ? new Date(launchForm.dueDate).toISOString() : undefined,
       customName: launchForm.customName || undefined,
     });
@@ -297,8 +315,17 @@ export function WorkflowsClient() {
         <div className="flex flex-wrap items-center gap-3">
           <FirmSwitcher />
           {hasFirm && (
-            <Button onClick={() => setLaunchDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" /> Create Workflow
+            <Button
+              variant={hasPeople ? "default" : "outline"}
+              onClick={() => {
+                if (!hasPeople) {
+                  router.push("/smcr/people");
+                  return;
+                }
+                document.getElementById("workflow-templates")?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+            >
+              <Plus className="h-4 w-4 mr-2" /> {hasPeople ? "Browse templates" : "Add first person"}
             </Button>
           )}
         </div>
@@ -312,8 +339,23 @@ export function WorkflowsClient() {
         </Card>
       ) : (
         <>
+      {!hasPeople ? (
+        <Card className="border-amber-200 bg-amber-50">
+          <CardContent className="p-6 text-sm text-amber-900">
+            <p className="font-semibold">Setup required</p>
+            <p className="mt-1 text-amber-800">
+              Add at least one person to act as workflow owner before launching templates.
+            </p>
+            <div className="mt-4">
+              <Button size="sm" onClick={() => router.push("/smcr/people")}>
+                Add first person
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
 
-      <Card>
+      <Card id="workflow-templates">
         <CardContent className="p-4">
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -352,7 +394,7 @@ export function WorkflowsClient() {
               </div>
               <Button className="w-full" variant="outline" onClick={() => handleUseTemplate(template.id)}>
                 <Plus className="h-4 w-4 mr-2" />
-                Use Template
+                {hasPeople ? "Use Template" : "Add owner to launch"}
               </Button>
             </CardContent>
           </Card>
@@ -507,15 +549,21 @@ export function WorkflowsClient() {
                     id="workflow-owner"
                     className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-200"
                     value={launchForm.ownerId}
-                    onChange={(event) => setLaunchForm((prev) => ({ ...prev, ownerId: event.target.value }))}
+                    onChange={(event) => {
+                      setLaunchError(null);
+                      setLaunchForm((prev) => ({ ...prev, ownerId: event.target.value }));
+                    }}
                   >
-                    <option value="">Unassigned</option>
+                    <option value="" disabled>
+                      Select owner
+                    </option>
                     {firmPeople.map((person) => (
                       <option key={person.id} value={person.id}>
                         {person.name} ({person.employeeId})
                       </option>
                     ))}
                   </select>
+                  {launchError && <p className="mt-2 text-xs text-rose-600">{launchError}</p>}
                 </div>
               </div>
 
@@ -543,7 +591,9 @@ export function WorkflowsClient() {
                 <Button type="button" variant="outline" onClick={() => setLaunchDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button type="submit">Launch Workflow</Button>
+                <Button type="submit" disabled={!launchForm.ownerId}>
+                  Launch Workflow
+                </Button>
               </div>
             </form>
           )}

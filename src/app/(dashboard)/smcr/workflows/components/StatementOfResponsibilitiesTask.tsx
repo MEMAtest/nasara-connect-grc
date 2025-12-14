@@ -31,6 +31,8 @@ const approvalTone: Record<SorApprovalStatus, string> = {
   approved: "bg-emerald-50 text-emerald-700 border-emerald-200",
 };
 
+const UNASSIGNED_OWNER_VALUE = "__unassigned__";
+
 type StatementOfResponsibilitiesTaskProps = {
   draft: StatementOfResponsibilitiesDraft;
   people: PersonRecord[];
@@ -340,14 +342,14 @@ export function StatementOfResponsibilitiesTask({
                       <Select
                         value={item.ownerId ?? ""}
                         onValueChange={(value) =>
-                          handleUpdateResponsibility(item.id, { ownerId: value || undefined })
+                          handleUpdateResponsibility(item.id, { ownerId: value === UNASSIGNED_OWNER_VALUE ? undefined : value })
                         }
                       >
                         <SelectTrigger className="mt-1">
-                          <SelectValue placeholder="Assign accountable owner" />
+                          <SelectValue placeholder="Unassigned" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Unassigned</SelectItem>
+                          <SelectItem value={UNASSIGNED_OWNER_VALUE}>Unassigned</SelectItem>
                           {people.map((person) => (
                             <SelectItem key={person.id} value={person.id}>
                               {person.name}

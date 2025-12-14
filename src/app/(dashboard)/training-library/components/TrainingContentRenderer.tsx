@@ -56,9 +56,14 @@ interface TrainingContentRendererProps {
   contentId: string;
   onComplete?: (score: number, timeSpent: number) => void;
   onProgress?: (progress: number) => void;
+  deepLink?: {
+    stage?: string;
+    section?: string;
+  };
+  onDeepLinkChange?: (deepLink: { stage?: string; section?: string }) => void;
 }
 
-export function TrainingContentRenderer({ contentId, onComplete, onProgress }: TrainingContentRendererProps) {
+export function TrainingContentRenderer({ contentId, onComplete, onProgress, deepLink, onDeepLinkChange }: TrainingContentRendererProps) {
   // Get the training module from our content registry
   const trainingModule = getTrainingModule(contentId);
 
@@ -84,12 +89,12 @@ export function TrainingContentRenderer({ contentId, onComplete, onProgress }: T
   // Route to specialized renderers based on module ID
   switch (contentId) {
     case 'aml-fundamentals':
-      return <AMLTrainingRenderer onComplete={onComplete} onProgress={onProgress} />;
+      return <AMLTrainingRenderer onComplete={onComplete} onProgress={onProgress} deepLink={deepLink} onDeepLinkChange={onDeepLinkChange} />;
     case 'kyc-fundamentals':
-      return <KYCTrainingRenderer onComplete={onComplete} onProgress={onProgress} />;
+      return <KYCTrainingRenderer onComplete={onComplete} onProgress={onProgress} deepLink={deepLink} onDeepLinkChange={onDeepLinkChange} />;
     default:
       // For modules without specialized renderers, use generic renderer
-      return <GenericTrainingRenderer module={trainingModule} onComplete={onComplete} onProgress={onProgress} />;
+      return <GenericTrainingRenderer module={trainingModule} onComplete={onComplete} onProgress={onProgress} deepLink={deepLink} onDeepLinkChange={onDeepLinkChange} />;
   }
 }
 
@@ -172,10 +177,12 @@ interface TrainingModuleData {
   };
 }
 
-function GenericTrainingRenderer({ module, onComplete, onProgress }: {
+function GenericTrainingRenderer({ module, onComplete, onProgress, deepLink, onDeepLinkChange }: {
   module: TrainingModuleData;
   onComplete?: (score: number, timeSpent: number) => void;
   onProgress?: (progress: number) => void;
+  deepLink?: { stage?: string; section?: string };
+  onDeepLinkChange?: (deepLink: { stage?: string; section?: string }) => void;
 }) {
   const [currentStage, setCurrentStage] = useState<GenericStageKey>('hook');
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
@@ -207,6 +214,33 @@ function GenericTrainingRenderer({ module, onComplete, onProgress }: {
     const progressValue = ((stageIndex + 1) / GENERIC_STAGE_ORDER.length) * 100;
     onProgress?.(Math.round(progressValue));
   }, [currentStage, onProgress]);
+
+  useEffect(() => {
+    if (!deepLink?.stage) return;
+    if (!GENERIC_STAGE_ORDER.includes(deepLink.stage as GenericStageKey)) return;
+    if (deepLink.stage === currentStage) return;
+    setCurrentStage(deepLink.stage as GenericStageKey);
+  }, [currentStage, deepLink?.stage]);
+
+  useEffect(() => {
+    if (!onDeepLinkChange) return;
+    if (currentStage !== "content") {
+      onDeepLinkChange({ stage: currentStage });
+      return;
+    }
+    onDeepLinkChange({ stage: currentStage, section: String(currentLessonIndex) });
+  }, [currentLessonIndex, currentStage, onDeepLinkChange]);
+
+  useEffect(() => {
+    if (currentStage !== "content") return;
+    const section = deepLink?.section;
+    if (!section) return;
+    const parsed = Number(section);
+    if (!Number.isFinite(parsed)) return;
+    const nextIndex = Math.max(0, Math.min(parsed, Math.max(0, (content.lessons.length || 1) - 1)));
+    if (nextIndex === currentLessonIndex) return;
+    setCurrentLessonIndex(nextIndex);
+  }, [content.lessons.length, currentLessonIndex, currentStage, deepLink?.section]);
 
   const getStageProgress = () => {
     const currentIndex = GENERIC_STAGE_ORDER.indexOf(currentStage);

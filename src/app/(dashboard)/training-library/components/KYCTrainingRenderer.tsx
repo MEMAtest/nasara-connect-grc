@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -28,9 +28,11 @@ import { kycFundamentalsModule } from '../content/kyc-fundamentals';
 interface KYCTrainingRendererProps {
   onComplete?: () => void;
   onProgress?: (progress: number) => void;
+  deepLink?: { stage?: string; section?: string };
+  onDeepLinkChange?: (deepLink: { stage?: string; section?: string }) => void;
 }
 
-export function KYCTrainingRenderer({ onComplete, onProgress }: KYCTrainingRendererProps) {
+export function KYCTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLinkChange }: KYCTrainingRendererProps) {
   const [currentSection, setCurrentSection] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, number>>({});
   const [showResults, setShowResults] = useState<Record<string, boolean>>({});
@@ -630,6 +632,26 @@ export function KYCTrainingRenderer({ onComplete, onProgress }: KYCTrainingRende
     })),
     { id: 'summary', title: 'Summary', component: renderSummary }
   ];
+
+  useEffect(() => {
+    const section = deepLink?.section;
+    if (!section) return;
+    const byId = sections.findIndex((item) => item.id === section);
+    if (byId !== -1 && byId !== currentSection) {
+      setCurrentSection(byId);
+      return;
+    }
+    const parsed = Number(section);
+    if (!Number.isFinite(parsed)) return;
+    const nextIndex = Math.max(0, Math.min(parsed, sections.length - 1));
+    if (nextIndex === currentSection) return;
+    setCurrentSection(nextIndex);
+  }, [currentSection, deepLink?.section, sections]);
+
+  useEffect(() => {
+    const sectionId = sections[currentSection]?.id ?? String(currentSection);
+    onDeepLinkChange?.({ stage: "content", section: sectionId });
+  }, [currentSection, onDeepLinkChange, sections]);
 
   return (
     <div className="max-w-4xl mx-auto p-6">

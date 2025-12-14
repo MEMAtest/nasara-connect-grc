@@ -3,10 +3,63 @@
 import { CheckCircle2, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { getApplicableClauses } from "@/lib/policies/templates";
+import { renderClause } from "@/lib/policies/liquid-renderer";
 import type { WizardStepProps } from "./types";
 
 export function StepReview({ state, onBack, onNext, isSubmitting }: WizardStepProps) {
   const template = state.selectedTemplate;
+
+  const handleExport = () => {
+    if (!template) return;
+    const firmContext = {
+      firm: state.firmProfile,
+      firm_name: state.firmProfile.name,
+      permissions: state.permissions,
+    };
+
+    const clauseById = new Map(getApplicableClauses(template.code, state.permissions).map((clause) => [clause.id, clause]));
+
+    const lines: string[] = [];
+    lines.push(`# ${template.name}`);
+    lines.push("");
+    lines.push(`Firm: ${state.firmProfile.name}`);
+    if (state.firmProfile.fcaReference) lines.push(`FCA reference: ${state.firmProfile.fcaReference}`);
+    lines.push("");
+
+    template.sections.forEach((section) => {
+      lines.push(`## ${section.title}`);
+      lines.push("");
+      const clauseIds = state.sectionClauses[section.id] ?? section.suggestedClauses;
+      clauseIds.forEach((clauseId) => {
+        const clause = clauseById.get(clauseId);
+        if (!clause) return;
+        lines.push(`### ${clause.title}`);
+        lines.push("");
+        const answers = state.clauseVariables[clause.id] ?? {};
+        lines.push(renderClause(clause.content, firmContext, answers).trim());
+        lines.push("");
+      });
+
+      const note = state.sectionNotes[section.id];
+      if (note && note.trim().length > 0) {
+        lines.push(`### Firm note`);
+        lines.push("");
+        lines.push(note.trim());
+        lines.push("");
+      }
+    });
+
+    const blob = new Blob([lines.join("\n")], { type: "text/markdown;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${template.code.toLowerCase()}-draft.md`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="space-y-6">
@@ -70,7 +123,7 @@ export function StepReview({ state, onBack, onNext, isSubmitting }: WizardStepPr
           Back
         </Button>
         <div className="flex items-center gap-2">
-          <Button variant="outline" className="gap-2">
+          <Button variant="outline" className="gap-2" onClick={handleExport} disabled={!template}>
             <Download className="h-4 w-4" />
             Export draft
           </Button>

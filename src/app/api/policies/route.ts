@@ -9,6 +9,7 @@ import {
   getPoliciesForOrganization,
   type StoredPolicy,
 } from "@/lib/server/policy-store";
+import { upsertEntityLink } from "@/lib/server/entity-link-store";
 import type { FirmPermissions } from "@/lib/policies";
 import type { PolicyClause, PolicyTemplate } from "@/lib/policies/templates";
 
@@ -23,7 +24,7 @@ function buildFallbackPolicy(input: {
   template: PolicyTemplate;
   permissions: FirmPermissions;
   clauses: PolicyClause[];
-  customContent: Record<string, string>;
+  customContent: Record<string, unknown>;
   approvals: StoredPolicy["approvals"];
 }): StoredPolicy {
   const timestamp = nowIso();
@@ -70,14 +71,57 @@ export async function POST(request: Request) {
 
   const permissions = { ...DEFAULT_PERMISSIONS, ...(body.permissions ?? {}) };
   const primaryClauses = getApplicableClauses(template.code, permissions);
-  const selectedClauses = Array.isArray(body.clauses) && body.clauses.length
-    ? primaryClauses.filter((clause) => body.clauses.includes(clause.id))
-    : primaryClauses.filter((clause) => clause.isMandatory);
+
+  const sectionClauses = (body.sectionClauses ?? {}) as Record<string, string[]>;
+  const requestedClauseIds: string[] = [];
+  Object.values(sectionClauses).forEach((ids) => {
+    if (!Array.isArray(ids)) return;
+    ids.forEach((id) => {
+      if (typeof id === "string") requestedClauseIds.push(id);
+    });
+  });
+
+  const mandatoryClauseIds = Array.isArray(template.mandatoryClauses) ? template.mandatoryClauses : [];
+  const clauseIdsInOrder = Array.from(new Set([...requestedClauseIds, ...mandatoryClauseIds]));
+  const selectedClauses = clauseIdsInOrder
+    .map((id) => primaryClauses.find((clause) => clause.id === id))
+    .filter((clause): clause is NonNullable<typeof clause> => Boolean(clause));
 
   const approvals = body.approvals;
   if (!approvals) {
     return NextResponse.json({ error: "Approvals payload missing" }, { status: 400 });
   }
+
+  const customContent = {
+    firmProfile: body.firmProfile ?? {},
+    sectionClauses,
+    sectionNotes: body.sectionNotes ?? {},
+    clauseVariables: body.clauseVariables ?? {},
+  };
+
+  const suggestedMappings = Array.isArray((template as PolicyTemplate & { suggestedMappings?: unknown }).suggestedMappings)
+    ? ((template as PolicyTemplate & { suggestedMappings?: Array<{ toType: string; toId: string; metadata?: Record<string, unknown> }> })
+        .suggestedMappings ?? [])
+    : [];
+
+  const persistSuggestedMappings = async (policyId: string) => {
+    if (!suggestedMappings.length) return;
+    const allowed = new Set(["risk", "control", "training", "evidence"]);
+    await Promise.all(
+      suggestedMappings
+        .filter((mapping) => allowed.has(mapping.toType) && typeof mapping.toId === "string" && mapping.toId.trim().length > 0)
+        .map((mapping) =>
+          upsertEntityLink({
+            organizationId: DEFAULT_ORGANIZATION_ID,
+            fromType: "policy",
+            fromId: policyId,
+            toType: mapping.toType as "risk" | "control" | "training" | "evidence",
+            toId: mapping.toId.trim(),
+            metadata: mapping.metadata ?? {},
+          }),
+        ),
+    );
+  };
 
   try {
     const created = await createPolicy(DEFAULT_ORGANIZATION_ID, {
@@ -88,10 +132,15 @@ export async function POST(request: Request) {
       permissions,
       template,
       clauses: selectedClauses,
-      customContent: body.customContent ?? {},
+      customContent,
       approvals,
       status: "draft",
     });
+    try {
+      await persistSuggestedMappings(created.id);
+    } catch (linkError) {
+      console.error("Failed to persist suggested policy mappings (non-blocking):", linkError);
+    }
     return NextResponse.json(created, { status: 201 });
   } catch (error) {
     console.error("Error creating policy, falling back to mock store:", error);
@@ -100,10 +149,15 @@ export async function POST(request: Request) {
       template,
       permissions,
       clauses: selectedClauses,
-      customContent: body.customContent ?? {},
+      customContent,
       approvals,
     });
     fallbackPolicies.unshift(fallback);
+    try {
+      await persistSuggestedMappings(fallback.id);
+    } catch (linkError) {
+      console.error("Failed to persist suggested policy mappings for fallback (non-blocking):", linkError);
+    }
     return NextResponse.json(fallback, { status: 201 });
   }
 }

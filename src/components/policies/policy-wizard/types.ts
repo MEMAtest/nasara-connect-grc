@@ -1,6 +1,14 @@
 import type { FirmPermissions } from "@/lib/policies";
 import type { PolicyClause, PolicyTemplate } from "@/lib/policies/templates";
 
+export interface FirmProfile {
+  name: string;
+  tradingName?: string;
+  registeredAddress?: string;
+  fcaReference?: string;
+  website?: string;
+}
+
 export interface WizardApprovals {
   requiresSMF: boolean;
   smfRole?: string;
@@ -10,10 +18,13 @@ export interface WizardApprovals {
 }
 
 export interface WizardFormState {
+  firmProfile: FirmProfile;
   permissions: FirmPermissions;
   selectedTemplate?: PolicyTemplate;
-  selectedClauses: PolicyClause[];
-  customContent: Record<string, string>;
+  sectionClauses: Record<string, string[]>;
+  sectionNotes: Record<string, string>;
+  clauseVariables: Record<string, Record<string, string>>;
+  selectedClauses: PolicyClause[]; // derived convenience for review/preview
   approvals: WizardApprovals;
 }
 

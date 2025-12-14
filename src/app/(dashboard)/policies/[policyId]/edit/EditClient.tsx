@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
+import { PolicyMappingEditor } from "@/components/policies/PolicyMappingEditor";
 import type { StoredPolicy } from "@/lib/server/policy-store";
 
 const fetcher = (url: string) =>
@@ -37,7 +38,13 @@ export function EditClient() {
   );
 
   const [status, setStatus] = useState<StoredPolicy["status"]>("draft");
-  const [customContent, setCustomContent] = useState<Record<string, string>>({});
+  const [customContent, setCustomContent] = useState<Record<string, unknown>>({});
+  const [sectionNotes, setSectionNotes] = useState<Record<string, string>>({});
+  const [governance, setGovernance] = useState<{ effectiveDate: string; nextReviewAt: string; owner: string }>({
+    effectiveDate: "",
+    nextReviewAt: "",
+    owner: "",
+  });
   const [approvals, setApprovals] = useState<StoredPolicy["approvals"]>({
     requiresSMF: false,
     smfRole: "",
@@ -52,6 +59,14 @@ export function EditClient() {
     if (data) {
       setStatus(data.status);
       setCustomContent(data.customContent ?? {});
+      const loadedNotes = (data.customContent as { sectionNotes?: Record<string, string> } | null)?.sectionNotes ?? {};
+      setSectionNotes(loadedNotes);
+      const loadedGovernance = (data.customContent as { governance?: Record<string, unknown> } | null)?.governance ?? {};
+      setGovernance({
+        effectiveDate: typeof loadedGovernance.effectiveDate === "string" ? loadedGovernance.effectiveDate : "",
+        nextReviewAt: typeof loadedGovernance.nextReviewAt === "string" ? loadedGovernance.nextReviewAt : "",
+        owner: typeof loadedGovernance.owner === "string" ? loadedGovernance.owner : "",
+      });
       setApprovals({
         requiresSMF: data.approvals.requiresSMF,
         smfRole: data.approvals.smfRole ?? "",
@@ -64,8 +79,8 @@ export function EditClient() {
 
   const sections = useMemo(() => data?.template.sections ?? [], [data?.template.sections]);
 
-  const handleContentChange = (sectionId: string, value: string) => {
-    setCustomContent((current) => ({ ...current, [sectionId]: value }));
+  const handleNoteChange = (sectionId: string, value: string) => {
+    setSectionNotes((current) => ({ ...current, [sectionId]: value }));
   };
 
   const toggleApproval = (key: "requiresSMF" | "requiresBoard") => {
@@ -94,7 +109,15 @@ export function EditClient() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           status,
-          customContent,
+          customContent: {
+            ...customContent,
+            governance: {
+              effectiveDate: governance.effectiveDate || null,
+              nextReviewAt: governance.nextReviewAt || null,
+              owner: governance.owner.trim().length ? governance.owner.trim() : null,
+            },
+            sectionNotes,
+          },
           approvals: {
             ...approvals,
             smfRole: approvals.smfRole?.trim() || undefined,
@@ -187,6 +210,32 @@ export function EditClient() {
               ) : null}
             </div>
           </div>
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">Effective date</label>
+              <Input
+                type="date"
+                value={governance.effectiveDate}
+                onChange={(event) => setGovernance((current) => ({ ...current, effectiveDate: event.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">Next review date</label>
+              <Input
+                type="date"
+                value={governance.nextReviewAt}
+                onChange={(event) => setGovernance((current) => ({ ...current, nextReviewAt: event.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">Policy owner</label>
+              <Input
+                placeholder="e.g. MLRO"
+                value={governance.owner}
+                onChange={(event) => setGovernance((current) => ({ ...current, owner: event.target.value }))}
+              />
+            </div>
+          </div>
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Board review cadence</label>
@@ -235,6 +284,8 @@ export function EditClient() {
           </div>
         </section>
 
+        <PolicyMappingEditor policyId={policyId} />
+
         <section className="space-y-6 rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
           <div className="space-y-2">
             <h2 className="text-lg font-semibold text-slate-900">Custom content</h2>
@@ -257,9 +308,9 @@ export function EditClient() {
                   </div>
                   <Textarea
                     className="h-32"
-                    value={customContent[section.id] ?? ""}
+                    value={sectionNotes[section.id] ?? ""}
                     placeholder="Describe how this requirement applies to your firm"
-                    onChange={(event) => handleContentChange(section.id, event.target.value)}
+                    onChange={(event) => handleNoteChange(section.id, event.target.value)}
                   />
                   {insertedClauses.length ? (
                     <div className="space-y-2">

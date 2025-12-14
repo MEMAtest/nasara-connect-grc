@@ -25,8 +25,10 @@ export function WizardClient() {
         body: JSON.stringify({
           templateCode: state.selectedTemplate?.code,
           permissions: state.permissions,
-          clauses: state.selectedClauses.map((clause) => clause.id),
-          customContent: state.customContent,
+          sectionClauses: state.sectionClauses,
+          sectionNotes: state.sectionNotes,
+          clauseVariables: state.clauseVariables,
+          firmProfile: state.firmProfile,
           approvals: state.approvals,
         }),
       });

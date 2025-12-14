@@ -281,13 +281,19 @@ export function FitnessProprietyClient() {
           <form onSubmit={handleStartAssessment} className="space-y-4">
             <div>
               <Label htmlFor="person">Person *</Label>
-              <Select value={startForm.personId} onValueChange={(value) => setStartForm((prev) => ({ ...prev, personId: value }))}>
+              <Select
+                value={startForm.personId}
+                onValueChange={(value) => setStartForm((prev) => ({ ...prev, personId: value }))}
+                disabled={people.length === 0}
+              >
                 <SelectTrigger id="person">
                   <SelectValue placeholder="Select individual" />
                 </SelectTrigger>
                 <SelectContent>
                   {people.length === 0 ? (
-                    <SelectItem value="">No people available</SelectItem>
+                    <SelectItem value="__no_people__" disabled>
+                      No people available
+                    </SelectItem>
                   ) : (
                     people.map((person) => (
                       <SelectItem key={person.id} value={person.id}>

@@ -4,6 +4,8 @@ import { useMemo } from "react";
 import { AlertCircle, Check, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import type { WizardStepProps } from "./types";
 import { DEFAULT_PERMISSIONS, getRequiredPolicies } from "@/lib/policies";
@@ -39,6 +41,18 @@ export function StepPermissionCheck({ state, updateState, onNext, onBack }: Wiza
     }));
   };
 
+  const handleFirmProfileChange = (field: keyof typeof state.firmProfile, value: string) => {
+    updateState((current) => ({
+      ...current,
+      firmProfile: {
+        ...current.firmProfile,
+        [field]: value,
+      },
+    }));
+  };
+
+  const canContinue = Boolean(state.firmProfile.name.trim().length > 0);
+
   return (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -47,6 +61,58 @@ export function StepPermissionCheck({ state, updateState, onNext, onBack }: Wiza
           We tailor the policy pack based on your regulatory permissions. Update the checkboxes below to match your FCA
           profile. You can refine this later in the permission settings area.
         </p>
+      </div>
+
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <p className="text-sm font-semibold text-slate-800">Firm profile</p>
+        <p className="mt-1 text-xs text-slate-500">Used to prefill variables across clauses and document headers.</p>
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="firm-name">Firm name *</Label>
+            <Input
+              id="firm-name"
+              value={state.firmProfile.name}
+              onChange={(event) => handleFirmProfileChange("name", event.target.value)}
+              placeholder="e.g. Nasara Payments Ltd"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="firm-trading-name">Trading name</Label>
+            <Input
+              id="firm-trading-name"
+              value={state.firmProfile.tradingName ?? ""}
+              onChange={(event) => handleFirmProfileChange("tradingName", event.target.value)}
+              placeholder="e.g. Nasara Connect"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="firm-fca-ref">FCA reference</Label>
+            <Input
+              id="firm-fca-ref"
+              value={state.firmProfile.fcaReference ?? ""}
+              onChange={(event) => handleFirmProfileChange("fcaReference", event.target.value)}
+              placeholder="e.g. 123456"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="firm-website">Website</Label>
+            <Input
+              id="firm-website"
+              value={state.firmProfile.website ?? ""}
+              onChange={(event) => handleFirmProfileChange("website", event.target.value)}
+              placeholder="e.g. https://example.com"
+            />
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <Label htmlFor="firm-address">Registered address</Label>
+            <Input
+              id="firm-address"
+              value={state.firmProfile.registeredAddress ?? ""}
+              onChange={(event) => handleFirmProfileChange("registeredAddress", event.target.value)}
+              placeholder="Street, City, Postcode"
+            />
+          </div>
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -86,7 +152,7 @@ export function StepPermissionCheck({ state, updateState, onNext, onBack }: Wiza
         <Button variant="outline" onClick={onBack} disabled>
           Back
         </Button>
-        <Button onClick={onNext} className="bg-indigo-600 hover:bg-indigo-700">
+        <Button onClick={onNext} className="bg-indigo-600 hover:bg-indigo-700" disabled={!canContinue}>
           Continue
         </Button>
       </div>

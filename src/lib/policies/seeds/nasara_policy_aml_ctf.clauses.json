@@ -1,0 +1,62 @@
+[
+  {
+    "id": "aml_ctf-bwra",
+    "policy_key": "aml_ctf",
+    "title": "Business-Wide Risk Assessment (BWRA)",
+    "body_md": "Methodology, frequency, board approval.",
+    "tags": { "jurisdiction": ["UK"], "topic": ["BWRA"] },
+    "variables": [],
+    "version": "0.1.0",
+    "status": "draft",
+    "source_template_filename": "SCAFFOLD",
+    "source_extracted_at": "20251212T232310Z"
+  },
+  {
+    "id": "aml_ctf-cra",
+    "policy_key": "aml_ctf",
+    "title": "Customer Risk Assessment (CRA)",
+    "body_md": "Risk factors: customer, geography, product/service, delivery channel.",
+    "tags": { "jurisdiction": ["UK"], "topic": ["CRA"] },
+    "variables": [],
+    "version": "0.1.0",
+    "status": "draft",
+    "source_template_filename": "SCAFFOLD",
+    "source_extracted_at": "20251212T232310Z"
+  },
+  {
+    "id": "aml_ctf-cdd-edd",
+    "policy_key": "aml_ctf",
+    "title": "Customer Due Diligence (CDD) & EDD",
+    "body_md": "Standard/Enhanced due diligence, PEPs (domestic/foreign), high-risk third countries.",
+    "tags": { "jurisdiction": ["UK"], "topic": ["CDD", "EDD", "PEP"] },
+    "variables": [],
+    "version": "0.1.0",
+    "status": "draft",
+    "source_template_filename": "SCAFFOLD",
+    "source_extracted_at": "20251212T232310Z"
+  },
+  {
+    "id": "aml_ctf-ongoing-tm",
+    "policy_key": "aml_ctf",
+    "title": "Ongoing Monitoring & Transaction Monitoring",
+    "body_md": "Scenarios, alerts, investigations, QA.",
+    "tags": { "jurisdiction": ["UK"], "topic": ["Transaction Monitoring"] },
+    "variables": [],
+    "version": "0.1.0",
+    "status": "draft",
+    "source_template_filename": "SCAFFOLD",
+    "source_extracted_at": "20251212T232310Z"
+  },
+  {
+    "id": "aml_ctf-sars",
+    "policy_key": "aml_ctf",
+    "title": "Suspicious Activity Reporting (SARs)",
+    "body_md": "Internal escalation, MLRO review, external reporting, tipping-off controls.",
+    "tags": { "jurisdiction": ["UK"], "topic": ["SARs"] },
+    "variables": [],
+    "version": "0.1.0",
+    "status": "draft",
+    "source_template_filename": "SCAFFOLD",
+    "source_extracted_at": "20251212T232310Z"
+  }
+]

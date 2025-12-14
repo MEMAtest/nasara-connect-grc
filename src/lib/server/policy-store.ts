@@ -13,7 +13,7 @@ export interface StoredPolicy {
   permissions: FirmPermissions;
   template: PolicyTemplate;
   clauses: PolicyClause[];
-  customContent: Record<string, string>;
+  customContent: Record<string, unknown>;
   approvals: {
     requiresSMF: boolean;
     smfRole?: string | null;
@@ -33,7 +33,7 @@ export interface CreatePolicyInput {
   permissions: FirmPermissions;
   template: PolicyTemplate;
   clauses: PolicyClause[];
-  customContent: Record<string, string>;
+  customContent: Record<string, unknown>;
   approvals: StoredPolicy["approvals"];
   status?: PolicyStatus;
   id?: string;
@@ -52,7 +52,7 @@ interface PolicyRow {
   permissions: FirmPermissions;
   template: PolicyTemplate;
   clauses: PolicyClause[];
-  custom_content: Record<string, string>;
+  custom_content: Record<string, unknown>;
   approvals: StoredPolicy["approvals"];
   status: PolicyStatus;
   created_at: string | Date;

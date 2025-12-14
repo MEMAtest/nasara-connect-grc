@@ -34,7 +34,13 @@ const breadcrumbsMap: Record<string, string> = {
   "authorization-pack": "Authorization Pack",
   "risk-assessment": "Risk Assessment",
   "compliance-framework": "Compliance Framework",
+  policies: "Policies",
   "payments": "Payments",
+  register: "Policy register",
+  wizard: "Policy wizard",
+  mapping: "Policy coverage",
+  clauses: "Clause library",
+  edit: "Edit",
   training: "Training Library",
   "regulatory-news": "Regulatory News",
   "ai-chat": "AI Assistant",
@@ -52,6 +58,17 @@ type BreadcrumbItem = {
   href: string;
 };
 
+const UUID_SEGMENT_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function labelForSegment(segment: string, previousSegment?: string) {
+  if (UUID_SEGMENT_RE.test(segment)) {
+    if (previousSegment === "policies") return "Policy";
+    if (previousSegment === "cmp") return "Control";
+    return "Details";
+  }
+  return breadcrumbsMap[segment] ?? segment.replace(/-/g, " ");
+}
+
 export function Header({ onToggleSidebar, isSidebarOpen }: HeaderProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
@@ -67,9 +84,10 @@ export function Header({ onToggleSidebar, isSidebarOpen }: HeaderProps) {
     }
 
     let cumulativePath = "";
-    segments.forEach((segment) => {
+    segments.forEach((segment, index) => {
+      const previousSegment = segments[index - 1];
       cumulativePath += `/${segment}`;
-      const label = breadcrumbsMap[segment] ?? segment.replace(/-/g, " ");
+      const label = labelForSegment(segment, previousSegment);
       items.push({ label, href: cumulativePath });
     });
 

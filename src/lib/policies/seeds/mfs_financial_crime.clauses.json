@@ -1,0 +1,1810 @@
+[
+  {
+    "id": "mfs_financial_crime-general-general",
+    "policy_key": "mfs_financial_crime",
+    "title": "General",
+    "body_md": "{{firm.name}}\nFinancial Crime Policy & Minimum Standards\n| Policy Owner | Money Laundering Reporting Officer (MLRO) |\n| --- | --- |\n| Date | January 2025 |\n| Version | V1 |\n\nContents\n1. {{firm.name}} Risk Appetite Statement5\n2. AML Overview6\nIntroduction6\nSenior Management Accountability6\nCommittees, Membership, and Decision-Making Scope7\nGovernance Processes9\nFuture-Proofing Governance9\nLogging and Resolving Financial Crime Issues9\nManagement Information and Record-Keeping10\nContinuous Improvement and Future-Proofing10\nDecision-Making and Oversight in Practice10\nOperational Oversight of Policies11\nManagement Information (MI) as a Governance Tool11\nBuilding a Future-Proof Operational Structure12\nIssue Logging and Follow-Up12\n3. Transaction Monitoring Framework14\nObjectives of the Framework14\nLifecycle of Transaction Monitoring14\nReal-Time Monitoring14\nPost-Transaction Analysis14\nEscalation and Reporting15\nRisk-Based Monitoring15\nAlert Handling and Continuous Monitoring15\nTechnological Integration16\nQuality Assurance and Training16\nReporting and Oversight16\n4. Know Your Customer (KYC) and Know Your Business (KYB)17\nKYC Process and Requirements17\nKYB Process and Requirements17\n5. Risk Appetite and Alignment with Business-Wide Risk Assessment19\n6. Sanctions Screening and Escalation Procedures20\nScreening Process20\nHandling a Sanctions Hit20\nOngoing Monitoring and Escalation21\nControl Measures21\nFeedback Loop and Continuous Improvement21\nGovernance and Oversight22\n7. Customer Offboarding23\nExit Triggers and Assessment23\nExit Implementation Process23\nCustomer Communication Strategy23\nAccount Closure and Fund Management24\nPost-Exit Controls24\n8. Customer Risk Assessment (CRA)25\nCountry Risk25\nClient Risk26\nTransaction/Service Risk26\nRisk Scoring and Aggregation27\nOperational Workflow for CRA28\n9. Suspicious Incidents and Suspicious Activity Reporting (SAR) Framework29\nKey Principles29\nIdentifying Suspicious Incidents29\nLogging Suspicious Incidents30\nIncident Review Process30\nEscalation and Reporting31\nMonitoring and Continuous Improvement31\nOperational Process for SARs31\nEnhanced Monitoring and Trend Analysis32\nRecord-Keeping and Reporting32\nTrend Reporting33\nEscalation Procedures34\nDocumentation and Future-Proofing35\n10. Ongoing Monitoring and Enhanced Due Diligence (EDD)36\nOngoing Monitoring Framework36\nEDD Triggers and Procedures36\nOperational Aspects of Monitoring and EDD37\nEnhanced Due Diligence (EDD) and Periodic Reviews38\nPeriodic Risk Reviews38\n11. Training and Competency Framework for AML/CTF Compliance40\nTraining Programmes40\nCompetency Assessments40\nExternal Certifications and Professional Development40\nTraining Delivery41\nRecord-Keeping41\nFuture-Proofing the Training Programme41\n12. Technology and System Enhancements for AML/CTF Compliance42\nOverview of Key Technology Vendors42\nKey Technology Features and Integration42\nOperational Oversight and Vendor Management43\nFuture-Proofing the Technology Framework43\n13. Audit and Quality Assurance44\nInternal Audit Process44\nFeedback Loop for Audits44\nQuality Assurance Framework44\n14. Regulatory Reporting Framework46\nReporting Governance and Oversight46\nSuspicious Activity Reporting46\nAnnual MLRO Report Structure46\nRegulatory Notification Framework47\nCommunication Protocols and Documentation47\nOperational Workflow Management48\nQuality Assurance Framework48\nContinuous Improvement48\n15. Change Management49\nGovernance and Oversight49\nChange Identification and Assessment49\nImplementation Framework49\nPost-Implementation Review49\nTraining and Communication50\nQuality Assurance50\n16. Additional Insights and Strategic Considerations51\nRegulatory Adaptability51\nVendor Oversight and Assurance51\nIncident Management and Remediation51\nEmbedding a Compliance Culture51\nFuture Growth and Scalability51\nKey Risk Indicators for Proactive Management52\nContinuous Benchmarking and Peer Reviews52",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.401Z"
+  },
+  {
+    "id": "mfs_financial_crime-mfs_risk_appetite_statement-mfs_risk_appetite_statement",
+    "policy_key": "mfs_financial_crime",
+    "title": "MFS Risk Appetite Statement",
+    "body_md": "OverviewMema Financial Services (“{{firm.name}}”) risk appetite reflects its strategic focus on providing secure, compliant financial services within a well-defined operational scope. The risk appetite statement establishes the parameters for financial crime risk management and guides decision-making processes. It is reviewed quarterly to ensure alignment with evolving business needs and regulatory landscapes.\nCore PrinciplesMFS adopts a conservative risk appetite, particularly in areas associated with financial crime, and commits to the following principles:\n- Geographic Focus: Preference for transactions within EU corridors, deemed lower risk due to strong regulatory frameworks. Transactions involving FATF-listed jurisdictions are excluded unless under exceptional circumstances, approved by the MLRO.\n- Customer Risk: Priority is given to SMEs operating within clearly defined industries. High-risk sectors (e.g., gambling, cryptocurrency) require enhanced due diligence and explicit MLRO approval.\n- Sanctions Compliance: Strict adherence to international sanctions, with no tolerance for transactions involving sanctioned entities, jurisdictions, or individuals.\n- Product Risk: While {{firm.name}} offers money remittance services, which are inherently high-risk, the firm effectively manages this risk by implementing a robust control framework.\n- Channel Risk: {{firm.name}} acquires its clients through online channels exclusively. To monitor and mitigate channel risk, {{firm.name}} will implement a robust system that includes ID& V (Identity & Verification) and name screening checks.Product Risk:\nAlignment with Domestic and International Regulatory RequirementsMFS adheres to all applicable laws and regulations, including but not limited to the following:\n- UK Regulations: The Money Laundering, Terrorist Financing and Transfer of Funds (Information on the Payer) Regulations 2017, Proceeds of Crime Act 2002 (POCA), FCA’s Financial Crime Guide (FCG), and the Senior Managers and Certification Regime (SM&CR).\n- International Standards: FATF Recommendations, EU AML Directives, and applicable sanctions laws (e.g., OFAC, UN, EU).Where conflicts arise between domestic and international regulations, the MLRO escalates the issue to senior management for resolution. Decisions are documented, prioritising the stricter standard unless otherwise justified and approved.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.402Z"
+  },
+  {
+    "id": "mfs_financial_crime-aml_overview-introduction",
+    "policy_key": "mfs_financial_crime",
+    "title": "Introduction",
+    "body_md": "Effective governance and senior management oversight are essential to {{firm.name}}’s ability to meet its financial crime obligations, ensuring compliance with anti-money laundering (AML) and counter-terrorist financing (CTF) regulations. Although {{firm.name}} currently operates as a small-scale organisation with two key individuals, its governance framework is designed to be future-proof, scalable, and adaptable to meet the demands of growth. The senior leadership team, including the Board of Directors, plays a pivotal role in setting the strategic direction for financial crime prevention and embedding a culture of compliance across all operational areas.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.402Z"
+  },
+  {
+    "id": "mfs_financial_crime-aml_overview-senior_management_accountability",
+    "policy_key": "mfs_financial_crime",
+    "title": "Senior Management Accountability",
+    "body_md": "At {{firm.name}}, the senior management team is accountable for the effectiveness of the firm’s financial crime controls. The Money Laundering Reporting Officer (MLRO) holds a central position in this structure and has direct and independent access to the Board of Directors to ensure financial crime risks are appropriately identified, managed, and escalated when necessary.\nAs a small organisation, the MLRO and the second director take on multiple roles to ensure the smooth operation of financial crime controls. However, the governance structure is designed to remain compliant as the organisation scales, ensuring that additional roles and layers of oversight can be added without disruption.\nCurrently, all issues logged within the financial crime framework are managed through a structured escalation process overseen by the MLRO, who also ensures that issues are documented, tracked, and resolved in a manner that aligns with regulatory requirements.\nThe table below outlines the roles, responsibilities, and accountability structure within {{firm.name}}'s AML programme. Each role contributes to the implementation, monitoring, and continuous improvement of financial crime controls.\n| Role | Key Responsibilities | Accountability |\n| --- | --- | --- |\n| Board of Directors | - Approves AML Policy and risk appetite | - Overall accountability for AML compliance |\n| - Reviews quarterly and annual AML reports |\n| Money Laundering Reporting Officer (MLRO) | - Oversees AML framework and controls | - Submission of SARs, management of regulatory communication |\n| - Reviews escalated high-risk cases and approves EDD | - Ensures compliance with FCA Principle 11 |\n| Compliance Analyst | - Conducts day-to-day transaction monitoring and initial reviews of flagged activity | - Flags anomalies to MLRO |\n| - Ensures quality assurance checks are conducted on CDD/KYB files |\n| Customer Support Team | - Collects required documentation from customers during onboarding and periodic reviews | - Escalates incomplete or suspicious information to compliance team |\n| Senior Management | - Approves high-risk decisions and provides resources for AML compliance | - Ensures strategic alignment of AML activities with business goals |",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.403Z"
+  },
+  {
+    "id": "mfs_financial_crime-aml_overview-committees_membership_and_decision_making_scope",
+    "policy_key": "mfs_financial_crime",
+    "title": "Committees, Membership, and Decision-Making Scope",
+    "body_md": "The governance committees and their roles are detailed below, with each committee serving as a cornerstone in the firm’s compliance oversight.\n| Committee Name | Membership | Meeting Frequency | Quorum | Key Decisions and Responsibilities |\n| --- | --- | --- | --- | --- |\n| Board of Directors | Composed of all directors, including the Money Laundering Reporting Officer (MLRO) and any future Non-Executive Directors (NEDs). | Quarterly | 75% of members, including the MLRO or their delegate | - Approves the AML/CTF Policy and oversees its implementation - Reviews the annual MLRO report, including key AML/CTF risks, programme effectiveness, and SAR trends - Allocates resources to ensure the framework’s adequacy and compliance with regulatory requirements - Signs off on strategic decisions, including any amendments to the firm’s risk appetite |\n| AML Steering Committee | Chaired by the MLRO and includes the second director and relevant operational heads. External advisors may attend as needed. | Monthly | MLRO and at least one other director | - Monitors ongoing compliance with AML/CTF regulations, including key risk areas. - Evaluates escalated issues, including SAR submissions and flagged high-risk customers. - Reviews findings from internal audits, quality assurance reviews, and external regulatory feedback. - Endorses updates to AML/CTF training programmes and system enhancements. |\n| Operational Risk Committee | Includes the MLRO, Compliance Officer (second director) operations lead, and representatives from the compliance and customer service teams. | Monthly, or as needed | Two-thirds of members, including the MLRO or a delegate. | - Focuses on operational risks related to AML/CTF processes, such as transaction monitoring and KYC/KYB controls - Assesses effectiveness and implementation of automated tools, including SmartSearch and Onfido - Recommends changes to operational workflows based on flagged issues or audit findings |\n| Audit and Compliance Committee | Independent external auditors (when appointed), the MLRO, and a director. Additional subject matter experts may be invited on an ad hoc basis. | Annually and as required for specific reviews. | MLRO, one director, and at least one external auditor (if applicable). | - Conducts independent reviews of the AML/CTF framework, ensuring alignment with the Money Laundering Regulations 2017 and FCA guidelines - Approves and oversees remediation plans for identified compliance gaps - Provides assurance to the Board on the adequacy of AML/CTF controls |",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.403Z"
+  },
+  {
+    "id": "mfs_financial_crime-aml_overview-governance_processes",
+    "policy_key": "mfs_financial_crime",
+    "title": "Governance Processes",
+    "body_md": "Each committee operates under a structured governance process, with clearly defined terms of reference. Agendas are distributed in advance of meetings, allowing members adequate preparation time. Minutes are meticulously recorded, summarising discussions, key decisions, and action items. The MLRO ensures that all committees are kept informed of significant developments, ensuring alignment across the governance framework.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.403Z"
+  },
+  {
+    "id": "mfs_financial_crime-aml_overview-future_proofing_governance",
+    "policy_key": "mfs_financial_crime",
+    "title": "Future-Proofing Governance",
+    "body_md": "As {{firm.name}} grows, additional layers of governance will be introduced, such as a dedicated Compliance Committee and an independent advisory board. These measures will ensure that the firm’s oversight mechanisms remain robust and capable of managing increased operational complexity.\nThis structured governance framework demonstrates {{firm.name}}’s commitment to maintaining high standards of accountability, transparency, and compliance in its financial crime prevention efforts. Let me know if further refinement or additional details are required.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.403Z"
+  },
+  {
+    "id": "mfs_financial_crime-aml_overview-logging_and_resolving_financial_crime_issues",
+    "policy_key": "mfs_financial_crime",
+    "title": "Logging and Resolving Financial Crime Issues",
+    "body_md": "When financial crime issues, such as flagged transactions or sanctions breaches, are logged within {{firm.name}}’s framework, the following steps are followed:\n- Issue LoggingAll financial crime issues are logged into the firm's transaction monitoring system (TMS) or compliance tracker. Each issue is assigned a unique identifier and categorised based on its severity and nature (e.g., sanctions, suspicious activity, or PEP-related).\n- Preliminary AssessmentThe MLRO conducts an initial review to determine the root cause and immediate implications of the issue. This review includes:\n- Verifying the transaction details or flagged activity.\n- Cross-referencing against sanctions lists and customer due diligence records.\n- Reviewing the transaction history and any linked accounts or entities.\n- Risk AssessmentThe issue is assessed against the firm’s financial crime risk matrix, considering factors such as the customer’s risk profile, geographic risk, and transaction type. For example:\n- High-risk issues are escalated immediately to senior management and, if necessary, reported to external authorities such as the National Crime Agency (NCA).\n- Medium-risk issues are subjected to enhanced due diligence, which may involve requesting additional information from the customer or beneficiary.\n- Low-risk issues are logged and resolved within the compliance team’s standard processes.\n- Decision and EscalationHigh-risk issues that require immediate escalation follow the firm’s escalation process:\n- Internal Escalation: The MLRO briefs the Board of Directors within 24 hours, outlining the issue, potential impact, and recommended actions.\n- External Reporting: If the issue qualifies as suspicious activity, the MLRO ensures a Suspicious Activity Report (SAR) is submitted to the NCA promptly.\n- Regulatory Notification: Where applicable, the FCA is notified of significant issues, in line with Principle 11 requirements.\n- Resolution and DocumentationOnce a decision is reached, the MLRO oversees the resolution process, which may involve freezing accounts, blocking transactions, or engaging with third-party payment providers. The following steps are taken:\n- A clear resolution plan is implemented to mitigate risks and prevent recurrence.\n- Detailed records of the issue, investigation, and resolution are maintained for audit and regulatory review.\n- Post-Incident ReviewFollowing the resolution of a logged issue, a post-incident review is conducted to identify lessons learned and implement improvements. This includes:\n- Evaluating the effectiveness of existing controls in preventing the issue.\n- Updating policies, procedures, or thresholds where gaps are identified.\n- Providing targeted training to staff to address knowledge gaps or emerging risks.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.403Z"
+  },
+  {
+    "id": "mfs_financial_crime-aml_overview-management_information_and_record_keeping",
+    "policy_key": "mfs_financial_crime",
+    "title": "Management Information and Record-Keeping",
+    "body_md": "{{firm.name}} employs a robust Management Information (MI) system to track and monitor financial crime issues. Key metrics include:\n- Volume and nature of flagged transactions and SARs filed\n- Escalation timelines and resolution times for high-risk issues\n- Training completion rates and audit findings\nMI reports are reviewed monthly by the MLRO and quarterly by the Board. This ensures timely visibility into the effectiveness of financial crime controls.\nRecords of all logged issues, investigations, and resolutions are maintained for a minimum of five years, in line with regulatory requirements. These records are audited annually to ensure completeness and accuracy.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.403Z"
+  },
+  {
+    "id": "mfs_financial_crime-aml_overview-continuous_improvement_and_future_proofing",
+    "policy_key": "mfs_financial_crime",
+    "title": "Continuous Improvement and Future-Proofing",
+    "body_md": "{{firm.name}}’s governance framework is designed to adapt as the organisation grows. Key measures include:\n- Establishing a Compliance Committee to provide additional oversight as the team expands.\n- Regularly benchmarking governance practices against FCA guidance and industry best practices.\n- Conducting independent reviews of the governance framework to ensure alignment with evolving regulatory expectations.\nEmbedding Governance in Daily Operations\nTo ensure governance and oversight are not merely theoretical but embedded in the day-to-day operations of {{firm.name}}, the firm has established detailed operational processes to integrate compliance with financial crime regulations into every customer and transaction touchpoint. This section expands on how {{firm.name}}’s governance framework is implemented in practice, ensuring compliance and effective management of financial crime risks.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.403Z"
+  },
+  {
+    "id": "mfs_financial_crime-aml_overview-decision_making_and_oversight_in_practice",
+    "policy_key": "mfs_financial_crime",
+    "title": "Decision-Making and Oversight in Practice",
+    "body_md": "1. Transaction Monitoring and Decision-Making:Every transaction initiated through {{firm.name}} undergoes a series of automated and manual checks, ensuring that governance principles are applied at the operational level. The MLRO oversees the following steps:\n- Automated Screening: Transactions are immediately screened against sanction lists, PEP databases, and financial crime risk thresholds using SmartSearch.\n- Risk Scoring: Each transaction is scored based on predefined parameters (e.g., geographic risk, customer profile, and transaction value). Higher-risk transactions are flagged for manual review.\n- Manual Review: Flagged transactions are reviewed by the MLRO or second director. Decisions are documented, including any approvals, escalations, or declines.\n- Governance Documentation: Each decision is logged in {{firm.name}}’s compliance tracker, providing a clear audit trail. Key details include the reason for the flag, the risk assessment outcome, and the rationale for the final decision.\n2. Regular Escalation Protocols:For high-risk issues, the MLRO adheres to structured escalation protocols to ensure timely involvement of senior management and external parties where necessary. Escalation involves:\n- A formal review of the flagged issue, including supporting documentation.\n- Communication of the findings to the Board, typically within 24 hours for critical risks.\n- External notifications, including SAR submissions to the National Crime Agency (NCA), where required.This protocol ensures that governance is actionable and aligned with regulatory expectations, providing confidence that financial crime risks are effectively managed.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.403Z"
+  },
+  {
+    "id": "mfs_financial_crime-aml_overview-operational_oversight_of_policies",
+    "policy_key": "mfs_financial_crime",
+    "title": "Operational Oversight of Policies",
+    "body_md": "1. Policy Implementation and Enforcement:The governance structure supports the practical implementation of {{firm.name}}’s key policies, including the AML/CTF, Vulnerable Customers, and Complaints policies. Operationalising these policies involves:\n- Training and Awareness: All employees (currently limited to the two directors) undergo onboarding and refresher training covering financial crime risks, governance principles, and specific responsibilities.\n- Standard Operating Procedures (SOPs): The SOPs for each policy are integrated into daily workflows, ensuring employees understand their roles and actions. For example:\n- The Complaints Policy is operationalised through a streamlined process for logging, escalating, and resolving complaints, including those involving joint responsibility.\n- The Vulnerable Customers Policy includes specific measures to identify and support vulnerable customers, ensuring compliance with PRIN 6 and the FCA’s FG21/1 guidance.\n- Auditing and Monitoring: Policies are reviewed periodically by the MLRO to identify gaps, ensure relevance, and incorporate lessons learned from incidents or regulatory updates.\n2. Key Metrics for Policy Effectiveness:{{firm.name}} has established key performance indicators (KPIs) and metrics to evaluate the operational effectiveness of its policies, including:\n- The number and resolution times of flagged transactions\n- Compliance rates with customer due diligence (CDD) and enhanced due diligence (EDD) processes\n- Training completion rates for all employees\n- Feedback from post-incident reviews and external audits",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.403Z"
+  },
+  {
+    "id": "mfs_financial_crime-aml_overview-management_information_mi_as_a_governance_tool",
+    "policy_key": "mfs_financial_crime",
+    "title": "Management Information (MI) as a Governance Tool",
+    "body_md": "The operationalisation of governance relies heavily on the effective use of Management Information (MI). {{firm.name}} employs a robust MI framework to monitor financial crime risks in real-time and ensure that senior management has access to accurate, actionable data.\n| MI Element | Purpose | Operational Impact |\n| --- | --- | --- |\n| Flagged Transactions Report | Summarises all transactions flagged by the monitoring system | Ensures prompt review and resolution of high-risk transactions |\n| SAR Submission Log | Tracks all Suspicious Activity Reports submitted to the NCA | Provides an audit trail and evidence of compliance with reporting obligations |\n| Policy Compliance Dashboard | Tracks adherence to key policies (e.g., AML/CTF, Vulnerable Customers) | Identifies gaps in compliance and areas requiring additional training or controls |\n| Escalation and Resolution Metrics | Monitors the escalation process, including resolution times for high-risk issues | Highlights bottlenecks and ensures timely decision-making |\n| Training Completion Records | Tracks onboarding and ongoing training for all staff | Ensures employees are equipped to operationalise governance principles effectively |\n\nThese reports are reviewed monthly by the MLRO and quarterly by the Board, ensuring that oversight is proactive and informed by data-driven insights.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.403Z"
+  },
+  {
+    "id": "mfs_financial_crime-aml_overview-building_a_future_proof_operational_structure",
+    "policy_key": "mfs_financial_crime",
+    "title": "Building a Future-Proof Operational Structure",
+    "body_md": "While {{firm.name}} currently operates with a small team of two directors, its operational structure has been designed to accommodate future growth. Key measures include:\n- Delegation Framework: As the organisation scales, additional roles will be introduced to ensure effective segregation of duties (e.g., separate Risk Manager, and Operations Manager roles).\n- Scalable Technology: The use of automated transaction monitoring systems and cloud-based compliance tools (e.g., SmartSearch) ensures that operational workflows can handle increased transaction volumes without compromising on governance.\n- Third-Party Partnerships: {{firm.name}} maintains robust partnerships with external compliance providers (e.g., SmartSearch and Onfido) to leverage their expertise and tools in meeting AML/CTF requirements.\n- Periodic Independent Reviews: {{firm.name}} plans to engage independent third parties to review its operational framework periodically, ensuring alignment with best practices and regulatory expectations.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.403Z"
+  },
+  {
+    "id": "mfs_financial_crime-aml_overview-issue_logging_and_follow_up",
+    "policy_key": "mfs_financial_crime",
+    "title": "Issue Logging and Follow-Up",
+    "body_md": "To ensure continuous improvement and accountability, {{firm.name}} has a structured process for tracking, resolving, and learning from issues logged in its compliance systems.\n| Stage | Action | Outcome |\n| --- | --- | --- |\n| Logging | All issues (e.g., flagged transactions, customer complaints) are logged into a centralised tracker | Ensures that no issue is overlooked or lost in the process |\n| Root Cause Analysis (RCA) | For each issue, an RCA is conducted to identify underlying gaps or failures in the existing controls | Enables targeted improvements and updates to policies, procedures, or technology |\n| Resolution | The MLRO oversees the resolution process, ensuring that actions are completed within defined timelines | Guarantees timely closure of issues and regulatory compliance |\n| Follow-Up | Post-resolution reviews are conducted to evaluate the effectiveness of corrective actions | Provides insights for continuous improvement and ensures lessons learned are captured |",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.403Z"
+  },
+  {
+    "id": "mfs_financial_crime-transaction_monitoring_framework-transaction_monitoring_framework",
+    "policy_key": "mfs_financial_crime",
+    "title": "Transaction Monitoring Framework",
+    "body_md": "{{firm.name}} operates a comprehensive, multi-layered transaction monitoring framework designed to mitigate risks associated with money laundering, terrorist financing, and other financial crimes. This framework combines advanced technological tools, structured processes, and manual oversight, ensuring adherence to the Money Laundering Regulations 2017 (MLR), FCA’s Financial Crime Guide (FCG), and international best practices.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.403Z"
+  },
+  {
+    "id": "mfs_financial_crime-transaction_monitoring_framework-objectives_of_the_framework",
+    "policy_key": "mfs_financial_crime",
+    "title": "Objectives of the Framework",
+    "body_md": "The transaction monitoring framework serves as a critical component of {{firm.name}}’s broader financial crime compliance strategy. Its objectives include:\n- Real-Time Detection and Mitigation: Continuous identification of suspicious activities using a combination of automated tools and manual review processes.\n- Alignment with Risk Appetite: Focusing on medium- and low-risk transactions in EU payment corridors while integrating customer-specific and jurisdictional risks.\n- Regulatory Adherence: Meeting all domestic and international standards through rigorous processes for monitoring, escalation, and reporting.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.403Z"
+  },
+  {
+    "id": "mfs_financial_crime-transaction_monitoring_framework-lifecycle_of_transaction_monitoring",
+    "policy_key": "mfs_financial_crime",
+    "title": "Lifecycle of Transaction Monitoring",
+    "body_md": "Pre-Execution Screening\nTransactions are subject to automated checks before execution to prevent high-risk activities. This process includes:\n- Sanctions and PEP Monitoring: Transactions are screened in real time against updated sanctions lists and Politically Exposed Persons (PEPs) databases using SmartSearch.\n- Jurisdictional Risk Assessment: Payments involving high-risk or sanctioned jurisdictions are flagged for review. Transactions routed through FATF grey or blacklisted countries are automatically subject to additional scrutiny.\n- Threshold Screening: Transactions exceeding pre-defined limits (e.g., £10,000) are flagged for escalation.\n- Consistency Checks: The system assesses whether transaction values and routing align with the customer’s historical behaviour.\nPre-execution alerts are categorised based on severity, with immediate escalation for high-risk issues.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.403Z"
+  },
+  {
+    "id": "mfs_financial_crime-transaction_monitoring_framework-real_time_monitoring",
+    "policy_key": "mfs_financial_crime",
+    "title": "Real-Time Monitoring",
+    "body_md": "Real-time monitoring systems operate continuously to detect anomalies during transaction processing. Key capabilities include:\n- Velocity Monitoring: Identifying structuring through unusually high transaction frequencies.\n- Pattern Recognition: Detecting deviations from established customer behaviour, such as sudden changes in transaction size or geography.\n- Cumulative Risk Analysis: Aggregating transaction volumes over specified intervals (daily, weekly, monthly) to identify layering or smurfing attempts.\nMonitoring tools flag anomalies for compliance review, ensuring potential risks are captured and addressed promptly.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.403Z"
+  },
+  {
+    "id": "mfs_financial_crime-transaction_monitoring_framework-post_transaction_analysis",
+    "policy_key": "mfs_financial_crime",
+    "title": "Post-Transaction Analysis",
+    "body_md": "All flagged transactions undergo a detailed manual review by the compliance team or the MLRO. This stage incorporates:\n- Document Verification: Supporting evidence, such as invoices or contracts, is evaluated for legitimacy.\n- Root Cause Assessment: The MLRO analyses the reasons for the flag, such as suspicious jurisdictional patterns or discrepancies in transaction documentation.\n- Decision-Making: Transactions are either approved, escalated, or reported to external authorities through a Suspicious Activity Report (SAR).\nPost-transaction analysis provides an opportunity to identify systemic risks and refine detection parameters.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.403Z"
+  },
+  {
+    "id": "mfs_financial_crime-transaction_monitoring_framework-escalation_and_reporting",
+    "policy_key": "mfs_financial_crime",
+    "title": "Escalation and Reporting",
+    "body_md": "When a flagged transaction meets escalation criteria, the following structured workflow is applied:\n- Internal Escalation: High-risk transactions are escalated to the MLRO for immediate review.\n- SAR Filing: If suspicious activity is confirmed, a SAR is submitted to the National Crime Agency (NCA) within regulatory timeframes.\n- Senior Management Reporting: High-risk cases and recurring issues are reported to the Board for strategic input and decision-making.\nEscalation protocols are designed to ensure transparency and compliance while mitigating operational risks.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.403Z"
+  },
+  {
+    "id": "mfs_financial_crime-transaction_monitoring_framework-risk_based_monitoring",
+    "policy_key": "mfs_financial_crime",
+    "title": "Risk-Based Monitoring",
+    "body_md": "The framework operates under a risk-based approach, which ensures resources are focused on higher-risk areas while maintaining oversight of all transactions. Key elements include:\nAutomated Rules for Risk Detection\n- Threshold Alerts: Transactions exceeding £10,000 are flagged for manual review.\n- Jurisdictional Risk Flags: Payments to or from FATF grey or blacklisted countries trigger alerts.\n- Behavioural Analysis: Sudden changes in customer activity patterns prompt closer scrutiny.\nRules are periodically recalibrated to reflect regulatory changes, emerging typologies, and lessons learned from investigations.\nCustomer Risk Integration\nThe transaction monitoring system aligns with {{firm.name}}’s Customer Risk Assessment (CRA) framework, incorporating:\n- Country Risk Analysis: High-risk jurisdictions are flagged during the CRA and receive enhanced monitoring.\n- Client-Specific Risk: High-risk customers undergo stricter thresholds, more frequent reviews, and tailored monitoring.\n- Transaction-Specific Risk: Unusual routing patterns or large-value transactions are prioritised for review.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.403Z"
+  },
+  {
+    "id": "mfs_financial_crime-transaction_monitoring_framework-alert_handling_and_continuous_monitor",
+    "policy_key": "mfs_financial_crime",
+    "title": "Alert Handling and Continuous Monitoring",
+    "body_md": "Alert Management Workflow\nAll alerts generated by automated systems follow a structured process to ensure consistency and thorough investigation:\n- Triage: Compliance analysts categorise alerts by severity (low, medium, high) and assign priorities.\n- Investigation: Alerts are verified against customer profiles and transaction histories.\n- Escalation: High-priority alerts are escalated to the MLRO, while low-priority alerts are logged for monitoring.\nContinuous Improvement\n{{firm.name}} employs a feedback loop to refine monitoring parameters and system thresholds. Real-time updates are implemented based on insights from SARs, regulatory feedback, and thematic reviews.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.403Z"
+  },
+  {
+    "id": "mfs_financial_crime-transaction_monitoring_framework-technological_integration",
+    "policy_key": "mfs_financial_crime",
+    "title": "Technological Integration",
+    "body_md": "{{firm.name}} leverages advanced tools to enhance the effectiveness of transaction monitoring:\n- SmartSearch: Screens transactions for sanctions, PEPs, and adverse media in real time.\n- Onfido: Facilitates robust KYC and KYB processes by verifying customer documentation and identities.\nThese systems operate in tandem with manual reviews to ensure comprehensive coverage of all risks.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.403Z"
+  },
+  {
+    "id": "mfs_financial_crime-transaction_monitoring_framework-quality_assurance_and_training",
+    "policy_key": "mfs_financial_crime",
+    "title": "Quality Assurance and Training",
+    "body_md": "Quality Assurance Framework\nThe MLRO oversees regular testing to validate the effectiveness of transaction monitoring controls:\n- Scenario-Based Testing: Simulated suspicious activities are used to test detection capabilities.\n- Audit Integration: Internal audits evaluate the accuracy and outcomes of flagged transactions.\nStaff Training\n{{firm.name}} ensures all employees are equipped to manage transaction monitoring effectively through:\n- Role-Specific Training: Focused on red flags, escalation protocols, and SAR preparation.\n- Annual Refreshers: Updates on regulatory changes and new risk typologies.\n- Practical Exercises: Scenario-based drills improve critical decision-making skills.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.403Z"
+  },
+  {
+    "id": "mfs_financial_crime-transaction_monitoring_framework-reporting_and_oversight",
+    "policy_key": "mfs_financial_crime",
+    "title": "Reporting and Oversight",
+    "body_md": "The effectiveness of the transaction monitoring framework is measured and reported to senior management through detailed metrics, including:\n- Flagged Transactions: Volume and categorisation by severity.\n- SAR Submissions: Number and trends in suspicious activity reports.\n- Resolution Times: Average time to investigate and resolve flagged transactions.\nSenior management uses these insights to refine policies, allocate resources, and maintain alignment with regulatory expectations.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.403Z"
+  },
+  {
+    "id": "mfs_financial_crime-know_your_customer_kyc_and_know_your_business_kyb-kyc_process_and_requ",
+    "policy_key": "mfs_financial_crime",
+    "title": "KYC Process and Requirements",
+    "body_md": "{{firm.name}} employs a comprehensive Know Your Customer/ Business (KYC/ KYB) process to ensure compliance with the Money Laundering Regulations 2017 (MLR) and mitigate financial crime risks. This process involves collecting, verifying, and maintaining accurate customer information, which is critical for evaluating customer risk profiles.\n- Information Collection:\n- Customer Identification:\n- Full legal name\n- Residential address (recent utility bill or bank statement dated within the last three months)\n- Date of birth\n- Government-issued identification (passport, national ID card, or driving licence)\n- Transaction Details:\n- Source of funds\n- Purpose of the transaction\n- Expected transaction volumes and frequency\n- Verification Process:\n- {{firm.name}} utilises Onfido for automated ID verification (IDV) to validate the authenticity of documents and biometric matching\n- A four-eyes principle is applied to all verifications. Once the IDV process is completed, a compliance officer manually reviews the records to ensure accuracy and completeness\n- Sample checks are conducted on 10% of verified IDs monthly as part of the Quality Assurance (QA) framework. This ensures that all records meet regulatory standards and internal compliance expectations\n- Enhanced Due Diligence (EDD):\n- For high-risk customers, additional documentation is collected, such as:\n- Source of wealth\n- References from banks or professional institutions\n- Detailed transaction histories\n- In cases where high-risk customers exhibit irregularities, the MLRO oversees further investigation and escalation, if necessary.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.403Z"
+  },
+  {
+    "id": "mfs_financial_crime-know_your_customer_kyc_and_know_your_business_kyb-kyb_process_and_requ",
+    "policy_key": "mfs_financial_crime",
+    "title": "KYB Process and Requirements",
+    "body_md": "The KYB process at {{firm.name}} is equally rigorous, ensuring businesses are adequately vetted and understood before onboarding.\n- Information Collection:\n- Company Information:\n- Full legal name and trading name\n- Registration number and country of incorporation\n- Registered address\n- Ownership and Control:\n- Details of directors and senior management\n- Identification and verification of Ultimate Beneficial Owners (UBOs) owning 25% or more\n- For complex ownership structures, a full corporate chart and explanation of relationships are required\n- Business Operations:\n- Nature of business and key sectors of operation\n- Annual revenue and expected transaction volumes\n- Primary customers and suppliers\n- Verification Process:\n- Documents such as certificates of incorporation, articles of association, and tax filings are reviewed\n- Adverse media and sanctions checks are conducted for all key personnel and UBOs using SmartSearch\n- For complex structures, independent verification of ownership is conducted to ensure transparency.\n- Ongoing Monitoring:\n- Regularly scheduled reviews (see periodic review section) assess whether the business continues to meet compliance standards\n- A compliance analyst conducts monthly checks on high-risk entities, including refreshed media screenings and transaction evaluations\n- Quality Assurance:\n- Sample checks are performed quarterly on 10% of KYB files to ensure that verification processes have been correctly followed\n- Findings from QA are used to refine onboarding policies and employee training",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.403Z"
+  },
+  {
+    "id": "mfs_financial_crime-risk_appetite_and_alignment_with_business_wide_risk_assessment-risk_ap",
+    "policy_key": "mfs_financial_crime",
+    "title": "Risk Appetite and Alignment with Business-Wide Risk Assessment",
+    "body_md": "The risk appetite at {{firm.name}} is a living document, reviewed quarterly to ensure alignment with the dynamic risks facing the business. The formal annual review incorporates jurisdictional, product, and transactional risks to maintain alignment with business strategy and regulatory changes.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.403Z"
+  },
+  {
+    "id": "mfs_financial_crime-risk_appetite_and_alignment_with_business_wide_risk_assessment-current",
+    "policy_key": "mfs_financial_crime",
+    "title": "Current Risk Appetite",
+    "body_md": "- {{firm.name}} focuses on transactions within EU corridors, which are deemed lower risk due to robust regulatory frameworks in member states.\n- High-risk jurisdictions identified in FATF grey and blacklists are outside the current risk appetite.\n- Complex or high-value transactions involving high-risk sectors (e.g., gambling or cryptocurrency) require explicit MLRO approval.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.403Z"
+  },
+  {
+    "id": "mfs_financial_crime-risk_appetite_and_alignment_with_business_wide_risk_assessment-cra_int",
+    "policy_key": "mfs_financial_crime",
+    "title": "CRA Integration",
+    "body_md": "The CRA framework is directly influenced by the risk appetite:\n- Jurisdictional Risk: Geographic risks are flagged in the CRA based on the most recent risk appetite statements.\n- Product and Service Risk: Higher-risk products such as cross-border remittances to non-EU countries are flagged for enhanced scrutiny.\n- Customer Risk: Customers operating in sectors or regions outside the risk appetite are subject to heightened onboarding and monitoring requirements.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.403Z"
+  },
+  {
+    "id": "mfs_financial_crime-sanctions_screening_and_escalation_procedures-sanctions_screening_and_",
+    "policy_key": "mfs_financial_crime",
+    "title": "Sanctions Screening and Escalation Procedures",
+    "body_md": "Sanctions screening is a critical component of {{firm.name}}'s compliance programme, ensuring that transactions, customer relationships, and business partnerships adhere to international sanctions regulations. {{firm.name}} employs a thorough, multi-layered approach to sanctions screening, supported by advanced tools such as SmartSearch, to identify, assess, and address potential risks.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.403Z"
+  },
+  {
+    "id": "mfs_financial_crime-sanctions_screening_and_escalation_procedures-screening_process",
+    "policy_key": "mfs_financial_crime",
+    "title": "Screening Process",
+    "body_md": "{{firm.name}} implements comprehensive sanctions screening measures to prevent violations and ensure compliance:\n- Name Screening:\n- All customers, associated parties, and business partners are screened against updated sanctions lists, including those maintained by the UN, EU, OFAC, and the UK Office of Financial Sanctions Implementation (OFSI)\n- Screening occurs during onboarding, periodic reviews, changes to client details, and before the execution of transactions\n- The SmartSearch tool ensures that all global and local sanctions lists are incorporated and updated, enabling real-time identification of potential matches\n- Transaction Screening:\n- Transactions are screened in real time to detect links to sanctioned entities, jurisdictions, or activities.\n- The screening evaluates transaction origins, destinations, routing patterns, and counterparties for potential sanctions risks.\n- Data Accuracy and Updates:\n- {{firm.name}} ensures that customer and transaction data used in the SmartSearch screening tool is complete and up-to-date.\n- Regular updates to the SmartSearch tool ensure that all relevant sanctions lists are included and fully operational.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.403Z"
+  },
+  {
+    "id": "mfs_financial_crime-sanctions_screening_and_escalation_procedures-handling_a_sanctions_hit",
+    "policy_key": "mfs_financial_crime",
+    "title": "Handling a Sanctions Hit",
+    "body_md": "When a potential sanctions match is identified, a structured escalation process ensures a comprehensive assessment and resolution:\n- Initial Review:\n- The compliance team gathers detailed information about the flagged customer or transaction, including:\n- Customer details and transaction history.\n- Relevant supporting documents, such as invoices or contracts.\n- External insights, including media reports or notes from sanctions databases.\n- The flagged match is cross-checked against sanctions criteria in SmartSearch to confirm its validity.\n- Internal Reporting:\n- A detailed internal report is prepared, summarising the findings, assessed risk level, and recommended actions.\n- The report includes supporting documentation and highlights any significant risks identified during the review.\n- Escalation to MLRO:\n- The MLRO reviews the internal report and determines appropriate actions, which may include:\n- Blocking the transaction.\n- Freezing associated accounts.\n- Filing a Suspicious Activity Report (SAR) with the National Crime Agency (NCA).\n- Offboarding the customer in line with established offboarding procedures.\n- Senior Management Involvement:\n- High-risk or complex cases are escalated to senior management within 24 hours.\n- Decisions are logged in the compliance tracker to maintain a comprehensive audit trail.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.403Z"
+  },
+  {
+    "id": "mfs_financial_crime-sanctions_screening_and_escalation_procedures-ongoing_monitoring_and_e",
+    "policy_key": "mfs_financial_crime",
+    "title": "Ongoing Monitoring and Escalation",
+    "body_md": "Sanctions compliance is integrated into {{firm.name}}’s ongoing monitoring processes to ensure continuous oversight:\n- Alert Handling and Resolution:\n- Alerts generated by SmartSearch are triaged based on severity, with high-priority matches escalated immediately to the MLRO.\n- All actions taken, including escalations and resolutions, are documented in the central compliance system for transparency.\n- Periodic Review of Customer Status:\n- Sanctions screening is repeated during periodic reviews or significant changes in a customer's activity or business relationship.\n- Regular monitoring ensures that changes in sanctions lists or customer profiles are promptly addressed.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.403Z"
+  },
+  {
+    "id": "mfs_financial_crime-sanctions_screening_and_escalation_procedures-control_measures",
+    "policy_key": "mfs_financial_crime",
+    "title": "Control Measures",
+    "body_md": "{{firm.name}} employs robust control measures to maintain the integrity and effectiveness of its sanctions screening process:\n- System Validation:\n- Routine testing of SmartSearch ensures that all mandatory sanctions lists are included and functioning correctly\n- Controls are in place to verify that data used for sanctions screening is complete and accurate\n- Escalation Protocols:\n- Alerts and potential matches are escalated in accordance with clearly defined protocols, ensuring timely resolution\n- The MLRO reviews all escalations to confirm appropriate actions have been taken\n- Audit and Quality Assurance:\n- Regular audits evaluate the effectiveness of sanctions screening controls and identify opportunities for improvement\n- Quality assurance reviews ensure consistent application of screening procedures and adherence to escalation protocols",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.403Z"
+  },
+  {
+    "id": "mfs_financial_crime-sanctions_screening_and_escalation_procedures-feedback_loop_and_contin",
+    "policy_key": "mfs_financial_crime",
+    "title": "Feedback Loop and Continuous Improvement",
+    "body_md": "{{firm.name}} continuously refines its sanctions screening processes to address emerging risks and ensure compliance:\n- Training and Awareness:\n- Staff are trained using case studies and examples of sanctions-related incidents to improve their understanding of compliance requirements and escalation procedures\n- Role-specific training ensures that relevant personnel are proficient in using SmartSearch and handling flagged transactions\n- Threshold Adjustment and Monitoring:\n- Lessons learned from previous sanctions hits inform the adjustment of monitoring thresholds and screening parameters in SmartSearch\n- Thematic Reviews and Testing:\n- Periodic reviews focus on high-risk areas, such as transactions involving sanctioned jurisdictions, to identify patterns and optimise controls\n- Testing ensures that the screening tool consistently detects potential sanctions risks across different scenarios",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.404Z"
+  },
+  {
+    "id": "mfs_financial_crime-sanctions_screening_and_escalation_procedures-governance_and_oversight",
+    "policy_key": "mfs_financial_crime",
+    "title": "Governance and Oversight",
+    "body_md": "The MLRO and senior management oversee sanctions compliance, with regular reporting ensuring transparency and accountability:\n- Monthly reports summarise key metrics, such as the volume of sanctions alerts, escalations, and SAR filings\n- Annual audits validate the effectiveness of sanctions screening and provide recommendations for improvement\n- A comprehensive sanctions compliance review is conducted periodically to ensure alignment with evolving regulatory requirements and operational needs",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.404Z"
+  },
+  {
+    "id": "mfs_financial_crime-customer_offboarding-customer_offboarding",
+    "policy_key": "mfs_financial_crime",
+    "title": "Customer Offboarding",
+    "body_md": "{{firm.name}} maintains a comprehensive framework for managing customer exits, recognising that effective offboarding represents a critical element of the firm's financial crime control environment. Within the current operational structure, the MLRO holds primary responsibility for all exit decisions, ensuring consistent application of exit criteria whilst maintaining appropriate oversight of the process from initiation through to completion.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.404Z"
+  },
+  {
+    "id": "mfs_financial_crime-customer_offboarding-exit_triggers_and_assessment",
+    "policy_key": "mfs_financial_crime",
+    "title": "Exit Triggers and Assessment",
+    "body_md": "Customer exits may be initiated through several defined pathways, each requiring specific assessment and documentation. The MLRO conducts a structured evaluation of potential exits, considering both immediate triggers and broader relationship context to ensure proportionate and justified decisions.\nFinancial crime concerns constitute primary exit triggers, encompassing significant adverse media discoveries that materially affect the customer's risk profile, particularly where these relate to financial crime or regulatory breaches. The MLRO assesses the credibility and materiality of such information, documenting specific concerns and their impact on the relationship's risk assessment.\nSanctions considerations require immediate action, with the MLRO conducting urgent assessment of any confirmed sanctions matches. This assessment examines both direct matches and connected party relationships, ensuring comprehensive evaluation of potential sanctions exposure.\nPersistent non-compliance with information requests presents another key trigger, particularly where this impedes effective due diligence. The MLRO maintains detailed records of information requests, customer responses, and assessment of the impact on {{firm.name}}'s ability to manage financial crime risks effectively.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.404Z"
+  },
+  {
+    "id": "mfs_financial_crime-customer_offboarding-exit_implementation_process",
+    "policy_key": "mfs_financial_crime",
+    "title": "Exit Implementation Process",
+    "body_md": "Upon determining exit necessity, the MLRO initiates a structured implementation process designed to maintain control whilst ensuring fair treatment. This process encompasses several distinct phases, each requiring specific documentation and control measures.\nIn the initial documentation phase, the MLRO prepares a comprehensive exit memorandum capturing the full rationale for termination. This document synthesises all relevant evidence, including transaction records, correspondence history, and specific control breaches or suspicious behaviour patterns.\nWithin the current operational context, the exit memorandum serves multiple purposes: it provides necessary audit trail for regulatory oversight, supports defensive SAR filings where required, and establishes precedent for handling similar cases.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.404Z"
+  },
+  {
+    "id": "mfs_financial_crime-customer_offboarding-customer_communication_strategy",
+    "policy_key": "mfs_financial_crime",
+    "title": "Customer Communication Strategy",
+    "body_md": "Communication of exit decisions demands careful management to balance regulatory obligations with customer treatment considerations. The MLRO oversees all exit communications, ensuring appropriate handling of potential tipping off concerns whilst maintaining professional standards.\nFor standard exits not involving active financial crime concerns, {{firm.name}} implements a structured notice period, typically 30 days, providing customers clear guidance on service termination and outstanding transaction management.\nWhere exits involve financial crime concerns, the MLRO implements enhanced communication protocols. These ensure compliance with tipping off requirements whilst maintaining appropriate records to demonstrate compliance with both financial crime and consumer protection requirements. Communications in such cases undergo additional review to ensure they do not compromise any ongoing investigations or SAR submissions.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.404Z"
+  },
+  {
+    "id": "mfs_financial_crime-customer_offboarding-account_closure_and_fund_management",
+    "policy_key": "mfs_financial_crime",
+    "title": "Account Closure and Fund Management",
+    "body_md": "The account closure phase requires careful management of any remaining funds whilst maintaining transaction monitoring controls. The MLRO oversees the return of customer funds through approved payment methods, ensuring compliance with both financial crime controls and regulatory requirements.\nDuring the closure period, enhanced monitoring remains in place to identify any attempts to initiate unusual transactions or establish new payment patterns. Particular attention focuses on transaction patterns that deviate from established profiles, requiring additional scrutiny before processing. Enhanced scrutiny applies to attempts to initiate payments to new beneficiaries during the notice period, and any indication of structured transactions designed to circumvent monitoring thresholds.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.404Z"
+  },
+  {
+    "id": "mfs_financial_crime-customer_offboarding-post_exit_controls",
+    "policy_key": "mfs_financial_crime",
+    "title": "Post-Exit Controls",
+    "body_md": "Following relationship termination, {{firm.name}} maintains robust controls to prevent inadvertent re-engagement with exited customers. The technological infrastructure, incorporating SmartSearch and Onfido integrations, provides systematic screening against previously exited customers during any new applications.\nThe MLRO maintains a secure exit register documenting comprehensive details of all terminated relationships. This register distinguishes between exits driven by financial crime concerns and those stemming from commercial factors, informing future risk assessments and helping identify potential attempts to re-establish relationships through connected structures.\nFor financial crime-related exits, ongoing screening continues for a minimum of five years post-exit, covering both the exited customer and identified connected parties. This screening duration extends where specific risks or regulatory requirements demand, ensuring {{firm.name}} maintains appropriate oversight of potential future exposure.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.404Z"
+  },
+  {
+    "id": "mfs_financial_crime-business_wide_risk_assessment-purpose_and_scope",
+    "policy_key": "mfs_financial_crime",
+    "title": "Purpose and Scope",
+    "body_md": "This section outlines {{firm.name}}'s assessment of potential money laundering and terrorist financing risks across its planned operations, in accordance with Regulation 18 of the Money Laundering Regulations 2017 and aligned with the findings of the UK's National Risk Assessment of Money Laundering and Terrorist Financing 2023.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.404Z"
+  },
+  {
+    "id": "mfs_financial_crime-business_wide_risk_assessment-risk_assessment_methodology",
+    "policy_key": "mfs_financial_crime",
+    "title": "Risk Assessment Methodology",
+    "body_md": "{{firm.name}} has developed its business-wide risk assessment through careful analysis of the money remittance sector's inherent risks, incorporating guidance from the UK's NRA, FCA publications, and industry best practices. As a pre-launch firm, this assessment focuses on anticipated risks based on our intended business model and the documented experience of the MSB sector.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.404Z"
+  },
+  {
+    "id": "mfs_financial_crime-business_wide_risk_assessment-customer_risk_factors",
+    "policy_key": "mfs_financial_crime",
+    "title": "Customer Risk Factors",
+    "body_md": "{{firm.name}} will target small and medium-sized enterprises conducting regular business transactions within EU payment corridors. Based on the NRA's findings and sectoral analysis, we anticipate elevated risks in the following areas:\nCorporate customers with complex ownership structures requiring enhanced beneficial ownership verification measures. The NRA specifically highlights the challenges around corporate opacity and the importance of robust beneficial ownership verification in the MSB sector.\nBusinesses operating in sectors identified as higher risk in the NRA, including:\n- Cash-intensive businesses\n- Import/export companies with complex supply chains\n- Companies with significant cross-border transaction requirements\n- Professional service firms handling client money\nOur customer acceptance strategy will incorporate specific risk-mitigation measures for these customer types, including enhanced onboarding procedures and transaction monitoring parameters.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.404Z"
+  },
+  {
+    "id": "mfs_financial_crime-business_wide_risk_assessment-geographic_risk_factors",
+    "policy_key": "mfs_financial_crime",
+    "title": "Geographic Risk Factors",
+    "body_md": "{{firm.name}}'s initial operations will focus on payment corridors between the UK, France, and Germany. The NRA identifies specific risks in cross-border payments, even within apparently lower-risk jurisdictions. Key geographic risk considerations include:\n- Regulatory variations between the UK and EU post-Brexit\n- Different approaches to beneficial ownership registration across jurisdictions\n- Potential exploitation of regulatory arbitrage opportunities\n- Risk of payments being ultimately destined for higher-risk jurisdictions outside our intended corridors",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.404Z"
+  },
+  {
+    "id": "mfs_financial_crime-business_wide_risk_assessment-products_and_services_risk_factors",
+    "policy_key": "mfs_financial_crime",
+    "title": "Products and Services Risk Factors",
+    "body_md": "Our planned money remittance service inherently carries elevated risks as identified in the NRA. Key vulnerabilities in our proposed service model include:\n- Real-time payment processing limiting pre-transaction screening time\n- Potential for structured transactions across business accounts\n- Challenges in verifying legitimate business purposes for payments\n- Risk of our services being used as part of trade-based money laundering schemes\nTo address these risks, we will implement specific controls including:\n- Value thresholds requiring enhanced verification\n- Real-time transaction monitoring\n- Trade document verification procedures\n- Automated pattern detection systems",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.404Z"
+  },
+  {
+    "id": "mfs_financial_crime-business_wide_risk_assessment-transaction_risk_factors",
+    "policy_key": "mfs_financial_crime",
+    "title": "Transaction Risk Factors",
+    "body_md": "Based on the NRA and sectoral guidance, we anticipate the following key transaction risks:\n- Structured transactions designed to avoid thresholds\n- Complex payment patterns potentially indicating layering\n- Difficulties in establishing normal transaction patterns for new customers\n- Challenges in identifying linked transactions across multiple accounts\nOur transaction monitoring framework will be calibrated to detect these patterns from launch, with thresholds and parameters based on industry benchmarks and regulatory guidance.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.404Z"
+  },
+  {
+    "id": "mfs_financial_crime-business_wide_risk_assessment-delivery_channel_risk_factors",
+    "policy_key": "mfs_financial_crime",
+    "title": "Delivery Channel Risk Factors",
+    "body_md": "As a digital-first provider, our delivery channel risks align with specific concerns highlighted in the NRA regarding online financial services:\n- Remote customer onboarding and verification challenges\n- Digital identity verification risks\n- Account access and authentication security\n- Cybersecurity threats to payment processing systems\nOur planned control framework addresses these through:\n- Multi-factor authentication requirements\n- Advanced document verification technology\n- Biometric identification capabilities\n- Regular penetration testing and security assessments",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.404Z"
+  },
+  {
+    "id": "mfs_financial_crime-business_wide_risk_assessment-control_framework_design",
+    "policy_key": "mfs_financial_crime",
+    "title": "Control Framework Design",
+    "body_md": "Based on this risk assessment, {{firm.name}} has designed a control framework that will incorporate:\nCustomer Due Diligence:\n- Enhanced verification procedures for complex corporate structures\n- Real-time screening against sanctions and PEP lists\n- Document verification technology for remote onboarding\n- Risk-based approach to ongoing monitoring\nTransaction Monitoring:\n- Real-time screening of all transactions\n- Risk-based transaction thresholds\n- Pattern detection algorithms\n- Automated alert generation\nThe framework is designed to be scalable as our business grows, with specific focus on:\n- Early detection of emerging risks\n- Adaptation to new typologies\n- Integration of regulatory updates\n- Enhancement based on operational experience\nThis risk assessment will be reviewed prior to launch and updated based on actual operational experience once services commence. Subsequently, it will be reviewed annually or upon significant changes in our business model, external risk environment, or updates to the NRA.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.404Z"
+  },
+  {
+    "id": "mfs_financial_crime-customer_risk_assessment_cra-customer_risk_assessment_cra",
+    "policy_key": "mfs_financial_crime",
+    "title": "Customer Risk Assessment (CRA)",
+    "body_md": "The Customer Risk Assessment (CRA) is central to {{firm.name}}’s Anti-Money Laundering (AML) and Counter-Terrorist Financing (CTF) programme. It provides a structured, risk-based approach to assess potential financial crime risks posed by individual customers. The CRA is designed to ensure compliance with the Money Laundering Regulations 2017 (MLR), Financial Crime Guide (FCG), and FATF recommendations, while also aligning with {{firm.name}}’s current operational focus and future-proofing its risk management capabilities.\nAt present, {{firm.name}}’s risk appetite is specifically focused on facilitating payments within EU corridors. While the CRA framework is future-proofed to accommodate higher-risk geographies or transaction types, the company’s operational scope and risk exposure are currently limited to EU corridors. This targeted approach ensures heightened risk controls and operational efficiency within the firm’s established parameters.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.404Z"
+  },
+  {
+    "id": "mfs_financial_crime-customer_risk_assessment_cra-country_risk",
+    "policy_key": "mfs_financial_crime",
+    "title": "Country Risk",
+    "body_md": "Country risk evaluates jurisdictional factors associated with a customer’s country of incorporation, operations, source of funds, and destination of funds. While the CRA accommodates global jurisdictions, {{firm.name}} currently prioritises EU corridor transactions.\nKey Indicators:\n- FATF Status: Countries are assessed based on their inclusion on FATF grey or blacklist jurisdictions\n- Sanctions Compliance: Jurisdictions subject to UN, EU, or UK sanctions are flagged for enhanced due diligence\n- Transparency Indices: Metrics like the Corruption Perception Index (CPI) are factored into risk evaluations\nScoring Example\n| Question | Response | Risk Rating | Score |\n| --- | --- | --- | --- |\n| Country of incorporation | Germany | Low | 1 |\n| Country of source of funds | France | Low | 1 |\n| Country of destination of funds | Belgium | Low | 1 |\n| Presence in FATF grey/blacklist countries | No | - | 0 |\n\nOperational Controls for Country Risk:\n- Automated Screening: All jurisdictions are screened against sanctions lists using SmartSearch\n- High-Risk Alerts: Transactions involving high-risk countries trigger immediate escalation to the MLRO\n- Periodic Reassessments: Country risk profiles are reviewed quarterly to align with FATF updates and geopolitical changes",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.404Z"
+  },
+  {
+    "id": "mfs_financial_crime-customer_risk_assessment_cra-client_risk",
+    "policy_key": "mfs_financial_crime",
+    "title": "Client Risk",
+    "body_md": "Client risk evaluates factors tied to the customer’s business model, legal structure, ownership, and operational behaviours. While the CRA is equipped to assess a diverse range of clients, {{firm.name}}’s current client base predominantly includes SMEs operating within the EU.\nKey Indicators:\n- Business Type: Sectors with higher exposure to financial crime, such as gambling or cryptocurrency, are flagged for additional scrutiny\n- Revenue Consistency: Discrepancies between declared revenue and transaction volumes raise concerns\n- Ownership Complexity: Structures involving multiple layers or offshore entities are flagged as higher risk\nScoring Example\n| Question | Response | Risk Rating | Score |\n| --- | --- | --- | --- |\n| Industry | Logistics Services | Low | 1 |\n| Revenue-to-Transaction Ratio | 51-75% of revenue | High | 3 |\n| Ownership Structure | Simple (1-2 layers) | Low | 1 |\n| Adverse Media | No | - | 0 |\n\nOperational Controls for Client Risk:\n- Enhanced Verification: Onboarding includes detailed reviews of incorporation documents, beneficial ownership, and financial statements.\n- Adverse Media Screening: Daily scans ensure that no new risks emerge from client-related media reports.\n- Ongoing Profile Monitoring: Client risk is periodically reassessed to reflect operational changes or new compliance risks.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.404Z"
+  },
+  {
+    "id": "mfs_financial_crime-customer_risk_assessment_cra-transaction_service_risk",
+    "policy_key": "mfs_financial_crime",
+    "title": "Transaction/Service Risk",
+    "body_md": "Transaction/service risk examines patterns, volumes, and payment types to identify irregularities. For EU corridors, this risk remains lower due to robust regulatory oversight, but {{firm.name}} employs comprehensive controls to prevent financial crime.\nKey Indicators:\n- Transaction Velocity: Unusually high frequency of payments may indicate structuring or layering.\n- Payment Types: Single payment types (e.g., bank transfers or card payments) are lower risk than complex combinations.\n- Geographic Risk: Routing through high-risk regions is currently outside {{firm.name}}’s operational scope.\nScoring Example\n| Question | Response | Risk Rating | Score |\n| --- | --- | --- | --- |\n| Total transaction volume/month | £100k - £1M | Medium | 3 |\n| Average size of individual transactions | £10,000 - £50,000 | Medium | 2 |\n| Recipient business nature | Software Services | Low | 1 |\n\nOperational Controls for Transaction/Service Risk:\n- Automated Transaction Monitoring: Tools flag anomalies such as frequent high-value transactions or multiple beneficiaries.\n- Real-Time Risk Scoring: Transactions are continuously evaluated for potential risks using pre-defined thresholds.\n- Alert Escalation: Suspicious transactions are escalated to designated compliance officers for further review.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.404Z"
+  },
+  {
+    "id": "mfs_financial_crime-customer_risk_assessment_cra-risk_scoring_and_aggregation",
+    "policy_key": "mfs_financial_crime",
+    "title": "Risk Scoring and Aggregation",
+    "body_md": "CRA Scoring Breakdown for EU Corridor Transactions:\n| Risk Domain | Score | Weight | Weighted Score |\n| --- | --- | --- | --- |\n| Country Risk | 3 | 40% | 1.2 |\n| Client Risk | 6 | 30% | 1.8 |\n| Transaction/Service Risk | 5 | 30% | 1.5 |\n\nFinal Risk Score:\nWhile the CRA framework allows for flexibility to handle more complex or higher-risk scenarios, the current operational focus on EU corridors yields predominantly low-risk profiles.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.404Z"
+  },
+  {
+    "id": "mfs_financial_crime-customer_risk_assessment_cra-operational_workflow_for_cra",
+    "policy_key": "mfs_financial_crime",
+    "title": "Operational Workflow for CRA",
+    "body_md": "- Risk Assessment During Onboarding:\n- Customer provides detailed information on operations, ownership, and transaction patterns\n- CRA score is calculated automatically, with high-risk ratings flagged for MLRO review\n- Enhanced Due Diligence (EDD):\n- Additional documentation (e.g., tax filings, financial audits) is collected for high-risk cases\n- EDD may involve in-person or virtual interviews with key stakeholders\n- Ongoing Risk Monitoring:\n- Dynamic updates to CRA scores based on new information or transaction anomalies\n- Alerts triggered by significant changes in risk profiles are immediately reviewed\n- Escalation and Reporting:\n- High-risk clients or flagged transactions are escalated to the MLRO\n- Suspicious Activity Reports (SARs) are filed where necessary",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.404Z"
+  },
+  {
+    "id": "mfs_financial_crime-suspicious_incidents_and_suspicious_activity_reporting_sar_framework-s",
+    "policy_key": "mfs_financial_crime",
+    "title": "Suspicious Incidents and Suspicious Activity Reporting (SAR) Framework",
+    "body_md": "{{firm.name}} is dedicated to the prevention of financial crime. The Suspicious Activity Reporting (SAR) framework alerts the National Crime Agency (NCA) and maintains firm awareness of suspicious activity to ensure constant vigilance and compliance. The Suspicious Incident System (SIS) Framework aids in detecting and investigating such activity, ensuring compliance with relevant regulations.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.404Z"
+  },
+  {
+    "id": "mfs_financial_crime-suspicious_incidents_and_suspicious_activity_reporting_sar_framework-k",
+    "policy_key": "mfs_financial_crime",
+    "title": "Key Principles",
+    "body_md": "- Non-Tipping OffMFS strictly adheres to the legal requirement under POCA to avoid \"tipping off\" customers or third parties about the investigation or submission of a SAR. All communications and actions are conducted discreetly to ensure the confidentiality of the reporting process.\n- Comprehensive Data CollectionUpon identifying suspicious activity, {{firm.name}} collects all relevant information to support the investigation and SAR filing, including:\n- Customer details: Name, address, date of birth, and any identification documents.\n- Transaction details: Amount, date, time, beneficiary details, and payment method.\n- Relevant correspondence: Emails, chat logs, and phone records related to the transaction.\n- Real-Time EscalationAny suspicious activity detected through automated or manual reviews is immediately escalated to the Money Laundering Reporting Officer (MLRO) for further investigation.\nThe SIS integrates automation with manual oversight, ensuring that all employees and systems play a role in identifying and addressing financial crime risks.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.404Z"
+  },
+  {
+    "id": "mfs_financial_crime-suspicious_incidents_and_suspicious_activity_reporting_sar_framework-i",
+    "policy_key": "mfs_financial_crime",
+    "title": "Identifying Suspicious Incidents",
+    "body_md": "Suspicious incidents can be detected through various channels, including automated tools, employee observations, and third-party notifications. The key triggers for identifying suspicious activity include:\n| Trigger Source | Examples of Suspicious Indicators |\n| --- | --- |\n| Automated Alerts | - Unusual transaction patterns flagged by monitoring tools |\n| - High-risk jurisdictions or sanctioned entities identified via SmartSearch |\n| Employee Observations | - Customer exhibiting unusual behaviour during KYC onboarding |\n| - Reluctance to provide documentation or inconsistent information |\n| Third-Party Notifications | - Alerts from payment providers or financial institutions regarding flagged accounts |\n\nThese triggers are logged in the SIS system to ensure consistent tracking and investigation.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.404Z"
+  },
+  {
+    "id": "mfs_financial_crime-suspicious_incidents_and_suspicious_activity_reporting_sar_framework-l",
+    "policy_key": "mfs_financial_crime",
+    "title": "Logging Suspicious Incidents",
+    "body_md": "All suspicious incidents must be logged in the SIS immediately upon identification. The following details are recorded:\n| Field | Description |\n| --- | --- |\n| Incident Reference | Unique identifier assigned to each suspicious activity |\n| Date and Time | Timestamp when the incident was identified |\n| Source of Alert | Origin of the alert (e.g., automated tool, employee observation) |\n| Description of Incident | Detailed account of the suspicious activity, including any relevant context |\n| Risk Level | Initial risk assessment (e.g., low, medium, high) |\n\nThe SIS tracker is integrated with {{firm.name}}’s core compliance systems to ensure that all flagged incidents are escalated for review by the MLRO.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.404Z"
+  },
+  {
+    "id": "mfs_financial_crime-suspicious_incidents_and_suspicious_activity_reporting_sar_framework-i",
+    "policy_key": "mfs_financial_crime",
+    "title": "Incident Review Process",
+    "body_md": "Each logged incident undergoes a structured review process:\n- Initial Assessment\n- The MLRO or designated compliance officer reviews the flagged incident within 24 hours.\n- Key elements considered include transaction details, customer risk profile, and relevant documentation.\n- The risk level is either confirmed or adjusted based on the initial assessment.\n- Supporting Evidence Collection\n- Additional documentation is requested from the customer if required (e.g., proof of funds, contracts).\n- System logs and previous transactions are analysed for supporting context.\n- Decision and Action\n- Low-Risk Incidents: Logged for monitoring; no further action required.\n- Medium-Risk Incidents: Escalated for enhanced due diligence (EDD), which includes further investigation and possible customer engagement.\n- High-Risk Incidents: Escalated for senior management review and, where applicable, reporting to the National Crime Agency (NCA) via a Suspicious Activity Report (SAR).\n| Stage | Action | Outcome |\n| --- | --- | --- |\n| Initial Assessment | Review of flagged transaction or behaviour | Risk classification and decision to escalate or log |\n| Evidence Collection | Gathering additional data for a comprehensive view | Detailed understanding of the suspicious activity |\n| Final Action | Decision to approve, escalate, or report | Final resolution documented and logged in the SIS |",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.404Z"
+  },
+  {
+    "id": "mfs_financial_crime-suspicious_incidents_and_suspicious_activity_reporting_sar_framework-e",
+    "policy_key": "mfs_financial_crime",
+    "title": "Escalation and Reporting",
+    "body_md": "High-risk incidents that meet the criteria for suspicion of financial crime are escalated as follows:\n- Internal Escalation: High-risk incidents are reported to senior management within 48 hours for review and strategic input.\n- External Reporting: If the MLRO determines that the incident warrants external reporting, a SAR is submitted to the NCA immediately. The SAR includes:\n- Details of the suspicious activity.\n- Supporting evidence gathered during the investigation.\n- Steps taken by {{firm.name}} to mitigate further risks.\nThe escalation process ensures compliance with MLR 2017 and minimises risks to the business.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.404Z"
+  },
+  {
+    "id": "mfs_financial_crime-suspicious_incidents_and_suspicious_activity_reporting_sar_framework-m",
+    "policy_key": "mfs_financial_crime",
+    "title": "Monitoring and Continuous Improvement",
+    "body_md": "The SIS is subject to regular reviews and updates to enhance its effectiveness.\n- Incident Analysis: The MLRO conducts quarterly reviews of logged incidents to identify recurring patterns or areas of concern.\n- System Calibration: Automated monitoring rules are refined based on the outcomes of past incidents.\n- Employee Feedback: Insights from employees who logged incidents are used to improve training and system usability.\n- Audit and Governance: Senior management reviews SIS performance metrics, including the volume of logged incidents, escalation rates, and SAR submissions.\n| Metric | Purpose |\n| --- | --- |\n| Incident Volume | Measure the effectiveness of monitoring tools |\n| Escalation Rate | Assess the appropriateness of risk classification |\n| SAR Submission Rate | Evaluate the robustness of the escalation framework |",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.404Z"
+  },
+  {
+    "id": "mfs_financial_crime-suspicious_incidents_and_suspicious_activity_reporting_sar_framework-o",
+    "policy_key": "mfs_financial_crime",
+    "title": "Operational Process for SARs",
+    "body_md": "- Flagging Suspicious Activity\n- Suspicious activity is detected through:\n- Automated transaction monitoring systems\n- Manual reviews conducted by compliance analysts\n- Customer interactions that raise concerns, such as evasive behaviour or inconsistent explanations\n- Initial Investigation\n- The MLRO conducts an in-depth analysis of the flagged activity, including:\n- Reviewing the customer's risk profile and previous transaction history\n- Cross-referencing against internal and external watchlists, including sanctions lists and adverse media checks\n- Analysing transaction trends for patterns indicative of money laundering or financial crime\n- Enhanced Monitoring\n- While under review, the customer's transactions are subject to enhanced monitoring, including:\n- Daily review of all subsequent transactions\n- Analysis of the customer’s broader transactional behaviour to identify potential trends or repeated suspicious activity\n- Increased scrutiny on beneficiaries and counterparties associated with the flagged transactions\n- Decision to File a SAR\n- If the MLRO determines that the activity meets the threshold for suspicion under POCA, a SAR is prepared for submission to the NCA. This decision considers:\n- The level of suspicion and potential criminality involved\n- The customer's risk classification and previous activity\n- Whether the activity poses an immediate risk to the financial system or requires urgent intervention\n- SAR Submission\n- {{firm.name}} logs into the NCA’s SAR Online portal to submit the report securely.\n- The SAR includes detailed information about:\n- The customer and transaction(s) under review\n- The grounds for suspicion\n- Any supporting documentation or evidence collected during the investigation\n- Post-SAR Monitoring\n- Following the submission of a SAR, {{firm.name}} continues to monitor the customer's activity for any additional suspicious behaviour\n- Repeat incidents or unresolved concerns are escalated to the MLRO for further action, which may include filing additional SARs",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.404Z"
+  },
+  {
+    "id": "mfs_financial_crime-suspicious_incidents_and_suspicious_activity_reporting_sar_framework-e",
+    "policy_key": "mfs_financial_crime",
+    "title": "Enhanced Monitoring and Trend Analysis",
+    "body_md": "{{firm.name}} leverages its transaction monitoring framework to conduct enhanced monitoring of customers flagged for suspicious activity. Key activities include:\n- Pattern Identification: Analysing flagged transactions for recurring behaviours or links to high-risk jurisdictions.\n- Geographic Risk Assessment: Evaluating trends in transactions routed through high-risk corridors or involving politically exposed persons (PEPs).\n- Customer Behaviour Analysis: Monitoring deviations from established customer profiles, such as unusual transaction frequencies or unexplained changes in business operations.\n{{firm.name}} uses the insights gained from enhanced monitoring to:\n- Refine transaction monitoring thresholds and rules\n- Update risk profiles for customers, beneficiaries, and transaction patterns\n- Develop preventative measures to reduce exposure to financial crime risks",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.404Z"
+  },
+  {
+    "id": "mfs_financial_crime-suspicious_incidents_and_suspicious_activity_reporting_sar_framework-r",
+    "policy_key": "mfs_financial_crime",
+    "title": "Record-Keeping and Reporting",
+    "body_md": "{{firm.name}} ensures all SAR-related records are maintained securely for the minimum required period, as stipulated by regulatory requirements. This includes:\n- Copies of submitted SARs and acknowledgements from the NCA\n- Documentation of the investigation process, including the rationale for filing the SAR\n- Any subsequent actions taken, such as account restrictions or further compliance checks\nRegular reporting to senior management provides oversight of SAR trends, including:\n- The volume and nature of SARs filed\n- Key risk areas identified through SAR analysis\n- Effectiveness of monitoring and escalation processes",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.404Z"
+  },
+  {
+    "id": "mfs_financial_crime-suspicious_incidents_and_suspicious_activity_reporting_sar_framework-t",
+    "policy_key": "mfs_financial_crime",
+    "title": "Trend Reporting",
+    "body_md": "{{firm.name}} uses advanced analytics and data aggregation to identify and understand broader trends in suspicious activity. This approach enables proactive risk management and continuous improvement of monitoring systems.\nKey Components of Trend Reporting:\n- Transaction Volume and Frequency Analysis\n- Regularly analysing transaction data to identify increases in flagged transactions within specific customer segments, industries, or geographies\n- Monitoring high-risk corridors and jurisdictions to assess whether risks are increasing or diversifying\n- Pattern Detection Across SARs\n- Identifying recurring themes or behaviours in SARs submitted, such as:\n- Clusters of activity involving related counterparties\n- Repeated use of certain transaction types (e.g., splitting transactions to avoid thresholds)\n- Jurisdiction-Specific Risks\n- Reviewing trends in transaction flows to and from high-risk jurisdictions, including those flagged in the FATF grey or blacklist\n- Identifying emerging risks linked to regulatory updates or geopolitical events\n- Customer Risk Categorisation\n- Segmenting customers by risk levels (e.g., low, medium, high) to track how flagged activity corresponds to risk profiles\n- Assessing the effectiveness of risk categorisation criteria based on SAR outcomes\n- Reporting to Senior Management\n- Compiling quarterly trend reports for senior management and the Board, which include:\n- Volume of SARs filed and key triggers\n- Emerging risks and recommended mitigations\n- Analysis of whether current risk thresholds are appropriate or require adjustment\nExample Trend Reporting Metrics:\n| Metric | Data Source | Frequency of Review |\n| --- | --- | --- |\n| Number of SARs submitted | Internal SAR logs | Monthly |\n| Commonly flagged transaction types | Transaction monitoring data | Quarterly |\n| Emerging jurisdictional risks | FATF updates, SAR analysis | Quarterly |\n| Volume of escalated transactions | Escalation logs | Monthly |\n\nThese reports ensure senior management has visibility into key risk areas and can take informed decisions on refining compliance processes.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.404Z"
+  },
+  {
+    "id": "mfs_financial_crime-suspicious_incidents_and_suspicious_activity_reporting_sar_framework-e",
+    "policy_key": "mfs_financial_crime",
+    "title": "Escalation Procedures",
+    "body_md": "{{firm.name}} employs a structured and transparent escalation framework to ensure that all flagged activity receives appropriate attention and timely resolution. These procedures are future-proofed to provide clarity for new team members.\nEscalation Framework:\n- Initial Flagging\n- Transactions are flagged automatically by monitoring systems or manually by staff based on observed anomalies.\n- Flags are categorised by risk severity (low, medium, high) to determine the urgency of escalation.\n- Preliminary Review\n- The MLRO or a designated deputy conducts an initial review of flagged transactions to:\n- Confirm whether the activity aligns with known customer behaviour.\n- Verify supporting data and contextual information.\n- Determine whether immediate action is required.\n- Escalation to MLRO\n- High-risk or complex cases are escalated directly to the MLRO for further investigation. Escalation triggers include:\n- Transactions involving sanctioned jurisdictions or entities.\n- Suspicious patterns that may indicate layering or structuring.\n- Repeated issues with a specific customer or counterparty.\n- Multi-Layered Review Process\n- The MLRO conducts a structured analysis, considering:\n- Customer risk profile and transaction history.\n- Corresponding data from external sources (e.g., adverse media, sanctions lists).\n- The MLRO engages with internal subject matter experts, if necessary, to validate findings.\n- Decision-Making and SAR Filing\n- The MLRO determines whether a SAR should be filed. Criteria include:\n- Evidence of money laundering or financial crime.\n- The materiality of the transaction.\n- Whether the activity aligns with regulatory reporting thresholds.\n- If a SAR is warranted, it is submitted via the NCA’s SAR Online portal within prescribed timelines.\n- Post-Escalation Actions\n- Transactions and accounts flagged during the escalation process are subject to:\n- Enhanced monitoring for recurring or evolving risks.\n- Temporary holds or restrictions, if necessary, to mitigate immediate risks.\n- All decisions and actions are logged to maintain a comprehensive audit trail.\nExample Escalation Pathway:\n| Escalation Stage | Responsible Party | Key Actions |\n| --- | --- | --- |\n| Initial Flagging | Compliance Analyst | Review flagged activity, gather data |\n| Preliminary Review | MLRO Deputy | Verify context, assess severity |\n| High-Risk Escalation | MLRO | Investigate, liaise with stakeholders |\n| Decision and Filing | MLRO | Prepare and submit SAR to the NCA |\n| Post-Escalation Monitoring | Compliance Team | Implement enhanced oversight |",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.404Z"
+  },
+  {
+    "id": "mfs_financial_crime-suspicious_incidents_and_suspicious_activity_reporting_sar_framework-d",
+    "policy_key": "mfs_financial_crime",
+    "title": "Documentation and Future-Proofing",
+    "body_md": "- Standard Operating Procedures (SOPs):\n- Detailed SOPs ensure all team members, including new starters, can follow clear steps for escalating and handling suspicious activity\n- SOPs are reviewed annually and updated to reflect regulatory changes or lessons learned from prior escalations\n- Training and Awareness:\n- Regular training ensures staff are equipped to identify and escalate suspicious activity effectively\n- New starters undergo mandatory onboarding sessions that cover escalation procedures and trend analysis tools\n- Audit and Feedback:\n- Escalation logs and SAR submissions are reviewed periodically to ensure compliance and identify areas for improvement\n- Feedback from audits is incorporated into the escalation framework to maintain alignment with best practices",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.405Z"
+  },
+  {
+    "id": "mfs_financial_crime-ongoing_monitoring_and_enhanced_due_diligence_edd-ongoing_monitoring_a",
+    "policy_key": "mfs_financial_crime",
+    "title": "Ongoing Monitoring and Enhanced Due Diligence (EDD)",
+    "body_md": "{{firm.name}} employs a robust framework for ongoing monitoring and Enhanced Due Diligence (EDD) to identify, assess, and mitigate risks associated with financial crime. This process ensures that all transactions and customer relationships are continuously evaluated against regulatory standards and internal risk thresholds.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.405Z"
+  },
+  {
+    "id": "mfs_financial_crime-ongoing_monitoring_and_enhanced_due_diligence_edd-ongoing_monitoring_f",
+    "policy_key": "mfs_financial_crime",
+    "title": "Ongoing Monitoring Framework",
+    "body_md": "Ongoing monitoring is a critical component of {{firm.name}}'s AML programme, designed to provide continuous oversight of transactions and customer activity. By leveraging automated tools and manual reviews, {{firm.name}} ensures that anomalies or deviations from expected behaviour are promptly flagged and investigated.\nKey Components of Ongoing Monitoring:\n- Automated Monitoring Systems:\n- {{firm.name}} employs advanced transaction monitoring systems to screen all transactions in real-time. These systems utilise predefined rules and algorithms to detect suspicious activity, including:\n- Transactions exceeding defined thresholds.\n- High-frequency or high-value transfers.\n- Activity involving high-risk jurisdictions or counterparties.\n- Automated alerts are generated for transactions that deviate from expected patterns, triggering further investigation.\n- Behavioural Analysis:\n- Customer behaviour is continuously assessed against established profiles to identify:\n- Significant deviations from typical transaction patterns.\n- Changes in transaction volumes or frequencies.\n- New or unusual relationships with counterparties.\n- Behavioural trends are documented to provide context for future reviews and investigations.\n- Periodic Risk Reviews:\n- Customer risk ratings are reassessed periodically based on:\n- Updated customer information, including changes in ownership or business activity.\n- Analysis of transaction history and flagged activities.\n- External data sources, such as adverse media or sanctions lists.\n- Customers whose risk ratings increase are subject to enhanced scrutiny and monitoring.\n- Management Information (MI) Reporting:\n- Regular MI reports are produced to provide senior management with insights into:\n- Trends in flagged transactions and customer risk ratings.\n- Effectiveness of monitoring systems and escalation processes.\n- Emerging risks or vulnerabilities in specific corridors or sectors.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.405Z"
+  },
+  {
+    "id": "mfs_financial_crime-ongoing_monitoring_and_enhanced_due_diligence_edd-edd_triggers_and_pro",
+    "policy_key": "mfs_financial_crime",
+    "title": "EDD Triggers and Procedures",
+    "body_md": "EDD is applied when a customer, transaction, or relationship poses a higher risk of financial crime. This process involves obtaining additional information, conducting deeper investigations, and implementing stricter controls to mitigate risks.\nEDD Triggers:\n- High-risk jurisdictions identified in FATF grey or blacklists.\n- Customers flagged as Politically Exposed Persons (PEPs).\n- Unusual transaction patterns, such as structured deposits or frequent cash transactions.\n- Adverse media or sanctions-related alerts.\n- Discrepancies between declared and observed activities.\nEDD Procedures:\n- Additional Information Collection:\n- {{firm.name}} collects supplementary data to verify the customer's identity, source of funds, and business operations. This includes:\n- Detailed ownership structures.\n- Contracts or agreements related to the transaction.\n- Financial statements and tax records.\n- Enhanced Monitoring:\n- Transactions involving high-risk customers are subject to more frequent and detailed reviews.\n- Real-time monitoring tools are calibrated to apply stricter thresholds and trigger alerts for any deviations.\n- Senior Management Approval:\n- High-risk transactions or relationships require approval from senior management or the MLRO before processing.\n- The rationale for approvals is documented to ensure transparency and accountability.\n- Ongoing Review:\n- High-risk customers are reviewed at least quarterly to reassess risk levels and ensure compliance with regulatory requirements.\n- Periodic updates to customer profiles and risk assessments are mandatory.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.405Z"
+  },
+  {
+    "id": "mfs_financial_crime-ongoing_monitoring_and_enhanced_due_diligence_edd-operational_aspects_",
+    "policy_key": "mfs_financial_crime",
+    "title": "Operational Aspects of Monitoring and EDD",
+    "body_md": "To ensure consistency and clarity, {{firm.name}} has operationalised its monitoring and EDD procedures with clear roles and responsibilities:\n| Role | Responsibility |\n| --- | --- |\n| Compliance Analyst | Conduct initial reviews of flagged transactions and collect additional information |\n| MLRO | Oversee all EDD activities, approve high-risk transactions, and file SARs if necessary |\n| Senior Management | Provide strategic oversight and approve significant risk decisions |\n| Customer Support Team | Liaise with customers to gather required documentation and address queries |\n\nFuture-Proofing:\n- Detailed Standard Operating Procedures (SOPs) ensure new team members can effectively perform monitoring and EDD tasks.\n- Regular training sessions are conducted to familiarise staff with system updates, regulatory changes, and emerging risks.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.405Z"
+  },
+  {
+    "id": "mfs_financial_crime-ongoing_monitoring_and_enhanced_due_diligence_edd-periodic_risk_review",
+    "policy_key": "mfs_financial_crime",
+    "title": "Periodic Risk Reviews",
+    "body_md": "{{firm.name}} employs a structured approach to periodic reviews to ensure the ongoing accuracy and relevance of customer risk assessments. These reviews are tailored to the customer’s risk classification and operational profile.\n| Risk Level | Review Frequency | Scope of Review |\n| --- | --- | --- |\n| High Risk | Annual | Full review of the customer profile, including updated documentation, adverse media screening, and review of transaction trends |\n| Medium Risk | Every 3 Years | Update KYC documentation, re-assess risk factors, and conduct a detailed analysis of transactional patterns over the review period |\n| Low Risk | Every 5 Years | Refresh KYC documentation, verify business activities remain consistent with declared profile, and assess for any emerging risks |\n\nExamples of Key Triggers for Immediate Review\n- Change in Ownership: A change in beneficial ownership automatically triggers a re-assessment\n- Significant Transaction Deviation: Transactions outside expected patterns result in immediate EDD\n- Adverse Media or Sanctions: If the customer or associated entities appear in adverse media or sanctions lists, immediate review and escalation to the MLRO is required\nTrend and Behavioural Monitoring\nPeriodic reviews are complemented by continuous behavioural monitoring to identify emerging risks. {{firm.name}} employs both automated systems and manual analysis to detect and evaluate:\n- Changes in transaction patterns: For instance, a low-risk customer initiating high-value transactions over a short period may warrant re-classification\n- Shift in geographic corridors: Transactions moving from low-risk EU corridors to higher-risk jurisdictions trigger additional scrutiny\n- Customer interaction records: Frequency and tone of customer inquiries, disputes, or operational challenges are assessed for underlying risk signals\nEscalation and Documentation\nResults from periodic and triggered reviews are meticulously documented. Any findings requiring action are escalated as follows:\n- Initial Assessment: The compliance officer reviews flagged findings for accuracy and determines whether escalation is warranted\n- Internal Review Meeting: High-risk findings are presented to the MLRO, who determines the next steps, including whether to file a Suspicious Activity Report (SAR)\n- MLRO Action: SAR filing with the NCA (if applicable), enhanced monitoring, or customer offboarding\nFuture-Proofing Measures\n{{firm.name}} ensures new team members can seamlessly continue the review processes by implementing:\n- Detailed Review Logs: Comprehensive records of each customer’s review history, accessible via the compliance dashboard\n- Training Modules: All team members are trained in periodic review requirements, with a focus on identifying trends and behavioural red flags\n- Automation Tools: Risk review reminders are integrated into the compliance system, ensuring timely re-assessment of customer profiles",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.405Z"
+  },
+  {
+    "id": "mfs_financial_crime-training_and_competency_framework_for_aml_ctf_compliance-training_and_",
+    "policy_key": "mfs_financial_crime",
+    "title": "Training and Competency Framework for AML/CTF Compliance",
+    "body_md": "ObjectiveTo ensure all staff at {{firm.name}} are equipped with the knowledge and skills to identify, mitigate, and report financial crime risks in line with regulatory requirements and industry standards.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.405Z"
+  },
+  {
+    "id": "mfs_financial_crime-training_and_competency_framework_for_aml_ctf_compliance-training_prog",
+    "policy_key": "mfs_financial_crime",
+    "title": "Training Programmes",
+    "body_md": "1. Initial Onboarding TrainingEvery new employee undergoes mandatory AML/CTF training within their first week. This training is role-specific and provides:\n- An overview of AML/CTF regulations, including the Money Laundering Regulations 2017 (MLRs)\n- Company policies and procedures related to financial crime prevention\n- Instructions on identifying and escalating suspicious activity\n2. Annual Refresher TrainingTo keep employees updated on regulatory changes and evolving financial crime risks, annual refresher courses are required for all staff. These include:\n- Updates on relevant regulations (e.g., FATF guidelines, FCA expectations)\n- Emerging trends in financial crime, such as typologies of fraud and money laundering\n- Company-specific updates to policies, procedures, and risk appetite\n3. Role-Specific TrainingSpecialised training programmes tailored to the unique responsibilities of each role:\n- Customer-Facing Staff: Identification of red flags during onboarding and transactions, such as unusual documentation or payment patterns.\n- Operations Staff: Understanding transaction monitoring processes, using automated tools like SmartSearch, and escalating alerts.\n- Management and Compliance: Oversight responsibilities, reviewing flagged transactions, and submission of Suspicious Activity Reports (SARs)",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.405Z"
+  },
+  {
+    "id": "mfs_financial_crime-training_and_competency_framework_for_aml_ctf_compliance-competency_as",
+    "policy_key": "mfs_financial_crime",
+    "title": "Competency Assessments",
+    "body_md": "To ensure training effectiveness, staff must demonstrate their understanding through:\n- Post-Training Assessments: Short quizzes to assess knowledge retention after onboarding and refresher training.\n- Periodic Evaluations: Competency tests during annual reviews to identify knowledge gaps or the need for additional training.\n- Case Studies and Simulations: Practical exercises where staff respond to real-world scenarios, such as detecting unusual transaction patterns or completing an SAR.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.405Z"
+  },
+  {
+    "id": "mfs_financial_crime-training_and_competency_framework_for_aml_ctf_compliance-external_cert",
+    "policy_key": "mfs_financial_crime",
+    "title": "External Certifications and Professional Development",
+    "body_md": "To maintain high standards of expertise, {{firm.name}} encourages key compliance staff to pursue recognised certifications, such as:\n- International Compliance Association (ICA) qualifications.\n- Association of Certified Anti-Money Laundering Specialists (ACAMS) certifications. {{firm.name}} supports this by offering financial assistance and study leave.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.405Z"
+  },
+  {
+    "id": "mfs_financial_crime-training_and_competency_framework_for_aml_ctf_compliance-training_deli",
+    "policy_key": "mfs_financial_crime",
+    "title": "Training Delivery",
+    "body_md": "- E-Learning Modules: Interactive online courses for flexible, scalable training delivery.\n- In-Person Workshops: Facilitated by the MLRO or external experts for advanced topics or complex scenarios.\n- External Training Providers: Leveraging industry specialists for certifications or workshops on advanced AML/CTF topics.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.405Z"
+  },
+  {
+    "id": "mfs_financial_crime-training_and_competency_framework_for_aml_ctf_compliance-record_keepin",
+    "policy_key": "mfs_financial_crime",
+    "title": "Record-Keeping",
+    "body_md": "{{firm.name}} maintains detailed records of all training activities, including:\n- Dates of completed training sessions.\n- Assessment scores and certifications achieved.\n- Renewal dates for refresher training or certifications. These records are reviewed during internal audits to ensure compliance.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.405Z"
+  },
+  {
+    "id": "mfs_financial_crime-training_and_competency_framework_for_aml_ctf_compliance-future_proofi",
+    "policy_key": "mfs_financial_crime",
+    "title": "Future-Proofing the Training Programme",
+    "body_md": "- Regular Updates: Training content is updated annually to incorporate regulatory changes, new threats, and lessons learned from internal reviews.\n- Scalable Platform: E-learning modules are designed to accommodate company growth and new hires efficiently.\n- Feedback Mechanisms: Anonymous surveys collect employee feedback on training effectiveness, ensuring continuous improvement.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.405Z"
+  },
+  {
+    "id": "mfs_financial_crime-technology_and_system_enhancements_for_aml_ctf_compliance-technology_a",
+    "policy_key": "mfs_financial_crime",
+    "title": "Technology and System Enhancements for AML/CTF Compliance",
+    "body_md": "ObjectiveTo leverage technology to enhance {{firm.name}}'s ability to detect, monitor, and mitigate financial crime risks while ensuring compliance with regulatory requirements.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.405Z"
+  },
+  {
+    "id": "mfs_financial_crime-technology_and_system_enhancements_for_aml_ctf_compliance-overview_of_",
+    "policy_key": "mfs_financial_crime",
+    "title": "Overview of Key Technology Vendors",
+    "body_md": "{{firm.name}} relies on several key technology providers as material outsourcers to facilitate its operations. These vendors play critical roles in ensuring seamless service delivery, robust compliance mechanisms, and scalability for future growth.\n| Vendor | Function |\n| --- | --- |\n| Vercel | Front-end software user interface |\n| Supabase | Back-end database |\n| AWS (Amazon Web Services) | Cloud hosting |\n| SmartSearch | Ongoing name and transaction screening |\n| Onfido | KYC/KYB checks |\n| Thunes | PSP partner |\n\nAdditional details about the role and function of each vendor can be found in {{firm.name}}'s comprehensive outsourcing document. To ensure that all technology partnerships remain effective and efficient, {{firm.name}} conducts annual reviews of these contracts. This includes assessing both performance and value for money, with additional checks in place for onboarding new providers, requiring them to undergo stringent outsourcing evaluations.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.405Z"
+  },
+  {
+    "id": "mfs_financial_crime-technology_and_system_enhancements_for_aml_ctf_compliance-key_technolo",
+    "policy_key": "mfs_financial_crime",
+    "title": "Key Technology Features and Integration",
+    "body_md": "1. Automated Screening and Monitoring (SmartSearch)\n- Functionality: SmartSearch conducts real-time screening of customers and transactions against key watchlists (e.g., sanctions, PEPs, and adverse media databases).\n- Integration: Connected to {{firm.name}}'s customer onboarding and transaction systems, enabling automated alerts for potential risks.\n- Compliance Impact: Minimises manual intervention, reduces false positives, and ensures timely identification of risks.\n2. KYC/KYB Verification (Onfido)\n- Functionality: Onfido provides identity and business verification services, including document validation and biometric checks.\n- Integration: Integrated with the onboarding system to verify customer identities before account activation.\n- Compliance Impact: Ensures compliance with regulatory requirements for identity verification while enhancing user experience.\n3. Secure Data Management and Scalability (AWS, Supabase)\n- Functionality: AWS provides cloud hosting with high availability and security standards. Supabase serves as the back-end database for storing and managing operational and compliance data.\n- Integration: Both are integrated with front-end (Vercel) and compliance systems to ensure seamless data flow.\n- Compliance Impact: Ensures secure storage and access to sensitive information, adhering to data protection regulations such as GDPR.\n4. Cross-Border Payment Processing (Thunes)\n- Functionality: Thunes facilitates cross-border payments and ensures compliance with payment corridor regulations.\n- Integration: Transactions are routed through Thunes for disbursement to beneficiaries, with built-in compliance checks at the payment processing stage.\n- Compliance Impact: Enables adherence to Payment Services Regulations while providing customers with secure, efficient payment solutions.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.405Z"
+  },
+  {
+    "id": "mfs_financial_crime-technology_and_system_enhancements_for_aml_ctf_compliance-operational_",
+    "policy_key": "mfs_financial_crime",
+    "title": "Operational Oversight and Vendor Management",
+    "body_md": "{{firm.name}} ensures robust oversight of its outsourced technology providers by:\n- Regular Performance Reviews: Assessing vendor performance against agreed service levels, with a focus on uptime, data accuracy, and compliance effectiveness.\n- Audit Rights: Reserving the right to audit key vendors to ensure compliance with regulatory requirements and internal policies.\n- Data Flow and Security: Reviewing data flow maps to ensure data is securely transmitted, stored, and processed in line with GDPR and other data protection standards.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.405Z"
+  },
+  {
+    "id": "mfs_financial_crime-technology_and_system_enhancements_for_aml_ctf_compliance-future_proof",
+    "policy_key": "mfs_financial_crime",
+    "title": "Future-Proofing the Technology Framework",
+    "body_md": "{{firm.name}} has designed its technology infrastructure to adapt to evolving regulatory and operational needs:\n- Scalability: AWS and Supabase provide scalable solutions to accommodate growing transaction volumes and customer data.\n- Enhancements: Regular updates to SmartSearch and Onfido systems ensure {{firm.name}} stays aligned with changes in sanctions lists, regulatory requirements, and technological advancements.\n- Automation: Expanding automated workflows to reduce manual intervention, improve efficiency, and minimise human error in compliance processes.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.405Z"
+  },
+  {
+    "id": "mfs_financial_crime-audit_and_quality_assurance-audit_and_quality_assurance",
+    "policy_key": "mfs_financial_crime",
+    "title": "Audit and Quality Assurance",
+    "body_md": "{{firm.name}} employs a robust Three Lines of Defence model to ensure the effectiveness of its AML/CTF framework and compliance processes. This model is designed to adapt as the firm grows, with plans to incorporate external vendors for additional assurance as operational complexity increases.\n- First Line of Defence: Operational teams are responsible for executing day-to-day AML/CTF controls, including onboarding, transaction monitoring, and reporting. They ensure compliance with established policies and procedures.\n- Second Line of Defence: The Compliance function oversees the implementation of the AML/CTF framework, conducts regular monitoring, and ensures adherence to regulatory requirements. Monthly reports are presented to the governance committees to maintain transparency and accountability.\n- Third Line of Defence: Internal audits provide an independent review of AML/CTF practices. As the firm scales, external vendors will be engaged to enhance assurance activities, offering an objective evaluation of processes and identifying areas for improvement.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.405Z"
+  },
+  {
+    "id": "mfs_financial_crime-audit_and_quality_assurance-internal_audit_process",
+    "policy_key": "mfs_financial_crime",
+    "title": "Internal Audit Process",
+    "body_md": "- Planning and Scope Definition: Each audit begins with a detailed scoping exercise, defining the specific AML/CTF processes to be reviewed (e.g., onboarding, transaction monitoring, suspicious activity reporting). The scope is aligned with identified risk areas and past QA findings.\n- Execution: Audits are conducted using a mix of document review, process walkthroughs, and interviews with relevant personnel. This ensures a comprehensive understanding of control implementation.\n- Reporting: Findings are categorised by severity (e.g., low, medium, high risk) and include specific recommendations for remediation.\n- Action Plan Development: Action plans are developed in consultation with the operational and compliance teams, detailing responsibilities, timelines, and milestones for addressing identified gaps.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.405Z"
+  },
+  {
+    "id": "mfs_financial_crime-audit_and_quality_assurance-feedback_loop_for_audits",
+    "policy_key": "mfs_financial_crime",
+    "title": "Feedback Loop for Audits",
+    "body_md": "- Governance Oversight: Audit reports and action plans are submitted to governance committees for approval and monitoring.\n- Policy Updates: Findings from audits are used to refine existing policies and procedures, ensuring that they reflect both regulatory expectations and practical improvements.\n- Staff Training: Lessons learned from audits feed into training materials, ensuring that staff understand and address identified weaknesses.\nAs the business grows, {{firm.name}} plans to engage third-party auditors to enhance objectivity and incorporate industry best practices into its AML/CTF framework. These external audits will focus on high-risk areas and provide independent assurance of the firm’s compliance readiness.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.405Z"
+  },
+  {
+    "id": "mfs_financial_crime-audit_and_quality_assurance-quality_assurance_framework",
+    "policy_key": "mfs_financial_crime",
+    "title": "Quality Assurance Framework",
+    "body_md": "{{firm.name}} has established a Quality Assurance (QA) framework to ensure the ongoing effectiveness of its AML/CTF processes. This framework focuses on evaluating customer onboarding, rejected applications, and ongoing customer relationships to identify gaps and training needs.\nSelection Criteria QA reviews are conducted on a representative sample of customers, including:\n- Successfully onboarded customers\n- Rejected applications\n- Active customers undergoing ongoing monitoring\nTrend Analysis and Continuous Monitoring The QA process incorporates trend analysis to identify systemic issues or emerging risks:\n- Data Aggregation: Transaction patterns, flagged alerts, and rejection reasons are aggregated and analysed.\n- Proactive Adjustments: Identified trends inform adjustments to monitoring thresholds, training programs, and resource allocation.\nOperational Escalation and Remediation\n- Escalation Channels: Issues identified during QA reviews are escalated through a structured process, with timelines for resolution and designated escalation paths (e.g., Compliance team, MLRO, governance committees)\n- Remediation Tracking: A centralised system tracks remediation efforts, ensuring accountability and timely resolution of identified gaps\n- Feedback into Policies: QA findings are immediately fed back into policy revisions and monitoring criteria to close identified gaps\nMonitoring and Reporting\n- Monthly Governance Reviews: Governance committees review QA findings and ensure alignment with strategic goals\n- Quarterly Updates: Summaries of QA and audit outcomes are shared with senior leadership to maintain focus on high-risk areas\n- Annual MLRO Report: Consolidates findings from QA and audit processes, providing a comprehensive view of the firm’s AML/CTF compliance status and improvement efforts\nTechnology Integration\n- Real-Time Dashboards: {{firm.name}} uses real-time dashboards to visualise QA findings and compliance metrics, allowing for immediate action where needed\n- Workflow Automation: Automated tools track QA outcomes and link findings to training and policy updates, ensuring a seamless feedback loop\nContinuous Improvement The QA framework is designed to foster a culture of continuous improvement. By systematically identifying weaknesses and addressing them through targeted training and process enhancements, {{firm.name}} ensures that its AML/CTF framework remains effective and resilient.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.405Z"
+  },
+  {
+    "id": "mfs_financial_crime-regulatory_reporting_framework-reporting_governance_and_oversight",
+    "policy_key": "mfs_financial_crime",
+    "title": "Reporting Governance and Oversight",
+    "body_md": "{{firm.name}} maintains a comprehensive framework for meeting its regulatory reporting obligations, recognising the critical importance of timely and accurate submissions in demonstrating effective oversight of financial crime risks. The MLRO serves as the designated point of contact for all regulatory matters, ensuring consistent communication and maintaining clear audit trails of all regulatory interactions.\nThe reporting framework operates across multiple regulatory touchpoints, encompassing both routine submissions and event-driven notifications. This structured approach ensures {{firm.name}} maintains effective dialogue with supervisory authorities whilst meeting its regulatory obligations through clear communication protocols and robust operational processes.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.405Z"
+  },
+  {
+    "id": "mfs_financial_crime-regulatory_reporting_framework-suspicious_activity_reporting",
+    "policy_key": "mfs_financial_crime",
+    "title": "Suspicious Activity Reporting",
+    "body_md": "The submission of Suspicious Activity Reports (SARs) forms a cornerstone of {{firm.name}}'s regulatory reporting framework. The MLRO maintains direct oversight of the SAR process, ensuring submissions meet both content requirements and timing obligations whilst maintaining comprehensive supporting evidence.\nSAR preparation follows structured methodology ensuring completeness and accuracy:\nInitial Assessment:\nThe MLRO conducts thorough evaluation of suspicious activity, considering:\n- Transaction patterns and deviations\n- Customer risk profile and history\n- Connected party relationships\n- Supporting documentation\n- Previous SAR submissions\nReport Preparation:\nSAR content receives particular attention, with the MLRO ensuring comprehensive inclusion of:\n- Detailed transaction analysis\n- Customer background information\n- Connected party details\n- Supporting evidence references\n- Clear suspicion rationale\nThe MLRO maintains specific templates ensuring consistent approach to SAR drafting, whilst adapting content to reflect case-specific details. All SARs undergo thorough review before submission through the NCA's SAR Online portal, with specific focus on accuracy and completeness of information.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.405Z"
+  },
+  {
+    "id": "mfs_financial_crime-regulatory_reporting_framework-annual_mlro_report_structure",
+    "policy_key": "mfs_financial_crime",
+    "title": "Annual MLRO Report Structure",
+    "body_md": "The Annual MLRO Report provides a comprehensive assessment of {{firm.name}}'s financial crime framework effectiveness. Report preparation follows an established timeline ensuring adequate data collection, analysis and senior management review, commencing three months before year-end.\nStructure View\n- Executive Summary: effectiveness of framework, resources, systems, risks and strategic recommendations.\n- Operational Analysis: SARs, alerts, high-risk transactions, training and staff competency.\n- Risk Framework Review: risk assessment, controls, systems, resources and training.\n- Statistical Analysis: customer risk, transaction monitoring, SARs, training and quality assurance.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.406Z"
+  },
+  {
+    "id": "mfs_financial_crime-regulatory_reporting_framework-regulatory_notification_framework",
+    "policy_key": "mfs_financial_crime",
+    "title": "Regulatory Notification Framework",
+    "body_md": "{{firm.name}} maintains specific procedures for notifications required under FCA Principle 11, ensuring open and cooperative dialogue with regulators. The MLRO oversees structured assessment of notifiable events, ensuring appropriate escalation and timely communication.\nNotification Assessment:\nUpon identifying potential notifiable events, the MLRO conducts structured evaluation considering:\n- Material control failures\n- Significant financial crime incidents\n- Compliance breaches\n- Operational disruptions\n- System failures\nThe assessment considers multiple factors including:\n- Actual and potential impact\n- Customer implications\n- Control framework effects\n- Remediation requirements\n- Resource implications\nNotification Process:\nWhere notification is warranted, the MLRO prepares comprehensive submission including:\n- Detailed incident description\n- Impact assessment\n- Immediate mitigating actions\n- Remediation planning\n- Resource allocation\n{{firm.name}} acknowledges its awareness of its reporting obligations, including REP-CRIM.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.406Z"
+  },
+  {
+    "id": "mfs_financial_crime-regulatory_reporting_framework-communication_protocols_and_documentati",
+    "policy_key": "mfs_financial_crime",
+    "title": "Communication Protocols and Documentation",
+    "body_md": "The MLRO maintains robust protocols for all regulatory communications, ensuring consistency and maintaining clear audit trails. All regulatory interactions follow structured documentation requirements:\nRegulatory Communication Logs:\n- All regulatory contact details (correspondence, meetings, calls, requests, submissions)\nPre-Submission Review:\n- All regulatory submissions are reviewed for accuracy, evidence, and quality, with senior management and legal approval where needed.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.406Z"
+  },
+  {
+    "id": "mfs_financial_crime-regulatory_reporting_framework-operational_workflow_management",
+    "policy_key": "mfs_financial_crime",
+    "title": "Operational Workflow Management",
+    "body_md": "The MLRO maintains clear operational workflows for managing regulatory reporting obligations, ensuring consistent processes across all reporting types:\nIdentification: Monitoring, audits, escalations, alerts, reports\nPreparation: Data gathering, analysis, evidence, quality checks, review\nSubmission: Secure transmission, confirmation, records, tracking, queries",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.406Z"
+  },
+  {
+    "id": "mfs_financial_crime-regulatory_reporting_framework-quality_assurance_framework",
+    "policy_key": "mfs_financial_crime",
+    "title": "Quality Assurance Framework",
+    "body_md": "Robust quality assurance processes apply to all regulatory submissions ensuring accuracy and completeness. This encompasses structured review and challenge process before any regulatory communication:\nData Quality: Specific validation procedures include source data verification, calculation methodology review, trend analysis, variance investigation, and cross-reference checks.\nReview Process: Multiple review layers ensuring accuracy, including initial preparation, technical check, senior management review, final MLRO approval, and post-submission verification.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.406Z"
+  },
+  {
+    "id": "mfs_financial_crime-regulatory_reporting_framework-continuous_improvement",
+    "policy_key": "mfs_financial_crime",
+    "title": "Continuous Improvement",
+    "body_md": "The MLRO maintains systematic approach to framework enhancement:\nFeedback Integration: Regular review of regulatory feedback to assess query analysis, submission effectiveness, process improvements, training requirements, and system enhancements.\nTrend Analysis: Regular assessment of reporting patterns to evaluate SAR trends and typologies, notification themes, query patterns, system effectiveness, and resource adequacy.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.406Z"
+  },
+  {
+    "id": "mfs_financial_crime-change_management-governance_and_oversight",
+    "policy_key": "mfs_financial_crime",
+    "title": "Governance and Oversight",
+    "body_md": "{{firm.name}} maintains a structured approach to managing changes within its financial crime framework, recognising that effective change management underpins the firm's ability to maintain robust controls whilst adapting to evolving risks and regulatory requirements. The MLRO holds primary responsibility for change management, ensuring appropriate assessment, implementation and monitoring of all material modifications to policies, procedures and controls.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.406Z"
+  },
+  {
+    "id": "mfs_financial_crime-change_management-change_identification_and_assessment",
+    "policy_key": "mfs_financial_crime",
+    "title": "Change Identification and Assessment",
+    "body_md": "Changes to the financial crime framework arise through various channels, with the MLRO maintaining oversight of both internal and external drivers. Regulatory developments, including updates to legislation, FCA guidance or industry standards, receive particular attention through systematic monitoring of regulatory communications and industry updates. Internal drivers, such as audit findings, incident reviews or operational feedback, undergo structured assessment to determine necessary framework adjustments.\nThe MLRO conducts thorough impact analysis for proposed changes, considering implications for existing controls, resource requirements and operational processes. This analysis extends beyond immediate procedural impacts to consider broader effects on risk assessment methodology, monitoring parameters and staff training requirements. Where changes affect technological solutions, the assessment includes detailed review of system modifications and testing requirements.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.406Z"
+  },
+  {
+    "id": "mfs_financial_crime-change_management-implementation_framework",
+    "policy_key": "mfs_financial_crime",
+    "title": "Implementation Framework",
+    "body_md": "Implementation follows structured methodology ensuring controlled deployment of changes. The MLRO prepares detailed implementation plans capturing specific actions, responsibilities and timelines. These plans incorporate necessary updates to documentation, including policies, procedures and workflow guidance, whilst ensuring appropriate version control and audit trail maintenance.\nTraining requirements receive particular attention, with the MLRO ensuring staff understanding through targeted briefings and competency assessment. Where changes affect operational processes, detailed workflow guidance supports consistent implementation across affected areas. System changes undergo rigorous testing before deployment, with specific focus on maintaining control effectiveness throughout the transition.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.406Z"
+  },
+  {
+    "id": "mfs_financial_crime-change_management-post_implementation_review",
+    "policy_key": "mfs_financial_crime",
+    "title": "Post-Implementation Review",
+    "body_md": "Following implementation, the MLRO conducts structured review assessing effectiveness and identifying any necessary refinements. This review considers both technical accuracy and practical operational impact, gathering feedback from affected staff whilst monitoring key performance indicators. Where reviews identify enhancement opportunities, these feed into the change management cycle ensuring continuous framework improvement.\nDocumentation of changes maintains a clear audit trail from initial identification through to post-implementation review. The MLRO ensures comprehensive record-keeping covering assessment documentation, implementation plans, testing evidence and effectiveness reviews. This documentation supports both internal governance requirements and regulatory oversight, demonstrating robust change management methodology.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.406Z"
+  },
+  {
+    "id": "mfs_financial_crime-change_management-training_and_communication",
+    "policy_key": "mfs_financial_crime",
+    "title": "Training and Communication",
+    "body_md": "Change communication follows established protocols ensuring appropriate awareness across affected areas. The MLRO oversees development of training materials and briefing documents, ensuring clear articulation of changes and their practical implications. Where changes affect multiple areas, coordinated communication ensures consistent understanding and implementation.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.406Z"
+  },
+  {
+    "id": "mfs_financial_crime-change_management-quality_assurance",
+    "policy_key": "mfs_financial_crime",
+    "title": "Quality Assurance",
+    "body_md": "Quality assurance processes apply throughout the change management cycle, with specific focus on maintaining control effectiveness during transitions. The MLRO oversees testing procedures ensuring changes meet both technical requirements and operational needs. Post-implementation monitoring tracks effectiveness through established metrics, enabling early identification of any required adjustments.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.406Z"
+  },
+  {
+    "id": "mfs_financial_crime-additional_insights_and_strategic_considerations-regulatory_adaptabili",
+    "policy_key": "mfs_financial_crime",
+    "title": "Regulatory Adaptability",
+    "body_md": "{{firm.name}} maintains a vigilant approach to monitoring regulatory developments to ensure its framework remains aligned with domestic and international requirements. This includes regular horizon scanning of updates from the Financial Conduct Authority (FCA), Financial Action Task Force (FATF), and other relevant authorities. These updates are considered across various parts of the AML/CTF framework, particularly in the Customer Risk Assessment (CRA), transaction monitoring protocols, and the Suspicious Activity Reporting (SAR) process. By incorporating these changes promptly and efficiently, {{firm.name}} not only upholds its commitment to compliance but also fosters a proactive risk management culture.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.406Z"
+  },
+  {
+    "id": "mfs_financial_crime-additional_insights_and_strategic_considerations-vendor_oversight_and_",
+    "policy_key": "mfs_financial_crime",
+    "title": "Vendor Oversight and Assurance",
+    "body_md": "As {{firm.name}} leverages advanced technological tools provided by external vendors, the firm has embedded a robust oversight mechanism to evaluate vendor performance and compliance with contractual obligations. Regular assessments are conducted to ensure that these providers meet operational and regulatory expectations, particularly regarding data security, system integrity, and adherence to AML/CTF requirements. This process is seamlessly integrated into the Vendor Management SOP and supports broader risk management objectives outlined in the governance framework. Future reviews will incorporate lessons learned and evolving industry standards to enhance this critical aspect of the firm’s compliance infrastructure.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.406Z"
+  },
+  {
+    "id": "mfs_financial_crime-additional_insights_and_strategic_considerations-incident_management_a",
+    "policy_key": "mfs_financial_crime",
+    "title": "Incident Management and Remediation",
+    "body_md": "The ability to respond to financial crime incidents is a cornerstone of {{firm.name}}’s resilience. The firm has established clear protocols for logging, assessing, and resolving issues related to control failures, operational disruptions, or suspicious activities. These procedures, articulated in the Incident Response SOP, are closely aligned with the escalation pathways and governance processes outlined in the core AML programme. Post-incident reviews play a vital role in driving continuous improvement by identifying root causes, implementing corrective actions, and ensuring that lessons learned are integrated into future controls. This demonstrates the firm’s capacity to manage emerging threats effectively and maintain its commitment to regulatory excellence.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.406Z"
+  },
+  {
+    "id": "mfs_financial_crime-additional_insights_and_strategic_considerations-embedding_a_complianc",
+    "policy_key": "mfs_financial_crime",
+    "title": "Embedding a Compliance Culture",
+    "body_md": "{{firm.name}} recognises that an effective AML/CTF programme depends on a culture of compliance embedded across all levels of the organisation. Through ongoing training, transparent communication, and leadership engagement, the firm ensures that financial crime compliance is treated as a shared responsibility. Employees are encouraged to actively identify risks, escalate concerns, and contribute to the firm’s governance objectives. The training programme outlined earlier in this document supports these efforts by equipping employees with the necessary knowledge and tools to uphold the firm’s standards. This culture of vigilance ensures that compliance is not confined to policies but integrated into daily operations.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.406Z"
+  },
+  {
+    "id": "mfs_financial_crime-additional_insights_and_strategic_considerations-future_growth_and_sca",
+    "policy_key": "mfs_financial_crime",
+    "title": "Future Growth and Scalability",
+    "body_md": "While {{firm.name}} currently operates with a streamlined structure, its AML/CTF framework is designed to accommodate future growth. The firm’s systems, processes, and governance structures have been developed with scalability in mind, ensuring that additional staff, increased transaction volumes, or new service lines can be seamlessly integrated without compromising compliance standards. This forward-looking approach, referenced throughout the document, ensures that the firm can remain agile and responsive to both business growth and the evolving regulatory landscape. Strategic investments in technology and expertise underscore this commitment to scalability and readiness.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.406Z"
+  },
+  {
+    "id": "mfs_financial_crime-additional_insights_and_strategic_considerations-key_risk_indicators_f",
+    "policy_key": "mfs_financial_crime",
+    "title": "Key Risk Indicators for Proactive Management",
+    "body_md": "To enhance oversight, {{firm.name}} employs a range of Key Risk Indicators (KRIs) that monitor the effectiveness of its AML controls. Metrics such as the volume and nature of flagged transactions, SAR submission trends, and resolution times for escalated issues are regularly analysed and reported to senior management. These indicators are woven into the firm’s governance processes, providing actionable insights that support data-driven decision-making. By continuously reviewing and updating these KRIs, {{firm.name}} ensures that its risk management remains robust and dynamic, capable of addressing both current and emerging threats.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.406Z"
+  },
+  {
+    "id": "mfs_financial_crime-additional_insights_and_strategic_considerations-continuous_benchmarki",
+    "policy_key": "mfs_financial_crime",
+    "title": "Continuous Benchmarking and Peer Reviews",
+    "body_md": "In pursuit of operational excellence, {{firm.name}} periodically benchmarks its AML/CTF programme against industry best practices and conducts peer reviews to identify opportunities for improvement. These activities are aligned with the audit and quality assurance frameworks, ensuring that findings are used to refine processes, enhance controls, and improve training outcomes. By comparing its practices with those of leading institutions, {{firm.name}} demonstrates a commitment to maintaining a forward-thinking and adaptable compliance framework. This not only ensures regulatory alignment but also positions the firm as an industry leader in financial crime prevention.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.406Z"
+  }
+]

@@ -40,9 +40,11 @@ const stageOrder: Stage[] = ["hook", "content", "practice", "summary"];
 interface AMLTrainingRendererProps {
   onComplete?: (score: number, timeSpent: number) => void;
   onProgress?: (progress: number) => void;
+  deepLink?: { stage?: string; section?: string };
+  onDeepLinkChange?: (deepLink: { stage?: string; section?: string }) => void;
 }
 
-export function AMLTrainingRenderer({ onComplete, onProgress }: AMLTrainingRendererProps) {
+export function AMLTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLinkChange }: AMLTrainingRendererProps) {
   const [currentStage, setCurrentStage] = useState<Stage>("hook");
   const [currentContentSection, setCurrentContentSection] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
@@ -70,6 +72,34 @@ export function AMLTrainingRenderer({ onComplete, onProgress }: AMLTrainingRende
 
     onProgress?.(Math.round(Math.min(progressValue, 100)));
   }, [currentStage, currentContentSection, onProgress]);
+
+  useEffect(() => {
+    if (!deepLink?.stage) return;
+    if (!stageOrder.includes(deepLink.stage as Stage)) return;
+    if (deepLink.stage === currentStage) return;
+    setCurrentStage(deepLink.stage as Stage);
+    setCurrentContentSection(0);
+  }, [currentStage, deepLink?.stage]);
+
+  useEffect(() => {
+    if (currentStage !== "content") return;
+    const section = deepLink?.section;
+    if (!section) return;
+    const parsed = Number(section);
+    if (!Number.isFinite(parsed)) return;
+    const nextIndex = Math.max(0, Math.min(parsed, 3));
+    if (nextIndex === currentContentSection) return;
+    setCurrentContentSection(nextIndex);
+  }, [currentContentSection, currentStage, deepLink?.section]);
+
+  useEffect(() => {
+    if (!onDeepLinkChange) return;
+    if (currentStage !== "content") {
+      onDeepLinkChange({ stage: currentStage });
+      return;
+    }
+    onDeepLinkChange({ stage: currentStage, section: String(currentContentSection) });
+  }, [currentContentSection, currentStage, onDeepLinkChange]);
 
   const calculatePracticeScore = () => {
     const totalQuestions = 2;

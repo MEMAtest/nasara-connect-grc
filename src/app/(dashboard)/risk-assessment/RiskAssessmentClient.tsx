@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -12,6 +13,7 @@ import { KRIManager } from "./components/KRIManager";
 import { RiskReporting } from "./components/RiskReporting";
 import { RiskControlCoverage } from "./components/RiskControlCoverage";
 import { RiskDetails } from "./components/RiskDetails";
+import { LinkedPoliciesPanel } from "@/components/policies/LinkedPoliciesPanel";
 import { useRiskData } from "./hooks/useRiskData";
 import { useRiskCalculations } from "./hooks/useRiskCalculations";
 import {
@@ -49,6 +51,9 @@ function toFormValues(risk: RiskRecord): RiskFormValues {
 }
 
 export function RiskAssessmentClient() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const {
     risks,
     filteredRisks,
@@ -106,8 +111,25 @@ export function RiskAssessmentClient() {
   const handleViewRisk = (risk: RiskRecord) => {
     setSelectedRisk(risk);
     setContext({ path: "/risk-assessment", cmpId: risk.id });
+    const nextParams = new URLSearchParams(searchParams?.toString());
+    nextParams.set("riskId", risk.id);
+    router.replace(`${pathname}?${nextParams.toString()}`);
     setIsDetailsOpen(true);
   };
+
+  useEffect(() => {
+    const riskIdParam = searchParams?.get("riskId");
+    if (!riskIdParam) return;
+
+    const match = risks.find((risk) => risk.id === riskIdParam || risk.riskId === riskIdParam);
+    if (!match) return;
+
+    if (isDetailsOpen && selectedRisk?.id === match.id) return;
+
+    setSelectedRisk(match);
+    setContext({ path: "/risk-assessment", cmpId: match.id });
+    setIsDetailsOpen(true);
+  }, [isDetailsOpen, risks, searchParams, selectedRisk?.id, setContext]);
 
   const handleEditRisk = (risk: RiskRecord) => {
     setEditingRisk(risk);
@@ -259,6 +281,10 @@ export function RiskAssessmentClient() {
           setIsDetailsOpen(open);
           if (!open) {
             setSelectedRisk(null);
+            const nextParams = new URLSearchParams(searchParams?.toString());
+            nextParams.delete("riskId");
+            const suffix = nextParams.toString();
+            router.replace(suffix ? `${pathname}?${suffix}` : pathname);
           }
         }}
       >
@@ -266,6 +292,11 @@ export function RiskAssessmentClient() {
           <RiskDetails risk={selectedRisk} onClose={() => setIsDetailsOpen(false)}>
             {selectedRisk ? (
               <div className="space-y-6">
+                <LinkedPoliciesPanel
+                  title="Linked policies"
+                  helperText="Policies mapped to this risk (to track policy coverage against the risk register)."
+                  endpoint={`/api/organizations/${ORGANIZATION_ID}/risks/${encodeURIComponent(selectedRisk.id)}/links`}
+                />
                 <RiskControlCoverage riskId={selectedRisk.riskId} />
                 <KRIManager
                   riskId={selectedRisk.id}

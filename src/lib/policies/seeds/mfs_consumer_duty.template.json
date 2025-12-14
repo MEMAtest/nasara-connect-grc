@@ -1,0 +1,153 @@
+{
+  "code": "CONSUMER_DUTY",
+  "name": "Consumer Duty Procedure",
+  "category": "Customer",
+  "description": "Operational procedure for implementing and evidencing FCA Consumer Duty (PRIN 2A), including foreseeable harms, outcomes testing, and MI.",
+  "sections": [
+    {
+      "id": "general",
+      "title": "General",
+      "summary": "Consumer Duty Procedure | Governance | | --- | --- | | Version | V1.1 | | Approved by | Risk & Compliance Committee |…",
+      "suggestedClauses": [
+        "mfs_consumer_duty-general-mema_financial_services"
+      ]
+    },
+    {
+      "id": "introduction",
+      "title": "Introduction",
+      "summary": "The Consumer Duty Procedure outlines the processes and principles that guide {{firm.name}} (“{{firm.name}}”) in meeti…",
+      "suggestedClauses": [
+        "mfs_consumer_duty-introduction-introduction"
+      ]
+    },
+    {
+      "id": "purpose",
+      "title": "Purpose",
+      "summary": "The purpose of this document is to set out the procedures and controls {{firm.name}} will implement to ensure complia…",
+      "suggestedClauses": [
+        "mfs_consumer_duty-purpose-purpose"
+      ]
+    },
+    {
+      "id": "scope",
+      "title": "Scope",
+      "summary": "The scope of this Consumer Duty Procedure document covers all products and services provided by {{firm.name}} that fa…",
+      "suggestedClauses": [
+        "mfs_consumer_duty-scope-scope"
+      ]
+    },
+    {
+      "id": "application_of_the_consumer_duty_to_mfs",
+      "title": "Application of the Consumer Duty to MFS",
+      "summary": "{{firm.name}} has carried out an assessment of the Consumer Duty to determine how the Duty applies to {{firm.name}} a…",
+      "suggestedClauses": [
+        "mfs_consumer_duty-application_of_the_consumer_duty_to_mfs-application_of_the_consumer_duty"
+      ]
+    },
+    {
+      "id": "application_of_the_consumer_duty_to_mfs_business_model",
+      "title": "Application of the Consumer Duty to MFS Business Model",
+      "summary": "{{firm.name}} is an FCA regulated firm and provides money remittance products to customers. Our money remittance serv…",
+      "suggestedClauses": [
+        "mfs_consumer_duty-application_of_the_consumer_duty_to_mfs_business_model-application_of_th",
+        "mfs_consumer_duty-application_of_the_consumer_duty_to_mfs_business_model-scope_of_the_duty",
+        "mfs_consumer_duty-application_of_the_consumer_duty_to_mfs_business_model-ancillary_service"
+      ]
+    },
+    {
+      "id": "mfs_s_role_under_the_consumer_duty",
+      "title": "MFS’s role under the Consumer Duty",
+      "summary": "{{firm.name}} has determined its role under the Consumer Duty framework as primarily a Distributor of financial servi…",
+      "suggestedClauses": [
+        "mfs_consumer_duty-mfs_s_role_under_the_consumer_duty-mfs_s_role_under_the_consumer_duty",
+        "mfs_consumer_duty-mfs_s_role_under_the_consumer_duty-distributor_role",
+        "mfs_consumer_duty-mfs_s_role_under_the_consumer_duty-mfs_acts_as_a_distributor_for_the_maj",
+        "mfs_consumer_duty-mfs_s_role_under_the_consumer_duty-distribution_chains",
+        "mfs_consumer_duty-mfs_s_role_under_the_consumer_duty-money_remittance_services"
+      ]
+    },
+    {
+      "id": "assessment_of_foreseeable_harms",
+      "title": "Assessment of Foreseeable Harms",
+      "summary": "In line with the FCA's Consumer Duty expectations, MEMA has taken steps to identify and mitigate foreseeable harms th…",
+      "suggestedClauses": [
+        "mfs_consumer_duty-assessment_of_foreseeable_harms-assessment_of_foreseeable_harms",
+        "mfs_consumer_duty-assessment_of_foreseeable_harms-foreseeable_harms_assessment"
+      ]
+    },
+    {
+      "id": "assessment_of_good_customer_outcomes",
+      "title": "Assessment of Good Customer Outcomes",
+      "summary": "The FCA also expects firms to clearly define what constitutes a \"good outcome\" for customers. Understanding good outc…",
+      "suggestedClauses": [
+        "mfs_consumer_duty-assessment_of_good_customer_outcomes-assessment_of_good_customer_outcome"
+      ]
+    },
+    {
+      "id": "good_customer_outcomes_assessment",
+      "title": "Good Customer Outcomes Assessment",
+      "summary": "The assessment considered the following key factors: Money Remittance Services Good Outcomes Identified: - Accuracy a…",
+      "suggestedClauses": [
+        "mfs_consumer_duty-good_customer_outcomes_assessment-good_customer_outcomes_assessment"
+      ]
+    },
+    {
+      "id": "vulnerable_customer_risk_assessment",
+      "title": "Vulnerable Customer Risk Assessment",
+      "summary": "Firms are required to place particular emphasis on the fair treatment of vulnerable customers, ensuring that their un…",
+      "suggestedClauses": [
+        "mfs_consumer_duty-vulnerable_customer_risk_assessment-vulnerable_customer_risk_assessment",
+        "mfs_consumer_duty-vulnerable_customer_risk_assessment-vulnerable_customer_assessment",
+        "mfs_consumer_duty-vulnerable_customer_risk_assessment-clear_and_accessible_communication",
+        "mfs_consumer_duty-vulnerable_customer_risk_assessment-enhanced_suitability_checks",
+        "mfs_consumer_duty-vulnerable_customer_risk_assessment-secure_and_user_friendly_platforms",
+        "mfs_consumer_duty-vulnerable_customer_risk_assessment-tailored_customer_support",
+        "mfs_consumer_duty-vulnerable_customer_risk_assessment-regular_monitoring_and_feedback"
+      ]
+    },
+    {
+      "id": "application_of_the_four_customer_outcomes_and_cross_cutting_rules",
+      "title": "Application of the Four Customer Outcomes and Cross Cutting Rules",
+      "summary": "{{firm.name}} has considered all the aspects of its regulated activities and products and services which are in scope…",
+      "suggestedClauses": [
+        "mfs_consumer_duty-application_of_the_four_customer_outcomes_and_cross_cutting_rules-applic"
+      ]
+    },
+    {
+      "id": "management_information",
+      "title": "Management Information",
+      "summary": "The following table provides a list of management information aligned to the Duty which will be used to assess {{firm…",
+      "suggestedClauses": [
+        "mfs_consumer_duty-management_information-management_information"
+      ]
+    }
+  ],
+  "mandatoryClauses": [
+    "mfs_consumer_duty-general-mema_financial_services",
+    "mfs_consumer_duty-introduction-introduction",
+    "mfs_consumer_duty-purpose-purpose",
+    "mfs_consumer_duty-scope-scope",
+    "mfs_consumer_duty-application_of_the_consumer_duty_to_mfs-application_of_the_consumer_duty",
+    "mfs_consumer_duty-application_of_the_consumer_duty_to_mfs_business_model-application_of_th",
+    "mfs_consumer_duty-application_of_the_consumer_duty_to_mfs_business_model-scope_of_the_duty",
+    "mfs_consumer_duty-application_of_the_consumer_duty_to_mfs_business_model-ancillary_service",
+    "mfs_consumer_duty-mfs_s_role_under_the_consumer_duty-mfs_s_role_under_the_consumer_duty",
+    "mfs_consumer_duty-mfs_s_role_under_the_consumer_duty-distributor_role",
+    "mfs_consumer_duty-mfs_s_role_under_the_consumer_duty-mfs_acts_as_a_distributor_for_the_maj",
+    "mfs_consumer_duty-mfs_s_role_under_the_consumer_duty-distribution_chains",
+    "mfs_consumer_duty-mfs_s_role_under_the_consumer_duty-money_remittance_services",
+    "mfs_consumer_duty-assessment_of_foreseeable_harms-assessment_of_foreseeable_harms",
+    "mfs_consumer_duty-assessment_of_foreseeable_harms-foreseeable_harms_assessment",
+    "mfs_consumer_duty-assessment_of_good_customer_outcomes-assessment_of_good_customer_outcome",
+    "mfs_consumer_duty-good_customer_outcomes_assessment-good_customer_outcomes_assessment",
+    "mfs_consumer_duty-vulnerable_customer_risk_assessment-vulnerable_customer_risk_assessment",
+    "mfs_consumer_duty-vulnerable_customer_risk_assessment-vulnerable_customer_assessment",
+    "mfs_consumer_duty-vulnerable_customer_risk_assessment-clear_and_accessible_communication",
+    "mfs_consumer_duty-vulnerable_customer_risk_assessment-enhanced_suitability_checks",
+    "mfs_consumer_duty-vulnerable_customer_risk_assessment-secure_and_user_friendly_platforms",
+    "mfs_consumer_duty-vulnerable_customer_risk_assessment-tailored_customer_support",
+    "mfs_consumer_duty-vulnerable_customer_risk_assessment-regular_monitoring_and_feedback",
+    "mfs_consumer_duty-application_of_the_four_customer_outcomes_and_cross_cutting_rules-applic",
+    "mfs_consumer_duty-management_information-management_information"
+  ]
+}

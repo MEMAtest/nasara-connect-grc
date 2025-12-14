@@ -34,6 +34,8 @@ const statusTone: Record<TrainingPlanItemStatus, string> = {
   completed: "bg-emerald-50 text-emerald-700 border-emerald-200",
 };
 
+const UNASSIGNED_OWNER_VALUE = "__unassigned__";
+
 type TrainingPlanTaskProps = {
   draft: TrainingPlanDraft;
   people: PersonRecord[];
@@ -310,14 +312,14 @@ export function TrainingPlanTask({ draft, people, roles, onUpdateDraft }: Traini
                       <Select
                         value={item.ownerId ?? ""}
                         onValueChange={(value) =>
-                          handleUpdateItem(item.id, { ownerId: value || undefined })
+                          handleUpdateItem(item.id, { ownerId: value === UNASSIGNED_OWNER_VALUE ? undefined : value })
                         }
                       >
                         <SelectTrigger className="mt-1">
-                          <SelectValue placeholder="Assign owner" />
+                          <SelectValue placeholder="Unassigned" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Unassigned</SelectItem>
+                          <SelectItem value={UNASSIGNED_OWNER_VALUE}>Unassigned</SelectItem>
                           {people.map((person) => (
                             <SelectItem key={person.id} value={person.id}>
                               {person.name}

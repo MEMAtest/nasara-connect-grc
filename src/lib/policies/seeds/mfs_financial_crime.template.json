@@ -1,0 +1,361 @@
+{
+  "code": "AML_CTF",
+  "name": "Financial Crime Policy & Minimum Standards",
+  "category": "FinCrime",
+  "description": "Firm-wide financial crime policy and minimum standards (AML/CTF, sanctions, reporting, monitoring).",
+  "sections": [
+    {
+      "id": "general",
+      "title": "General",
+      "summary": "{{firm.name}} Financial Crime Policy & Minimum Standards | Policy Owner | Money Laundering Reporting Officer (MLRO) |…",
+      "suggestedClauses": [
+        "mfs_financial_crime-general-general"
+      ]
+    },
+    {
+      "id": "mfs_risk_appetite_statement",
+      "title": "MFS Risk Appetite Statement",
+      "summary": "OverviewMema Financial Services (“{{firm.name}}”) risk appetite reflects its strategic focus on providing secure, com…",
+      "suggestedClauses": [
+        "mfs_financial_crime-mfs_risk_appetite_statement-mfs_risk_appetite_statement"
+      ]
+    },
+    {
+      "id": "aml_overview",
+      "title": "AML Overview",
+      "summary": "Effective governance and senior management oversight are essential to {{firm.name}}’s ability to meet its financial c…",
+      "suggestedClauses": [
+        "mfs_financial_crime-aml_overview-introduction",
+        "mfs_financial_crime-aml_overview-senior_management_accountability",
+        "mfs_financial_crime-aml_overview-committees_membership_and_decision_making_scope",
+        "mfs_financial_crime-aml_overview-governance_processes",
+        "mfs_financial_crime-aml_overview-future_proofing_governance",
+        "mfs_financial_crime-aml_overview-logging_and_resolving_financial_crime_issues",
+        "mfs_financial_crime-aml_overview-management_information_and_record_keeping",
+        "mfs_financial_crime-aml_overview-continuous_improvement_and_future_proofing",
+        "mfs_financial_crime-aml_overview-decision_making_and_oversight_in_practice",
+        "mfs_financial_crime-aml_overview-operational_oversight_of_policies",
+        "mfs_financial_crime-aml_overview-management_information_mi_as_a_governance_tool",
+        "mfs_financial_crime-aml_overview-building_a_future_proof_operational_structure",
+        "mfs_financial_crime-aml_overview-issue_logging_and_follow_up"
+      ]
+    },
+    {
+      "id": "transaction_monitoring_framework",
+      "title": "Transaction Monitoring Framework",
+      "summary": "{{firm.name}} operates a comprehensive, multi-layered transaction monitoring framework designed to mitigate risks ass…",
+      "suggestedClauses": [
+        "mfs_financial_crime-transaction_monitoring_framework-transaction_monitoring_framework",
+        "mfs_financial_crime-transaction_monitoring_framework-objectives_of_the_framework",
+        "mfs_financial_crime-transaction_monitoring_framework-lifecycle_of_transaction_monitoring",
+        "mfs_financial_crime-transaction_monitoring_framework-real_time_monitoring",
+        "mfs_financial_crime-transaction_monitoring_framework-post_transaction_analysis",
+        "mfs_financial_crime-transaction_monitoring_framework-escalation_and_reporting",
+        "mfs_financial_crime-transaction_monitoring_framework-risk_based_monitoring",
+        "mfs_financial_crime-transaction_monitoring_framework-alert_handling_and_continuous_monitor",
+        "mfs_financial_crime-transaction_monitoring_framework-technological_integration",
+        "mfs_financial_crime-transaction_monitoring_framework-quality_assurance_and_training",
+        "mfs_financial_crime-transaction_monitoring_framework-reporting_and_oversight"
+      ]
+    },
+    {
+      "id": "know_your_customer_kyc_and_know_your_business_kyb",
+      "title": "Know Your Customer (KYC) and Know Your Business (KYB)",
+      "summary": "{{firm.name}} employs a comprehensive Know Your Customer/ Business (KYC/ KYB) process to ensure compliance with the M…",
+      "suggestedClauses": [
+        "mfs_financial_crime-know_your_customer_kyc_and_know_your_business_kyb-kyc_process_and_requ",
+        "mfs_financial_crime-know_your_customer_kyc_and_know_your_business_kyb-kyb_process_and_requ"
+      ]
+    },
+    {
+      "id": "risk_appetite_and_alignment_with_business_wide_risk_assessment",
+      "title": "Risk Appetite and Alignment with Business-Wide Risk Assessment",
+      "summary": "The risk appetite at {{firm.name}} is a living document, reviewed quarterly to ensure alignment with the dynamic risk…",
+      "suggestedClauses": [
+        "mfs_financial_crime-risk_appetite_and_alignment_with_business_wide_risk_assessment-risk_ap",
+        "mfs_financial_crime-risk_appetite_and_alignment_with_business_wide_risk_assessment-current",
+        "mfs_financial_crime-risk_appetite_and_alignment_with_business_wide_risk_assessment-cra_int"
+      ]
+    },
+    {
+      "id": "sanctions_screening_and_escalation_procedures",
+      "title": "Sanctions Screening and Escalation Procedures",
+      "summary": "Sanctions screening is a critical component of {{firm.name}}'s compliance programme, ensuring that transactions, cust…",
+      "suggestedClauses": [
+        "mfs_financial_crime-sanctions_screening_and_escalation_procedures-sanctions_screening_and_",
+        "mfs_financial_crime-sanctions_screening_and_escalation_procedures-screening_process",
+        "mfs_financial_crime-sanctions_screening_and_escalation_procedures-handling_a_sanctions_hit",
+        "mfs_financial_crime-sanctions_screening_and_escalation_procedures-ongoing_monitoring_and_e",
+        "mfs_financial_crime-sanctions_screening_and_escalation_procedures-control_measures",
+        "mfs_financial_crime-sanctions_screening_and_escalation_procedures-feedback_loop_and_contin",
+        "mfs_financial_crime-sanctions_screening_and_escalation_procedures-governance_and_oversight"
+      ]
+    },
+    {
+      "id": "customer_offboarding",
+      "title": "Customer Offboarding",
+      "summary": "{{firm.name}} maintains a comprehensive framework for managing customer exits, recognising that effective offboarding…",
+      "suggestedClauses": [
+        "mfs_financial_crime-customer_offboarding-customer_offboarding",
+        "mfs_financial_crime-customer_offboarding-exit_triggers_and_assessment",
+        "mfs_financial_crime-customer_offboarding-exit_implementation_process",
+        "mfs_financial_crime-customer_offboarding-customer_communication_strategy",
+        "mfs_financial_crime-customer_offboarding-account_closure_and_fund_management",
+        "mfs_financial_crime-customer_offboarding-post_exit_controls"
+      ]
+    },
+    {
+      "id": "business_wide_risk_assessment",
+      "title": "Business-Wide Risk Assessment",
+      "summary": "This section outlines {{firm.name}}'s assessment of potential money laundering and terrorist financing risks across i…",
+      "suggestedClauses": [
+        "mfs_financial_crime-business_wide_risk_assessment-purpose_and_scope",
+        "mfs_financial_crime-business_wide_risk_assessment-risk_assessment_methodology",
+        "mfs_financial_crime-business_wide_risk_assessment-customer_risk_factors",
+        "mfs_financial_crime-business_wide_risk_assessment-geographic_risk_factors",
+        "mfs_financial_crime-business_wide_risk_assessment-products_and_services_risk_factors",
+        "mfs_financial_crime-business_wide_risk_assessment-transaction_risk_factors",
+        "mfs_financial_crime-business_wide_risk_assessment-delivery_channel_risk_factors",
+        "mfs_financial_crime-business_wide_risk_assessment-control_framework_design"
+      ]
+    },
+    {
+      "id": "customer_risk_assessment_cra",
+      "title": "Customer Risk Assessment (CRA)",
+      "summary": "The Customer Risk Assessment (CRA) is central to {{firm.name}}’s Anti-Money Laundering (AML) and Counter-Terrorist Fi…",
+      "suggestedClauses": [
+        "mfs_financial_crime-customer_risk_assessment_cra-customer_risk_assessment_cra",
+        "mfs_financial_crime-customer_risk_assessment_cra-country_risk",
+        "mfs_financial_crime-customer_risk_assessment_cra-client_risk",
+        "mfs_financial_crime-customer_risk_assessment_cra-transaction_service_risk",
+        "mfs_financial_crime-customer_risk_assessment_cra-risk_scoring_and_aggregation",
+        "mfs_financial_crime-customer_risk_assessment_cra-operational_workflow_for_cra"
+      ]
+    },
+    {
+      "id": "suspicious_incidents_and_suspicious_activity_reporting_sar_framework",
+      "title": "Suspicious Incidents and Suspicious Activity Reporting (SAR) Framework",
+      "summary": "{{firm.name}} is dedicated to the prevention of financial crime. The Suspicious Activity Reporting (SAR) framework al…",
+      "suggestedClauses": [
+        "mfs_financial_crime-suspicious_incidents_and_suspicious_activity_reporting_sar_framework-s",
+        "mfs_financial_crime-suspicious_incidents_and_suspicious_activity_reporting_sar_framework-k",
+        "mfs_financial_crime-suspicious_incidents_and_suspicious_activity_reporting_sar_framework-i",
+        "mfs_financial_crime-suspicious_incidents_and_suspicious_activity_reporting_sar_framework-l",
+        "mfs_financial_crime-suspicious_incidents_and_suspicious_activity_reporting_sar_framework-i",
+        "mfs_financial_crime-suspicious_incidents_and_suspicious_activity_reporting_sar_framework-e",
+        "mfs_financial_crime-suspicious_incidents_and_suspicious_activity_reporting_sar_framework-m",
+        "mfs_financial_crime-suspicious_incidents_and_suspicious_activity_reporting_sar_framework-o",
+        "mfs_financial_crime-suspicious_incidents_and_suspicious_activity_reporting_sar_framework-e",
+        "mfs_financial_crime-suspicious_incidents_and_suspicious_activity_reporting_sar_framework-r",
+        "mfs_financial_crime-suspicious_incidents_and_suspicious_activity_reporting_sar_framework-t",
+        "mfs_financial_crime-suspicious_incidents_and_suspicious_activity_reporting_sar_framework-e",
+        "mfs_financial_crime-suspicious_incidents_and_suspicious_activity_reporting_sar_framework-d"
+      ]
+    },
+    {
+      "id": "ongoing_monitoring_and_enhanced_due_diligence_edd",
+      "title": "Ongoing Monitoring and Enhanced Due Diligence (EDD)",
+      "summary": "{{firm.name}} employs a robust framework for ongoing monitoring and Enhanced Due Diligence (EDD) to identify, assess,…",
+      "suggestedClauses": [
+        "mfs_financial_crime-ongoing_monitoring_and_enhanced_due_diligence_edd-ongoing_monitoring_a",
+        "mfs_financial_crime-ongoing_monitoring_and_enhanced_due_diligence_edd-ongoing_monitoring_f",
+        "mfs_financial_crime-ongoing_monitoring_and_enhanced_due_diligence_edd-edd_triggers_and_pro",
+        "mfs_financial_crime-ongoing_monitoring_and_enhanced_due_diligence_edd-operational_aspects_",
+        "mfs_financial_crime-ongoing_monitoring_and_enhanced_due_diligence_edd-enhanced_due_diligen",
+        "mfs_financial_crime-ongoing_monitoring_and_enhanced_due_diligence_edd-periodic_risk_review"
+      ]
+    },
+    {
+      "id": "training_and_competency_framework_for_aml_ctf_compliance",
+      "title": "Training and Competency Framework for AML/CTF Compliance",
+      "summary": "ObjectiveTo ensure all staff at {{firm.name}} are equipped with the knowledge and skills to identify, mitigate, and r…",
+      "suggestedClauses": [
+        "mfs_financial_crime-training_and_competency_framework_for_aml_ctf_compliance-training_and_",
+        "mfs_financial_crime-training_and_competency_framework_for_aml_ctf_compliance-training_prog",
+        "mfs_financial_crime-training_and_competency_framework_for_aml_ctf_compliance-competency_as",
+        "mfs_financial_crime-training_and_competency_framework_for_aml_ctf_compliance-external_cert",
+        "mfs_financial_crime-training_and_competency_framework_for_aml_ctf_compliance-training_deli",
+        "mfs_financial_crime-training_and_competency_framework_for_aml_ctf_compliance-record_keepin",
+        "mfs_financial_crime-training_and_competency_framework_for_aml_ctf_compliance-future_proofi"
+      ]
+    },
+    {
+      "id": "technology_and_system_enhancements_for_aml_ctf_compliance",
+      "title": "Technology and System Enhancements for AML/CTF Compliance",
+      "summary": "ObjectiveTo leverage technology to enhance {{firm.name}}'s ability to detect, monitor, and mitigate financial crime r…",
+      "suggestedClauses": [
+        "mfs_financial_crime-technology_and_system_enhancements_for_aml_ctf_compliance-technology_a",
+        "mfs_financial_crime-technology_and_system_enhancements_for_aml_ctf_compliance-overview_of_",
+        "mfs_financial_crime-technology_and_system_enhancements_for_aml_ctf_compliance-key_technolo",
+        "mfs_financial_crime-technology_and_system_enhancements_for_aml_ctf_compliance-operational_",
+        "mfs_financial_crime-technology_and_system_enhancements_for_aml_ctf_compliance-future_proof"
+      ]
+    },
+    {
+      "id": "audit_and_quality_assurance",
+      "title": "Audit and Quality Assurance",
+      "summary": "{{firm.name}} employs a robust Three Lines of Defence model to ensure the effectiveness of its AML/CTF framework and …",
+      "suggestedClauses": [
+        "mfs_financial_crime-audit_and_quality_assurance-audit_and_quality_assurance",
+        "mfs_financial_crime-audit_and_quality_assurance-internal_audit_process",
+        "mfs_financial_crime-audit_and_quality_assurance-feedback_loop_for_audits",
+        "mfs_financial_crime-audit_and_quality_assurance-quality_assurance_framework"
+      ]
+    },
+    {
+      "id": "regulatory_reporting_framework",
+      "title": "Regulatory Reporting Framework",
+      "summary": "{{firm.name}} maintains a comprehensive framework for meeting its regulatory reporting obligations, recognising the c…",
+      "suggestedClauses": [
+        "mfs_financial_crime-regulatory_reporting_framework-reporting_governance_and_oversight",
+        "mfs_financial_crime-regulatory_reporting_framework-suspicious_activity_reporting",
+        "mfs_financial_crime-regulatory_reporting_framework-annual_mlro_report_structure",
+        "mfs_financial_crime-regulatory_reporting_framework-regulatory_notification_framework",
+        "mfs_financial_crime-regulatory_reporting_framework-communication_protocols_and_documentati",
+        "mfs_financial_crime-regulatory_reporting_framework-operational_workflow_management",
+        "mfs_financial_crime-regulatory_reporting_framework-quality_assurance_framework",
+        "mfs_financial_crime-regulatory_reporting_framework-continuous_improvement"
+      ]
+    },
+    {
+      "id": "change_management",
+      "title": "Change Management",
+      "summary": "{{firm.name}} maintains a structured approach to managing changes within its financial crime framework, recognising t…",
+      "suggestedClauses": [
+        "mfs_financial_crime-change_management-governance_and_oversight",
+        "mfs_financial_crime-change_management-change_identification_and_assessment",
+        "mfs_financial_crime-change_management-implementation_framework",
+        "mfs_financial_crime-change_management-post_implementation_review",
+        "mfs_financial_crime-change_management-training_and_communication",
+        "mfs_financial_crime-change_management-quality_assurance"
+      ]
+    },
+    {
+      "id": "additional_insights_and_strategic_considerations",
+      "title": "Additional Insights and Strategic Considerations",
+      "summary": "{{firm.name}} maintains a vigilant approach to monitoring regulatory developments to ensure its framework remains ali…",
+      "suggestedClauses": [
+        "mfs_financial_crime-additional_insights_and_strategic_considerations-regulatory_adaptabili",
+        "mfs_financial_crime-additional_insights_and_strategic_considerations-vendor_oversight_and_",
+        "mfs_financial_crime-additional_insights_and_strategic_considerations-incident_management_a",
+        "mfs_financial_crime-additional_insights_and_strategic_considerations-embedding_a_complianc",
+        "mfs_financial_crime-additional_insights_and_strategic_considerations-future_growth_and_sca",
+        "mfs_financial_crime-additional_insights_and_strategic_considerations-key_risk_indicators_f",
+        "mfs_financial_crime-additional_insights_and_strategic_considerations-continuous_benchmarki"
+      ]
+    }
+  ],
+  "mandatoryClauses": [
+    "mfs_financial_crime-general-general",
+    "mfs_financial_crime-mfs_risk_appetite_statement-mfs_risk_appetite_statement",
+    "mfs_financial_crime-aml_overview-introduction",
+    "mfs_financial_crime-aml_overview-senior_management_accountability",
+    "mfs_financial_crime-aml_overview-committees_membership_and_decision_making_scope",
+    "mfs_financial_crime-aml_overview-governance_processes",
+    "mfs_financial_crime-aml_overview-future_proofing_governance",
+    "mfs_financial_crime-aml_overview-logging_and_resolving_financial_crime_issues",
+    "mfs_financial_crime-aml_overview-management_information_and_record_keeping",
+    "mfs_financial_crime-aml_overview-continuous_improvement_and_future_proofing",
+    "mfs_financial_crime-aml_overview-decision_making_and_oversight_in_practice",
+    "mfs_financial_crime-aml_overview-operational_oversight_of_policies",
+    "mfs_financial_crime-aml_overview-management_information_mi_as_a_governance_tool",
+    "mfs_financial_crime-aml_overview-building_a_future_proof_operational_structure",
+    "mfs_financial_crime-aml_overview-issue_logging_and_follow_up",
+    "mfs_financial_crime-transaction_monitoring_framework-transaction_monitoring_framework",
+    "mfs_financial_crime-transaction_monitoring_framework-objectives_of_the_framework",
+    "mfs_financial_crime-transaction_monitoring_framework-lifecycle_of_transaction_monitoring",
+    "mfs_financial_crime-transaction_monitoring_framework-real_time_monitoring",
+    "mfs_financial_crime-transaction_monitoring_framework-post_transaction_analysis",
+    "mfs_financial_crime-transaction_monitoring_framework-escalation_and_reporting",
+    "mfs_financial_crime-transaction_monitoring_framework-risk_based_monitoring",
+    "mfs_financial_crime-transaction_monitoring_framework-alert_handling_and_continuous_monitor",
+    "mfs_financial_crime-transaction_monitoring_framework-technological_integration",
+    "mfs_financial_crime-transaction_monitoring_framework-quality_assurance_and_training",
+    "mfs_financial_crime-transaction_monitoring_framework-reporting_and_oversight",
+    "mfs_financial_crime-know_your_customer_kyc_and_know_your_business_kyb-kyc_process_and_requ",
+    "mfs_financial_crime-know_your_customer_kyc_and_know_your_business_kyb-kyb_process_and_requ",
+    "mfs_financial_crime-risk_appetite_and_alignment_with_business_wide_risk_assessment-risk_ap",
+    "mfs_financial_crime-risk_appetite_and_alignment_with_business_wide_risk_assessment-current",
+    "mfs_financial_crime-risk_appetite_and_alignment_with_business_wide_risk_assessment-cra_int",
+    "mfs_financial_crime-sanctions_screening_and_escalation_procedures-sanctions_screening_and_",
+    "mfs_financial_crime-sanctions_screening_and_escalation_procedures-screening_process",
+    "mfs_financial_crime-sanctions_screening_and_escalation_procedures-handling_a_sanctions_hit",
+    "mfs_financial_crime-sanctions_screening_and_escalation_procedures-ongoing_monitoring_and_e",
+    "mfs_financial_crime-sanctions_screening_and_escalation_procedures-control_measures",
+    "mfs_financial_crime-sanctions_screening_and_escalation_procedures-feedback_loop_and_contin",
+    "mfs_financial_crime-sanctions_screening_and_escalation_procedures-governance_and_oversight",
+    "mfs_financial_crime-customer_offboarding-customer_offboarding",
+    "mfs_financial_crime-customer_offboarding-exit_triggers_and_assessment",
+    "mfs_financial_crime-customer_offboarding-exit_implementation_process",
+    "mfs_financial_crime-customer_offboarding-customer_communication_strategy",
+    "mfs_financial_crime-customer_offboarding-account_closure_and_fund_management",
+    "mfs_financial_crime-customer_offboarding-post_exit_controls",
+    "mfs_financial_crime-business_wide_risk_assessment-purpose_and_scope",
+    "mfs_financial_crime-business_wide_risk_assessment-risk_assessment_methodology",
+    "mfs_financial_crime-business_wide_risk_assessment-customer_risk_factors",
+    "mfs_financial_crime-business_wide_risk_assessment-geographic_risk_factors",
+    "mfs_financial_crime-business_wide_risk_assessment-products_and_services_risk_factors",
+    "mfs_financial_crime-business_wide_risk_assessment-transaction_risk_factors",
+    "mfs_financial_crime-business_wide_risk_assessment-delivery_channel_risk_factors",
+    "mfs_financial_crime-business_wide_risk_assessment-control_framework_design",
+    "mfs_financial_crime-customer_risk_assessment_cra-customer_risk_assessment_cra",
+    "mfs_financial_crime-customer_risk_assessment_cra-country_risk",
+    "mfs_financial_crime-customer_risk_assessment_cra-client_risk",
+    "mfs_financial_crime-customer_risk_assessment_cra-transaction_service_risk",
+    "mfs_financial_crime-customer_risk_assessment_cra-risk_scoring_and_aggregation",
+    "mfs_financial_crime-customer_risk_assessment_cra-operational_workflow_for_cra",
+    "mfs_financial_crime-suspicious_incidents_and_suspicious_activity_reporting_sar_framework-s",
+    "mfs_financial_crime-suspicious_incidents_and_suspicious_activity_reporting_sar_framework-k",
+    "mfs_financial_crime-suspicious_incidents_and_suspicious_activity_reporting_sar_framework-i",
+    "mfs_financial_crime-suspicious_incidents_and_suspicious_activity_reporting_sar_framework-l",
+    "mfs_financial_crime-suspicious_incidents_and_suspicious_activity_reporting_sar_framework-e",
+    "mfs_financial_crime-suspicious_incidents_and_suspicious_activity_reporting_sar_framework-m",
+    "mfs_financial_crime-suspicious_incidents_and_suspicious_activity_reporting_sar_framework-o",
+    "mfs_financial_crime-suspicious_incidents_and_suspicious_activity_reporting_sar_framework-r",
+    "mfs_financial_crime-suspicious_incidents_and_suspicious_activity_reporting_sar_framework-t",
+    "mfs_financial_crime-suspicious_incidents_and_suspicious_activity_reporting_sar_framework-d",
+    "mfs_financial_crime-ongoing_monitoring_and_enhanced_due_diligence_edd-ongoing_monitoring_a",
+    "mfs_financial_crime-ongoing_monitoring_and_enhanced_due_diligence_edd-ongoing_monitoring_f",
+    "mfs_financial_crime-ongoing_monitoring_and_enhanced_due_diligence_edd-edd_triggers_and_pro",
+    "mfs_financial_crime-ongoing_monitoring_and_enhanced_due_diligence_edd-operational_aspects_",
+    "mfs_financial_crime-ongoing_monitoring_and_enhanced_due_diligence_edd-enhanced_due_diligen",
+    "mfs_financial_crime-ongoing_monitoring_and_enhanced_due_diligence_edd-periodic_risk_review",
+    "mfs_financial_crime-training_and_competency_framework_for_aml_ctf_compliance-training_and_",
+    "mfs_financial_crime-training_and_competency_framework_for_aml_ctf_compliance-training_prog",
+    "mfs_financial_crime-training_and_competency_framework_for_aml_ctf_compliance-competency_as",
+    "mfs_financial_crime-training_and_competency_framework_for_aml_ctf_compliance-external_cert",
+    "mfs_financial_crime-training_and_competency_framework_for_aml_ctf_compliance-training_deli",
+    "mfs_financial_crime-training_and_competency_framework_for_aml_ctf_compliance-record_keepin",
+    "mfs_financial_crime-training_and_competency_framework_for_aml_ctf_compliance-future_proofi",
+    "mfs_financial_crime-technology_and_system_enhancements_for_aml_ctf_compliance-technology_a",
+    "mfs_financial_crime-technology_and_system_enhancements_for_aml_ctf_compliance-overview_of_",
+    "mfs_financial_crime-technology_and_system_enhancements_for_aml_ctf_compliance-key_technolo",
+    "mfs_financial_crime-technology_and_system_enhancements_for_aml_ctf_compliance-operational_",
+    "mfs_financial_crime-technology_and_system_enhancements_for_aml_ctf_compliance-future_proof",
+    "mfs_financial_crime-audit_and_quality_assurance-audit_and_quality_assurance",
+    "mfs_financial_crime-audit_and_quality_assurance-internal_audit_process",
+    "mfs_financial_crime-audit_and_quality_assurance-feedback_loop_for_audits",
+    "mfs_financial_crime-audit_and_quality_assurance-quality_assurance_framework",
+    "mfs_financial_crime-regulatory_reporting_framework-reporting_governance_and_oversight",
+    "mfs_financial_crime-regulatory_reporting_framework-suspicious_activity_reporting",
+    "mfs_financial_crime-regulatory_reporting_framework-annual_mlro_report_structure",
+    "mfs_financial_crime-regulatory_reporting_framework-regulatory_notification_framework",
+    "mfs_financial_crime-regulatory_reporting_framework-communication_protocols_and_documentati",
+    "mfs_financial_crime-regulatory_reporting_framework-operational_workflow_management",
+    "mfs_financial_crime-regulatory_reporting_framework-quality_assurance_framework",
+    "mfs_financial_crime-regulatory_reporting_framework-continuous_improvement",
+    "mfs_financial_crime-change_management-governance_and_oversight",
+    "mfs_financial_crime-change_management-change_identification_and_assessment",
+    "mfs_financial_crime-change_management-implementation_framework",
+    "mfs_financial_crime-change_management-post_implementation_review",
+    "mfs_financial_crime-change_management-training_and_communication",
+    "mfs_financial_crime-change_management-quality_assurance",
+    "mfs_financial_crime-additional_insights_and_strategic_considerations-regulatory_adaptabili",
+    "mfs_financial_crime-additional_insights_and_strategic_considerations-vendor_oversight_and_",
+    "mfs_financial_crime-additional_insights_and_strategic_considerations-incident_management_a",
+    "mfs_financial_crime-additional_insights_and_strategic_considerations-embedding_a_complianc",
+    "mfs_financial_crime-additional_insights_and_strategic_considerations-future_growth_and_sca",
+    "mfs_financial_crime-additional_insights_and_strategic_considerations-key_risk_indicators_f",
+    "mfs_financial_crime-additional_insights_and_strategic_considerations-continuous_benchmarki"
+  ]
+}

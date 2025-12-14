@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import type { WizardStepProps } from "./types";
 import { getRequiredPolicies } from "@/lib/policies";
-import { POLICY_TEMPLATES, getTemplateByCode } from "@/lib/policies/templates";
+import { POLICY_TEMPLATES, getApplicableClauses, getTemplateByCode } from "@/lib/policies/templates";
 
 export function StepTemplateSelect({ state, updateState, onNext, onBack }: WizardStepProps) {
   const [searchTerm, setSearchTerm] = useState("");
@@ -30,9 +30,23 @@ export function StepTemplateSelect({ state, updateState, onNext, onBack }: Wizar
   const handleSelect = (code: string) => {
     const template = getTemplateByCode(code);
     if (template) {
+      const initialSectionClauses: Record<string, string[]> = {};
+      template.sections.forEach((section) => {
+        initialSectionClauses[section.id] = [...section.suggestedClauses];
+      });
+      const applicableClauses = getApplicableClauses(template.code, state.permissions);
+      const clauseIds = Array.from(new Set(Object.values(initialSectionClauses).flatMap((ids) => ids)));
+      const selectedClauses = clauseIds
+        .map((id) => applicableClauses.find((clause) => clause.id === id))
+        .filter((clause): clause is NonNullable<typeof clause> => Boolean(clause));
+
       updateState((current) => ({
         ...current,
         selectedTemplate: template,
+        sectionClauses: initialSectionClauses,
+        sectionNotes: {},
+        clauseVariables: {},
+        selectedClauses,
       }));
     }
   };

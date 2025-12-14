@@ -1,0 +1,2149 @@
+[
+  {
+    "id": "mfs_complaints-general-general",
+    "policy_key": "mfs_complaints",
+    "title": "General",
+    "body_md": "Complaints – General Principles3\nComplaint Handling Rules5\nComplaints Rules9\nComplaints Handling Process for Payment Services (PSRs)9\nFactors Considered in Complaint Resolution10\nPreventing Escalation to FOS10\nCooperation with the FOS10\nComplaints Resolved Within Three Business Days11\nScope and Applicability11\nProcess for Handling Complaints Within Three Business Days11\nMonitoring and Reporting for Three-Day Resolutions13\nExceptions and Escalations13\nComplaints Time Limit Rules14\nHandling Complaints From Vulnerable Customers15\nSpeed And Quality Of Response16\nComplaints Forwarding Rules17\nDealing With A Forwarded Complaint19\nJoint Responsibility For Complaints20\nComplaints Time Barring Rule21\nRoot Cause Analysis23\nComplaints Record Rule24\nComplaints Reporting Rules24\nManagement Information and Reporting27\nA Closed Complaint29\nNotification Of Contact Point For Complainants30\nComplaints Referred To The Fos31\nTraining And Competence In Complaints Handling33\nQuality Assurance in Complaints Handling35\nContinuous Improvement In Complaints Handling38",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.485Z"
+  },
+  {
+    "id": "mfs_complaints-appendix_5_general_contact_letter-appendix_5_general_contact_letter",
+    "policy_key": "mfs_complaints",
+    "title": "Appendix 5 - General Contact Letter",
+    "body_md": "{{firm.name}} (“{{firm.name}}”), as a directly authorised firm, handles complaints in line with relevant regulatory requirements Consumer Duty and the DISP sourcebook in particular.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.486Z"
+  },
+  {
+    "id": "mfs_complaints-appendix_5_general_contact_letter-complaints_general_principles",
+    "policy_key": "mfs_complaints",
+    "title": "Complaints – General Principles",
+    "body_md": "{{firm.name}} will deal promptly and fairly with complaints (as defined below) referred to it in respect of its business activities carried on from establishments in the United Kingdom.\n{{firm.name}} defines a complaint using the definition contained in the FCA glossary, namely:\n| Any oral or written expression of dissatisfaction, whether justified or not, from, or on behalf of, a person about the provision of, or failure to provide, a financial service or a redress determination, which: (a) alleges that the complainant has suffered (or may suffer) financial loss, material distress or material inconvenience; and (b) relates to an activity of that firm, or of any other firm with whom that firm has some connection in marketing or providing financial services or products, which comes under the jurisdiction of the Financial Ombudsman Service. |\n| --- |\n\nIn order to review these complaints, {{firm.name}} has in place and operates an appropriate and effective procedure for registering and responding to complaints from eligible complainants, as defined in the FCA’s DISP rules (DISP 2.7.3R).",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.486Z"
+  },
+  {
+    "id": "mfs_complaints-wider_eligibility_for_psd_complaints-wider_eligibility_for_psd_complaints",
+    "policy_key": "mfs_complaints",
+    "title": "Wider Eligibility for PSD Complaints",
+    "body_md": "- any payment service user (as defined in regulation 2 of the PSRs 2017) may complain, even if they do not meet the DISP “eligible complainant” test\n- {{firm.name}} will still apply the DISP standards when dealing with ineligible PSD complainants\n{{firm.name}} will review and respond to all complaints on a case-by-case basis where they are received from complainants who are not defined as eligible.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.486Z"
+  },
+  {
+    "id": "mfs_complaints-consumer_duty_in_complaints_handling-consumer_duty_in_complaints_handling",
+    "policy_key": "mfs_complaints",
+    "title": "Consumer Duty in Complaints Handling",
+    "body_md": "{{firm.name}} is committed to upholding the FCA's Consumer Duty in its complaints handling processes, ensuring good outcomes for retail customers across all four outcome areas.\n- Products and Services\n- Regularly review complaint data to identify potential issues with product design or delivery\n- Use complaints insights to inform product development and improvements\n- Ensure complaints handlers have comprehensive product knowledge to address customer concerns effectively\n- Price and Value\n- Analyse complaints related to pricing to ensure products and services continue to offer fair value\n- Address any systemic issues identified in complaints about fees or charges promptly\n- Consider fair value when determining appropriate redress for upheld complaints\n- Consumer Understanding\n- Use plain language in all complaint communications to ensure clarity and comprehension\n- Provide clear explanations of complex terms or processes when responding to complaints\n- Use complaint trends to improve customer communications and product information\n- Consumer Support\n- Offer multiple channels for lodging and discussing complaints to suit customer preferences\n- Provide additional support for vulnerable customers throughout the complaints process\n- Ensure complaint handlers are trained to deliver high-quality, empathetic customer service\nImplementation Across the Complaints Journey\n| Complaint Stage | Consumer Duty Consideration |\n| --- | --- |\n| Receipt | Ensure ease of complaint submission across various channels |\n| Acknowledgement | Provide clear information on the complaints process and expected timelines |\n| Investigation | Consider whether the complaint indicates a breach of the Consumer Duty |\n| Resolution | Ensure the resolution supports good customer outcomes |\n| Root Cause Analysis | Identify and address any systemic issues that may breach the Consumer Duty |\n| Reporting | Include Consumer Duty considerations in complaints MI and board reporting |\n\nExample: A customer complains about difficulty understanding the terms of their remittance transfer. In line with the Consumer Duty, {{firm.name}} would:\n- Review the complaint in the context of the 'Consumer Understanding' outcome\n- Investigate whether this is a systemic issue affecting other customers\n- Implement improvements to the T&Cs documentation to enhance clarity\n- Provide the complainant with a clear, jargon-free explanation of the terms\n- Consider whether the lack of understanding has led to any detriment requiring redress\nBy embedding Consumer Duty principles throughout our complaints handling process, {{firm.name}} ensures that we not only resolve individual issues but also drive improvements that benefit all customers and support the delivery of good outcomes.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.486Z"
+  },
+  {
+    "id": "mfs_complaints-consumer_duty_in_complaints_handling-complaint_handling_rules",
+    "policy_key": "mfs_complaints",
+    "title": "Complaint Handling Rules",
+    "body_md": "| Regulation References: •FCA DISP 1 (Dispute Resolution: Complaints) •FCA Principle 6 (Customers’ Interests) |\n| --- |\n\n{{firm.name}} is committed to establishing, implementing, and maintaining effective and transparent procedures for the prompt handling of complaints in compliance with FCA DISP and PSR regulations. These procedures are designed to ensure that eligible complainants can make complaints free of charge and by any reasonable means. {{firm.name}} aims to resolve all complaints promptly, fairly, and in line with FCA principles, particularly ensuring the fair treatment of customers under Principle 6.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.486Z"
+  },
+  {
+    "id": "mfs_complaints-consumer_duty_in_complaints_handling-complaint_handling_framework",
+    "policy_key": "mfs_complaints",
+    "title": "Complaint Handling Framework",
+    "body_md": "{{firm.name}} has implemented a robust complaint handling framework which ensures:\n- Complaints can be made free of charge by any eligible complainant through any reasonable communication channel, such as phone, email, post, or online.\n- {{firm.name}} recognises all complaints as requiring timely and effective resolution. All complaints will be acknowledged within five business days and resolved as quickly as possible, following the time limits outlined under DISP 1.6.\n- Where complaints are resolved by the close of the third business day after receipt, {{firm.name}} will issue a Summary Resolution Communication (SRC) in compliance with DISP 1.5. The SRC will inform the complainant of their right to refer the complaint to the Financial Ombudsman ServiceFOS within six months if they are not satisfied with the outcome.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.486Z"
+  },
+  {
+    "id": "mfs_complaints-consumer_duty_in_complaints_handling-digital_complaints_handling",
+    "policy_key": "mfs_complaints",
+    "title": "Digital Complaints Handling",
+    "body_md": "| Regulatory References: DISP 1.2 (Consumer awareness rules) PRIN 2A (Consumer Duty) SYSC 13 (Operational resilience) |\n| --- |\n\n{{firm.name}} recognises the growing importance of digital channels in customer interactions and has implemented robust processes to handle complaints received through these platforms effectively.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.486Z"
+  },
+  {
+    "id": "mfs_complaints-process_for_handling_digital_complaints-process_for_handling_digital_compla",
+    "policy_key": "mfs_complaints",
+    "title": "Process for Handling Digital Complaints",
+    "body_md": "- Monitoring and Identification:\n- Continuous monitoring of website submissions and email during business hours\n- Regular monitoring of X/Twitter account\n- Clear classification of general enquiries vs. formal complaints\n- Acknowledgement:\n- Automated acknowledgement sent within 1 business day of complaint receipt via website or email\n- Public acknowledgement on X/Twitter within 4 business hours during working hours\n- Unique reference number assigned to each complaint for tracking\n- Triage and Allocation:\n- Complaints categorised based on urgency and complexity\n- High-priority complaints (e.g., those indicating financial distress) escalated for immediate handling\n- Investigation and Resolution:\n- Standard complaints handling process followed, regardless of channel of origin\n- Option for customers to switch to their preferred communication channel during the process\n- Response:\n- Responses provided through the customer's preferred channel (email or website messaging system)\n- Public acknowledgement on X/Twitter with request to move to private channel for detailed response",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.487Z"
+  },
+  {
+    "id": "mfs_complaints-digital_complaints_handling_framework-handling_x_twitter_complaints",
+    "policy_key": "mfs_complaints",
+    "title": "Handling X/Twitter Complaints:",
+    "body_md": "- Acknowledge publicly (e.g., \"We're sorry to hear about your experience. We've sent you a direct message to assist further.\")\n- Move the conversation to a private channel (e.g., direct message)\n- Capture complaint details and follow standard complaints process\n- Provide resolution privately, with a public follow-up if appropriate and with customer's consent (e.g., \"We're glad we could resolve your issue. Thank you for bringing this to our attention.\")",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.487Z"
+  },
+  {
+    "id": "mfs_complaints-digital_complaints_handling_framework-example_a_customer_tweets_about_diffi",
+    "policy_key": "mfs_complaints",
+    "title": "Example: A customer tweets about difficulties understanding the remittance fees. MFS would:",
+    "body_md": "- Acknowledge the tweet publicly within 4 business hours\n- Send a direct message to gather more details\n- Log the complaint in the CMS system\n- Assign to a complaints handler specialising in product clarity issues\n- Resolve the complaint following standard procedures\n- Respond privately with a detailed explanation and any necessary redress\n- Post a public follow-up (with customer's permission) about the resolution",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.487Z"
+  },
+  {
+    "id": "mfs_complaints-quality_assurance_for_digital_complaints-quality_assurance_for_digital_comp",
+    "policy_key": "mfs_complaints",
+    "title": "Quality Assurance for Digital Complaints",
+    "body_md": "- Regular audits of digital complaints handling to ensure consistency with other channels\n- Monitoring of response times and resolution rates for digital complaints\n- Customer satisfaction surveys specific to digital complaint resolution",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.487Z"
+  },
+  {
+    "id": "mfs_complaints-specific_considerations_for_email_complaints-specific_considerations_for_em",
+    "policy_key": "mfs_complaints",
+    "title": "Specific Considerations for Email Complaints",
+    "body_md": "- Implement robust spam filters to ensure genuine complaints are not missed\n- Use auto-responders outside of business hours to set expectations for response times\n- Ensure email servers have sufficient capacity to handle high volumes during peak complaint periods",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.487Z"
+  },
+  {
+    "id": "mfs_complaints-website_complaint_form_enhancements-website_complaint_form_enhancements",
+    "policy_key": "mfs_complaints",
+    "title": "Website Complaint Form Enhancements",
+    "body_md": "- Implement clear categorisation options to help route complaints effectively\n- Include an urgency indicator for customers to self-identify high-priority issues\n- Provide immediate on-screen confirmation of complaint submission in addition to email acknowledgement\nIn line with DISP 1.3.7, {{firm.name}} has appointed a dedicated individual, Misah Maragh, as the Compliance Officer responsible for the oversight of the firm’s adherence to DISP rules.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.487Z"
+  },
+  {
+    "id": "mfs_complaints-monitoring_complaints_made_against_mfs-monitoring_complaints_made_against_m",
+    "policy_key": "mfs_complaints",
+    "title": "Monitoring Complaints Made Against MFS",
+    "body_md": "{{firm.name}} will implement a structured approach to monitor complaints made directly against itself:\n- Complaints Monitoring System: All complaints raised against {{firm.name}} are logged in its Complaints Management System (CMS), enabling the Compliance Team to monitor trends, identify systemic issues, and ensure ongoing compliance with FCA rules.\n- Regular Review: Complaints data will be reviewed monthly by senior management, with trends and patterns documented and submitted as part of the “Complaints Monitoring Report” to the board for review at quarterly meetings.\n- Key Performance Indicators (KPIs): {{firm.name}} will monitor key complaint metrics, including resolution times, repeat complaints, and the effectiveness of root cause analysis. Where patterns suggest systemic issues, {{firm.name}} will escalate them for further investigation and resolution.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.487Z"
+  },
+  {
+    "id": "mfs_complaints-compliance_with_fca_principle_6_customers_interests-compliance_with_fca_pri",
+    "policy_key": "mfs_complaints",
+    "title": "Compliance with FCA Principle 6 – Customers’ Interests",
+    "body_md": "In accordance with FCA Principle 6, {{firm.name}} commits to ensuring that customers’ interests are placed at the heart of its complaints handling process. This means:\n- When {{firm.name}} identifies any problems, root causes, or compliance failures through complaints or monitoring, it will proactively take steps to resolve the issue for all affected customers, including those who may have been disadvantaged but did not formally complain.\n- If a complaint reveals a root cause that could affect a wider group of customers, {{firm.name}} will consider taking corrective action for the benefit of all affected customers. This could include product adjustments, refunds, or process improvements.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.487Z"
+  },
+  {
+    "id": "mfs_complaints-compliance_with_fca_principle_6_customers_interests-reporting_to_the_fos",
+    "policy_key": "mfs_complaints",
+    "title": "Reporting to the FOS",
+    "body_md": "{{firm.name}} ensures that complainants are informed of their rights to escalate their complaint to the FOS, as per DISP 1.4. Complainants will be provided with:\n- Final Response Letter: If a complaint is unresolved after fifteen days (with 35-day contingency), {{firm.name}} will issue a Final Response Letter, clearly detailing the customer’s right to refer their complaint to FOS and the relevant time limits for doing so.\n- Six-Month Time Limit: The Summary Resolution Communication (SRC) and Final Response Letter will include a reminder that the complainant has six months to refer their complaint to FOS if they are not satisfied with {{firm.name}}’s final response.\n“You have the right to refer your complaint to the Financial Ombudsman Service, free of charge – but you must do so within six months of the date of this letter.”",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.487Z"
+  },
+  {
+    "id": "mfs_complaints-compliance_with_fca_principle_6_customers_interests-complaints_rules",
+    "policy_key": "mfs_complaints",
+    "title": "Complaints Rules",
+    "body_md": "| Regulation References: FCA Principle 6 (Customers’ Interests). Payment Services Regulations 2017 (PSRs), Part 7 (Complaints and Redress) |\n| --- |\n\n{{firm.name}} has implemented a robust complaints handling process designed to meet the highest standards of customer service and regulatory compliance under Part 7 of the Payment Services Regulations 2017 (PSRs) for payment services, including money remittance.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.487Z"
+  },
+  {
+    "id": "mfs_complaints-compliance_with_fca_principle_6_customers_interests-complaints_handling_pro",
+    "policy_key": "mfs_complaints",
+    "title": "Complaints Handling Process for Payment Services (PSRs)",
+    "body_md": "For complaints related to payment services (including money remittance and cross-border payments), {{firm.name}} complies with Part 7 of the Payment Services Regulations 2017. The complaints process under the PSRs is designed to ensure swift resolution of payment disputes, with stricter acknowledgement and resolution timelines.\nSteps for Complaint Handling",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.487Z"
+  },
+  {
+    "id": "mfs_complaints-acknowledgement_of_receipt_psrs-acknowledgement_of_receipt_psrs",
+    "policy_key": "mfs_complaints",
+    "title": "Acknowledgement of Receipt (PSRs)",
+    "body_md": "- {{firm.name}} will acknowledge receipt of any payment services complaint within one business day, in accordance with PSR Regulation 101. The acknowledgment will provide:\n- Confirmation of receipt.\n- Contact details of the Payment Services Complaint Handler.\n- Information on the complaint handling process.\nExample: A customer raising a complaint about delayed money transfers will receive an acknowledgment within one business day, outlining the next steps.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.487Z"
+  },
+  {
+    "id": "mfs_complaints-information_gathering_and_investigation_psrs-information_gathering_and_inve",
+    "policy_key": "mfs_complaints",
+    "title": "Information Gathering and Investigation (PSRs)",
+    "body_md": "- {{firm.name}} will investigate the complaint competently and impartially, gathering:\n- Transaction records\n- Remittance agreements\n- Customer communications and related documentation\n- The investigation will consider all relevant factors, including any third-party involvement in the payment process.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.487Z"
+  },
+  {
+    "id": "mfs_complaints-information_gathering_and_investigation_psrs-resolution_timeline_psrs",
+    "policy_key": "mfs_complaints",
+    "title": "Resolution Timeline (PSRs)",
+    "body_md": "- Under Regulation 101 of the PSRs, {{firm.name}} is required to resolve the complaint and provide a Final Response within 15 business days of receiving the complaint. If additional time is needed due to exceptional circumstances, this may be extended to 35 business days, but the complainant must be notified within the initial 15-day period.\n- The Final Response will detail:\n- The decision on whether the complaint is upheld or dismissed.\n- Any redress or remedial action offered.\n- The customer’s right to escalate the complaint to theFOS, including the six-month time limit for doing so.\nExample: If a customer submits a complaint regarding unexpected fees on a cross-border transaction, {{firm.name}} will aim to resolve the issue within 15 business days, providing a Final Response with a clear explanation of the fees and any proposed redress.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.487Z"
+  },
+  {
+    "id": "mfs_complaints-remedial_action_and_redress-remedial_action_and_redress",
+    "policy_key": "mfs_complaints",
+    "title": "Remedial Action and Redress",
+    "body_md": "- If the complaint is upheld, {{firm.name}} will promptly implement any remedial action (e.g., fee refunds or adjustments to transaction terms) and confirm the outcome in writing.\nFor unresolved PSD complaints we will signpost eligible complainants to the Financial Ombudsman Service and all other complainants to the Payment Systems Regulator, in line with DISP 1.1A.30UK–31UK and regulation 101(2)(c) PSRs 2017",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.487Z"
+  },
+  {
+    "id": "mfs_complaints-remedial_action_and_redress-factors_considered_in_complaint_resolution",
+    "policy_key": "mfs_complaints",
+    "title": "Factors Considered in Complaint Resolution",
+    "body_md": "{{firm.name}} applies a consistent approach across Payment Services complaints, considering several key factors in every investigation:\n- All available evidence, including contracts, terms, and communication records\n- The specific circumstances of the complaint, including whether the complainant is a vulnerable customer\n- FOS and regulatory guidance (including DISP and PSRs) to ensure decisions are in line with industry standards\n- Patterns of complaints that may indicate broader systemic issues",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.487Z"
+  },
+  {
+    "id": "mfs_complaints-remedial_action_and_redress-preventing_escalation_to_fos",
+    "policy_key": "mfs_complaints",
+    "title": "Preventing Escalation to FOS",
+    "body_md": "{{firm.name}} aims to resolve complaints promptly to minimise referrals to the FOS by:\n- Proactive Resolution: Whenever possible, {{firm.name}} will issue a SRC within three business days, confirming the resolution of the complaint. This early intervention reduces the likelihood of customer dissatisfaction and FOS referrals.\n- Customer Communication: For complaints that cannot be resolved immediately, {{firm.name}} will maintain regular contact with the complainant, ensuring they are informed of the status of the investigation and feel reassured about the process.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.487Z"
+  },
+  {
+    "id": "mfs_complaints-remedial_action_and_redress-cooperation_with_the_fos",
+    "policy_key": "mfs_complaints",
+    "title": "Cooperation with the FOS",
+    "body_md": "In cases where complaints are escalated to the FOS, {{firm.name}} will:\n- Cooperate fully with the FOS investigation.\n- Provide all relevant documentation and information promptly to support the investigation.\n- Implement any decisions or awards made by the FOS in a timely manner, ensuring full compliance with any settlements or compensation ordered.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.487Z"
+  },
+  {
+    "id": "mfs_complaints-remedial_action_and_redress-complaints_resolved_within_three_business_days",
+    "policy_key": "mfs_complaints",
+    "title": "Complaints Resolved Within Three Business Days",
+    "body_md": "| Regulation References •DISP 1.5.1R (Complaints Resolved Within Three Business Days) •DISP 1.5.4R (Summary Resolution Communication) •Payment Services Regulations 2017 (PSRs), Part 7 |\n| --- |\n\n{{firm.name}} ({{firm.name}}) has established a streamlined process for resolving complaints swiftly and efficiently, in compliance with DISP 1.5.1R and PSRs, aiming to resolve complaints by the close of business on the third business day following the day of receipt. Complaints resolved within this three-business-day period are still subject to key complaint handling requirements, though certain time limit and forwarding rules may not apply. This approach ensures quick resolutions without compromising regulatory standards.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.487Z"
+  },
+  {
+    "id": "mfs_complaints-remedial_action_and_redress-scope_and_applicability",
+    "policy_key": "mfs_complaints",
+    "title": "Scope and Applicability",
+    "body_md": "{{firm.name}} follows the rules set out by DISP for complaints resolved within three business days. The following exceptions apply for these quick resolutions:\n- The complaints time limit rules do not apply.\n- The complaints forwarding rules are not triggered.\nHowever, all other relevant complaint resolution rules under DISP 1 still apply, ensuring that complaints are handled fairly, even when resolved quickly.\nFor the purposes of this section:\n- A complaint received on a non-business day (or after the close of business) is considered received on the next business day.\n- A complaint is deemed resolved when the complainant indicates acceptance of {{firm.name}}’s response, with no requirement for this acceptance to be in writing.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.488Z"
+  },
+  {
+    "id": "mfs_complaints-remedial_action_and_redress-step_1_acknowledgment_of_receipt",
+    "policy_key": "mfs_complaints",
+    "title": "Step 1: Acknowledgment of Receipt",
+    "body_md": "When a complaint is received directly by {{firm.name}}, {{firm.name}} will:\n- Acknowledge receipt of the complaint immediately, ensuring that it is recorded in the Complaints Management System.\n- Ensure that the complaint is logged and assigned to the appropriate Complaint Handler to assess the potential for a resolution within three business days.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.488Z"
+  },
+  {
+    "id": "mfs_complaints-remedial_action_and_redress-step_2_investigation_and_resolution",
+    "policy_key": "mfs_complaints",
+    "title": "Step 2: Investigation and Resolution",
+    "body_md": "{{firm.name}} will promptly investigate the complaint with a goal to resolve it by close of business on the third business day following the receipt of the complaint. The investigation will involve:\n- Reviewing all relevant documentation (e.g., contracts, terms, customer communications) to understand the issue fully.\n- Assessing the complaint fairly and transparently, taking into account the complainant’s specific concerns..\n{{firm.name}} will seek to reach an agreement with the complainant as quickly as possible, without compromising the thoroughness of the investigation. For example, if a customer complains about an unexpected remittance fee, {{firm.name}} will review the documentation and offer a clear explanation or fee adjustment if warranted.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.488Z"
+  },
+  {
+    "id": "mfs_complaints-remedial_action_and_redress-step_3_summary_resolution_communication_src",
+    "policy_key": "mfs_complaints",
+    "title": "Step 3: Summary Resolution Communication (SRC)",
+    "body_md": "If {{firm.name}} resolves the complaint within three business days, it will issue a SRC, as required by DISP 1.5.4R. This written communication will be sent to the complainant immediately upon resolution, confirming that the issue has been resolved and providing the necessary regulatory information.\nThe SRC must contain the following elements:",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.488Z"
+  },
+  {
+    "id": "mfs_complaints-reference_to_the_complaint-reference_to_the_complaint",
+    "policy_key": "mfs_complaints",
+    "title": "Reference to the Complaint",
+    "body_md": "- The SRC will clearly state that the complainant had made a complaint, and {{firm.name}} now considers the complaint resolved.\nExample: “We understand you raised a concern regarding your agreement. We are pleased to confirm that we have resolved the issue.”",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.488Z"
+  },
+  {
+    "id": "mfs_complaints-right_to_escalate_to_the_fos-right_to_escalate_to_the_fos",
+    "policy_key": "mfs_complaints",
+    "title": "Right to Escalate to the FOS",
+    "body_md": "- The SRC will inform the complainant that if they are dissatisfied with the resolution, they have the right to escalate the complaint to the FOS.\n- This must include an explanation of the time limits for referring the complaint to the FOS as outlined in DISP 2.8.2R (i.e., within six months of receiving {{firm.name}}’s final response).",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.488Z"
+  },
+  {
+    "id": "mfs_complaints-right_to_escalate_to_the_fos-fos_time_limits",
+    "policy_key": "mfs_complaints",
+    "title": "FOS Time Limits",
+    "body_md": "- The SRC will indicate whether {{firm.name}} consents to waive the relevant time limits for referring the complaint to the FOS. This is essential when complaints are resolved outside the standard timeframe but the complainant may still wish to pursue further resolution.\n- The wording of this clause will comply with DISP 1 Annex 3R, ensuring that the time limits and rights are clearly communicated.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.488Z"
+  },
+  {
+    "id": "mfs_complaints-fos_website_and_contact_information-fos_website_and_contact_information",
+    "policy_key": "mfs_complaints",
+    "title": "FOS Website and Contact Information",
+    "body_md": "- The SRC will provide the website address of the Financial Ombudsman Service.\n- It will also include a note about the availability of further information on the FOS website for the complainant’s reference.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.488Z"
+  },
+  {
+    "id": "mfs_complaints-fos_website_and_contact_information-further_fos_information",
+    "policy_key": "mfs_complaints",
+    "title": "Further FOS Information",
+    "body_md": "- The SRC will inform the complainant of the additional resources available on the FOS website, including how to proceed if they are unsatisfied with {{firm.name}}’s resolution.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.488Z"
+  },
+  {
+    "id": "mfs_complaints-fos_website_and_contact_information-step_4_compliance_with_resolution",
+    "policy_key": "mfs_complaints",
+    "title": "Step 4: Compliance with Resolution",
+    "body_md": "If the complainant accepts the resolution provided by {{firm.name}}, the firm will ensure that it promptly implements any redress or remedial action. This could include:\n- Updating internal records in the Complaints Management System to document the resolution and track any further actions required.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.488Z"
+  },
+  {
+    "id": "mfs_complaints-fos_website_and_contact_information-monitoring_and_reporting_for_three_day_",
+    "policy_key": "mfs_complaints",
+    "title": "Monitoring and Reporting for Three-Day Resolutions",
+    "body_md": "Even for complaints resolved within three business days, {{firm.name}} will:\n- Log all complaints and resolutions in the central Complaints Management System to ensure compliance with DISP 1.5.6R.\n- Track patterns in three-day resolutions to identify any recurring issues or systemic problems that could indicate a broader concern.\n- Report on complaint trends in the quarterly compliance review, ensuring that lessons are learned and improvements are made where necessary.\nFor instance, if multiple complaints are resolved quickly but relate to the same product feature (e.g., unclear terms in payment remittance service), {{firm.name}} will initiate a product review to address potential misunderstandings or flaws in the product design.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.488Z"
+  },
+  {
+    "id": "mfs_complaints-fos_website_and_contact_information-exceptions_and_escalations",
+    "policy_key": "mfs_complaints",
+    "title": "Exceptions and Escalations",
+    "body_md": "In cases where the complaint is not resolved within three business days:\n- {{firm.name}} will escalate the complaint to the full complaint handling process, adhering to the standard DISP time limits.\n- The complainant will be kept informed throughout the process, and {{firm.name}} will ensure that the investigation continues promptly and fairly, with the goal of resolution as soon as possible.\nThis ensures that all complaints—whether resolved quickly or requiring further investigation—are handled with the same level of care, diligence, and regulatory compliance.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.488Z"
+  },
+  {
+    "id": "mfs_complaints-fos_website_and_contact_information-complaints_time_limit_rules",
+    "policy_key": "mfs_complaints",
+    "title": "Complaints Time Limit Rules",
+    "body_md": "| Regulatory Reference: •DISP 1.6 (Complaints Time Limits) •Payment Services Regulations (PSRs) 2017, Part 7 (Dispute Resolution) |\n| --- |\n\n{{firm.name}} recognises the importance of adhering to the FCA's time limits for complaints. The rules differ depending on the type of complaint:\n- For Payment Services (PSD) Complaints: We will aim to issue a Final Response within 15 business days of receiving the complaint. If, in exceptional circumstances, we are unable to do so, we will send a holding response clearly explaining the delay and providing a final deadline of no more than 35 business days from the date the complaint was received.\n- For All Other Complaints (Non-PSD): We will issue a Final Response within 8 weeks (56 days) of receiving the complaint. If we are unable to provide a Final Response within this period, we will send a holding letter that explains the reason for the delay and informs the complainant of their right to refer their complaint to the Financial Ombudsman Service.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.488Z"
+  },
+  {
+    "id": "mfs_complaints-fos_website_and_contact_information-acknowledgement_of_complaints",
+    "policy_key": "mfs_complaints",
+    "title": "Acknowledgement of Complaints",
+    "body_md": "{{firm.name}} recognises the importance of early acknowledgment of complaints to provide complainants with reassurance that their issue is being addressed. Upon receipt of a complaint, {{firm.name}} will:\n- Acknowledge the complaint in writing promptly, using the Acknowledgement Letter Template. This letter confirms that {{firm.name}} has received the complaint and is actively dealing with it.\n- Assign a Complaint Handler responsible for monitoring the investigation, with a commitment to resolving the complaint as efficiently as possible.\nThe acknowledgment letter will provide:\n- A reassurance that {{firm.name}} has received the complaint and is working towards a resolution.\n- Contact information for the Compliance Officer overseeing the complaint.\nIf additional information from the complainant is required, {{firm.name}} will request this promptly through the General Contact Letter, ensuring that efforts are made to contact the complainant via phone before sending a written request.\nAfter the initial acknowledgment, {{firm.name}} will:\n- Provide written updates on the progress of the investigation, including any delays or additional steps being taken to resolve the complaint.\n- Ensure the complainant is informed of any substantial developments, such as the need for further information or the involvement of third-party entities, to maintain transparency.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.488Z"
+  },
+  {
+    "id": "mfs_complaints-fos_website_and_contact_information-general_contact_letter",
+    "policy_key": "mfs_complaints",
+    "title": "General contact letter",
+    "body_md": "This letter should be issued to the customer where {{firm.name}} requires more information about the complaint from the customer, but after attempting to call them over three days has been unable to reach them. The General Contact Letter Template should be used for this. The letter will be issued in the name of the Compliance Officer who will approve the letter prior to issue.\nHandling of PSD complaints\nPSD complaints and general complaints under DISP will be thoroughly assessed and appropriately routed to ensure they are addressed in a timely and effective manner. At {{firm.name}}, we are committed to the swift and fair resolution of complaints related to Payment Services Directive (PSD) issues. Understanding the importance of these services to our clients, we adhere to specific resolution timelines as follows:\n- Three Business Day Rule: We aim to resolve any PSD-related complaints within three business days of receipt. Upon resolution, we will provide the complainant with a written confirmation detailing the resolution and any actions taken.\n- Fifteen Business Days: If a PSD complaint cannot be resolved within the initial three business days, we will inform the complainant of the ongoing process. Communication will be provided no later than fifteen business days from the date the complaint was received, explaining the reasons for the delay and the investigations being undertaken.\n- Thirty-Five Business Days: Should the complaint require further investigation beyond fifteen business days, a final notice will be issued to the complainant by the thirty-fifth business day. This notice will detail the current status of their complaint and the expected resolution timeline. It will also inform the complainant about their right to escalate the matter to theFOS if they are dissatisfied with the progress or outcome.\n- Final Response: Once the investigation is complete, {{firm.name}} will issue a formal written response to the complainant. This response will outline the findings of the investigation, the final decision regarding the complaint, and any actions to be taken or compensation to be provided. It will also guide the complainant on how to escalate their complaint to the FOS should they remain dissatisfied with the decision or handling of the complaint.\nFor all other complaints, the 8-week rule applies.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.488Z"
+  },
+  {
+    "id": "mfs_complaints-fos_website_and_contact_information-handling_complaints_from_vulnerable_cus",
+    "policy_key": "mfs_complaints",
+    "title": "Handling Complaints From Vulnerable Customers",
+    "body_md": "| Regulatory References FG21/1 (FCA Guidance on the Fair Treatment of Vulnerable Customers) PRIN 6 (Customers' Interests) PRIN 2A (Consumer Duty) |\n| --- |\n\n{{firm.name}} recognises the importance of providing additional support to vulnerable customers throughout the complaints process, ensuring fair outcomes and appropriate assistance.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.488Z"
+  },
+  {
+    "id": "mfs_complaints-identification_of_vulnerable_complainants-identification_of_vulnerable_comp",
+    "policy_key": "mfs_complaints",
+    "title": "Identification of Vulnerable Complainants",
+    "body_md": "- Review existing customer records for vulnerability flags.\n- Train complaints handlers to recognise potential vulnerabilities during interactions.\n- Implement a 'soft facts' gathering approach in all complaint communications.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.488Z"
+  },
+  {
+    "id": "mfs_complaints-identification_of_vulnerable_complainants-additional_support_measures",
+    "policy_key": "mfs_complaints",
+    "title": "Additional Support Measures",
+    "body_md": "- Communication:\n- Offer multiple communication channels (phone, email, letter).\n- Provide communications in accessible formats (large print, audio, Braille).\n- Allow more time for vulnerable customers to process information and respond.\n- Complaint Handling:\n- Assign dedicated, specially trained staff to handle vulnerable customer complaints\n- Offer to involve a trusted third party (e.g., family member, carer) if the customer wishes\n- Conduct a 'double-check' review of all decisions related to vulnerable customer complaints\n- Resolution:\n- Consider the impact of vulnerability on the complaint circumstances\n- Ensure any redress or compensation takes into account the customer's vulnerable circumstances\nExample: A customer with a mental health condition complains about difficulty understanding their remittance terms. {{firm.name}} would:\n- Assign a specialist complaints handler trained in mental health awareness.\n- Offer a verbal explanation of the terms, followed by a simplified written summary.\n- Allow extra time for the customer to consider the explanation and ask questions.\n- Conduct a review of how the product was initially sold to ensure it was appropriate for the customer's circumstances.\nTable: Vulnerability Considerations in Complaints Handling\n| Complaint Stage | Standard Approach | Enhanced Approach for Vulnerable Customers |\n| --- | --- | --- |\n| Receipt | Acknowledge within 5 days | Acknowledge within 2 days, offer immediate call-back |\n| Investigation | Standard information gathering | Additional care to understand impact of vulnerability on the issue |\n| Communication | Regular updates as investigation progresses | More frequent, simplified updates; check customer understanding |\n| Resolution | Standard decision letter | Tailored communication of decision, offer follow-up call to explain |\n| Redress | Standard compensation calculations | Consider additional compensation for distress and inconvenience related to vulnerability |",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.488Z"
+  },
+  {
+    "id": "mfs_complaints-identification_of_vulnerable_complainants-speed_and_quality_of_response",
+    "policy_key": "mfs_complaints",
+    "title": "Speed And Quality Of Response",
+    "body_md": "| Regulatory References: •DISP 1.6.2R (Complaints Handling Time Limits) •DISP 1.6.4R (Holding Responses) •DISP 1.4.1R (General Complaint Handling) |\n| --- |\n\n{{firm.name}} recognises that both the speed and quality of its response to complaints are critical.\n- For PSD Complaints: we are committed to providing a Final Response within 15 business days. If this is not possible in exceptional circumstances, we will provide a holding response within this 15-day period, with a clear explanation and a final deadline of 35 business days.\n- For all other complaints: we will issue a Final Response within 8 weeks (56 days) of receiving the complaint. If a Final Response cannot be issued within this timeframe, we will send a holding response that clearly explains the delay, provides an estimated resolution date, and informs the complainant of their right to refer the matter to the FOS.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.488Z"
+  },
+  {
+    "id": "mfs_complaints-response_within_fifteen_day-response_within_fifteen_day",
+    "policy_key": "mfs_complaints",
+    "title": "Response Within Fifteen Day",
+    "body_md": "{{firm.name}} aims to provide a Final Response within fifteen days of receiving a complaint. The target is to ensure that nearly all complaints received by {{firm.name}} are addressed comprehensively by this time. In cases where a Final Response cannot be issued within fifteen days, {{firm.name}} will send a Holding Response:\n- Explanation of Delay: The holding response must only be used in exceptional circumstances and will clearly explain why the complaint has not yet been resolved, outline the steps taken to date, and provide an estimated timeline for the issuance of the Final Response - maximum 35 days.\n- Referral to FOS: The response will include information about the complainant’s right to refer the matter to the PSR / FOS and will provide details on how to do so, ensuring that the complainant is informed of their options should they wish to escalate the matter",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.488Z"
+  },
+  {
+    "id": "mfs_complaints-fca_and_fos_assessment_of_response-fca_and_fos_assessment_of_response",
+    "policy_key": "mfs_complaints",
+    "title": "FCA and FOS Assessment of Response",
+    "body_md": "Both the FCA and FOS may consider the quality and timeliness of {{firm.name}}’s responses when evaluating its complaint-handling practices. Factors that may be assessed include:\n- Whether the response appropriately addresses the complainant’s concerns and provides a clear and reasonable explanation of {{firm.name}}’s findings\n- Whether {{firm.name}} communicates the complaint process clearly and provides understandable reasons for its decision, especially if the complaint is rejected\n- Whether {{firm.name}} adhered to the fifteen days time limit for a final or holding response, ensuring that delays are minimised\n- {{firm.name}} strives to take a proactive approach in resolving complaints early, reducing the need for escalation to the FOS and demonstrating its commitment to delivering positive customer outcomes\nIn cases where delays are unavoidable, {{firm.name}} takes extra care to keep complainants informed and reassured that their issue is under active investigation.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.488Z"
+  },
+  {
+    "id": "mfs_complaints-fca_and_fos_assessment_of_response-complaints_forwarding_rules",
+    "policy_key": "mfs_complaints",
+    "title": "Complaints Forwarding Rules",
+    "body_md": "| Regulatory References: •DISP 1.7 (Forwarding Complaints) •DISP 1.2.2R (Complaints Definition) •DISP 1.7.2R (Responsibility for Forwarded Complaints) |\n| --- |\n\n{{firm.name}} acknowledges that in certain instances, another firm may be solely or jointly responsible for the subject matter of a complaint. In compliance with DISP 1.7, {{firm.name}} ensures that complaints are forwarded to the appropriate firm in a prompt, transparent, and efficient manner, while maintaining its own obligations in cases of joint responsibility.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.489Z"
+  },
+  {
+    "id": "mfs_complaints-forwarding_to_another_firm-forwarding_to_another_firm",
+    "policy_key": "mfs_complaints",
+    "title": "Forwarding to Another Firm",
+    "body_md": "Where {{firm.name}} has reasonable grounds to believe that another firm (e.g., payment provider) may be fully or partially responsible for the complaint, {{firm.name}} will:\n- Forward the complaint, or the relevant part of it, to the other firm promptly and in writing. {{firm.name}} ensures that forwarding is done without delay to prevent unnecessary inconvenience to the complainant.\n- Once the complaint has been forwarded, {{firm.name}} will promptly notify the complainant in its Final Response. This communication will:\n- Explain clearly why the complaint has been forwarded to another firm.\n- Provide the contact details of the other firm, enabling the complainant to follow up directly if necessary.\n- Reassure the complainant that their complaint is still under review and that {{firm.name}} will continue to monitor progress if it shares responsibility for the issue.\n- Where {{firm.name}} is jointly responsible for the fault alleged in the complaint, it will:\n- Fully investigate and resolve its own part of the complaint, adhering to all DISP rules and time limits.\n- Continue to engage with the complainant and the other firm to ensure a seamless and coordinated resolution.\n- Provide clear communication to the complainant about the role of each firm in resolving the matter and the expected timelines.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.489Z"
+  },
+  {
+    "id": "mfs_complaints-accountability_for_joint_complaints-accountability_for_joint_complaints",
+    "policy_key": "mfs_complaints",
+    "title": "Accountability for Joint Complaints",
+    "body_md": "In cases of joint responsibility, {{firm.name}} takes its obligations seriously and ensures that its Final Response addresses the parts of the complaint within its control. The complainant is kept informed of {{firm.name}}’s actions, as well as the progress made by the other firm involved. By adhering to these principles, {{firm.name}} ensures that the complaint is handled fairly and transparently, even in cases where multiple parties are involved. Forwarding complaints does not absolve {{firm.name}} of its regulatory responsibilities under DISP, and the firm remains committed to acting in the complainant’s best interests throughout the process.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.489Z"
+  },
+  {
+    "id": "mfs_complaints-accountability_for_joint_complaints-dealing_with_a_forwarded_complaint",
+    "policy_key": "mfs_complaints",
+    "title": "Dealing With A Forwarded Complaint",
+    "body_md": "| Regulatory References: •DISP 1.7.1R (Forwarding Complaints Between Firms) •DISP 1.6.2R (Handling of Complaints) |\n| --- |\n\nWhen {{firm.name}} receives a complaint forwarded from another firm under DISP 1.7.1R, it is treated as if the complaint were made directly to {{firm.name}}. This means the same standards, procedures, and time limits apply, ensuring that the complaint is addressed with the same diligence and speed as any complaint received directly from a customer.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.489Z"
+  },
+  {
+    "id": "mfs_complaints-how_mfs_handles_forwarded_complaints-how_mfs_handles_forwarded_complaints",
+    "policy_key": "mfs_complaints",
+    "title": "How MFS Handles Forwarded Complaints",
+    "body_md": "Upon receiving a forwarded complaint, {{firm.name}} will send a prompt written acknowledgement to the complainant within three business days. The acknowledgement letter will:\n- Confirm that {{firm.name}} has received the complaint from another firm.\n- Reassure the complainant that {{firm.name}} is now handling the issue in accordance with its complaints procedure.\n- Provide an estimated timeline for resolution, clarifying that standard DISP time limits apply from the day the complaint was forwarded to {{firm.name}}.\nInvestigation Process\n- {{firm.name}} will carry out a thorough and impartial investigation, adhering to the same high standards applied to complaints received directly.\n- The Compliance Team will work closely with the relevant business area to ensure all pertinent information, including contracts, terms and conditions, and transaction details, are reviewed. If necessary, {{firm.name}} may request additional information from the firm that initially handled the complaint to ensure a complete understanding of the issue.\n- If joint responsibility exists (i.e., both {{firm.name}} and the original firm may share responsibility for the fault), {{firm.name}} will communicate and coordinate with the other firm to ensure the complainant’s concerns are fully addressed. {{firm.name}} will take full responsibility for its own role in the matter and will maintain transparency with the complainant throughout the process.\nCompliance with Time Limits\nFrom the moment {{firm.name}} receives the forwarded complaint, the standard regulatory time limits apply:\n- Fifteen Days Final Response: {{firm.name}} will issue a final response within fifteen days of the date the complaint was forwarded, detailing its decision and any redress or remedial action to be taken.\n- Contingency for delayed responses: In exceptional circumstances beyond our control, we may be unable to issue a final response within 15 business days of receiving your complaint.\n- If that happens, we will send the customer a holding reply that:\n- explains the reason for the delay\n- tells you when you can expect our final response, which will be no later than 35 business days from the day we received the complaint.\nCooperation with the Original Firm: In situations of joint responsibility, {{firm.name}} will ensure the other firm is updated on the progress of the investigation and remains involved in the resolution process if necessary. However, {{firm.name}} will handle its portion of the complaint independently and ensure no undue delays are introduced due to the involvement of another firm.\n4.Clear Communication\n- {{firm.name}} will keep the complainant informed at each stage of the process. If the investigation reveals that the complaint involves the original firm in any capacity, {{firm.name}} will transparently explain the division of responsibility.\n- If the complaint is fully resolved by {{firm.name}}, the complainant will receive a final response letter in line with DISP 1.6.2R, summarising {{firm.name}}’s findings and detailing any redress.\n- If the issue remains partially unresolved due to the involvement of the original firm, {{firm.name}} will provide guidance on the next steps and facilitate further communication between the complainant and the original firm if necessary.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.489Z"
+  },
+  {
+    "id": "mfs_complaints-how_mfs_handles_forwarded_complaints-commitment_to_timely_and_fair_outcomes",
+    "policy_key": "mfs_complaints",
+    "title": "Commitment to Timely and Fair Outcomes:",
+    "body_md": "{{firm.name}} is committed to ensuring that forwarded complaints are handled with the same care and urgency as complaints received directly. By adhering to strict time limits, cooperating fully with other firms when necessary, and maintaining transparent communication with complainants, {{firm.name}} ensures that all forwarded complaints result in fair outcomes.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.489Z"
+  },
+  {
+    "id": "mfs_complaints-how_mfs_handles_forwarded_complaints-joint_responsibility_for_complaints",
+    "policy_key": "mfs_complaints",
+    "title": "Joint Responsibility For Complaints",
+    "body_md": "| Regulatory References: DISP 1.7 (Complaints Resolution Rules) PRIN 2A (Consumer Duty) |\n| --- |\n\n{{firm.name}} recognises that in some instances, complaints may involve multiple parties. In such cases, {{firm.name}} commits to a collaborative approach to ensure fair and timely resolution for the complainant.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.489Z"
+  },
+  {
+    "id": "mfs_complaints-how_mfs_handles_forwarded_complaints-process_for_handling_joint_responsibil",
+    "policy_key": "mfs_complaints",
+    "title": "Process for Handling Joint Responsibility Complaints:",
+    "body_md": "- Upon receipt of a complaint, {{firm.name}} will immediately assess whether other parties, are involved.\n- If joint responsibility is identified, {{firm.name}} will: a) Notify all relevant parties within 24 hours of complaint receipt. b) Clearly communicate the complaint details and potential areas of responsibility.\n- Within 48 hours of identification, {{firm.name}} will arrange a coordination meeting with all involved parties to: a) Determine primary responsibility for complaint handling. b) Agree on the investigation approach and timelines. c) Establish clear communication channels between parties.\n- The primary responsible party will lead the investigation, with other parties providing necessary information and support.\n- All parties will provide weekly updates on the investigation progress.\n- The primary responsible party will draft the final response, which will be reviewed and agreed upon by all parties before being sent to the complainant.\n- Post-resolution, all parties will conduct a joint review to identify improvement areas and prevent similar issues.\nTable: Responsibilities in Joint Complaints Handling\n| Party | Primary Responsibilities |\n| --- | --- |\n| {{firm.name}} | Overall complaint management Coordination with other parties Final response drafting Regulatory reporting |\n| Other Third Parties (e.g., correspondent banks) | Supplying product-specific information Assisting with technical aspects of the complaint |",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.489Z"
+  },
+  {
+    "id": "mfs_complaints-how_mfs_handles_forwarded_complaints-complaints_time_barring_rule",
+    "policy_key": "mfs_complaints",
+    "title": "Complaints Time Barring Rule",
+    "body_md": "| Regulatory References: •DISP 2.8.2R (Time Limits for Referral to the Financial Ombudsman Service) •DISP 2.8.7R (Waiving Time Limits in Exceptional Circumstances) •DISP 1.6.2R (Final Response) |\n| --- |\n\nIn certain circumstances, {{firm.name}} may receive a complaint that it considers falls outside the time limits for referral to theFOS. In such cases, {{firm.name}} is permitted to reject the complaint without considering its merits. However, {{firm.name}} recognises the need to ensure that complainants are fully informed of their rights, and the firm’s responsibilities under the FCA’s DISP rules.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.489Z"
+  },
+  {
+    "id": "mfs_complaints-how_mfs_handles_time_barred_complaints-how_mfs_handles_time_barred_complain",
+    "policy_key": "mfs_complaints",
+    "title": "How MFS Handles Time-Barred Complaints",
+    "body_md": "Assessment of Time Limits\n- {{firm.name}} will carefully review any complaint that appears to fall outside the time limits for referral to the FOS. In line with DISP 2.8.2R, this typically includes complaints:\n- Made more than six years after the event complained about.\n- Made more than three years from the date the complainant became aware (or ought reasonably to have become aware) of the cause for complaint.\n- {{firm.name}}’s Compliance Officer will thoroughly review the relevant timelines and confirm whether the complaint indeed falls outside the regulatory limits for referral.\nClear Explanation to Complainants\n- If {{firm.name}} determines that the complaint is time-barred, a Final Response Letter will be issued, which must:\n- Explain the time-barring decision: The letter will provide a clear and detailed explanation of why {{firm.name}} considers the complaint to be out of time.\n- Include a reference to FOS time-limit waivers: The letter must also indicate that in some cases, the FOS may choose to waive the time limits in exceptional circumstances. {{firm.name}} will include wording from DISP 1 Annex 3R, informing the complainant of their right to contact the FOS and request consideration of their case, even if it appears out of time.\n- Provide FOS Contact Information: The letter will enclose the FOS’s standard explanatory leaflet, along with the website address and contact details for further information.\nMaintaining Fairness\n- {{firm.name}} understands that time-barring rules must be applied fairly and consistently. Therefore, {{firm.name}} will ensure that time-barred complaints are handled with care, providing complainants with clear reasons for the decision and ensuring they are aware of any exceptions or options available through the FOS.\nExceptional Circumstances\n- In instances where the complainant presents exceptional circumstances, {{firm.name}} will carefully consider whether these circumstances warrant further investigation despite the time limits. This could include cases where the complainant was unable to bring the complaint sooner due to reasons such as ill health, incapacity, or other mitigating factors.\n- If exceptional circumstances are identified, {{firm.name}} will either proceed with handling the complaint or, if applicable, recommend that the complainant directly requests a waiver from the FOS.\nOngoing Monitoring\n- All time-barred complaints are logged and tracked in the CMS system, and trends are reviewed periodically by the Compliance Team. This ensures that {{firm.name}} continuously monitors whether certain types of complaints are consistently falling outside time limits, allowing for process improvements where necessary.\n- If a pattern of time-barred complaints emerges in a particular product area or service, {{firm.name}} will assess whether proactive steps are needed to address the underlying issues and reduce the risk of future time-barred complaints.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.489Z"
+  },
+  {
+    "id": "mfs_complaints-ensuring_transparency_and_fairness-ensuring_transparency_and_fairness",
+    "policy_key": "mfs_complaints",
+    "title": "Ensuring Transparency and Fairness",
+    "body_md": "By maintaining transparent communication with complainants and rigorously applying DISP rules on time-barring, {{firm.name}} ensures that complainants are fully informed of their rights while safeguarding the firm’s regulatory obligations. {{firm.name}} remains committed to acting fairly and promptly, even in cases where complaints are deemed to fall outside the time limits for referral to the Financial Ombudsman Service.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.489Z"
+  },
+  {
+    "id": "mfs_complaints-ensuring_transparency_and_fairness-root_cause_analysis",
+    "policy_key": "mfs_complaints",
+    "title": "Root Cause Analysis",
+    "body_md": "| Regulatory References: DISP 1.3.3R (Complaints Handling Rules) SYSC 6.1.1R (Compliance and Internal Audit) |\n| --- |\n\n{{firm.name}} implements a robust Root Cause Analysis (RCA) process to identify and address the underlying causes of complaints, ensuring continuous improvement in our products, services, and processes.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.489Z"
+  },
+  {
+    "id": "mfs_complaints-ensuring_transparency_and_fairness-rca_methodology",
+    "policy_key": "mfs_complaints",
+    "title": "RCA Methodology",
+    "body_md": "- Trigger: RCA is initiated for:\n- All upheld complaints\n- Rejected complaints where the customer has escalated to the FOS\n- Any complaint types occurring three or more times in a quarter\n- Process:\n- Data Gathering: Collect all relevant information, including customer communications, product details, and staff actions\n- Analysis: Use the '5 Whys' technique to drill down to the root cause\n- Categorisation: Classify root causes (e.g., process failure, staff error, product design flaw)\n- Action Planning: Develop specific, measurable actions to address the root cause.\n- Implementation: Execute the action plan with clear ownership and timelines.\n- Monitoring: Track the effectiveness of implemented actions.\n- Frequency: Conduct RCA reviews monthly, with a comprehensive quarterly review presented to the Risk Committee.\nExample RCA: Complaint: Customers repeatedly complain about unexpected fees in remittance service.\n| RCA Step | Details |\n| --- | --- |\n| Symptom | Customers surprised by fees |\n| Why 1 | Fee disclosure not prominent in documentation |\n| Why 2 | Current template buries fee information in small print |\n| Why 3 | Template designed without customer comprehension in mind |\n| Why 4 | Lack of customer-centric approach in document design process |\n| Root Cause | Absence of customer feedback in document creation process |\n| Action | Implement customer panel review for all new customer-facing documents |",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.489Z"
+  },
+  {
+    "id": "mfs_complaints-integration_with_product_development-integration_with_product_development",
+    "policy_key": "mfs_complaints",
+    "title": "Integration with Product Development",
+    "body_md": "- Quarterly RCA findings are presented to the Product Development team\n- Any product-related root causes must be addressed in the next product review cycle\n- The Compliance team signs off on how RCA findings have been incorporated into product improvements",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.489Z"
+  },
+  {
+    "id": "mfs_complaints-integration_with_product_development-complaints_record_rule",
+    "policy_key": "mfs_complaints",
+    "title": "Complaints Record Rule",
+    "body_md": "{{firm.name}} requires that it keep a record of each complaint received. {{firm.name}} will also keep a log of all complaints forwarded from third parties and the measures taken for their resolution.\nIn both cases {{firm.name}} must retain records for:\n- at least five years, where the complaint relates to MiFID business; and\n- three years for all other complaints;\nThese timescales begin from the date the complaint was received.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.490Z"
+  },
+  {
+    "id": "mfs_complaints-integration_with_product_development-complaints_reporting_rules",
+    "policy_key": "mfs_complaints",
+    "title": "Complaints Reporting Rules",
+    "body_md": "{{firm.name}} is committed to complying with the FCA’s requirements under DISP 1.10, ensuring accurate and timely submission of complaints data. {{firm.name}} recognises that complaints reporting plays a key role in the regulatory oversight of complaint handling and enables the FCA to monitor trends and ensure fair outcomes for consumers.\nElectronic Reporting via FCA Systems\nAll complaints reports must be submitted online through the FCA’s RegData platform in accordance with DISP 1.10.1R. {{firm.name}} will submit its complaints data twice a year, ensuring the data captures all complaints received from eligible complainants relating to activities carried out by {{firm.name}}’s employees, including those acting as retail investment advisers.\nReporting Periods\nThe reporting periods for {{firm.name}} are:\n- The six months immediately following {{firm.name}}’s accounting reference date.\n- The six months immediately preceding {{firm.name}}’s accounting reference date.\nThese periods ensure that {{firm.name}} provides the FCA with up-to-date information on its complaint handling practices and outcomes.\nData Reporting Categories\nWhen preparing the complaints report, {{firm.name}} will adhere to the FCA DISP 1 Annex 1C R format and consider the following factors:\n- If a complaint falls into more than one category, {{firm.name}} will assign the complaint to the category that represents the main subject of the complaint.\n- Even when complaints are resolved within three business days under DISP 1.5, they will still be included in the complaints data report. Complaints that are upheld in part, or where {{firm.name}} provides a goodwill payment without accepting the complaint, will also be treated as upheld for reporting purposes. However, complaints that are rejected but include goodwill payments will be recorded as rejected.\n- When reporting on the amount of redress paid, {{firm.name}} will include:\n- Payments for distress and inconvenience.\n- Free transfers out to another provider that would normally incur a fee.\n- Goodwill payments or gestures.\n- Interest on delayed settlements..\n- Payments to restore the customer to the position they would have been in if the issue had not occurred.\n- Refunds of premiums taken in error, such as overcharges, will not be considered redress and will not be included in the report.\nSystem Failure Contingency\nIn the event that {{firm.name}} is unable to submit its complaints report electronically due to a system failure, {{firm.name}} will notify the FCA immediately, in writing, providing details of the failure and an estimated timeline for submission once the issue is resolved. This ensures transparency and compliance with DISP 1.10.1R.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.490Z"
+  },
+  {
+    "id": "mfs_complaints-complaints_data_summary_and_publication-complaints_data_summary_and_publica",
+    "policy_key": "mfs_complaints",
+    "title": "Complaints Data Summary and Publication",
+    "body_md": "In alignment with DISP 1.10A.1R, {{firm.name}} is required to publish a Complaints Data Summary if it submits 500 or more complaints within a reporting period. This data summary provides a transparent overview of the nature and resolution of complaints handled by {{firm.name}}, ensuring stakeholders have access to this information.\nComplaints Data Summary Format\nThe complaints data summary will follow the format prescribed by DISP 1 Annex 1B R and will include:\n- The total number of complaints received.\n- The number of complaints upheld.\n- The amount of redress paid where applicable.\nGroup Reporting\nIf {{firm.name}} submits a joint report on behalf of itself and other firms within a group, and the report includes 500 or more complaints, {{firm.name}} will also publish a joint Complaints Data Summary. This ensures that group-level complaint data is transparently shared with the FCA and the public.\nFCA Confirmation\nAfter publishing the Complaints Data Summary, {{firm.name}} will send a confirmation email to the FCA at complaintsdatasummary@fca.org.uk, confirming that:\n- The complaints data summary accurately reflects the information submitted to the FCA.\n- The summary has been published.\n- The location of the published summary (e.g., on the {{firm.name}} website).",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.490Z"
+  },
+  {
+    "id": "mfs_complaints-complaints_data_summary_and_publication-management_information_and_reportin",
+    "policy_key": "mfs_complaints",
+    "title": "Management Information and Reporting",
+    "body_md": "| Regulatory References: SYSC 6.1 PRIN 2A.5 |\n| --- |\n\n{{firm.name}} implements a comprehensive Management Information (MI) and reporting system to ensure effective oversight of the complaints handling process and to drive continuous improvement.\nKey MI Metrics (not exhaustive):\n- Volume and Trends\n- Total number of complaints received (daily, weekly, monthly)\n- Complaints by product/service type\n- Complaints by cause (e.g., service, pricing, communication)\n- Timeliness\n- Average time to resolution\n- Percentage of complaints resolved within 3, 15, and 35 business days\n- Number of complaints exceeding 15 days FCA timeline\n- Outcomes\n- Uphold rate (total and by product/service)\n- Financial redress paid (total and average per complaint)\n- Customer satisfaction with complaint handling\n- Escalations\n- Number of complaints referred to FOS\n- FOS overturn rate\n- Vulnerable Customers\n- Number of complaints from identified vulnerable customers\n- Average handling time for vulnerable customer complaints\n- Root Cause Analysis\n- Number of RCAs conducted\n- Top identified root causes\n- Actions taken to address root causes\nReporting Framework\n| Report | Frequency | Audience | Key Contents |\n| --- | --- | --- | --- |\n| Daily Complaints Dashboard + Consumer Outcomes Dashboard | Daily | Complaints Team, Senior Management | New complaints, Resolved complaints, Aging complaints |\n| Weekly Complaints Summary | Weekly | Department Heads, Compliance | Trends, Emerging issues, Resource allocation |\n| Monthly Complaints Report | Monthly | Executive Committee | Comprehensive overview, KPI performance, Action plans |\n| Quarterly Board Report | Quarterly | Board of Directors | Strategic overview, Regulatory compliance, Consumer Duty alignment |",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.490Z"
+  },
+  {
+    "id": "mfs_complaints-using_mi_to_drive_improvement-using_mi_to_drive_improvement",
+    "policy_key": "mfs_complaints",
+    "title": "Using MI to Drive Improvement",
+    "body_md": "- Identify recurring issues or spikes in complaint types to proactively address potential systemic problems.\n- Use volume and complexity data to ensure appropriate staffing and training.\n- Feed complaints insights into the product review and development process.\n- Identify areas where additional staff training may be required based on complaint trends.\nExample: The Monthly Complaints Report identifies a 20% increase in complaints about unexpected fee structures in payment services. In response:\n- The Product Team initiates a review of fee disclosure in all marketing materials and agreements\n- The Training Department develops an enhanced module on explaining fees to customers\n- The Compliance Team conducts a focused audit on fee-related complaints to identify any potential systemic issues\n- The Executive Committee sets a target to reduce fee-related complaints by 50% over the next quarter\nBy leveraging comprehensive MI and maintaining a robust reporting framework, {{firm.name}} ensures that complaints data informs strategic decision-making, supports continuous improvement, and ultimately leads to better customer outcomes in line with regulatory expectations and the Consumer Duty.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.490Z"
+  },
+  {
+    "id": "mfs_complaints-using_mi_to_drive_improvement-a_closed_complaint",
+    "policy_key": "mfs_complaints",
+    "title": "A Closed Complaint",
+    "body_md": "| Regulatory References: •DISP 1.5.5R (Definition of a Closed Complaint) •DISP 1.10.2R (Reporting Complaints to the FCA) |\n| --- |\n\nA complaint is deemed closed by {{firm.name}} when one of the following conditions has been met, ensuring clarity and consistency in how {{firm.name}} manages and reports on closed complaints:\nFinal Response Issued\n- {{firm.name}} has issued a Final Response to the complainant, in accordance with DISP 1.6.2R, which either:\n- Accepts the complaint and offers redress or remedial action;\n- Offers redress or remedial action without accepting the complaint; or\n- Rejects the complaint with clear reasons provided.\n- The Final Response must include the complainant’s right to escalate the complaint to theFOS if they are dissatisfied with the outcome, along with the appropriate contact information and FOS explanatory leaflet.\nWritten Acceptance from the Complainant\n- The complainant has provided written confirmation that they accept {{firm.name}}’s earlier response, even if the complaint is not fully resolved to their satisfaction.\n- Once acceptance is received in writing, the complaint is considered closed, and {{firm.name}} logs this as the closure date for reporting purposes.\nLack of Response from the Complainant\n- If a complainant fails to respond within fifteen days of receiving a written response from {{firm.name}}, the firm may consider the complaint closed. For the purposes of FCA reporting under DISP 1.10, {{firm.name}} will log the date of its original response as the closure date if the complainant does not reply within the fifteen day period.\n- {{firm.name}} will ensure that reasonable efforts are made to follow up with the complainant before considering the complaint closed, such as sending a reminder communication after fifteen days of no response (with a contingency of 35 days). This helps demonstrate that {{firm.name}} is acting fairly and in the complainant’s best interests.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.490Z"
+  },
+  {
+    "id": "mfs_complaints-ongoing_monitoring_of_closed_complaints-ongoing_monitoring_of_closed_compla",
+    "policy_key": "mfs_complaints",
+    "title": "Ongoing Monitoring of Closed Complaints",
+    "body_md": "•{{firm.name}} will continue to monitor closed complaints through its Complaint Management System, particularly those closed due to lack of response. This ensures that if a complainant later re-engages, the complaint can be reopened and dealt with promptly.\n•Root Cause Analysis (RCA) will still be conducted on closed complaints to identify any systemic issues or trends, even if the complainant did not follow up.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.490Z"
+  },
+  {
+    "id": "mfs_complaints-ongoing_monitoring_of_closed_complaints-notification_of_contact_point_for_c",
+    "policy_key": "mfs_complaints",
+    "title": "Notification Of Contact Point For Complainants",
+    "body_md": "| Regulatory References: •DISP 1.10.2R (Complaints Data Submission) •DISP 1.11.2G (FCA Register Contact Point Requirements) |\n| --- |\n\nTo ensure transparency and accessibility for complainants, {{firm.name}} will provide the FCA with a designated contact point for handling complaints. This ensures that any customer, regulatory body, or external party can easily contact {{firm.name}} regarding complaint-related matters.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.490Z"
+  },
+  {
+    "id": "mfs_complaints-how_mfs_handles_complaint_contact_notifications-how_mfs_handles_complaint_c",
+    "policy_key": "mfs_complaints",
+    "title": "How MFS Handles Complaint Contact Notifications",
+    "body_md": "Initial Notification at Authorisation\nUpon receiving authorisation from the FCA, {{firm.name}} will provide details of its primary contact point for complaints handling to be listed in the FCA’s Financial Services Register. This ensures that consumers, the FCA, and other stakeholders can easily identify the correct point of contact for any complaints made against {{firm.name}}.\nDetails of Contact Point:\nThe designated contact point for {{firm.name}} is:\n- Misah Maragh, responsible for the oversight and handling of complaints in compliance with DISP 1.\n- Misah Maragh ensures that all complaints are managed effectively and in accordance with the DISP rules, and also coordinates with other teams when necessary to resolve complaints efficiently.\nNotification of Changes\n{{firm.name}} commits to notifying the FCA of any changes to the designated contact point promptly. This will be done in the next Complaints Data Report submission under DISP 1.10 or at the earliest possible opportunity if the change occurs between reporting periods.nThis includes changes in the individual’s contact details (e.g., phone number or email) or if a new person assumes responsibility for complaints oversight.\nVisibility and Public Access\n{{firm.name}} will ensure that complainants are provided with the contact details for Misah Maragh in all relevant complaints-related documentation, including acknowledgement letters, final response letters, and other communications. This contact information will also be made available on {{firm.name}}’s website to ensure customers know whom to contact for complaints escalation. Additionally, the Financial Services Register will display {{firm.name}}’s designated contact point to enhance transparency and provide consumers with a reliable source for complaints information.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.490Z"
+  },
+  {
+    "id": "mfs_complaints-regulatory_context_and_approach-regulatory_context_and_approach",
+    "policy_key": "mfs_complaints",
+    "title": "Regulatory Context and Approach",
+    "body_md": "When a complaint is referred to the FOS, {{firm.name}} recognises the importance of thorough preparation and a strategic response. Complaints referred to the FOS will undergo a comprehensive review process, ensuring that {{firm.name}} maintains full compliance with DISP rules while effectively managing reputational risk and customer relations.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.490Z"
+  },
+  {
+    "id": "mfs_complaints-fos_complaint_management_process-fos_complaint_management_process",
+    "policy_key": "mfs_complaints",
+    "title": "FOS Complaint Management Process",
+    "body_md": "Internal Review and Preparation Meeting:\n- Upon receipt of notice that a complaint has been referred to the FOS, {{firm.name}} will convene a formal meeting to review the case. This meeting will involve key stakeholders, including:\n- The Board of Directors: to provide governance oversight and strategic input.\n- Complaint Investigator/Compliance Officer (SMF 16): to present the findings of the internal investigation and coordinate {{firm.name}}’s approach to the FOS.\n- The purpose of the meeting is to:\n- Review the complaint’s background: Examine the evidence, internal correspondence, customer interactions, and any prior decisions made by {{firm.name}}.\n- Identify potential risks: Assess the likelihood of an adverse ruling by the FOS and any regulatory or financial risks associated with the complaint.\n- Agree on a response strategy: Formulate a clear, defensible position to present to the FOS, ensuring that {{firm.name}} addresses all relevant facts and any regulatory considerations in a transparent manner.\nFOS Submission\n- Following the internal review, {{firm.name}} will prepare its formal submission to the FOS. This submission will:\n- Include all supporting documentation, including customer agreements, communication records, and previous responses.\n- Clearly outline {{firm.name}}’s position on the matter, including any offers of remedial action or redress that may have been made during the internal complaints process.\n- Demonstrate compliance with the relevant FCA DISP rules, including clear reasoning for the original decision, particularly if {{firm.name}} decided to reject the complaint or offer partial redress.\nOngoing Communication and FOS Engagement\n- {{firm.name}} will fully cooperate with the FOS throughout the complaint resolution process. This includes:\n- Responding promptly to any requests for additional information or clarification from the FOS.\n- Providing regular updates to the complainant, as required by DISP 1.4, ensuring that the customer remains informed of the status of their complaint.\n- {{firm.name}} will ensure that its Compliance Officer acts as the key liaison with the FOS, ensuring all responses are consistent and aligned with {{firm.name}}’s regulatory obligations.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.490Z"
+  },
+  {
+    "id": "mfs_complaints-fos_complaint_management_process-time_barring_decisions",
+    "policy_key": "mfs_complaints",
+    "title": "Time-Barring Decisions",
+    "body_md": "{{firm.name}} acknowledges the importance of correctly applying the time limits for referral to the FOS, as outlined in DISP 2.8. To ensure fair treatment and compliance with regulatory standards, the following process is adopted for handling time-barring decisions:\nCompliance Oversight\n- Any decision to reject a complaint on the grounds of time-barring must be referred to the Compliance Officer (SMF 16) for approval.\n- The SMF 16 will conduct a detailed review of the complaint’s timeline to ensure that the decision is consistent with the time limits set out in DISP 2.8. This includes:\n- Verifying the date the customer first became aware of the issue.\n- Ensuring that the relevant time limits for referring the complaint to the FOS have been exceeded.\nFinal Response for Time-Barred Complaints\n- If a complaint is time-barred, {{firm.name}} will issue a Final Response to the complainant. This response will:\n- Clearly explain that the complaint falls outside the time limits for referral to the FOS.\n- Inform the complainant of the FOS’s discretion to waive the time limits in exceptional circumstances, as per DISP 2.8.2R.\n- Provide the complainant with the necessary information to contact the FOS, including a copy of the FOS explanatory leaflet and relevant contact details, as required under DISP 1.6.2R.\nEscalation for Review\n- In cases where there is ambiguity regarding the application of time-barring rules, the Compliance Officer may escalate the matter to the {{firm.name}} Board for further discussion and input. This ensures that all decisions are fully considered and comply with both the spirit and the letter of DISP regulations.\nReporting Requirements:\n{{firm.name}} will submit complaints data to the FCA in accordance with DISP 1.10, including details on:\n- The number of complaints referred to the FOS\n- The outcomes of complaints resolved by {{firm.name}}\n- Any time-barred complaints and the reasons for their rejection.\n{{firm.name}} will use complaints data to identify trends and potential root causes, feeding these insights back into its complaints management processes to drive continuous improvement.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.490Z"
+  },
+  {
+    "id": "mfs_complaints-fos_complaint_management_process-training_and_competence_in_complaints_hand",
+    "policy_key": "mfs_complaints",
+    "title": "Training And Competence In Complaints Handling",
+    "body_md": "| Regulatory References: TC 2.1 (Assessing and maintaining competence) SYSC 5.1 (Skills, knowledge and expertise) PRIN 2A (Consumer Duty) |\n| --- |\n\n{{firm.name}} is committed to ensuring all staff involved in complaints handling are appropriately trained and maintain the necessary competence to deliver fair outcomes for customers.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.491Z"
+  },
+  {
+    "id": "mfs_complaints-fos_complaint_management_process-training_programme",
+    "policy_key": "mfs_complaints",
+    "title": "Training Programme",
+    "body_md": "- Initial Training:\n- All new staff undergo a comprehensive induction programme covering:\n- Regulatory framework (DISP, PRIN, Consumer Duty)\n- {{firm.name}} complaints procedures\n- Effective communication skills\n- Identifying and supporting vulnerable customers\n- Ongoing Training:\n- Quarterly refresher sessions on regulatory updates and best practices\n- Annual e-learning modules on complaints handling\n- Bi-annual workshops on complex complaint scenarios\n- Specialist Training:\n- Advanced courses for staff handling complex or high-risk complaints\n- Vulnerability awareness training for all customer-facing staff\nTraining Content and Delivery\n| Training Area | Content | Delivery Method | Frequency |\n| --- | --- | --- | --- |\n| Regulatory Knowledge | FCA Handbook updates, Consumer Duty principles | E-learning, Webinars | Quarterly |\n| Product Knowledge | Features, terms, common issues | Face-to-face workshops, Product bulletins | Monthly |\n| Soft Skills | Active listening, Empathy, De-escalation techniques | Role-play exercises, Peer feedback sessions | Bi-annually |\n| Vulnerability | Identifying and supporting vulnerable customers | Specialist-led workshops, Case studies | Annually |",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.491Z"
+  },
+  {
+    "id": "mfs_complaints-fos_complaint_management_process-competence_assessment",
+    "policy_key": "mfs_complaints",
+    "title": "Competence Assessment",
+    "body_md": "- Knowledge Checks:\n- Regular quizzes on regulatory knowledge and {{firm.name}} policies\n- Annual assessment of product knowledge\n- Quality Assurance:\n- Monthly call monitoring and complaint file reviews\n- Scoring against competency framework\n- Performance Metrics:\n- Customer satisfaction scores\n- Complaint resolution times\n- Upheld complaint ratios\n- Continuous Improvement:\n- Personal development plans for all complaints handling staff\n- Quarterly one-to-one reviews with line managers to discuss performance and development needs\nExample of Competence Framework\n| Competency Area | Basic Level | Intermediate Level | Advanced Level |\n| --- | --- | --- | --- |\n| Regulatory Knowledge | Understands DISP rules | Can apply DISP in complex scenarios | Can interpret and implement new regulatory guidance |\n| Communication Skills | Clear written responses | Handles difficult conversations effectively | Coaches others in effective communication |\n| Decision Making | Resolves simple complaints independently | Handles complex complaints with minimal supervision | Makes decisions on high-risk or reputationally sensitive complaints |\n\nMaintaining and Updating Competence\n- Annual competency review for all complaints handling staff\n- Targeted training interventions based on QA results and performance metrics\n- Continuous feedback loop between Training, Compliance, and Complaints teams to address emerging training needs",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.491Z"
+  },
+  {
+    "id": "mfs_complaints-fos_complaint_management_process-quality_assurance_in_complaints_handling",
+    "policy_key": "mfs_complaints",
+    "title": "Quality Assurance in Complaints Handling",
+    "body_md": "| Regulatory References: SYSC 6.1 (Compliance, internal audit and financial crime) PRIN 2A (Consumer Duty) DISP 1.3 (Complaints handling rules) |\n| --- |\n\n{{firm.name}} implements a robust Quality Assurance (QA) framework to ensure consistency, fairness, and regulatory compliance in its complaints handling process. This framework supports the delivery of good outcomes for customers and aligns with the principles of the Consumer Duty.\nQA Process\n- Sample Selection:\n- Random selection of 10% of all resolved complaints\n- 100% review of high-risk complaints (e.g., vulnerable customers, high-value redress, potential FOS referrals)\n- Thematic reviews based on identified trends or concerns\n- Assessment Criteria:\n- Regulatory compliance (DISP, PRIN, Consumer Duty)\n- Adherence to {{firm.name}} policies and procedures\n- Quality of investigation and decision-making\n- Clarity and empathy in customer communications\n- Timeliness of response\n- Appropriateness of any redress offered\n- Scoring System:\n- Each case is scored out of 100, with different weightings for various criteria\n- Minimum acceptable score: 80\n- Any case scoring below 80 triggers immediate remedial action\nQA Scoring Matrix\n| Criteria | Weighting | Scoring Guide |\n| --- | --- | --- |\n| Regulatory Compliance | 30% | 0-10: Major breaches11-20: Minor breaches21-30: Fully compliant |\n| Investigation Quality | 25% | 0-8: Inadequate9-16: Satisfactory17-25: Thorough |\n| Communication | 20% | 0-6: Unclear/inappropriate/unexpected7-13: Clear but room for improvement14-20: Clear, empathetic, tailored |\n| Timeliness | 15% | 0-5: Missed regulatory deadlines6-10: Met deadlines but delays11-15: Prompt throughout |\n| Redress Appropriateness | 10% | 0-3: Inappropriate4-7: Reasonable8-10: Fair and well-justified |",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.491Z"
+  },
+  {
+    "id": "mfs_complaints-fos_complaint_management_process-review_process",
+    "policy_key": "mfs_complaints",
+    "title": "Review Process",
+    "body_md": "- Initial review by QA specialist\n- Peer review for any cases scoring below 80\n- Senior management review for high-risk or complex cases",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.491Z"
+  },
+  {
+    "id": "mfs_complaints-fos_complaint_management_process-feedback_loop",
+    "policy_key": "mfs_complaints",
+    "title": "Feedback Loop",
+    "body_md": "- Individual feedback provided to complaint handlers within 5 working days\n- Monthly team-level feedback sessions to share learnings and best practices\n- Quarterly thematic reviews to identify systemic issues or training needs",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.491Z"
+  },
+  {
+    "id": "mfs_complaints-fos_complaint_management_process-continuous_improvement",
+    "policy_key": "mfs_complaints",
+    "title": "Continuous Improvement",
+    "body_md": "- QA results feed into individual and team performance reviews\n- Identified issues inform updates to policies, procedures, and training programmes\n- Regular calibration sessions to ensure consistency in QA assessments",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.491Z"
+  },
+  {
+    "id": "mfs_complaints-fos_complaint_management_process-example_qa_outcome",
+    "policy_key": "mfs_complaints",
+    "title": "Example QA Outcome",
+    "body_md": "A complaint about unexpected fees in remittance service receives a QA score of 75\n- Regulatory Compliance: 25/30 (minor breach in fee disclosure)\n- Investigation Quality: 20/25 (thorough investigation)\n- Communication: 15/20 (clear but could be more empathetic)\n- Timeliness: 12/15 (prompt response throughout)\n- Redress Appropriateness: 3/10 (redress offered does not fully address the issue)",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.491Z"
+  },
+  {
+    "id": "mfs_complaints-fos_complaint_management_process-action_plan",
+    "policy_key": "mfs_complaints",
+    "title": "Action Plan",
+    "body_md": "- Complaint handler to receive refresher training on fee disclosure requirements\n- Review and revise fee disclosure in all product documentation\n- Develop templates for more empathetic communication\n- Re-assess redress calculation methodology for fee-related complaints",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.491Z"
+  },
+  {
+    "id": "mfs_complaints-fos_complaint_management_process-reporting",
+    "policy_key": "mfs_complaints",
+    "title": "Reporting",
+    "body_md": "- Weekly QA summary report to Complaints Manager\n- Monthly QA trends report to Senior Management\n- Quarterly QA overview to the Board, including:\n- Overall QA scores and trends\n- Key issues identified\n- Actions taken to address shortcomings\n- Impact on customer outcomes and Consumer Duty obligations",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.491Z"
+  },
+  {
+    "id": "mfs_complaints-fos_complaint_management_process-continuous_improvement_in_complaints_handl",
+    "policy_key": "mfs_complaints",
+    "title": "Continuous Improvement In Complaints Handling",
+    "body_md": "| Regulatory References: SYSC 6.1 (Compliance, internal audit and financial crime) PRIN 2A (Consumer Duty) DISP 1.3 (Complaints handling rules) |\n| --- |\n\n{{firm.name}} is committed to continuously improving its complaints handling processes to ensure the best possible outcomes for customers and maintain compliance with evolving regulatory requirements.\nContinuous Improvement Framework:\n- Regular Policy and Procedure Reviews:\n- Quarterly review of complaints handling policy\n- Monthly review of operational procedures\n- Ad-hoc reviews triggered by regulatory changes or significant complaint trends\n- Feedback Integration:\n- Analysis of FOS decisions\n- Incorporation of customer feedback from post-complaint surveys\n- Regular engagement with industry bodies and peers for best practice sharing\n- Data-Driven Improvement:\n- Monthly analysis of complaints data to identify trends and areas for improvement\n- Quarterly deep-dives into root causes of complaints\n- Annual review of complaint categories to ensure they remain relevant and insightful\n- Technology Enhancement:\n- Ongoing assessment of complaints management system capabilities\n- Regular updates to digital complaint channels to improve user experience\n- Exploration of AI and machine learning for complaint trend prediction\n- Staff Development:\n- Continuous learning programmes for complaints handling staff\n- Regular knowledge sharing sessions to disseminate learnings from complex cases\n- Annual skills assessment and personalised development plans\nContinuous Improvement Cycle\n| Stage | Actions | Frequency | Responsibility |\n| --- | --- | --- | --- |\n| Identify | Analyse complaints data, FOS decisions, customer feedback | Monthly | Complaints Analysis Team |\n| Plan | Develop improvement initiatives based on insights | Quarterly | Complaints Manager |\n| Implement | Roll out new processes, update systems, conduct training | As needed | Various Teams |\n| Review | Assess impact of improvements on complaint outcomes | Quarterly | Quality Assurance Team |\n| Refine | Adjust improvements based on impact assessment | Ongoing | Complaints Manager |",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.491Z"
+  },
+  {
+    "id": "mfs_complaints-fos_complaint_management_process-example_improvement_initiative",
+    "policy_key": "mfs_complaints",
+    "title": "Example Improvement Initiative",
+    "body_md": "Issue Identified: Increase in complaints about unexpected fee structures in remittance services.\nImprovement Plan\n- Review and simplify fee structure documentation\n- Enhance staff training on explaining fees to customers\n- Implement a 'fee checker' tool on the website for customer self-service\n- Introduce a follow-up call process to ensure customer understanding of fees\nImplementation\n- Documentation team updates all fee-related materials\n- Training team delivers enhanced fee explanation module to all customer-facing staff\n- IT team develops and launches 'fee checker' tool\n- Operations team implements new follow-up call process\nReview\n- Monitor fee-related complaints for 3 months post-implementation\n- Conduct customer surveys to assess understanding of fee structures\n- Analyse uptake and effectiveness of 'fee checker' tool\nRefinement\n- Based on review outcomes, make further adjustments to documentation or processes as needed\n- Share learnings across the organisation to prevent similar issues in other product areas",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.491Z"
+  },
+  {
+    "id": "mfs_complaints-external_inputs_for_improvement-external_inputs_for_improvement",
+    "policy_key": "mfs_complaints",
+    "title": "External Inputs for Improvement",
+    "body_md": "- FOS Decisions:\n- Monthly review of FOS decisions related to {{firm.name}} and similar firms\n- Implement learnings from FOS decisions into complaints handling processes\n- Regulatory Updates:\n- Compliance team provides monthly briefings on relevant regulatory changes\n- Immediate policy and procedure updates in response to significant regulatory shifts\n- Industry Best Practices:\n- Active participation in industry forums and working groups\n- Annual benchmarking exercise against industry peers\n- Customer Feedback:\n- Post-complaint surveys to gather customer perspectives on the complaints process\n- Annual focus groups with customers to gain deeper insights into their expectations",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.492Z"
+  },
+  {
+    "id": "mfs_complaints-appendix_1_template_complaint_letters_used_by_mema_financial_services-appen",
+    "policy_key": "mfs_complaints",
+    "title": "Appendix 1 – Template Complaint Letters Used by MEMA Financial Services",
+    "body_md": "1. Acknowledgement Letter for Complainants (amended as required for PSD related complaints)\nFirm name\nAddress1\nAddress2\nPostcode\nPhone number: XXX XXX XXX\nCall charges explanation\nCall charges explanation\nCall charges explanation\nCustomer salutation, initials and surname\nAddress1 Date: {{ddmonthyyy}}\nAddress2 Ref: {{cmpxxxx}}\nAddress3\nPostcode",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [
+      {
+        "name": "ddmonthyyy",
+        "description": "ddmonthyyy",
+        "type": "text",
+        "required": true
+      },
+      {
+        "name": "cmpxxxx",
+        "description": "CMPXXXX",
+        "type": "text",
+        "required": true
+      }
+    ],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.492Z"
+  },
+  {
+    "id": "mfs_complaints-appendix_1_template_complaint_letters_used_by_mema_financial_services-we_ve",
+    "policy_key": "mfs_complaints",
+    "title": "We’ve received your complaint",
+    "body_md": "Dear {{insert_name}}\nThank you for your complaint {{call_letter_email_you_posted_online}} which was received on {{ddmonthyyyy}}. I am sorry to learn of your dissatisfaction with our service at {{firm_name}}.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [
+      {
+        "name": "insert_name",
+        "description": "insert name",
+        "type": "text",
+        "required": true
+      },
+      {
+        "name": "call_letter_email_you_posted_online",
+        "description": "call / letter / email / you posted online",
+        "type": "text",
+        "required": true
+      },
+      {
+        "name": "ddmonthyyyy",
+        "description": "ddmonthyyyy",
+        "type": "text",
+        "required": true
+      },
+      {
+        "name": "firm_name",
+        "description": "firm name",
+        "type": "text",
+        "required": true
+      }
+    ],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.492Z"
+  },
+  {
+    "id": "mfs_complaints-appendix_1_template_complaint_letters_used_by_mema_financial_services-we_re",
+    "policy_key": "mfs_complaints",
+    "title": "We’re here to help",
+    "body_md": "Your concerns have been logged and will be investigated by a case handler and the outcome will be sent to you in writing. Please be aware that it may be necessary for the assigned case handler to contact you if further information is needed regarding your complaint.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.492Z"
+  },
+  {
+    "id": "mfs_complaints-appendix_1_template_complaint_letters_used_by_mema_financial_services-next_",
+    "policy_key": "mfs_complaints",
+    "title": "Next Steps",
+    "body_md": "Under the rules of the Financial Conduct Authority we are required to handle your complaint within set procedures and timescales. I have included details of these overleaf. Please accept my apologies for the inconvenience you have been caused. We value the loyalty of all our customers and appreciate the opportunity to put this right for you and future customers.\nYours sincerely\n{{contact_name}}\n{{job_title}}\nEnc. ‘Our Commitment to Handling Complaints’",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [
+      {
+        "name": "contact_name",
+        "description": "Contact name",
+        "type": "text",
+        "required": true
+      },
+      {
+        "name": "job_title",
+        "description": "Job title",
+        "type": "text",
+        "required": true
+      }
+    ],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.492Z"
+  },
+  {
+    "id": "mfs_complaints-appendix_1_template_complaint_letters_used_by_mema_financial_services-our_c",
+    "policy_key": "mfs_complaints",
+    "title": "Our Commitment to Handling Complaints [Eligible complainants only]",
+    "body_md": "We know that sometimes things go wrong and we really value your feedback. Letting us know when you are not happy with our people, products or services provides us with the opportunity to put the situation right as quickly as possible and helps us to improve our service for all our customers.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.492Z"
+  },
+  {
+    "id": "mfs_complaints-appendix_1_template_complaint_letters_used_by_mema_financial_services-our_p",
+    "policy_key": "mfs_complaints",
+    "title": "Our promise is to:",
+    "body_md": "● Treat your complaint fairly.\n● Try to resolve complaints when you first contact us.\n● If we cannot resolve your complaint straight away, we will send you a response in writing.\n● Keep you informed of our progress.\n● Learn from our mistakes to make things better.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.492Z"
+  },
+  {
+    "id": "mfs_complaints-appendix_1_template_complaint_letters_used_by_mema_financial_services-what_",
+    "policy_key": "mfs_complaints",
+    "title": "What happens next?",
+    "body_md": "We will handle your complaint as quickly and thoroughly as possible. If we cannot resolve your complaint immediately, we promise to keep you informed of our progress until your complaint has been resolved. We will aim to resolve your complaint within a maximum timescale of 15 days – however if we have not been able to resolve your complaint within 35 days, we’ll write to you and let you know why.\nShould you have any further concerns or information relating to your complaint, please use the contact details provided on the letter to contact us directly, either by phone or letter, so that we can fully address your complaint.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.492Z"
+  },
+  {
+    "id": "mfs_complaints-appendix_1_template_complaint_letters_used_by_mema_financial_services-not_s",
+    "policy_key": "mfs_complaints",
+    "title": "Not satisfied with our response?",
+    "body_md": "We are committed to ensuring all complaints are fully and fairly addressed and we work hard to ensure our customer outcomes are appropriate and fair. Should you remain dissatisfied after you have been provided with our final response, or if fifteen days have passed since you first raised the matter with us, you may have the option to refer the matter to the Financial Ombudsman Service. If your complaint relates to a payment service and you are not eligible for the Financial Ombudsman Service, you may raise it with the Payment Systems Regulator (complaints@psr.org.uk).",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.492Z"
+  },
+  {
+    "id": "mfs_complaints-appendix_1_template_complaint_letters_used_by_mema_financial_services-the_f",
+    "policy_key": "mfs_complaints",
+    "title": "The Financial Ombudsman Service",
+    "body_md": "The role of the FOS is to help settle individual disputes between consumers and businesses providing financial services in the UK. If you contact the FOS before you have received your final response letter from us, or before the fifteen days have passed since you initially raised your concerns with us, the FOS will refer you back to {{firm.name}} LTD to resolve your complaint.\nThe full contact details for the Financial Ombudsman Service are detailed below:\nWrite to: Financial Ombudsman Service, Exchange Tower, London, E14 9SR\nPhone: 0800 0 234 567 (free from landlines) or 0300 123 9 123 (charged at a national rate)\nEmail: complaint.info@financial-ombudsman.org.uk\nWebsite: www.financial-ombudsman.org.uk",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.492Z"
+  },
+  {
+    "id": "mfs_complaints-appendix_2_forward_to_third_party_letter-appendix_2_forward_to_third_party_",
+    "policy_key": "mfs_complaints",
+    "title": "Appendix 2- Forward to Third Party Letter",
+    "body_md": "Firm name\nAddress1\nAddress2\nPostcode\nPhone number: XXX XXX XXX\nCall charges explanation\nCall charges explanation\nCall charges explanation\nCustomer salutation, initials and surname\nAddress1 Date: {{ddmonthyyy}}\nAddress2 Ref: {{cmpxxxx}}\nAddress3\nPostcode",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [
+      {
+        "name": "ddmonthyyy",
+        "description": "ddmonthyyy",
+        "type": "text",
+        "required": true
+      },
+      {
+        "name": "cmpxxxx",
+        "description": "CMPXXXX",
+        "type": "text",
+        "required": true
+      }
+    ],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.492Z"
+  },
+  {
+    "id": "mfs_complaints-appendix_2_forward_to_third_party_letter-we_re_redirecting_your_complaint",
+    "policy_key": "mfs_complaints",
+    "title": "We’re redirecting your complaint…",
+    "body_md": "Dear {{insert_name}}\nThank you for your complaint {{call_letter_you_posted_online_email}} which was received on {{ddmonthyyyy}}. I am writing to you with an important update on your complaint. We’re here to help\nI’ve conducted an initial review of your complaint and I can see that the correct company that needs to investigate this is {{firm_name}}, as it is responsible for looking into the concerns you’ve raised.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [
+      {
+        "name": "insert_name",
+        "description": "insert name",
+        "type": "text",
+        "required": true
+      },
+      {
+        "name": "call_letter_you_posted_online_email",
+        "description": "call / letter / you posted online / email",
+        "type": "text",
+        "required": true
+      },
+      {
+        "name": "ddmonthyyyy",
+        "description": "ddmonthyyyy",
+        "type": "text",
+        "required": true
+      },
+      {
+        "name": "firm_name",
+        "description": "Firm name",
+        "type": "text",
+        "required": true
+      }
+    ],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.492Z"
+  },
+  {
+    "id": "mfs_complaints-appendix_2_forward_to_third_party_letter-your_complaint_is_being_sent_to",
+    "policy_key": "mfs_complaints",
+    "title": "Your complaint is being sent to…",
+    "body_md": "I have today arranged for your complaint to be sent to {{firm_name}}, because it relates to a product you purchased in a branch of {{firm_name}}.\n{{firm_name}} will be in touch with you shortly in relation to your complaint, as it has the right specialist team who will thoroughly investigate your concerns. However, if you wish to contact the firm in the meantime about your complaint or to give it further information, then here are the details you require:\nFirm name\nAddress1\nAddress2\nAddress3\nPostcode\nTelephone number / email address",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [
+      {
+        "name": "firm_name",
+        "description": "Firm name",
+        "type": "text",
+        "required": true
+      }
+    ],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.492Z"
+  },
+  {
+    "id": "mfs_complaints-appendix_2_forward_to_third_party_letter-next_steps",
+    "policy_key": "mfs_complaints",
+    "title": "Next Steps",
+    "body_md": "If you do not feel my response has fully explained what’s happening, there is a further escalation process available to you.\nYou have the right to refer your complaint to the Financial Ombudsman Service, free of charge – but you must do so within six months of the date of this letter. If you do not refer your complaint in time, the Ombudsman will not have our permission to consider your complaint and so will only be able to do so in very limited circumstances - for example, if the Ombudsman believes that the delay was as a result of exceptional circumstances. If your complaint relates to a payment service and you are not eligible for the Financial Ombudsman Service, you may raise it with the Payment Systems Regulator (complaints@psr.org.uk).\nThe full contact details for the Financial Ombudsman Service are detailed below and further information can be found in the enclosed Ombudsman leaflet:\nWrite to: Financial Ombudsman Service, Exchange Tower, London, E14 9SR\nPhone: 0800 0 234 567 (free from landlines) or 0300 123 9 123 (charged at a national rate)\nEmail: complaint.info@financial-ombudsman.org.uk\nWebsite: www.financial-ombudsman.org.uk\nPlease note that {{firm_name}} will need to provide you with a final response letter concerning your complaint, before the Financial Ombudsman Service will be able to look at this for you in detail.\nYours sincerely\n{{name_of_contact}}\n{{job_title}}\nEnc. ‘your complaint and the ombudsman’ leaflet",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [
+      {
+        "name": "firm_name",
+        "description": "Firm name",
+        "type": "text",
+        "required": true
+      },
+      {
+        "name": "name_of_contact",
+        "description": "Name of contact",
+        "type": "text",
+        "required": true
+      },
+      {
+        "name": "job_title",
+        "description": "Job title",
+        "type": "text",
+        "required": true
+      }
+    ],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.492Z"
+  },
+  {
+    "id": "mfs_complaints-appendix_3_complaint_upheld_letter_amended_as_required_for_psd_related_comp",
+    "policy_key": "mfs_complaints",
+    "title": "Appendix 3. Complaint Upheld Letter (amended as required for PSD related complaints)",
+    "body_md": "Firm name\nAddress1\nAddress2\nPostcode\nPhone number: XXX XXX XXX\nCall charges explanation\nCall charges explanation\nCall charges explanation\nCustomer salutation, initials and surname\nAddress1 Date: {{ddmonthyyy}}\nAddress2 Ref: {{cmpxxxx}}\nAddress3\nPostcode",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [
+      {
+        "name": "ddmonthyyy",
+        "description": "ddmonthyyy",
+        "type": "text",
+        "required": true
+      },
+      {
+        "name": "cmpxxxx",
+        "description": "CMPXXXX",
+        "type": "text",
+        "required": true
+      }
+    ],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.492Z"
+  },
+  {
+    "id": "mfs_complaints-appendix_3_complaint_upheld_letter_amended_as_required_for_psd_related_comp",
+    "policy_key": "mfs_complaints",
+    "title": "We’ve investigated your complaint",
+    "body_md": "Dear {{insert_name}}\nThank you for taking the time to contact us about your {{policy_type}}. Firstly I want to apologise for the trouble we’ve caused you. We want to do the best for our customers and I’m sorry on this occasion we’ve let you down. I’m sure in the future you’ll receive a level of service more in keeping with your high expectations of us.\nI have now reviewed your {{telephone_call_letter_email_online_post}} of {{ddmonthyyy}} and I am writing to fully explain the outcome of our investigation. Your complaint details\nI understand you’re unhappy… {{insert_customer_complaint_details_and_ensure_all_points_are_covered_off_in_full}}",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [
+      {
+        "name": "insert_name",
+        "description": "insert name",
+        "type": "text",
+        "required": true
+      },
+      {
+        "name": "policy_type",
+        "description": "policy type",
+        "type": "text",
+        "required": true
+      },
+      {
+        "name": "telephone_call_letter_email_online_post",
+        "description": "telephone call / letter / email / online post",
+        "type": "text",
+        "required": true
+      },
+      {
+        "name": "ddmonthyyy",
+        "description": "ddmonthyyy",
+        "type": "text",
+        "required": true
+      },
+      {
+        "name": "insert_customer_complaint_details_and_ensure_all_points_are_covered_off_in_full",
+        "description": "insert customer complaint details & ensure all points are covered off in full",
+        "type": "text",
+        "required": true
+      }
+    ],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.492Z"
+  },
+  {
+    "id": "mfs_complaints-appendix_3_complaint_upheld_letter_amended_as_required_for_psd_related_comp",
+    "policy_key": "mfs_complaints",
+    "title": "My decision and findings",
+    "body_md": "Your complaint has been thoroughly investigated and I am pleased to say the decision has been made to uphold the complaint in your favour. {{explain_what_we_did_to_investigate_what_went_wrong_what_we_will_do_to_put_it_right}}",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [
+      {
+        "name": "explain_what_we_did_to_investigate_what_went_wrong_what_we_will_do_to_put_it_right",
+        "description": "explain what we did to investigate / what went wrong / what we will do to put it right",
+        "type": "text",
+        "required": true
+      }
+    ],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.492Z"
+  },
+  {
+    "id": "mfs_complaints-appendix_3_complaint_upheld_letter_amended_as_required_for_psd_related_comp",
+    "policy_key": "mfs_complaints",
+    "title": "[Compile standard paragraphs for some help with this and insert here]",
+    "body_md": "It’s clear on this occasion we’ve failed to take sufficient care when completing our administrative procedures and this has led to the situation you’ve described. I certainly understand your frustration in this matter and would like to offer my apologies for the inconvenience we have caused you.\nAs part of our ongoing commitment to put things right for our customers and deliver great customer service, we review all complaints to learn from our mistakes. We work hard to provide additional training to any of our people who have made a mistake. As a result, we’ve made a number of changes to our services and processes as a direct result of customer feedback such as yours. I’d therefore like to thank you for bringing this matter to our attention.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.492Z"
+  },
+  {
+    "id": "mfs_complaints-appendix_3_complaint_upheld_letter_amended_as_required_for_psd_related_comp",
+    "policy_key": "mfs_complaints",
+    "title": "Your options now",
+    "body_md": "I believe I have now addressed your areas of concern and you can regard this letter as our final response. If you do not feel my response has resolved your complaint, there is a further escalation process available to you.\nYou have the right to refer your complaint to the Financial Ombudsman Service, free of charge – but you must do so within six months of the date of this letter. If you do not refer your complaint in time, the Ombudsman will not have our permission to consider your complaint and so will only be able to do so in very limited circumstances. For example, if the Ombudsman believes that the delay was as a result of exceptional circumstances. If your complaint relates to a payment service and you are not eligible for the Financial Ombudsman Service, you may raise it with the Payment Systems Regulator (complaints@psr.org.uk).\nThe full contact details for the Financial Ombudsman Service are detailed below and further information can be found in the enclosed Ombudsman leaflet:\nWrite to: Financial Ombudsman Service, Exchange Tower, London, E14 9SR\nPhone: 0800 0 234 567 (free from landlines) or 0300 123 9 123 (charged at a national rate)\nEmail: complaint.info@financial-ombudsman.org.uk\nWebsite: www.financial-ombudsman.org.uk\nYours sincerely\n{{name_of_contact_point}}\n{{job_title}}\nEnc. ‘your complaint and the ombudsman’ leaflet",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [
+      {
+        "name": "name_of_contact_point",
+        "description": "Name of contact point",
+        "type": "text",
+        "required": true
+      },
+      {
+        "name": "job_title",
+        "description": "Job title",
+        "type": "text",
+        "required": true
+      }
+    ],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.493Z"
+  },
+  {
+    "id": "mfs_complaints-appendix_4_complaint_rejected_letter_amended_as_required_for_psd_related_co",
+    "policy_key": "mfs_complaints",
+    "title": "Appendix 4. Complaint Rejected Letter (amended as required for PSD related complaints)",
+    "body_md": "Firm name\nAddress1\nAddress2\nPostcode\nPhone number: XXX XXX XXX\nCall charges explanation\nCall charges explanation\nCall charges explanation\nCustomer salutation, initials and surname\nAddress1 Date: {{ddmonthyyy}}\nAddress2 Ref: {{cmpxxxx}}\nAddress3",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [
+      {
+        "name": "ddmonthyyy",
+        "description": "ddmonthyyy",
+        "type": "text",
+        "required": true
+      },
+      {
+        "name": "cmpxxxx",
+        "description": "CMPXXXX",
+        "type": "text",
+        "required": true
+      }
+    ],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.493Z"
+  },
+  {
+    "id": "mfs_complaints-appendix_4_complaint_rejected_letter_amended_as_required_for_psd_related_co",
+    "policy_key": "mfs_complaints",
+    "title": "We’ve investigated your complaint",
+    "body_md": "Dear {{insert_name}}\nThank you for taking the time to contact us about your {{product_type}}. Firstly I am sorry to hear you’ve had cause to complain as we always want to do the best for our customers.\nI have now reviewed your {{telephone_call_letter_email_online_post}} of {{ddmonthyyy}} and I am writing to fully explain the outcome of our investigation. Your complaint details\nI understand you’re unhappy… {{insert_customer_complaint_details_and_ensure_all_points_are_covered_off_in_full}}",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [
+      {
+        "name": "insert_name",
+        "description": "insert name",
+        "type": "text",
+        "required": true
+      },
+      {
+        "name": "product_type",
+        "description": "product type",
+        "type": "text",
+        "required": true
+      },
+      {
+        "name": "telephone_call_letter_email_online_post",
+        "description": "telephone call / letter / email / online post",
+        "type": "text",
+        "required": true
+      },
+      {
+        "name": "ddmonthyyy",
+        "description": "ddmonthyyy",
+        "type": "text",
+        "required": true
+      },
+      {
+        "name": "insert_customer_complaint_details_and_ensure_all_points_are_covered_off_in_full",
+        "description": "insert customer complaint details & ensure all points are covered off in full",
+        "type": "text",
+        "required": true
+      }
+    ],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.493Z"
+  },
+  {
+    "id": "mfs_complaints-appendix_4_complaint_rejected_letter_amended_as_required_for_psd_related_co",
+    "policy_key": "mfs_complaints",
+    "title": "My decision and findings",
+    "body_md": "Your complaint has been thoroughly investigated and I’m afraid I’m unable to uphold the complaint in your favour on this occasion.\n{{explain_what_we_did_to_investigate_what_went_wrong_what_we_will_do_to_put_it_right}}",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [
+      {
+        "name": "explain_what_we_did_to_investigate_what_went_wrong_what_we_will_do_to_put_it_right",
+        "description": "explain what we did to investigate / what went wrong / what we will do to put it right",
+        "type": "text",
+        "required": true
+      }
+    ],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.493Z"
+  },
+  {
+    "id": "mfs_complaints-appendix_4_complaint_rejected_letter_amended_as_required_for_psd_related_co",
+    "policy_key": "mfs_complaints",
+    "title": "[Compile standard paragraphs for some help with this and insert here]",
+    "body_md": "I appreciate this isn’t the outcome you were hoping for; however, I trust my review of your complaint and thorough explanation of what’s happened shows why I’ve come to this decision.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.493Z"
+  },
+  {
+    "id": "mfs_complaints-appendix_4_complaint_rejected_letter_amended_as_required_for_psd_related_co",
+    "policy_key": "mfs_complaints",
+    "title": "Your options now",
+    "body_md": "I believe I have now addressed your areas of concern and you can regard this letter as our final response. If you do not feel my letter has resolved your complaint, there is a further escalation process available to you.\nYou have the right to refer your complaint to the Financial Ombudsman Service, free of charge – but you must do so within six months of the date of this letter. If you do not refer your complaint in time, the Ombudsman will not have our permission to consider your complaint and so will only be able to do so in very limited circumstances - for example, if the Ombudsman believes that the delay was as a result of exceptional circumstances. If your complaint relates to a payment service and you are not eligible for the Financial Ombudsman Service, you may raise it with the Payment Systems Regulator (complaints@psr.org.uk).\nThe full contact details for the Financial Ombudsman Service are detailed below and further information can be found in the enclosed Ombudsman leaflet:\nWrite to: Financial Ombudsman Service, Exchange Tower, London, E14 9SR\nPhone: 0800 0 234 567 (free from landlines) or 0300 123 9 123 (charged at a national rate)\nEmail: complaint.info@financial-ombudsman.org.uk\nWebsite: www.financial-ombudsman.org.uk\nYours sincerely\n{{name_of_contact_point}}\n{{job_title}}\nEnc. ‘your complaint and the ombudsman’ leaflet",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [
+      {
+        "name": "name_of_contact_point",
+        "description": "Name of contact point",
+        "type": "text",
+        "required": true
+      },
+      {
+        "name": "job_title",
+        "description": "Job title",
+        "type": "text",
+        "required": true
+      }
+    ],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.493Z"
+  },
+  {
+    "id": "mfs_complaints-appendix_5_general_contact_letter-appendix_5_general_contact_letter",
+    "policy_key": "mfs_complaints",
+    "title": "Appendix 5 - General Contact Letter",
+    "body_md": "Firm name\nAddress1\nAddress2\nPostcode\nPhone number: XXX XXX XXX\nCall charges explanation\nCall charges explanation\nCall charges explanation\nCustomer salutation, initials and surname\nAddress1 Date: {{ddmonthyyy}}\nAddress2 Ref: {{cmpxxxx}}\nAddress3",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [
+      {
+        "name": "ddmonthyyy",
+        "description": "ddmonthyyy",
+        "type": "text",
+        "required": true
+      },
+      {
+        "name": "cmpxxxx",
+        "description": "CMPXXXX",
+        "type": "text",
+        "required": true
+      }
+    ],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.493Z"
+  },
+  {
+    "id": "mfs_complaints-we_ve_investigated_your_complaint-we_ve_investigated_your_complaint",
+    "policy_key": "mfs_complaints",
+    "title": "We’ve investigated your complaint",
+    "body_md": "Dear {{insert_name}}\nThank you for taking the time to contact us about your {{product_type}}. Firstly I am sorry to hear you’ve had cause to complain as we always want to do the best for our customers.\nI have now reviewed your {{telephone_call_letter_email_online_post}} of {{ddmonthyyy}} and I am writing to fully explain the outcome of our investigation. Your complaint details\nI understand you’re unhappy… {{insert_customer_complaint_details_and_ensure_all_points_are_covered_off_in_full}}",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [
+      {
+        "name": "insert_name",
+        "description": "insert name",
+        "type": "text",
+        "required": true
+      },
+      {
+        "name": "product_type",
+        "description": "product type",
+        "type": "text",
+        "required": true
+      },
+      {
+        "name": "telephone_call_letter_email_online_post",
+        "description": "telephone call / letter / email / online post",
+        "type": "text",
+        "required": true
+      },
+      {
+        "name": "ddmonthyyy",
+        "description": "ddmonthyyy",
+        "type": "text",
+        "required": true
+      },
+      {
+        "name": "insert_customer_complaint_details_and_ensure_all_points_are_covered_off_in_full",
+        "description": "insert customer complaint details & ensure all points are covered off in full",
+        "type": "text",
+        "required": true
+      }
+    ],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.493Z"
+  },
+  {
+    "id": "mfs_complaints-my_decision_and_findings-my_decision_and_findings",
+    "policy_key": "mfs_complaints",
+    "title": "My decision and findings",
+    "body_md": "Your complaint has been thoroughly investigated and I’m afraid I’m unable to uphold the complaint in your favour on this occasion.\n{{explain_what_we_did_to_investigate_what_went_wrong_what_we_will_do_to_put_it_right}}",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [
+      {
+        "name": "explain_what_we_did_to_investigate_what_went_wrong_what_we_will_do_to_put_it_right",
+        "description": "explain what we did to investigate / what went wrong / what we will do to put it right",
+        "type": "text",
+        "required": true
+      }
+    ],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.493Z"
+  },
+  {
+    "id": "mfs_complaints-compile_standard_paragraphs_for_some_help_with_this_and_insert_here-compile",
+    "policy_key": "mfs_complaints",
+    "title": "[Compile standard paragraphs for some help with this and insert here]",
+    "body_md": "I appreciate this isn’t the outcome you were hoping for; however, I trust my review of your complaint and thorough explanation of what’s happened shows why I’ve come to this decision.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.493Z"
+  },
+  {
+    "id": "mfs_complaints-compile_standard_paragraphs_for_some_help_with_this_and_insert_here-your_op",
+    "policy_key": "mfs_complaints",
+    "title": "Your options now",
+    "body_md": "I believe I have now addressed your areas of concern and you can regard this letter as our final response. If you do not feel my letter has resolved your complaint, there is a further escalation process available to you.\nYou have the right to refer your complaint to the Financial Ombudsman Service, free of charge – but you must do so within six months of the date of this letter. If you do not refer your complaint in time, the Ombudsman will not have our permission to consider your complaint and so will only be able to do so in very limited circumstances - for example, if the Ombudsman believes that the delay was as a result of exceptional circumstances. If your complaint relates to a payment service and you are not eligible for the Financial Ombudsman Service, you may raise it with the Payment Systems Regulator (complaints@psr.org.uk).\nThe full contact details for the Financial Ombudsman Service are detailed below and further information can be found in the enclosed Ombudsman leaflet:\nWrite to: Financial Ombudsman Service, Exchange Tower, London, E14 9SR\nPhone: 0800 0 234 567 (free from landlines) or 0300 123 9 123 (charged at a national rate)\nEmail: complaint.info@financial-ombudsman.org.uk\nWebsite: www.financial-ombudsman.org.uk\nYours sincerely\n{{name_of_contact_point}}\n{{job_title}}\nEnc. ‘your complaint and the ombudsman’ leaflet",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [
+      {
+        "name": "name_of_contact_point",
+        "description": "Name of contact point",
+        "type": "text",
+        "required": true
+      },
+      {
+        "name": "job_title",
+        "description": "Job title",
+        "type": "text",
+        "required": true
+      }
+    ],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
+    "source_extracted_at": "2025-12-13T20:59:52.493Z"
+  }
+]

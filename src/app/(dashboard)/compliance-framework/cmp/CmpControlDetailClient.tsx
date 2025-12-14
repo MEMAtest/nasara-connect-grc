@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,10 +14,13 @@ import { DEFAULT_ORGANIZATION_ID } from "@/lib/constants";
 import type { CmpControlDetail } from "@/data/cmp/types";
 import { LogTestDialog, RaiseFindingDialog } from "./components/CmpActionDialogs";
 import { AlertTriangle, ArrowLeft, Building, CalendarDays, CheckCircle2, GitBranch, Link as LinkIcon, Target, TrendingUp } from "lucide-react";
+import { LinkedPoliciesPanel } from "@/components/policies/LinkedPoliciesPanel";
 
 const ORGANIZATION_ID = DEFAULT_ORGANIZATION_ID;
 
 type ActionState = { type: "logTest" | "finding" | null; control: CmpControlDetail | null };
+type ControlTab = "summary" | "plan" | "execution" | "findings" | "kri";
+const CONTROL_TABS: ReadonlySet<ControlTab> = new Set(["summary", "plan", "execution", "findings", "kri"]);
 
 interface CmpControlDetailClientProps {
   controlId: string;
@@ -25,6 +28,8 @@ interface CmpControlDetailClientProps {
 
 export function CmpControlDetailClient({ controlId }: CmpControlDetailClientProps) {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [control, setControl] = useState<CmpControlDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -50,8 +55,28 @@ export function CmpControlDetailClient({ controlId }: CmpControlDetailClientProp
     void fetchControl();
   }, [fetchControl]);
 
+  useEffect(() => {
+    const requested = searchParams?.get("tab");
+    if (!requested) return;
+    if (!CONTROL_TABS.has(requested as ControlTab)) return;
+    if (requested === tab) return;
+    setTab(requested);
+  }, [searchParams, tab]);
+
   const openAction = (type: ActionState["type"], detail: CmpControlDetail | null) => setActionState({ type, control: detail });
   const closeAction = () => setActionState({ type: null, control: null });
+
+  const handleTabChange = (nextTab: string) => {
+    setTab(nextTab);
+    const nextParams = new URLSearchParams(searchParams?.toString());
+    if (CONTROL_TABS.has(nextTab as ControlTab)) {
+      nextParams.set("tab", nextTab);
+    } else {
+      nextParams.delete("tab");
+    }
+    const suffix = nextParams.toString();
+    router.replace(suffix ? `${pathname}?${suffix}` : pathname);
+  };
 
   const summaryStats = useMemo(() => {
     if (!control) return [];
@@ -163,7 +188,13 @@ export function CmpControlDetailClient({ controlId }: CmpControlDetailClientProp
         </CardContent>
       </Card>
 
-      <Tabs value={tab} onValueChange={setTab} className="space-y-4">
+      <LinkedPoliciesPanel
+        title="Linked policies"
+        helperText="Policies mapped to this control (for coverage and evidence reporting)."
+        endpoint={`/api/organizations/${ORGANIZATION_ID}/cmp/controls/${controlId}/links`}
+      />
+
+      <Tabs value={tab} onValueChange={handleTabChange} className="space-y-4">
         <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="summary">Summary</TabsTrigger>
           <TabsTrigger value="plan">Test plan</TabsTrigger>

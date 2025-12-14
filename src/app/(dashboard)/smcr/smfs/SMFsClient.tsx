@@ -324,13 +324,16 @@ export function SMFsClient() {
                 <Select
                   value={assignForm.personId}
                   onValueChange={(value) => setAssignForm((prev) => ({ ...prev, personId: value }))}
+                  disabled={people.length === 0}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select person" />
                   </SelectTrigger>
                   <SelectContent>
                     {people.length === 0 ? (
-                      <SelectItem value="">No people available</SelectItem>
+                      <SelectItem value="__no_people__" disabled>
+                        No people available
+                      </SelectItem>
                     ) : (
                       people.map((person) => (
                         <SelectItem key={person.id} value={person.id}>

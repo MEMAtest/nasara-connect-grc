@@ -1,0 +1,62 @@
+[
+  {
+    "id": "vulnerable_customers-purpose",
+    "policy_key": "vulnerable_customers",
+    "title": "Purpose",
+    "body_md": "Describe how the firm identifies and supports vulnerable customers.",
+    "tags": { "jurisdiction": ["UK"], "topic": ["Vulnerability"] },
+    "variables": [],
+    "version": "0.1.0",
+    "status": "draft",
+    "source_template_filename": "SCAFFOLD",
+    "source_extracted_at": "20251212T232310Z"
+  },
+  {
+    "id": "vulnerable_customers-definitions",
+    "policy_key": "vulnerable_customers",
+    "title": "Definitions",
+    "body_md": "- Health\n- Life events\n- Resilience\n- Capability",
+    "tags": { "jurisdiction": ["UK"], "topic": ["Vulnerability"] },
+    "variables": [],
+    "version": "0.1.0",
+    "status": "draft",
+    "source_template_filename": "SCAFFOLD",
+    "source_extracted_at": "20251212T232310Z"
+  },
+  {
+    "id": "vulnerable_customers-identification-flagging",
+    "policy_key": "vulnerable_customers",
+    "title": "Identification & Flagging",
+    "body_md": "Triggers, recording, consent, data minimisation.",
+    "tags": { "jurisdiction": ["UK"], "topic": ["Vulnerability", "Data"] },
+    "variables": [],
+    "version": "0.1.0",
+    "status": "draft",
+    "source_template_filename": "SCAFFOLD",
+    "source_extracted_at": "20251212T232310Z"
+  },
+  {
+    "id": "vulnerable_customers-communications-accessibility",
+    "policy_key": "vulnerable_customers",
+    "title": "Communications & Accessibility",
+    "body_md": "Large print, TTS, BSL, language support.",
+    "tags": { "jurisdiction": ["UK"], "topic": ["Consumer Duty", "Accessibility"] },
+    "variables": [],
+    "version": "0.1.0",
+    "status": "draft",
+    "source_template_filename": "SCAFFOLD",
+    "source_extracted_at": "20251212T232310Z"
+  },
+  {
+    "id": "vulnerable_customers-mi-outcomes",
+    "policy_key": "vulnerable_customers",
+    "title": "MI & Outcomes",
+    "body_md": "Complaints, error rates, cancellations, outcome testing.",
+    "tags": { "jurisdiction": ["UK"], "topic": ["MI", "Consumer Duty"] },
+    "variables": [],
+    "version": "0.1.0",
+    "status": "draft",
+    "source_template_filename": "SCAFFOLD",
+    "source_extracted_at": "20251212T232310Z"
+  }
+]

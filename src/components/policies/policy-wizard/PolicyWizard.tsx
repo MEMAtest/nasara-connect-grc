@@ -46,10 +46,19 @@ const wizardSpring = {
 };
 
 const buildInitialState = (permissionsOverride?: typeof DEFAULT_PERMISSIONS): WizardFormState => ({
+  firmProfile: {
+    name: "",
+    tradingName: "",
+    registeredAddress: "",
+    fcaReference: "",
+    website: "",
+  },
   permissions: { ...(permissionsOverride ?? DEFAULT_PERMISSIONS) },
   selectedTemplate: undefined,
+  sectionClauses: {},
+  sectionNotes: {},
+  clauseVariables: {},
   selectedClauses: [],
-  customContent: {},
   approvals: {
     requiresSMF: true,
     smfRole: "SMF16 - Compliance Monitoring",
