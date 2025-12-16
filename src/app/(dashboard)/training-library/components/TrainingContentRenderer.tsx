@@ -184,9 +184,18 @@ function GenericTrainingRenderer({ module, onComplete, onProgress, deepLink, onD
   deepLink?: { stage?: string; section?: string };
   onDeepLinkChange?: (deepLink: { stage?: string; section?: string }) => void;
 }) {
-  const [currentStage, setCurrentStage] = useState<GenericStageKey>('hook');
+  const initialStage = GENERIC_STAGE_ORDER.includes((deepLink?.stage as GenericStageKey) ?? "hook")
+    ? ((deepLink?.stage as GenericStageKey) ?? "hook")
+    : "hook";
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
-  const [currentLessonIndex, setCurrentLessonIndex] = useState(0);
+  const [currentLessonIndex, setCurrentLessonIndex] = useState(() => {
+    if (initialStage !== "content") return 0;
+    const parsed = Number(deepLink?.section);
+    if (!Number.isFinite(parsed)) return 0;
+    const maxIndex = Math.max(0, (module.lessons?.length ?? 1) - 1);
+    return Math.max(0, Math.min(parsed, maxIndex));
+  });
+  const [currentStage, setCurrentStage] = useState<GenericStageKey>(initialStage);
 
   // Use actual module content
   const content = {
@@ -220,6 +229,9 @@ function GenericTrainingRenderer({ module, onComplete, onProgress, deepLink, onD
     if (!GENERIC_STAGE_ORDER.includes(deepLink.stage as GenericStageKey)) return;
     if (deepLink.stage === currentStage) return;
     setCurrentStage(deepLink.stage as GenericStageKey);
+    if (deepLink.stage !== "content") {
+      setCurrentLessonIndex(0);
+    }
   }, [currentStage, deepLink?.stage]);
 
   useEffect(() => {

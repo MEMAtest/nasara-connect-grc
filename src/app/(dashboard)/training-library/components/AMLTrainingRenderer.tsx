@@ -45,8 +45,18 @@ interface AMLTrainingRendererProps {
 }
 
 export function AMLTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLinkChange }: AMLTrainingRendererProps) {
-  const [currentStage, setCurrentStage] = useState<Stage>("hook");
-  const [currentContentSection, setCurrentContentSection] = useState(0);
+  const initialStage = stageOrder.includes((deepLink?.stage as Stage) ?? "hook")
+    ? ((deepLink?.stage as Stage) ?? "hook")
+    : "hook";
+  const initialContentSection = (() => {
+    if (initialStage !== "content") return 0;
+    const parsed = Number(deepLink?.section);
+    if (!Number.isFinite(parsed)) return 0;
+    return Math.max(0, Math.min(parsed, 3));
+  })();
+
+  const [currentStage, setCurrentStage] = useState<Stage>(initialStage);
+  const [currentContentSection, setCurrentContentSection] = useState(initialContentSection);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
 
   const getStageProgress = () => {

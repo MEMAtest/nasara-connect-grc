@@ -33,12 +33,41 @@ interface KYCTrainingRendererProps {
 }
 
 export function KYCTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLinkChange }: KYCTrainingRendererProps) {
-  const [currentSection, setCurrentSection] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, number>>({});
   const [showResults, setShowResults] = useState<Record<string, boolean>>({});
   const [completedSections, setCompletedSections] = useState<Set<number>>(new Set());
 
   const kycModule = kycFundamentalsModule;
+
+  const buildSectionIds = () => ([
+    'hook',
+    'pillars',
+    'risk',
+    'monitoring',
+    ...kycModule.practiceScenarios.map((_, index) => `scenario-${index}`),
+    'summary',
+  ]);
+
+  const getInitialSectionIndex = () => {
+    const ids = buildSectionIds();
+    const stage = deepLink?.stage;
+    const section = deepLink?.section;
+
+    if (stage === 'hook') return 0;
+    if (stage === 'summary') return ids.length - 1;
+    if (stage === 'practice') return Math.max(0, ids.findIndex((id) => id.startsWith('scenario-')));
+
+    if (section) {
+      const byId = ids.findIndex((id) => id === section);
+      if (byId !== -1) return byId;
+      const parsed = Number(section);
+      if (Number.isFinite(parsed)) return Math.max(0, Math.min(parsed, ids.length - 1));
+    }
+
+    return 0;
+  };
+
+  const [currentSection, setCurrentSection] = useState(getInitialSectionIndex);
   const totalSections = 1 + kycModule.lessons.length + kycModule.practiceScenarios.length + 1; // Hook + Lessons + Scenarios + Summary
   const progress = (completedSections.size / totalSections) * 100;
 
@@ -634,6 +663,23 @@ export function KYCTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
   ];
 
   useEffect(() => {
+    const stage = deepLink?.stage;
+    if (stage === 'hook' && currentSection !== 0) {
+      setCurrentSection(0);
+      return;
+    }
+    if (stage === 'summary' && currentSection !== sections.length - 1) {
+      setCurrentSection(sections.length - 1);
+      return;
+    }
+    if (stage === 'practice') {
+      const firstScenarioIndex = sections.findIndex((item) => item.id.startsWith('scenario-'));
+      if (firstScenarioIndex !== -1 && currentSection !== firstScenarioIndex) {
+        setCurrentSection(firstScenarioIndex);
+        return;
+      }
+    }
+
     const section = deepLink?.section;
     if (!section) return;
     const byId = sections.findIndex((item) => item.id === section);
