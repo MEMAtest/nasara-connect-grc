@@ -54,6 +54,21 @@ export function SimulationLab({ simulation, onComplete }: SimulationLabProps) {
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const [hasStarted, setHasStarted] = useState(false);
 
+  function getCorrectClassification(condition: string): 'accept' | 'reject' | 'request_more' {
+    switch (condition) {
+      case 'genuine':
+        return 'accept';
+      case 'forged':
+      case 'expired':
+        return 'reject';
+      case 'suspicious':
+      case 'edited':
+        return 'request_more';
+      default:
+        return 'request_more';
+    }
+  }
+
   // Mock documents for KYC simulation
   const documents = useMemo<Document[]>(() => [
     {
@@ -93,57 +108,6 @@ export function SimulationLab({ simulation, onComplete }: SimulationLabProps) {
 
   const currentDocument = documents[currentDocumentIndex];
   const progress = (Object.keys(reviews).length / documents.length) * 100;
-
-  useEffect(() => {
-    if (hasStarted && simulation.difficulty === 'advanced') {
-      const timer = setInterval(() => {
-        setTimeRemaining(prev => {
-          if (prev === null || prev <= 0) {
-            clearInterval(timer);
-            completeSimulation();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-
-      return () => clearInterval(timer);
-    }
-  }, [hasStarted, simulation.difficulty, completeSimulation]);
-
-  const startSimulation = () => {
-    setHasStarted(true);
-    if (simulation.difficulty === 'advanced') {
-      setTimeRemaining(5 * 60); // 5 minutes for advanced
-    } else if (simulation.difficulty === 'intermediate') {
-      setTimeRemaining(10 * 60); // 10 minutes for intermediate
-    }
-  };
-
-  const submitDocumentReview = (review: Partial<DocumentReview>) => {
-    if (!currentDocument) return;
-
-    const fullReview: DocumentReview = {
-      documentId: currentDocument.id,
-      classification: review.classification || 'request_more',
-      issues: review.issues || [],
-      confidence: review.confidence || 50,
-      notes: review.notes || '',
-      ...review
-    };
-
-    setReviews(prev => ({
-      ...prev,
-      [currentDocument.id]: fullReview
-    }));
-
-    // Move to next document or complete
-    if (currentDocumentIndex < documents.length - 1) {
-      setCurrentDocumentIndex(prev => prev + 1);
-    } else {
-      completeSimulation();
-    }
-  };
 
   const calculateScore = useCallback(() => {
     let correctClassifications = 0;
@@ -200,18 +164,54 @@ export function SimulationLab({ simulation, onComplete }: SimulationLabProps) {
     onComplete?.(finalScore, feedbackMessages);
   }, [calculateScore, onComplete]);
 
-  const getCorrectClassification = (condition: string): 'accept' | 'reject' | 'request_more' => {
-    switch (condition) {
-      case 'genuine':
-        return 'accept';
-      case 'forged':
-      case 'expired':
-        return 'reject';
-      case 'suspicious':
-      case 'edited':
-        return 'request_more';
-      default:
-        return 'request_more';
+  useEffect(() => {
+    if (hasStarted && simulation.difficulty === 'advanced') {
+      const timer = setInterval(() => {
+        setTimeRemaining(prev => {
+          if (prev === null || prev <= 0) {
+            clearInterval(timer);
+            completeSimulation();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      return () => clearInterval(timer);
+    }
+  }, [hasStarted, simulation.difficulty, completeSimulation]);
+
+  const startSimulation = () => {
+    setHasStarted(true);
+    if (simulation.difficulty === 'advanced') {
+      setTimeRemaining(5 * 60); // 5 minutes for advanced
+    } else if (simulation.difficulty === 'intermediate') {
+      setTimeRemaining(10 * 60); // 10 minutes for intermediate
+    }
+  };
+
+  const submitDocumentReview = (review: Partial<DocumentReview>) => {
+    if (!currentDocument) return;
+
+    const fullReview: DocumentReview = {
+      documentId: currentDocument.id,
+      classification: review.classification || 'request_more',
+      issues: review.issues || [],
+      confidence: review.confidence || 50,
+      notes: review.notes || '',
+      ...review
+    };
+
+    setReviews(prev => ({
+      ...prev,
+      [currentDocument.id]: fullReview
+    }));
+
+    // Move to next document or complete
+    if (currentDocumentIndex < documents.length - 1) {
+      setCurrentDocumentIndex(prev => prev + 1);
+    } else {
+      completeSimulation();
     }
   };
 

@@ -34,6 +34,15 @@ export function DailyMicroChallenge({ challenge, onComplete }: DailyMicroChallen
   const [showFeedback, setShowFeedback] = useState(false);
   const [timeSpent, setTimeSpent] = useState(0);
 
+  const completeChallenge = useCallback(
+    (success: boolean) => {
+      setIsComplete(true);
+      const pointsEarned = success ? challenge.points : 0;
+      onComplete?.(success, timeSpent, pointsEarned);
+    },
+    [challenge.points, onComplete, timeSpent],
+  );
+
   useEffect(() => {
     let interval: NodeJS.Timeout;
 
@@ -94,12 +103,6 @@ export function DailyMicroChallenge({ challenge, onComplete }: DailyMicroChallen
 
     return false;
   };
-
-  const completeChallenge = useCallback((success: boolean) => {
-    setIsComplete(true);
-    const pointsEarned = success ? challenge.points : 0;
-    onComplete?.(success, timeSpent, pointsEarned);
-  }, [challenge.points, onComplete, timeSpent]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);

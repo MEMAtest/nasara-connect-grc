@@ -55,6 +55,42 @@ export function BranchingScenario({ scenario, onComplete }: BranchingScenarioPro
   const currentDecision = scenario.decisionPoints.find(dp => dp.id === state.currentDecisionId);
   const progress = (state.pathTaken.length / (scenario.scoring.optimalPath.length || 1)) * 100;
 
+  const calculateFinalScore = useCallback((pathTaken: string[], consequences: ScenarioState["consequences"]) => {
+    const isOptimalPath = JSON.stringify(pathTaken) === JSON.stringify(scenario.scoring.optimalPath);
+    if (isOptimalPath) return 100;
+
+    const isAcceptablePath = scenario.scoring.acceptablePaths.some(
+      path => JSON.stringify(pathTaken) === JSON.stringify(path)
+    );
+    if (isAcceptablePath) return 75;
+
+    // Calculate partial score based on compliance impact
+    let totalScore = 0;
+    let totalDecisions = 0;
+
+    consequences.forEach(consequence => {
+      totalDecisions++;
+      switch (consequence.consequence.complianceImpact) {
+        case 'compliant':
+          totalScore += 100;
+          break;
+        case 'risky':
+          totalScore += 50;
+          break;
+        case 'breach':
+          totalScore += 0;
+          break;
+      }
+    });
+
+    return totalDecisions > 0 ? Math.round(totalScore / totalDecisions) : 0;
+  }, [scenario.scoring]);
+
+  const assessLearningObjectives = useCallback(() => {
+    // This would be more sophisticated in a real implementation
+    return scenario.scoring.learningObjectivesMet;
+  }, [scenario.scoring.learningObjectivesMet]);
+
   const makeDecision = useCallback((optionId: string) => {
     const decision = scenario.decisionPoints.find(dp => dp.id === state.currentDecisionId);
     const option = decision?.options.find(opt => opt.id === optionId);
@@ -105,42 +141,6 @@ export function BranchingScenario({ scenario, onComplete }: BranchingScenarioPro
     setShowConsequence(false);
     setCurrentConsequence(null);
   }, [state.consequences, state.currentDecisionId, state.pathTaken, scenario.decisionPoints, onComplete, assessLearningObjectives, calculateFinalScore]);
-
-  const calculateFinalScore = useCallback((pathTaken: string[], consequences: ScenarioState["consequences"]) => {
-    const isOptimalPath = JSON.stringify(pathTaken) === JSON.stringify(scenario.scoring.optimalPath);
-    if (isOptimalPath) return 100;
-
-    const isAcceptablePath = scenario.scoring.acceptablePaths.some(
-      path => JSON.stringify(pathTaken) === JSON.stringify(path)
-    );
-    if (isAcceptablePath) return 75;
-
-    // Calculate partial score based on compliance impact
-    let totalScore = 0;
-    let totalDecisions = 0;
-
-    consequences.forEach(consequence => {
-      totalDecisions++;
-      switch (consequence.consequence.complianceImpact) {
-        case 'compliant':
-          totalScore += 100;
-          break;
-        case 'risky':
-          totalScore += 50;
-          break;
-        case 'breach':
-          totalScore += 0;
-          break;
-      }
-    });
-
-    return totalDecisions > 0 ? Math.round(totalScore / totalDecisions) : 0;
-  }, [scenario.scoring]);
-
-  const assessLearningObjectives = useCallback(() => {
-    // This would be more sophisticated in a real implementation
-    return scenario.scoring.learningObjectivesMet;
-  }, [scenario.scoring.learningObjectivesMet]);
 
   const restart = () => {
     setState({
