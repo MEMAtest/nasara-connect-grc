@@ -2,10 +2,16 @@
 
 import { use } from "react";
 import { TrainingContentRenderer } from "../../components/TrainingContentRenderer";
+import { getTrainingModule } from "../../content";
+import { trainingSimulations, dailyMicroChallenges, sampleMicroLessons } from "../../lib/trainingContent";
+import { SimulationLab } from "../../components/SimulationLab";
+import { DailyMicroChallenge } from "../../components/DailyMicroChallenge";
+import { MicroLearning } from "../../components/MicroLearning";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { AlertTriangle, ArrowLeft } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { LinkedPoliciesPanel } from "@/components/policies/LinkedPoliciesPanel";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface LessonClientProps {
   params: Promise<{
@@ -18,6 +24,11 @@ export function LessonClient({ params }: LessonClientProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { id } = use(params);
+
+  const trainingModule = getTrainingModule(id);
+  const simulation = trainingSimulations.find((item) => item.id === id);
+  const microChallenge = dailyMicroChallenges.find((item) => item.id === id);
+  const microLesson = sampleMicroLessons.find((item) => item.id === id);
 
   const deepLink = {
     stage: searchParams?.get("stage") ?? undefined,
@@ -77,14 +88,48 @@ export function LessonClient({ params }: LessonClientProps) {
           />
         </div>
 
-        {/* Training Content */}
-        <TrainingContentRenderer
-          contentId={id}
-          onComplete={handleComplete}
-          onProgress={handleProgress}
-          deepLink={deepLink}
-          onDeepLinkChange={handleDeepLinkChange}
-        />
+        {trainingModule ? (
+          <TrainingContentRenderer
+            contentId={id}
+            onComplete={handleComplete}
+            onProgress={handleProgress}
+            deepLink={deepLink}
+            onDeepLinkChange={handleDeepLinkChange}
+          />
+        ) : microLesson ? (
+          <MicroLearning
+            lesson={microLesson}
+            onComplete={() => {
+            }}
+            onProgress={handleProgress}
+          />
+        ) : simulation ? (
+          <SimulationLab
+            simulation={simulation}
+            onComplete={() => {
+            }}
+          />
+        ) : microChallenge ? (
+          <DailyMicroChallenge
+            challenge={microChallenge}
+            onComplete={() => {
+            }}
+          />
+        ) : (
+          <div className="max-w-4xl mx-auto">
+            <Card className="border border-red-200 bg-red-50">
+              <CardContent className="p-8 text-center">
+                <AlertTriangle className="h-16 w-16 text-red-600 mx-auto mb-4" />
+                <h2 className="text-2xl font-bold text-red-900 mb-2">Training Content Not Found</h2>
+                <p className="text-red-700 mb-6">The requested training item “{id}” could not be found.</p>
+                <Button onClick={() => router.push('/training-library')}>
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to Training Library
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -30,6 +30,7 @@ import { featuredModules, learningPathways } from "./content";
 import { GamificationHub } from "./components/GamificationHub";
 import { SocialLearning } from "./components/SocialLearning";
 import { ProgressTracker } from "./components/ProgressTracker";
+import { dailyMicroChallenges, sampleMicroLessons, trainingSimulations } from "./lib/trainingContent";
 
 interface UserProgress {
   completed_pathways: number;
@@ -94,64 +95,10 @@ export function TrainingLibraryClient() {
     loadProgress();
   }, []);
 
-  // Mock data for micro-learning components
-  const microLessons = [
-    {
-      id: 'ml-1',
-      title: 'Quick KYC Review',
-      duration: 3,
-      components: {
-        hook: { duration: 0.5 },
-        content: { duration: 1.5 },
-        practice: { duration: 0.5 },
-        summary: { duration: 0.5 }
-      }
-    },
-    {
-      id: 'ml-2',
-      title: 'Sanctions Screening Basics',
-      duration: 4,
-      components: {
-        hook: { duration: 0.5 },
-        content: { duration: 2 },
-        practice: { duration: 1 },
-        summary: { duration: 0.5 }
-      }
-    }
-  ];
+  const microLessons = sampleMicroLessons;
 
-  const microChallenges = [
-    {
-      id: 'mc-1',
-      title: 'Spot the Red Flag',
-      difficulty: 'easy',
-      timeLimit: 60,
-      points: 50,
-      regulatoryArea: 'AML'
-    },
-    {
-      id: 'mc-2',
-      title: 'PEP Identification',
-      difficulty: 'medium',
-      timeLimit: 90,
-      points: 75,
-      regulatoryArea: 'KYC'
-    }
-  ];
-
-  const simulations = [
-    {
-      id: 'sim-1',
-      title: 'Customer Onboarding Simulation',
-      description: 'Practice complete customer onboarding with documentation review',
-      difficulty: 'intermediate',
-      estimatedDuration: 15,
-      scoring: { maxScore: 100, passingScore: 80 },
-      features: {
-        documentTypes: ['Passport', 'Utility Bill', 'Bank Statement']
-      }
-    }
-  ];
+  const microChallenges = dailyMicroChallenges;
+  const simulations = trainingSimulations;
 
 
   const personas = {
