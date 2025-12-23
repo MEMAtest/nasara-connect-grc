@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
+import { getSessionIdentity } from '@/lib/auth-utils';
 import { logError, logApiRequest } from '@/lib/logger';
 import {
   initTrainingDatabase,
@@ -21,14 +22,15 @@ export async function GET(request: NextRequest) {
 
   try {
     const session = await auth();
+    const identity = getSessionIdentity(session);
 
-    if (!session?.user?.email) {
+    if (!identity?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     await initTrainingDatabase();
 
-    const modules = await getAllModuleProgress(session.user.email);
+    const modules = await getAllModuleProgress(identity.email);
 
     return NextResponse.json({ modules });
   } catch (error) {
@@ -45,8 +47,9 @@ export async function POST(request: NextRequest) {
 
   try {
     const session = await auth();
+    const identity = getSessionIdentity(session);
 
-    if (!session?.user?.email) {
+    if (!identity?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -77,22 +80,22 @@ export async function POST(request: NextRequest) {
     if (timeSpent !== undefined) updates.time_spent = timeSpent;
     if (attempts !== undefined) updates.attempts = attempts;
 
-    const moduleProgress = await updateModuleProgress(session.user.email, moduleId, updates);
+    const moduleProgress = await updateModuleProgress(identity.email, moduleId, updates);
 
     // If module completed, update overall progress and log activity
     if (status === 'completed') {
-      const userProgress = await getUserProgress(session.user.email);
+      const userProgress = await getUserProgress(identity.email);
       if (userProgress) {
-        await updateUserProgress(session.user.email, {
+        await updateUserProgress(identity.email, {
           completed_lessons: userProgress.completed_lessons + 1,
           total_points: userProgress.total_points + (score || 10),
           weekly_progress: userProgress.weekly_progress + (score || 10),
         });
       }
-      await logActivity(session.user.email, score || 10, 1, timeSpent || 0);
+      await logActivity(identity.email, score || 10, 1, timeSpent || 0);
     } else if (timeSpent) {
       // Log activity for time spent even if not completed
-      await logActivity(session.user.email, 0, 0, timeSpent);
+      await logActivity(identity.email, 0, 0, timeSpent);
     }
 
     return NextResponse.json(moduleProgress);

@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
+import { getSessionIdentity } from '@/lib/auth-utils';
 import { logError, logApiRequest } from '@/lib/logger';
 import {
   initTrainingDatabase,
@@ -16,8 +17,9 @@ export async function GET(request: NextRequest) {
 
   try {
     const session = await auth();
+    const identity = getSessionIdentity(session);
 
-    if (!session?.user?.email) {
+    if (!identity?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

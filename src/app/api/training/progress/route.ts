@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
+import { getSessionIdentity } from '@/lib/auth-utils';
 import { logError, logApiRequest } from '@/lib/logger';
 import {
   initTrainingDatabase,
@@ -19,14 +20,15 @@ export async function GET(request: NextRequest) {
 
   try {
     const session = await auth();
+    const identity = getSessionIdentity(session);
 
-    if (!session?.user?.email) {
+    if (!identity?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     await initTrainingDatabase();
 
-    const progress = await getUserProgress(session.user.email);
+    const progress = await getUserProgress(identity.email);
 
     if (!progress) {
       return NextResponse.json({ error: 'Failed to get progress' }, { status: 500 });
@@ -47,8 +49,9 @@ export async function PUT(request: NextRequest) {
 
   try {
     const session = await auth();
+    const identity = getSessionIdentity(session);
 
-    if (!session?.user?.email) {
+    if (!identity?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -76,12 +79,12 @@ export async function PUT(request: NextRequest) {
     if (weeklyGoal !== undefined) updates.weekly_goal = weeklyGoal;
     if (weeklyProgress !== undefined) updates.weekly_progress = weeklyProgress;
 
-    const progress = await updateUserProgress(session.user.email, updates);
+    const progress = await updateUserProgress(identity.email, updates);
 
     // Log activity if points/lessons/time are provided
     if (pointsEarned || lessonsCompleted || timeSpent) {
       await logActivity(
-        session.user.email,
+        identity.email,
         pointsEarned || 0,
         lessonsCompleted || 0,
         timeSpent || 0

@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
+import { getSessionIdentity } from '@/lib/auth-utils';
 import { logError, logApiRequest } from '@/lib/logger';
 import {
   initTrainingDatabase,
@@ -82,14 +83,15 @@ export async function GET(request: NextRequest) {
 
   try {
     const session = await auth();
+    const identity = getSessionIdentity(session);
 
-    if (!session?.user?.email) {
+    if (!identity?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     await initTrainingDatabase();
 
-    const earnedBadges = await getUserBadges(session.user.email);
+    const earnedBadges = await getUserBadges(identity.email);
 
     // Map earned badges and include all available badges with earned status
     const earnedBadgeIds = new Set(earnedBadges.map(b => b.badge_id));
@@ -121,8 +123,9 @@ export async function POST(request: NextRequest) {
 
   try {
     const session = await auth();
+    const identity = getSessionIdentity(session);
 
-    if (!session?.user?.email) {
+    if (!identity?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -141,7 +144,7 @@ export async function POST(request: NextRequest) {
     }
 
     const badge = await awardBadge(
-      session.user.email,
+      identity.email,
       badgeId,
       badgeDefinition.name,
       badgeDefinition.description,
