@@ -226,6 +226,31 @@
   color: #64748b;
 }
 
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  display: block;
+  overflow-x: auto;
+}
+
+.prose th,
+.prose td {
+  border: 1px solid #e2e8f0;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.prose thead th {
+  background: #f8fafc;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.prose tbody tr:nth-child(even) {
+  background: #f8fafc;
+}
+
 .prose hr {
   border-color: #e2e8f0;
   margin: 2em 0;
@@ -241,4 +266,57 @@
 
 .max-w-none {
   max-width: none;
+}
+
+.policy-missing-variable {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.05rem 0.5rem;
+  border-radius: 999px;
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.policy-glossary {
+  border-bottom: 1px dotted #94a3b8;
+  cursor: help;
+}
+
+details > summary {
+  list-style: none;
+}
+
+details > summary::-webkit-details-marker {
+  display: none;
+}
+
+@media print {
+  .policy-print .policy-actions,
+  .policy-print button {
+    display: none !important;
+  }
+
+  .policy-print details > summary {
+    display: none;
+  }
+
+  .policy-print details > * {
+    display: block !important;
+  }
+
+  .policy-print .shadow-sm,
+  .policy-print .shadow-lg {
+    box-shadow: none !important;
+  }
+
+  .policy-print a::after {
+    content: \" (\" attr(href) \")\";
+    font-size: 0.75em;
+    color: #64748b;
+  }
 }

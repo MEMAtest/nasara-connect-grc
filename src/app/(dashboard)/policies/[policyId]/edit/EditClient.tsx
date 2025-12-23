@@ -40,10 +40,22 @@ export function EditClient() {
   const [status, setStatus] = useState<StoredPolicy["status"]>("draft");
   const [customContent, setCustomContent] = useState<Record<string, unknown>>({});
   const [sectionNotes, setSectionNotes] = useState<Record<string, string>>({});
-  const [governance, setGovernance] = useState<{ effectiveDate: string; nextReviewAt: string; owner: string }>({
+  const [governance, setGovernance] = useState<{
+    effectiveDate: string;
+    nextReviewAt: string;
+    owner: string;
+    version: string;
+    scopeStatement: string;
+    distributionList: string;
+    linkedProcedures: string;
+  }>({
     effectiveDate: "",
     nextReviewAt: "",
     owner: "",
+    version: "",
+    scopeStatement: "",
+    distributionList: "",
+    linkedProcedures: "",
   });
   const [approvals, setApprovals] = useState<StoredPolicy["approvals"]>({
     requiresSMF: false,
@@ -62,10 +74,19 @@ export function EditClient() {
       const loadedNotes = (data.customContent as { sectionNotes?: Record<string, string> } | null)?.sectionNotes ?? {};
       setSectionNotes(loadedNotes);
       const loadedGovernance = (data.customContent as { governance?: Record<string, unknown> } | null)?.governance ?? {};
+      const distributionList = Array.isArray(loadedGovernance.distributionList)
+        ? loadedGovernance.distributionList.filter((value) => typeof value === "string" && value.trim().length > 0).join(", ")
+        : typeof loadedGovernance.distributionList === "string"
+          ? loadedGovernance.distributionList
+          : "";
       setGovernance({
         effectiveDate: typeof loadedGovernance.effectiveDate === "string" ? loadedGovernance.effectiveDate : "",
         nextReviewAt: typeof loadedGovernance.nextReviewAt === "string" ? loadedGovernance.nextReviewAt : "",
         owner: typeof loadedGovernance.owner === "string" ? loadedGovernance.owner : "",
+        version: typeof loadedGovernance.version === "string" ? loadedGovernance.version : "",
+        scopeStatement: typeof loadedGovernance.scopeStatement === "string" ? loadedGovernance.scopeStatement : "",
+        distributionList,
+        linkedProcedures: typeof loadedGovernance.linkedProcedures === "string" ? loadedGovernance.linkedProcedures : "",
       });
       setApprovals({
         requiresSMF: data.approvals.requiresSMF,
@@ -104,20 +125,56 @@ export function EditClient() {
     setIsSubmitting(true);
     setSubmitError(null);
     try {
+      if (status === "approved") {
+        const firmProfile = (customContent as { firmProfile?: Record<string, unknown> } | null)?.firmProfile ?? {};
+        const firmName = typeof firmProfile.name === "string" ? firmProfile.name.trim() : "";
+        const missing: string[] = [];
+
+        if (!firmName) missing.push("Firm name");
+        if (!governance.owner.trim()) missing.push("Policy owner");
+        if (!governance.version.trim()) missing.push("Policy version");
+        if (!governance.effectiveDate) missing.push("Effective date");
+        if (!governance.nextReviewAt) missing.push("Next review date");
+        if (!governance.scopeStatement.trim()) missing.push("Scope statement");
+
+        const missingNotes = sections
+          .filter((section) => section.requiresFirmNotes)
+          .filter((section) => !(sectionNotes[section.id] ?? "").trim())
+          .map((section) => section.title);
+        if (missingNotes.length) {
+          missing.push(`Firm notes: ${missingNotes.join(", ")}`);
+        }
+
+        if (missing.length) {
+          setIsSubmitting(false);
+          setSubmitError(`Complete required fields before approval: ${missing.join("; ")}.`);
+          return;
+        }
+      }
+
       const response = await fetch(`/api/policies/${policyId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          status,
-          customContent: {
-            ...customContent,
-            governance: {
-              effectiveDate: governance.effectiveDate || null,
-              nextReviewAt: governance.nextReviewAt || null,
-              owner: governance.owner.trim().length ? governance.owner.trim() : null,
-            },
-            sectionNotes,
-          },
+            body: JSON.stringify({
+              status,
+              customContent: {
+                ...customContent,
+                governance: {
+                  effectiveDate: governance.effectiveDate || null,
+                  nextReviewAt: governance.nextReviewAt || null,
+                  owner: governance.owner.trim().length ? governance.owner.trim() : null,
+                  version: governance.version.trim().length ? governance.version.trim() : null,
+                  scopeStatement: governance.scopeStatement.trim().length ? governance.scopeStatement.trim() : null,
+                  distributionList: governance.distributionList.trim().length
+                    ? governance.distributionList
+                        .split(",")
+                        .map((value) => value.trim())
+                        .filter(Boolean)
+                    : null,
+                  linkedProcedures: governance.linkedProcedures.trim().length ? governance.linkedProcedures.trim() : null,
+                },
+                sectionNotes,
+              },
           approvals: {
             ...approvals,
             smfRole: approvals.smfRole?.trim() || undefined,
@@ -236,6 +293,41 @@ export function EditClient() {
               />
             </div>
           </div>
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">Policy version</label>
+              <Input
+                placeholder="e.g. V1.0"
+                value={governance.version}
+                onChange={(event) => setGovernance((current) => ({ ...current, version: event.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">Distribution list</label>
+              <Input
+                placeholder="Board, Compliance, Operations"
+                value={governance.distributionList}
+                onChange={(event) => setGovernance((current) => ({ ...current, distributionList: event.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">Linked procedures</label>
+              <Input
+                placeholder="Complaints SOP, FOS escalation procedure"
+                value={governance.linkedProcedures}
+                onChange={(event) => setGovernance((current) => ({ ...current, linkedProcedures: event.target.value }))}
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-slate-700">Scope statement</label>
+            <Textarea
+              className="h-24"
+              placeholder="Define the activities, channels, and client types covered."
+              value={governance.scopeStatement}
+              onChange={(event) => setGovernance((current) => ({ ...current, scopeStatement: event.target.value }))}
+            />
+          </div>
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Board review cadence</label>
@@ -304,7 +396,12 @@ export function EditClient() {
                       <h3 className="text-sm font-semibold text-slate-900">{section.title}</h3>
                       <p className="text-xs text-slate-500">{section.summary}</p>
                     </div>
-                    <Badge variant="outline" className="text-[11px]">Section</Badge>
+                    <div className="flex items-center gap-2">
+                      {section.requiresFirmNotes ? (
+                        <Badge variant="secondary" className="text-[11px]">Firm notes required</Badge>
+                      ) : null}
+                      <Badge variant="outline" className="text-[11px]">Section</Badge>
+                    </div>
                   </div>
                   <Textarea
                     className="h-32"

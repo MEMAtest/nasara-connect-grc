@@ -46,7 +46,7 @@ export const POLICY_PACKAGES: PolicyPackage[] = [
     targetFirms: "Retail-facing firms preparing Consumer Duty packs",
     policies: [
       { code: "VULNERABLE_CUST", name: "Vulnerable Customers", mandatory: true },
-      { code: "COMPLAINTS", name: "Complaints Handling", mandatory: true },
+      { code: "COMPLAINTS", name: "Complaints Handling Policy", mandatory: true },
       { code: "PRODUCT_GOV", name: "Product Governance", mandatory: true },
       { code: "FIN_PROMOTIONS", name: "Financial Promotions", mandatory: true },
       { code: "TARGET_MARKET", name: "Target Market Assessment", mandatory: true },

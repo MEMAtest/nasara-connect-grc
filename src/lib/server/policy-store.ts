@@ -1,5 +1,6 @@
 import { pool } from "@/lib/database";
 import type { FirmPermissions } from "@/lib/policies";
+import { getTemplateByCode } from "@/lib/policies/templates";
 import type { PolicyClause, PolicyTemplate } from "@/lib/policies/templates";
 
 export type PolicyStatus = "draft" | "in_review" | "approved";
@@ -62,6 +63,7 @@ interface PolicyRow {
 function toStoredPolicy(row: PolicyRow): StoredPolicy {
   const createdAt = row.created_at instanceof Date ? row.created_at.toISOString() : new Date(row.created_at).toISOString();
   const updatedAt = row.updated_at instanceof Date ? row.updated_at.toISOString() : new Date(row.updated_at).toISOString();
+  const latestTemplate = getTemplateByCode(row.code);
   return {
     id: row.id,
     organizationId: row.organization_id,
@@ -69,7 +71,7 @@ function toStoredPolicy(row: PolicyRow): StoredPolicy {
     name: row.name,
     description: row.description,
     permissions: row.permissions,
-    template: row.template,
+    template: latestTemplate ?? row.template,
     clauses: row.clauses,
     customContent: row.custom_content ?? {},
     approvals: {

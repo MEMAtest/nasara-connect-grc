@@ -4,6 +4,8 @@
  */
 import type { JsonValue } from "@/lib/policies/types";
 
+type MissingVariableHandler = (path: string) => string;
+
 /**
  * Simple Liquid-style template renderer
  * Supports:
@@ -11,9 +13,30 @@ import type { JsonValue } from "@/lib/policies/types";
  * - Conditionals: {% if condition %}...{% endif %}
  * - Loops: {% for item in array %}...{% endfor %}
  */
+function resolveContextPath(path: string, context: Record<string, JsonValue>): JsonValue | undefined {
+  const parts = path.split(".");
+  let value: JsonValue | Record<string, JsonValue> = context;
+
+  for (const part of parts) {
+    if (value && typeof value === "object" && !Array.isArray(value) && part in value) {
+      value = (value as Record<string, JsonValue>)[part];
+    } else {
+      return undefined;
+    }
+  }
+
+  return value as JsonValue;
+}
+
+function isMissingValue(value: JsonValue | undefined): boolean {
+  if (value === undefined || value === null) return true;
+  return typeof value === "string" && value.trim().length === 0;
+}
+
 export function renderLiquidTemplate(
   template: string,
-  context: Record<string, JsonValue>
+  context: Record<string, JsonValue>,
+  options?: { onMissingVariable?: MissingVariableHandler },
 ): string {
   let output = template;
   let hasChanges = true;
@@ -77,24 +100,11 @@ export function renderLiquidTemplate(
   // Process variable interpolation: {{ variable_name }}
   output = output.replace(/{{\s*(\w+(?:\.\w+)*)\s*}}/g, (_match, path) => {
     // Support nested properties: {{ firm.name }}
-    const parts = path.split('.');
-    let value: JsonValue | Record<string, JsonValue> = context;
-
-    for (const part of parts) {
-      if (
-        value &&
-        typeof value === 'object' &&
-        !Array.isArray(value) &&
-        part in value
-      ) {
-        value = (value as Record<string, JsonValue>)[part];
-      } else {
-        value = undefined;
-        break;
-      }
+    const value = resolveContextPath(path, context);
+    if (isMissingValue(value)) {
+      return options?.onMissingVariable ? options.onMissingVariable(path) : "";
     }
-
-    return value !== undefined && value !== null ? String(value) : '';
+    return String(value);
   });
 
   return output;
@@ -106,7 +116,8 @@ export function renderLiquidTemplate(
 export function renderClause(
   clauseBodyMd: string,
   variables: Record<string, JsonValue>,
-  answers: Record<string, JsonValue>
+  answers: Record<string, JsonValue>,
+  options?: { onMissingVariable?: MissingVariableHandler },
 ): string {
   // Combine variables and answers into a single context
   const context = {
@@ -114,7 +125,20 @@ export function renderClause(
     ...answers,
   };
 
-  return renderLiquidTemplate(clauseBodyMd, context);
+  return renderLiquidTemplate(clauseBodyMd, context, options);
+}
+
+export function extractLiquidVariables(template: string): string[] {
+  const variables = new Set<string>();
+  const matches = template.matchAll(/{{\s*(\w+(?:\.\w+)*)\s*}}/g);
+  for (const match of matches) {
+    variables.add(match[1]);
+  }
+  return Array.from(variables);
+}
+
+export function findMissingTemplateVariables(template: string, context: Record<string, JsonValue>): string[] {
+  return extractLiquidVariables(template).filter((path) => isMissingValue(resolveContextPath(path, context)));
 }
 
 /**

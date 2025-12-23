@@ -1,31 +1,28 @@
 [
   {
-    "id": "mfs_complaints-general-general",
-    "policy_key": "mfs_complaints",
-    "title": "General",
-    "body_md": "Complaints – General Principles3\nComplaint Handling Rules5\nComplaints Rules9\nComplaints Handling Process for Payment Services (PSRs)9\nFactors Considered in Complaint Resolution10\nPreventing Escalation to FOS10\nCooperation with the FOS10\nComplaints Resolved Within Three Business Days11\nScope and Applicability11\nProcess for Handling Complaints Within Three Business Days11\nMonitoring and Reporting for Three-Day Resolutions13\nExceptions and Escalations13\nComplaints Time Limit Rules14\nHandling Complaints From Vulnerable Customers15\nSpeed And Quality Of Response16\nComplaints Forwarding Rules17\nDealing With A Forwarded Complaint19\nJoint Responsibility For Complaints20\nComplaints Time Barring Rule21\nRoot Cause Analysis23\nComplaints Record Rule24\nComplaints Reporting Rules24\nManagement Information and Reporting27\nA Closed Complaint29\nNotification Of Contact Point For Complainants30\nComplaints Referred To The Fos31\nTraining And Competence In Complaints Handling33\nQuality Assurance in Complaints Handling35\nContinuous Improvement In Complaints Handling38",
-    "tags": {
-      "source": [
-        "docx"
-      ]
-    },
-    "variables": [],
-    "version": "1.0.0",
-    "status": "active",
-    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
-    "source_extracted_at": "2025-12-13T20:59:52.485Z"
-  },
-  {
     "id": "mfs_complaints-appendix_5_general_contact_letter-appendix_5_general_contact_letter",
     "policy_key": "mfs_complaints",
     "title": "Appendix 5 - General Contact Letter",
-    "body_md": "{{firm.name}} (“{{firm.name}}”), as a directly authorised firm, handles complaints in line with relevant regulatory requirements Consumer Duty and the DISP sourcebook in particular.",
+    "body_md": "{{firm.name}} (“{{firm.name}}”), as a directly authorised firm, handles complaints in line with relevant regulatory requirements Consumer Duty and the DISP sourcebook in particular.\n\nFirm name\nAddress1\nAddress2\nPostcode\nPhone number: XXX XXX XXX\nCall charges explanation\nCall charges explanation\nCall charges explanation\nCustomer salutation, initials and surname\nAddress1 Date: {{ddmonthyyy}}\nAddress2 Ref: {{cmpxxxx}}\nAddress3",
     "tags": {
       "source": [
         "docx"
       ]
     },
-    "variables": [],
+    "variables": [
+      {
+        "name": "ddmonthyyy",
+        "description": "ddmonthyyy",
+        "type": "text",
+        "required": true
+      },
+      {
+        "name": "cmpxxxx",
+        "description": "CMPXXXX",
+        "type": "text",
+        "required": true
+      }
+    ],
     "version": "1.0.0",
     "status": "active",
     "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
@@ -1718,7 +1715,7 @@
     "id": "mfs_complaints-appendix_3_complaint_upheld_letter_amended_as_required_for_psd_related_comp",
     "policy_key": "mfs_complaints",
     "title": "Appendix 3. Complaint Upheld Letter (amended as required for PSD related complaints)",
-    "body_md": "Firm name\nAddress1\nAddress2\nPostcode\nPhone number: XXX XXX XXX\nCall charges explanation\nCall charges explanation\nCall charges explanation\nCustomer salutation, initials and surname\nAddress1 Date: {{ddmonthyyy}}\nAddress2 Ref: {{cmpxxxx}}\nAddress3\nPostcode",
+    "body_md": "Firm name\nAddress1\nAddress2\nPostcode\nPhone number: XXX XXX XXX\nCall charges explanation\nCall charges explanation\nCall charges explanation\nCustomer salutation, initials and surname\nAddress1 Date: {{ddmonthyyy}}\nAddress2 Ref: {{cmpxxxx}}\nAddress3\nPostcode\n\nDear {{insert_name}}\nThank you for taking the time to contact us about your {{policy_type}}. Firstly I want to apologise for the trouble we’ve caused you. We want to do the best for our customers and I’m sorry on this occasion we’ve let you down. I’m sure in the future you’ll receive a level of service more in keeping with your high expectations of us.\nI have now reviewed your {{telephone_call_letter_email_online_post}} of {{ddmonthyyy}} and I am writing to fully explain the outcome of our investigation. Your complaint details\nI understand you’re unhappy… {{insert_customer_complaint_details_and_ensure_all_points_are_covered_off_in_full}}\n\nYour complaint has been thoroughly investigated and I am pleased to say the decision has been made to uphold the complaint in your favour. {{explain_what_we_did_to_investigate_what_went_wrong_what_we_will_do_to_put_it_right}}\n\nIt’s clear on this occasion we’ve failed to take sufficient care when completing our administrative procedures and this has led to the situation you’ve described. I certainly understand your frustration in this matter and would like to offer my apologies for the inconvenience we have caused you.\nAs part of our ongoing commitment to put things right for our customers and deliver great customer service, we review all complaints to learn from our mistakes. We work hard to provide additional training to any of our people who have made a mistake. As a result, we’ve made a number of changes to our services and processes as a direct result of customer feedback such as yours. I’d therefore like to thank you for bringing this matter to our attention.\n\nI believe I have now addressed your areas of concern and you can regard this letter as our final response. If you do not feel my response has resolved your complaint, there is a further escalation process available to you.\nYou have the right to refer your complaint to the Financial Ombudsman Service, free of charge – but you must do so within six months of the date of this letter. If you do not refer your complaint in time, the Ombudsman will not have our permission to consider your complaint and so will only be able to do so in very limited circumstances. For example, if the Ombudsman believes that the delay was as a result of exceptional circumstances. If your complaint relates to a payment service and you are not eligible for the Financial Ombudsman Service, you may raise it with the Payment Systems Regulator (complaints@psr.org.uk).\nThe full contact details for the Financial Ombudsman Service are detailed below and further information can be found in the enclosed Ombudsman leaflet:\nWrite to: Financial Ombudsman Service, Exchange Tower, London, E14 9SR\nPhone: 0800 0 234 567 (free from landlines) or 0300 123 9 123 (charged at a national rate)\nEmail: complaint.info@financial-ombudsman.org.uk\nWebsite: www.financial-ombudsman.org.uk\nYours sincerely\n{{name_of_contact_point}}\n{{job_title}}\nEnc. ‘your complaint and the ombudsman’ leaflet",
     "tags": {
       "source": [
         "docx"
@@ -1736,24 +1733,7 @@
         "description": "CMPXXXX",
         "type": "text",
         "required": true
-      }
-    ],
-    "version": "1.0.0",
-    "status": "active",
-    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
-    "source_extracted_at": "2025-12-13T20:59:52.492Z"
-  },
-  {
-    "id": "mfs_complaints-appendix_3_complaint_upheld_letter_amended_as_required_for_psd_related_comp",
-    "policy_key": "mfs_complaints",
-    "title": "We’ve investigated your complaint",
-    "body_md": "Dear {{insert_name}}\nThank you for taking the time to contact us about your {{policy_type}}. Firstly I want to apologise for the trouble we’ve caused you. We want to do the best for our customers and I’m sorry on this occasion we’ve let you down. I’m sure in the future you’ll receive a level of service more in keeping with your high expectations of us.\nI have now reviewed your {{telephone_call_letter_email_online_post}} of {{ddmonthyyy}} and I am writing to fully explain the outcome of our investigation. Your complaint details\nI understand you’re unhappy… {{insert_customer_complaint_details_and_ensure_all_points_are_covered_off_in_full}}",
-    "tags": {
-      "source": [
-        "docx"
-      ]
-    },
-    "variables": [
+      },
       {
         "name": "insert_name",
         "description": "insert name",
@@ -1773,73 +1753,17 @@
         "required": true
       },
       {
-        "name": "ddmonthyyy",
-        "description": "ddmonthyyy",
-        "type": "text",
-        "required": true
-      },
-      {
         "name": "insert_customer_complaint_details_and_ensure_all_points_are_covered_off_in_full",
         "description": "insert customer complaint details & ensure all points are covered off in full",
         "type": "text",
         "required": true
-      }
-    ],
-    "version": "1.0.0",
-    "status": "active",
-    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
-    "source_extracted_at": "2025-12-13T20:59:52.492Z"
-  },
-  {
-    "id": "mfs_complaints-appendix_3_complaint_upheld_letter_amended_as_required_for_psd_related_comp",
-    "policy_key": "mfs_complaints",
-    "title": "My decision and findings",
-    "body_md": "Your complaint has been thoroughly investigated and I am pleased to say the decision has been made to uphold the complaint in your favour. {{explain_what_we_did_to_investigate_what_went_wrong_what_we_will_do_to_put_it_right}}",
-    "tags": {
-      "source": [
-        "docx"
-      ]
-    },
-    "variables": [
+      },
       {
         "name": "explain_what_we_did_to_investigate_what_went_wrong_what_we_will_do_to_put_it_right",
         "description": "explain what we did to investigate / what went wrong / what we will do to put it right",
         "type": "text",
         "required": true
-      }
-    ],
-    "version": "1.0.0",
-    "status": "active",
-    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
-    "source_extracted_at": "2025-12-13T20:59:52.492Z"
-  },
-  {
-    "id": "mfs_complaints-appendix_3_complaint_upheld_letter_amended_as_required_for_psd_related_comp",
-    "policy_key": "mfs_complaints",
-    "title": "[Compile standard paragraphs for some help with this and insert here]",
-    "body_md": "It’s clear on this occasion we’ve failed to take sufficient care when completing our administrative procedures and this has led to the situation you’ve described. I certainly understand your frustration in this matter and would like to offer my apologies for the inconvenience we have caused you.\nAs part of our ongoing commitment to put things right for our customers and deliver great customer service, we review all complaints to learn from our mistakes. We work hard to provide additional training to any of our people who have made a mistake. As a result, we’ve made a number of changes to our services and processes as a direct result of customer feedback such as yours. I’d therefore like to thank you for bringing this matter to our attention.",
-    "tags": {
-      "source": [
-        "docx"
-      ]
-    },
-    "variables": [],
-    "version": "1.0.0",
-    "status": "active",
-    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
-    "source_extracted_at": "2025-12-13T20:59:52.492Z"
-  },
-  {
-    "id": "mfs_complaints-appendix_3_complaint_upheld_letter_amended_as_required_for_psd_related_comp",
-    "policy_key": "mfs_complaints",
-    "title": "Your options now",
-    "body_md": "I believe I have now addressed your areas of concern and you can regard this letter as our final response. If you do not feel my response has resolved your complaint, there is a further escalation process available to you.\nYou have the right to refer your complaint to the Financial Ombudsman Service, free of charge – but you must do so within six months of the date of this letter. If you do not refer your complaint in time, the Ombudsman will not have our permission to consider your complaint and so will only be able to do so in very limited circumstances. For example, if the Ombudsman believes that the delay was as a result of exceptional circumstances. If your complaint relates to a payment service and you are not eligible for the Financial Ombudsman Service, you may raise it with the Payment Systems Regulator (complaints@psr.org.uk).\nThe full contact details for the Financial Ombudsman Service are detailed below and further information can be found in the enclosed Ombudsman leaflet:\nWrite to: Financial Ombudsman Service, Exchange Tower, London, E14 9SR\nPhone: 0800 0 234 567 (free from landlines) or 0300 123 9 123 (charged at a national rate)\nEmail: complaint.info@financial-ombudsman.org.uk\nWebsite: www.financial-ombudsman.org.uk\nYours sincerely\n{{name_of_contact_point}}\n{{job_title}}\nEnc. ‘your complaint and the ombudsman’ leaflet",
-    "tags": {
-      "source": [
-        "docx"
-      ]
-    },
-    "variables": [
+      },
       {
         "name": "name_of_contact_point",
         "description": "Name of contact point",
@@ -1856,13 +1780,13 @@
     "version": "1.0.0",
     "status": "active",
     "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
-    "source_extracted_at": "2025-12-13T20:59:52.493Z"
+    "source_extracted_at": "2025-12-13T20:59:52.492Z"
   },
   {
     "id": "mfs_complaints-appendix_4_complaint_rejected_letter_amended_as_required_for_psd_related_co",
     "policy_key": "mfs_complaints",
     "title": "Appendix 4. Complaint Rejected Letter (amended as required for PSD related complaints)",
-    "body_md": "Firm name\nAddress1\nAddress2\nPostcode\nPhone number: XXX XXX XXX\nCall charges explanation\nCall charges explanation\nCall charges explanation\nCustomer salutation, initials and surname\nAddress1 Date: {{ddmonthyyy}}\nAddress2 Ref: {{cmpxxxx}}\nAddress3",
+    "body_md": "Firm name\nAddress1\nAddress2\nPostcode\nPhone number: XXX XXX XXX\nCall charges explanation\nCall charges explanation\nCall charges explanation\nCustomer salutation, initials and surname\nAddress1 Date: {{ddmonthyyy}}\nAddress2 Ref: {{cmpxxxx}}\nAddress3\n\nDear {{insert_name}}\nThank you for taking the time to contact us about your {{product_type}}. Firstly I am sorry to hear you’ve had cause to complain as we always want to do the best for our customers.\nI have now reviewed your {{telephone_call_letter_email_online_post}} of {{ddmonthyyy}} and I am writing to fully explain the outcome of our investigation. Your complaint details\nI understand you’re unhappy… {{insert_customer_complaint_details_and_ensure_all_points_are_covered_off_in_full}}\n\nYour complaint has been thoroughly investigated and I’m afraid I’m unable to uphold the complaint in your favour on this occasion.\n{{explain_what_we_did_to_investigate_what_went_wrong_what_we_will_do_to_put_it_right}}\n\nI appreciate this isn’t the outcome you were hoping for; however, I trust my review of your complaint and thorough explanation of what’s happened shows why I’ve come to this decision.\n\nI believe I have now addressed your areas of concern and you can regard this letter as our final response. If you do not feel my letter has resolved your complaint, there is a further escalation process available to you.\nYou have the right to refer your complaint to the Financial Ombudsman Service, free of charge – but you must do so within six months of the date of this letter. If you do not refer your complaint in time, the Ombudsman will not have our permission to consider your complaint and so will only be able to do so in very limited circumstances - for example, if the Ombudsman believes that the delay was as a result of exceptional circumstances. If your complaint relates to a payment service and you are not eligible for the Financial Ombudsman Service, you may raise it with the Payment Systems Regulator (complaints@psr.org.uk).\nThe full contact details for the Financial Ombudsman Service are detailed below and further information can be found in the enclosed Ombudsman leaflet:\nWrite to: Financial Ombudsman Service, Exchange Tower, London, E14 9SR\nPhone: 0800 0 234 567 (free from landlines) or 0300 123 9 123 (charged at a national rate)\nEmail: complaint.info@financial-ombudsman.org.uk\nWebsite: www.financial-ombudsman.org.uk\nYours sincerely\n{{name_of_contact_point}}\n{{job_title}}\nEnc. ‘your complaint and the ombudsman’ leaflet",
     "tags": {
       "source": [
         "docx"
@@ -1880,24 +1804,7 @@
         "description": "CMPXXXX",
         "type": "text",
         "required": true
-      }
-    ],
-    "version": "1.0.0",
-    "status": "active",
-    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
-    "source_extracted_at": "2025-12-13T20:59:52.493Z"
-  },
-  {
-    "id": "mfs_complaints-appendix_4_complaint_rejected_letter_amended_as_required_for_psd_related_co",
-    "policy_key": "mfs_complaints",
-    "title": "We’ve investigated your complaint",
-    "body_md": "Dear {{insert_name}}\nThank you for taking the time to contact us about your {{product_type}}. Firstly I am sorry to hear you’ve had cause to complain as we always want to do the best for our customers.\nI have now reviewed your {{telephone_call_letter_email_online_post}} of {{ddmonthyyy}} and I am writing to fully explain the outcome of our investigation. Your complaint details\nI understand you’re unhappy… {{insert_customer_complaint_details_and_ensure_all_points_are_covered_off_in_full}}",
-    "tags": {
-      "source": [
-        "docx"
-      ]
-    },
-    "variables": [
+      },
       {
         "name": "insert_name",
         "description": "insert name",
@@ -1917,73 +1824,17 @@
         "required": true
       },
       {
-        "name": "ddmonthyyy",
-        "description": "ddmonthyyy",
-        "type": "text",
-        "required": true
-      },
-      {
         "name": "insert_customer_complaint_details_and_ensure_all_points_are_covered_off_in_full",
         "description": "insert customer complaint details & ensure all points are covered off in full",
         "type": "text",
         "required": true
-      }
-    ],
-    "version": "1.0.0",
-    "status": "active",
-    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
-    "source_extracted_at": "2025-12-13T20:59:52.493Z"
-  },
-  {
-    "id": "mfs_complaints-appendix_4_complaint_rejected_letter_amended_as_required_for_psd_related_co",
-    "policy_key": "mfs_complaints",
-    "title": "My decision and findings",
-    "body_md": "Your complaint has been thoroughly investigated and I’m afraid I’m unable to uphold the complaint in your favour on this occasion.\n{{explain_what_we_did_to_investigate_what_went_wrong_what_we_will_do_to_put_it_right}}",
-    "tags": {
-      "source": [
-        "docx"
-      ]
-    },
-    "variables": [
+      },
       {
         "name": "explain_what_we_did_to_investigate_what_went_wrong_what_we_will_do_to_put_it_right",
         "description": "explain what we did to investigate / what went wrong / what we will do to put it right",
         "type": "text",
         "required": true
-      }
-    ],
-    "version": "1.0.0",
-    "status": "active",
-    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
-    "source_extracted_at": "2025-12-13T20:59:52.493Z"
-  },
-  {
-    "id": "mfs_complaints-appendix_4_complaint_rejected_letter_amended_as_required_for_psd_related_co",
-    "policy_key": "mfs_complaints",
-    "title": "[Compile standard paragraphs for some help with this and insert here]",
-    "body_md": "I appreciate this isn’t the outcome you were hoping for; however, I trust my review of your complaint and thorough explanation of what’s happened shows why I’ve come to this decision.",
-    "tags": {
-      "source": [
-        "docx"
-      ]
-    },
-    "variables": [],
-    "version": "1.0.0",
-    "status": "active",
-    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
-    "source_extracted_at": "2025-12-13T20:59:52.493Z"
-  },
-  {
-    "id": "mfs_complaints-appendix_4_complaint_rejected_letter_amended_as_required_for_psd_related_co",
-    "policy_key": "mfs_complaints",
-    "title": "Your options now",
-    "body_md": "I believe I have now addressed your areas of concern and you can regard this letter as our final response. If you do not feel my letter has resolved your complaint, there is a further escalation process available to you.\nYou have the right to refer your complaint to the Financial Ombudsman Service, free of charge – but you must do so within six months of the date of this letter. If you do not refer your complaint in time, the Ombudsman will not have our permission to consider your complaint and so will only be able to do so in very limited circumstances - for example, if the Ombudsman believes that the delay was as a result of exceptional circumstances. If your complaint relates to a payment service and you are not eligible for the Financial Ombudsman Service, you may raise it with the Payment Systems Regulator (complaints@psr.org.uk).\nThe full contact details for the Financial Ombudsman Service are detailed below and further information can be found in the enclosed Ombudsman leaflet:\nWrite to: Financial Ombudsman Service, Exchange Tower, London, E14 9SR\nPhone: 0800 0 234 567 (free from landlines) or 0300 123 9 123 (charged at a national rate)\nEmail: complaint.info@financial-ombudsman.org.uk\nWebsite: www.financial-ombudsman.org.uk\nYours sincerely\n{{name_of_contact_point}}\n{{job_title}}\nEnc. ‘your complaint and the ombudsman’ leaflet",
-    "tags": {
-      "source": [
-        "docx"
-      ]
-    },
-    "variables": [
+      },
       {
         "name": "name_of_contact_point",
         "description": "Name of contact point",
@@ -1993,35 +1844,6 @@
       {
         "name": "job_title",
         "description": "Job title",
-        "type": "text",
-        "required": true
-      }
-    ],
-    "version": "1.0.0",
-    "status": "active",
-    "source_template_filename": "01.08.2025_MFS_Complaints Handling Procedure  (1).docx",
-    "source_extracted_at": "2025-12-13T20:59:52.493Z"
-  },
-  {
-    "id": "mfs_complaints-appendix_5_general_contact_letter-appendix_5_general_contact_letter",
-    "policy_key": "mfs_complaints",
-    "title": "Appendix 5 - General Contact Letter",
-    "body_md": "Firm name\nAddress1\nAddress2\nPostcode\nPhone number: XXX XXX XXX\nCall charges explanation\nCall charges explanation\nCall charges explanation\nCustomer salutation, initials and surname\nAddress1 Date: {{ddmonthyyy}}\nAddress2 Ref: {{cmpxxxx}}\nAddress3",
-    "tags": {
-      "source": [
-        "docx"
-      ]
-    },
-    "variables": [
-      {
-        "name": "ddmonthyyy",
-        "description": "ddmonthyyy",
-        "type": "text",
-        "required": true
-      },
-      {
-        "name": "cmpxxxx",
-        "description": "CMPXXXX",
         "type": "text",
         "required": true
       }

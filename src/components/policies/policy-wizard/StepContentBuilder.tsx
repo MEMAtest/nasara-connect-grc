@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { ChevronDown, ChevronUp, Eye, Plus, Trash2 } from "lucide-react";
-import { marked } from "marked";
+import { renderPolicyMarkdown } from "@/lib/policies/markdown";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -16,14 +16,9 @@ import { getApplicableClauses } from "@/lib/policies/templates";
 import type { PolicyClause } from "@/lib/policies/templates";
 import type { WizardStepProps } from "./types";
 
-marked.setOptions({
-  breaks: true,
-  gfm: true,
-});
-
 function renderMarkdown(value: string) {
   if (!value) return "";
-  return marked.parse(value, { async: false }) as string;
+  return renderPolicyMarkdown(value);
 }
 
 function unique<T>(items: T[]) {
@@ -391,4 +386,3 @@ export function StepContentBuilder({ state, updateState, onNext, onBack }: Wizar
     </div>
   );
 }
-

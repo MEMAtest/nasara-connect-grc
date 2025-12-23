@@ -68,7 +68,7 @@ export function getRequiredPolicies(permissions: FirmPermissions): PolicyRequire
     required.push(
       { code: "CONSUMER_DUTY", name: "Consumer Duty Framework", mandatory: true },
       { code: "VULNERABLE_CUST", name: "Vulnerable Customers", mandatory: true },
-      { code: "COMPLAINTS", name: "Complaints Handling", mandatory: true },
+      { code: "COMPLAINTS", name: "Complaints Handling Policy", mandatory: true },
       { code: "FIN_PROMOTIONS", name: "Financial Promotions", mandatory: true },
     );
   }

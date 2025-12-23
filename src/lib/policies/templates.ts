@@ -39,6 +39,8 @@ export interface PolicyTemplateSection {
   title: string;
   summary: string;
   suggestedClauses: string[];
+  sectionType?: "policy" | "procedure" | "appendix";
+  requiresFirmNotes?: boolean;
 }
 
 export type PolicyMappingTargetType = "risk" | "control" | "training" | "evidence";
@@ -49,13 +51,19 @@ export interface PolicySuggestedMapping {
   metadata?: Record<string, unknown>;
 }
 
+export interface PolicyTemplateBadge {
+  label: string;
+  tone?: "emerald" | "amber" | "sky" | "slate";
+}
+
 export interface PolicyTemplate {
   code: string;
   name: string;
-  category: "Customer" | "FinCrime" | "Ops" | "Governance" | "Markets";
+  category: "Customer" | "Complaints" | "FinCrime" | "Ops" | "Governance" | "Markets";
   description: string;
   sections: PolicyTemplateSection[];
   mandatoryClauses: string[];
+  badges?: PolicyTemplateBadge[];
   suggestedMappings?: PolicySuggestedMapping[];
 }
 

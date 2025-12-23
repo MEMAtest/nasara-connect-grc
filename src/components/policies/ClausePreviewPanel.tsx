@@ -7,7 +7,7 @@
 
 import { useMemo, useState } from 'react'
 import DOMPurify from 'dompurify'
-import { marked } from 'marked'
+import { renderPolicyMarkdown } from "@/lib/policies/markdown";
 import { renderClause } from '@/lib/policies/liquid-renderer'
 import type { Clause, RulesEngineResult, JsonValue } from '@/lib/policies/types'
 
@@ -262,11 +262,6 @@ export default function ClausePreviewPanel({
 }
 
 function renderMarkdown(markdown: string): string {
-  const raw = marked.parse(markdown ?? '', {
-    gfm: true,
-    breaks: true,
-  });
-
-  const html = typeof raw === 'string' ? raw : ''
+  const html = renderPolicyMarkdown(markdown ?? "");
   return DOMPurify.sanitize(html)
 }

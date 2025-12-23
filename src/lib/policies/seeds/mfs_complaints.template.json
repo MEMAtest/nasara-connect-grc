@@ -1,13 +1,13 @@
 {
   "code": "COMPLAINTS",
-  "name": "Complaints Handling Procedure",
-  "category": "Customer",
-  "description": "Handling complaints, regulatory reporting, customer communications, and FOS escalation.",
+  "name": "Complaints Handling Policy",
+  "category": "Complaints",
+  "description": "Policy and procedure for complaint intake, DISP/PSR timelines, FOS escalation, vulnerable customer support, governance and MI.",
   "sections": [
     {
       "id": "overview",
       "title": "Policy overview",
-      "summary": "- any payment service user (as defined in regulation 2 of the PSRs 2017) may complain, even if they do not meet the D…",
+      "summary": "Regulatory scope, eligibility, Consumer Duty alignment, and complaints principles.",
       "suggestedClauses": [
         "mfs_complaints-wider_eligibility_for_psd_complaints-wider_eligibility_for_psd_complaints",
         "mfs_complaints-consumer_duty_in_complaints_handling-consumer_duty_in_complaints_handling",
@@ -16,15 +16,15 @@
         "mfs_complaints-compliance_with_fca_principle_6_customers_interests-complaints_rules",
         "mfs_complaints-fos_website_and_contact_information-complaints_time_limit_rules",
         "mfs_complaints-fca_and_fos_assessment_of_response-complaints_forwarding_rules"
-      ]
+      ],
+      "sectionType": "policy",
+      "requiresFirmNotes": true
     },
     {
       "id": "process",
       "title": "Complaints handling process",
-      "summary": "Complaints – General Principles3 Complaint Handling Rules5 Complaints Rules9 Complaints Handling Process for Payment …",
+      "summary": "Intake, acknowledgement, investigation, SRC, and final response workflow with DISP/PSR timelines.",
       "suggestedClauses": [
-        "mfs_complaints-general-general",
-        "mfs_complaints-digital_complaints_handling_framework-example_a_customer_tweets_about_diffi",
         "mfs_complaints-compliance_with_fca_principle_6_customers_interests-compliance_with_fca_pri",
         "mfs_complaints-compliance_with_fca_principle_6_customers_interests-complaints_handling_pro",
         "mfs_complaints-acknowledgement_of_receipt_psrs-acknowledgement_of_receipt_psrs",
@@ -41,7 +41,6 @@
         "mfs_complaints-fos_website_and_contact_information-step_4_compliance_with_resolution",
         "mfs_complaints-fos_website_and_contact_information-exceptions_and_escalations",
         "mfs_complaints-fos_website_and_contact_information-acknowledgement_of_complaints",
-        "mfs_complaints-fos_website_and_contact_information-general_contact_letter",
         "mfs_complaints-identification_of_vulnerable_complainants-additional_support_measures",
         "mfs_complaints-identification_of_vulnerable_complainants-speed_and_quality_of_response",
         "mfs_complaints-response_within_fifteen_day-response_within_fifteen_day",
@@ -68,39 +67,42 @@
         "mfs_complaints-fos_complaint_management_process-quality_assurance_in_complaints_handling",
         "mfs_complaints-fos_complaint_management_process-example_qa_outcome",
         "mfs_complaints-fos_complaint_management_process-example_improvement_initiative",
-        "mfs_complaints-external_inputs_for_improvement-external_inputs_for_improvement",
-        "mfs_complaints-we_ve_investigated_your_complaint-we_ve_investigated_your_complaint",
-        "mfs_complaints-my_decision_and_findings-my_decision_and_findings",
-        "mfs_complaints-compile_standard_paragraphs_for_some_help_with_this_and_insert_here-compile",
-        "mfs_complaints-compile_standard_paragraphs_for_some_help_with_this_and_insert_here-your_op"
-      ]
+        "mfs_complaints-external_inputs_for_improvement-external_inputs_for_improvement"
+      ],
+      "sectionType": "procedure",
+      "requiresFirmNotes": true
     },
     {
       "id": "digital",
       "title": "Digital complaints",
-      "summary": "| Regulatory References: DISP 1.2 (Consumer awareness rules) PRIN 2A (Consumer Duty) SYSC 13 (Operational resilience)…",
+      "summary": "Handling complaints across web, email, social, and digital channels.",
       "suggestedClauses": [
         "mfs_complaints-consumer_duty_in_complaints_handling-digital_complaints_handling",
         "mfs_complaints-process_for_handling_digital_complaints-process_for_handling_digital_compla",
         "mfs_complaints-digital_complaints_handling_framework-handling_x_twitter_complaints",
         "mfs_complaints-quality_assurance_for_digital_complaints-quality_assurance_for_digital_comp",
         "mfs_complaints-specific_considerations_for_email_complaints-specific_considerations_for_em",
-        "mfs_complaints-website_complaint_form_enhancements-website_complaint_form_enhancements"
-      ]
+        "mfs_complaints-website_complaint_form_enhancements-website_complaint_form_enhancements",
+        "mfs_complaints-digital_complaints_handling_framework-example_a_customer_tweets_about_diffi"
+      ],
+      "sectionType": "procedure",
+      "requiresFirmNotes": true
     },
     {
       "id": "vulnerable",
       "title": "Vulnerable customers",
-      "summary": "| Regulatory References FG21/1 (FCA Guidance on the Fair Treatment of Vulnerable Customers) PRIN 6 (Customers' Intere…",
+      "summary": "Identification, adjustments, and enhanced support for vulnerable customers.",
       "suggestedClauses": [
         "mfs_complaints-fos_website_and_contact_information-handling_complaints_from_vulnerable_cus",
         "mfs_complaints-identification_of_vulnerable_complainants-identification_of_vulnerable_comp"
-      ]
+      ],
+      "sectionType": "policy",
+      "requiresFirmNotes": true
     },
     {
       "id": "fos",
       "title": "FOS escalation",
-      "summary": "{{firm.name}} ensures that complainants are informed of their rights to escalate their complaint to the FOS, as per D…",
+      "summary": "FOS escalation routes, time limits, and co-operation requirements.",
       "suggestedClauses": [
         "mfs_complaints-compliance_with_fca_principle_6_customers_interests-reporting_to_the_fos",
         "mfs_complaints-remedial_action_and_redress-preventing_escalation_to_fos",
@@ -111,12 +113,14 @@
         "mfs_complaints-fos_website_and_contact_information-further_fos_information",
         "mfs_complaints-fca_and_fos_assessment_of_response-fca_and_fos_assessment_of_response",
         "mfs_complaints-fos_complaint_management_process-fos_complaint_management_process"
-      ]
+      ],
+      "sectionType": "procedure",
+      "requiresFirmNotes": true
     },
     {
       "id": "governance",
       "title": "Governance, MI & review",
-      "summary": "{{firm.name}} will implement a structured approach to monitor complaints made directly against itself: - Complaints M…",
+      "summary": "RCA, MI reporting, training, and policy review governance.",
       "suggestedClauses": [
         "mfs_complaints-monitoring_complaints_made_against_mfs-monitoring_complaints_made_against_m",
         "mfs_complaints-fos_website_and_contact_information-monitoring_and_reporting_for_three_day_",
@@ -133,12 +137,14 @@
         "mfs_complaints-fos_complaint_management_process-action_plan",
         "mfs_complaints-fos_complaint_management_process-reporting",
         "mfs_complaints-fos_complaint_management_process-continuous_improvement_in_complaints_handl"
-      ]
+      ],
+      "sectionType": "policy",
+      "requiresFirmNotes": true
     },
     {
       "id": "appendix-1",
       "title": "Appendix 1 – Template Complaint Letters Used by MEMA Financial Services",
-      "summary": "1. Acknowledgement Letter for Complainants (amended as required for PSD related complaints) Firm name Address1 Addres…",
+      "summary": "Acknowledgement and response letter templates.",
       "suggestedClauses": [
         "mfs_complaints-appendix_1_template_complaint_letters_used_by_mema_financial_services-appen",
         "mfs_complaints-appendix_1_template_complaint_letters_used_by_mema_financial_services-we_ve",
@@ -149,52 +155,53 @@
         "mfs_complaints-appendix_1_template_complaint_letters_used_by_mema_financial_services-what_",
         "mfs_complaints-appendix_1_template_complaint_letters_used_by_mema_financial_services-not_s",
         "mfs_complaints-appendix_1_template_complaint_letters_used_by_mema_financial_services-the_f"
-      ]
+      ],
+      "sectionType": "appendix",
+      "requiresFirmNotes": false
     },
     {
       "id": "appendix-2",
       "title": "Appendix 2- Forward to Third Party Letter",
-      "summary": "Firm name Address1 Address2 Postcode Phone number: XXX XXX XXX Call charges explanation Call charges explanation Call…",
+      "summary": "Forwarding and third-party handoff letter template.",
       "suggestedClauses": [
         "mfs_complaints-appendix_2_forward_to_third_party_letter-appendix_2_forward_to_third_party_",
         "mfs_complaints-appendix_2_forward_to_third_party_letter-we_re_redirecting_your_complaint",
         "mfs_complaints-appendix_2_forward_to_third_party_letter-your_complaint_is_being_sent_to",
         "mfs_complaints-appendix_2_forward_to_third_party_letter-next_steps"
-      ]
+      ],
+      "sectionType": "appendix",
+      "requiresFirmNotes": false
     },
     {
       "id": "appendix-3",
       "title": "Appendix 3. Complaint Upheld Letter (amended as required for PSD related complaints)",
-      "summary": "Firm name Address1 Address2 Postcode Phone number: XXX XXX XXX Call charges explanation Call charges explanation Call…",
+      "summary": "Complaint upheld final response template.",
       "suggestedClauses": [
-        "mfs_complaints-appendix_3_complaint_upheld_letter_amended_as_required_for_psd_related_comp",
-        "mfs_complaints-appendix_3_complaint_upheld_letter_amended_as_required_for_psd_related_comp",
-        "mfs_complaints-appendix_3_complaint_upheld_letter_amended_as_required_for_psd_related_comp",
-        "mfs_complaints-appendix_3_complaint_upheld_letter_amended_as_required_for_psd_related_comp",
         "mfs_complaints-appendix_3_complaint_upheld_letter_amended_as_required_for_psd_related_comp"
-      ]
+      ],
+      "sectionType": "appendix",
+      "requiresFirmNotes": false
     },
     {
       "id": "appendix-4",
       "title": "Appendix 4. Complaint Rejected Letter (amended as required for PSD related complaints)",
-      "summary": "Firm name Address1 Address2 Postcode Phone number: XXX XXX XXX Call charges explanation Call charges explanation Call…",
+      "summary": "Complaint rejected final response template.",
       "suggestedClauses": [
-        "mfs_complaints-appendix_4_complaint_rejected_letter_amended_as_required_for_psd_related_co",
-        "mfs_complaints-appendix_4_complaint_rejected_letter_amended_as_required_for_psd_related_co",
-        "mfs_complaints-appendix_4_complaint_rejected_letter_amended_as_required_for_psd_related_co",
-        "mfs_complaints-appendix_4_complaint_rejected_letter_amended_as_required_for_psd_related_co",
         "mfs_complaints-appendix_4_complaint_rejected_letter_amended_as_required_for_psd_related_co"
-      ]
+      ],
+      "sectionType": "appendix",
+      "requiresFirmNotes": false
     },
     {
       "id": "appendix-5",
       "title": "Appendix 5 - General Contact Letter",
-      "summary": "{{firm.name}} (“{{firm.name}}”), as a directly authorised firm, handles complaints in line with relevant regulatory r…",
+      "summary": "General contact and complaints principles letter template.",
       "suggestedClauses": [
         "mfs_complaints-appendix_5_general_contact_letter-appendix_5_general_contact_letter",
-        "mfs_complaints-appendix_5_general_contact_letter-complaints_general_principles",
-        "mfs_complaints-appendix_5_general_contact_letter-appendix_5_general_contact_letter"
-      ]
+        "mfs_complaints-appendix_5_general_contact_letter-complaints_general_principles"
+      ],
+      "sectionType": "appendix",
+      "requiresFirmNotes": false
     }
   ],
   "mandatoryClauses": [
@@ -205,8 +212,6 @@
     "mfs_complaints-compliance_with_fca_principle_6_customers_interests-complaints_rules",
     "mfs_complaints-fos_website_and_contact_information-complaints_time_limit_rules",
     "mfs_complaints-fca_and_fos_assessment_of_response-complaints_forwarding_rules",
-    "mfs_complaints-general-general",
-    "mfs_complaints-digital_complaints_handling_framework-example_a_customer_tweets_about_diffi",
     "mfs_complaints-compliance_with_fca_principle_6_customers_interests-compliance_with_fca_pri",
     "mfs_complaints-compliance_with_fca_principle_6_customers_interests-complaints_handling_pro",
     "mfs_complaints-acknowledgement_of_receipt_psrs-acknowledgement_of_receipt_psrs",
@@ -223,7 +228,6 @@
     "mfs_complaints-fos_website_and_contact_information-step_4_compliance_with_resolution",
     "mfs_complaints-fos_website_and_contact_information-exceptions_and_escalations",
     "mfs_complaints-fos_website_and_contact_information-acknowledgement_of_complaints",
-    "mfs_complaints-fos_website_and_contact_information-general_contact_letter",
     "mfs_complaints-identification_of_vulnerable_complainants-additional_support_measures",
     "mfs_complaints-identification_of_vulnerable_complainants-speed_and_quality_of_response",
     "mfs_complaints-response_within_fifteen_day-response_within_fifteen_day",
@@ -251,16 +255,13 @@
     "mfs_complaints-fos_complaint_management_process-example_qa_outcome",
     "mfs_complaints-fos_complaint_management_process-example_improvement_initiative",
     "mfs_complaints-external_inputs_for_improvement-external_inputs_for_improvement",
-    "mfs_complaints-we_ve_investigated_your_complaint-we_ve_investigated_your_complaint",
-    "mfs_complaints-my_decision_and_findings-my_decision_and_findings",
-    "mfs_complaints-compile_standard_paragraphs_for_some_help_with_this_and_insert_here-compile",
-    "mfs_complaints-compile_standard_paragraphs_for_some_help_with_this_and_insert_here-your_op",
     "mfs_complaints-consumer_duty_in_complaints_handling-digital_complaints_handling",
     "mfs_complaints-process_for_handling_digital_complaints-process_for_handling_digital_compla",
     "mfs_complaints-digital_complaints_handling_framework-handling_x_twitter_complaints",
     "mfs_complaints-quality_assurance_for_digital_complaints-quality_assurance_for_digital_comp",
     "mfs_complaints-specific_considerations_for_email_complaints-specific_considerations_for_em",
     "mfs_complaints-website_complaint_form_enhancements-website_complaint_form_enhancements",
+    "mfs_complaints-digital_complaints_handling_framework-example_a_customer_tweets_about_diffi",
     "mfs_complaints-fos_website_and_contact_information-handling_complaints_from_vulnerable_cus",
     "mfs_complaints-identification_of_vulnerable_complainants-identification_of_vulnerable_comp",
     "mfs_complaints-compliance_with_fca_principle_6_customers_interests-reporting_to_the_fos",
@@ -286,23 +287,163 @@
     "mfs_complaints-fos_complaint_management_process-continuous_improvement",
     "mfs_complaints-fos_complaint_management_process-action_plan",
     "mfs_complaints-fos_complaint_management_process-reporting",
-    "mfs_complaints-fos_complaint_management_process-continuous_improvement_in_complaints_handl",
-    "mfs_complaints-appendix_1_template_complaint_letters_used_by_mema_financial_services-appen",
-    "mfs_complaints-appendix_1_template_complaint_letters_used_by_mema_financial_services-we_ve",
-    "mfs_complaints-appendix_1_template_complaint_letters_used_by_mema_financial_services-we_re",
-    "mfs_complaints-appendix_1_template_complaint_letters_used_by_mema_financial_services-next_",
-    "mfs_complaints-appendix_1_template_complaint_letters_used_by_mema_financial_services-our_c",
-    "mfs_complaints-appendix_1_template_complaint_letters_used_by_mema_financial_services-our_p",
-    "mfs_complaints-appendix_1_template_complaint_letters_used_by_mema_financial_services-what_",
-    "mfs_complaints-appendix_1_template_complaint_letters_used_by_mema_financial_services-not_s",
-    "mfs_complaints-appendix_1_template_complaint_letters_used_by_mema_financial_services-the_f",
-    "mfs_complaints-appendix_2_forward_to_third_party_letter-appendix_2_forward_to_third_party_",
-    "mfs_complaints-appendix_2_forward_to_third_party_letter-we_re_redirecting_your_complaint",
-    "mfs_complaints-appendix_2_forward_to_third_party_letter-your_complaint_is_being_sent_to",
-    "mfs_complaints-appendix_2_forward_to_third_party_letter-next_steps",
-    "mfs_complaints-appendix_3_complaint_upheld_letter_amended_as_required_for_psd_related_comp",
-    "mfs_complaints-appendix_4_complaint_rejected_letter_amended_as_required_for_psd_related_co",
-    "mfs_complaints-appendix_5_general_contact_letter-appendix_5_general_contact_letter",
-    "mfs_complaints-appendix_5_general_contact_letter-complaints_general_principles"
+    "mfs_complaints-fos_complaint_management_process-continuous_improvement_in_complaints_handl"
+  ],
+  "badges": [
+    {
+      "label": "PSD",
+      "tone": "emerald"
+    },
+    {
+      "label": "Non-PSD",
+      "tone": "slate"
+    },
+    {
+      "label": "Retail",
+      "tone": "sky"
+    },
+    {
+      "label": "Vulnerable overlay required",
+      "tone": "amber"
+    }
+  ],
+  "suggestedMappings": [
+    {
+      "toType": "control",
+      "toId": "CMP-021",
+      "metadata": {
+        "title": "Complaints intake & triage SLA"
+      }
+    },
+    {
+      "toType": "control",
+      "toId": "CMP-022",
+      "metadata": {
+        "title": "SRC issuance control (3-day)"
+      }
+    },
+    {
+      "toType": "control",
+      "toId": "CMP-023",
+      "metadata": {
+        "title": "PSR 15/35-day timer control"
+      }
+    },
+    {
+      "toType": "control",
+      "toId": "CMP-024",
+      "metadata": {
+        "title": "Forwarding & joint-responsibility control"
+      }
+    },
+    {
+      "toType": "control",
+      "toId": "CMP-025",
+      "metadata": {
+        "title": "FOS signposting & final response control"
+      }
+    },
+    {
+      "toType": "control",
+      "toId": "CMP-026",
+      "metadata": {
+        "title": "Root cause analysis (RCA) control"
+      }
+    },
+    {
+      "toType": "control",
+      "toId": "CMP-027",
+      "metadata": {
+        "title": "MI pack & board reporting control"
+      }
+    },
+    {
+      "toType": "risk",
+      "toId": "RA-020",
+      "metadata": {
+        "title": "Missed complaint timelines",
+        "riskId": "RA-020"
+      }
+    },
+    {
+      "toType": "risk",
+      "toId": "RA-021",
+      "metadata": {
+        "title": "Escalation or forwarding failure",
+        "riskId": "RA-021"
+      }
+    },
+    {
+      "toType": "risk",
+      "toId": "RA-022",
+      "metadata": {
+        "title": "FOS overturn or redress escalation risk",
+        "riskId": "RA-022"
+      }
+    },
+    {
+      "toType": "risk",
+      "toId": "RA-023",
+      "metadata": {
+        "title": "Vulnerable customer harm in complaints",
+        "riskId": "RA-023"
+      }
+    },
+    {
+      "toType": "risk",
+      "toId": "RA-024",
+      "metadata": {
+        "title": "Data quality gaps in complaints MI",
+        "riskId": "RA-024"
+      }
+    },
+    {
+      "toType": "training",
+      "toId": "complaints-handling",
+      "metadata": {
+        "title": "Complaints handling training",
+        "category": "customer-protection"
+      }
+    },
+    {
+      "toType": "training",
+      "toId": "consumer-duty",
+      "metadata": {
+        "title": "Consumer Duty foundations",
+        "category": "customer-protection"
+      }
+    },
+    {
+      "toType": "evidence",
+      "toId": "evidence-complaints-mi-pack",
+      "metadata": {
+        "title": "Monthly complaints MI pack",
+        "notes": "Include SLA performance, outcomes, and RCA trends."
+      }
+    },
+    {
+      "toType": "evidence",
+      "toId": "evidence-complaints-rca-log",
+      "metadata": {
+        "title": "Root cause analysis log",
+        "notes": "RCA register with actions and owners."
+      }
+    },
+    {
+      "toType": "evidence",
+      "toId": "evidence-src-templates",
+      "metadata": {
+        "title": "SRC & final response templates",
+        "notes": "Approved customer communications with version control."
+      }
+    },
+    {
+      "toType": "evidence",
+      "toId": "evidence-regdata-submission",
+      "metadata": {
+        "title": "RegData submission receipts",
+        "notes": "Proof of DISP reporting submissions."
+      }
+    }
   ]
 }
