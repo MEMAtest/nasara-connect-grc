@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AlertTriangle, ChevronDown, Clock, FileText, GraduationCap, Shield } from "lucide-react";
+import { AlertTriangle, FileText, GraduationCap, Shield } from "lucide-react";
+import { PolicyReaderClient, type PolicyReaderOverview, type PolicyReaderSection } from "@/components/policies/PolicyReaderClient";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DEFAULT_ORGANIZATION_ID } from "@/lib/constants";
-import { extractLiquidVariables, findMissingTemplateVariables, renderClause } from "@/lib/policies/liquid-renderer";
+import { findMissingTemplateVariables, renderClause } from "@/lib/policies/liquid-renderer";
 import { normalizePolicyMarkdown, renderPolicyMarkdown } from "@/lib/policies/markdown";
 import { listEntityLinks, upsertEntityLink } from "@/lib/server/entity-link-store";
 import { getPolicyById } from "@/lib/server/policy-store";
@@ -65,6 +66,18 @@ function renderMarkdown(content: string, glossary: Record<string, string>) {
 function renderMissingChip(path: string) {
   const safe = escapeHtml(path);
   return `<span class="policy-missing-variable" title="Required value. Click to set." data-var="${safe}">${safe}</span>`;
+}
+
+function toExcerpt(value: string, maxLength = 220) {
+  const cleaned = value
+    .replace(/\r?\n/g, " ")
+    .replace(/\[(.*?)\]\(.*?\)/g, "$1")
+    .replace(/[#>*_`]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!cleaned) return "";
+  if (cleaned.length <= maxLength) return cleaned;
+  return `${cleaned.slice(0, maxLength).trimEnd()}...`;
 }
 
 function isTocClause(content: string) {
@@ -138,7 +151,7 @@ export default async function PolicyDetailPage({
         }
       : {};
 
-  const sections = policy.template.sections.map((section) => {
+  const templateSections = policy.template.sections.map((section) => {
     const rawClauseIds =
       Array.isArray(sectionClauses[section.id]) && sectionClauses[section.id].length
         ? sectionClauses[section.id]
@@ -159,16 +172,27 @@ export default async function PolicyDetailPage({
     };
   });
 
-  const policySections = sections.filter((section) => section.sectionType === "policy");
-  const procedureSections = sections.filter((section) => section.sectionType === "procedure");
-  const appendixSections = sections.filter((section) => section.sectionType === "appendix");
-
   const clauseIdsInSections = new Set(
-    sections.flatMap((section) => section.clauses.map((clause) => clause?.id).filter(Boolean) as string[]),
+    templateSections.flatMap((section) => section.clauses.map((clause) => clause?.id).filter(Boolean) as string[]),
   );
   const additionalClauses = policy.clauses.filter(
     (clause) => !clauseIdsInSections.has(clause.id) && !isTocClause(clause.content),
   );
+
+  const sections = additionalClauses.length
+    ? [
+        ...templateSections,
+        {
+          id: "supplementary-requirements",
+          title: "Supplementary requirements",
+          summary: "Clauses inserted outside of the default template sections.",
+          sectionType: "policy" as const,
+          requiresFirmNotes: false,
+          customText: "",
+          clauses: additionalClauses,
+        },
+      ]
+    : templateSections;
 
   let links = await listEntityLinks({
     organizationId: DEFAULT_ORGANIZATION_ID,
@@ -239,10 +263,61 @@ export default async function PolicyDetailPage({
   const lastUpdatedLabel = formatDate(policy.updatedAt);
   const createdLabel = formatDate(policy.createdAt);
 
-  const proseClass =
-    "prose prose-slate max-w-none prose-sm text-slate-700 prose-headings:text-slate-900 " +
-    "prose-li:marker:text-slate-400 prose-table:w-full prose-table:border-collapse prose-th:bg-slate-50 " +
-    "prose-th:text-slate-700 prose-td:border prose-th:border prose-td:border-slate-200 prose-th:border-slate-200";
+  const overview: PolicyReaderOverview | null =
+    policy.code === "COMPLAINTS"
+      ? {
+          timeline: [
+            { label: "3-day SRC", description: "DISP 1.5" },
+            { label: "15 days (PSD)", description: "PSR" },
+            { label: "35 days (PSD exception)", description: "PSR" },
+            { label: "8 weeks (Non-PSD)", description: "DISP" },
+          ],
+          metrics: [
+            { label: "% on-time final responses", value: metrics.onTimeFinalResponses, suffix: "%" },
+            { label: "Avg days to resolve (PSD)", value: metrics.avgDaysPsd, suffix: "days" },
+            { label: "FOS overturn rate", value: metrics.fosOverturnRate, suffix: "%" },
+            { label: "Vulnerable complaints on time", value: metrics.vulnerableOnTime, suffix: "%" },
+          ],
+        }
+      : null;
+
+  const readerSections: PolicyReaderSection[] = sections.map((section) => {
+    const sectionMissingVars = new Set<string>();
+    const clauses = section.clauses.map((clause) => {
+      const context = { ...renderContext, ...(clauseVariables[clause.id] ?? {}) };
+      findMissingTemplateVariables(clause.content, context).forEach((path) => sectionMissingVars.add(path));
+      return {
+        id: clause.id,
+        title: clause.title,
+        summary: clause.summary,
+        isMandatory: clause.isMandatory,
+        contentHtml: renderMarkdown(
+          renderClause(clause.content, renderContext, clauseVariables[clause.id] ?? {}, {
+            onMissingVariable: renderMissingChip,
+          }),
+          glossary,
+        ),
+      };
+    });
+    const customTextHtml = section.customText ? renderMarkdown(section.customText, glossary) : "";
+    return {
+      id: section.id,
+      title: section.title,
+      summary: section.summary,
+      sectionType: section.sectionType,
+      requiresFirmNotes: section.requiresFirmNotes,
+      customTextHtml: customTextHtml || undefined,
+      customTextExcerpt: section.customText ? toExcerpt(section.customText) : undefined,
+      clauseCount: section.clauses.length,
+      clauseHighlights: section.clauses.slice(0, 3).map((clause) => ({ id: clause.id, title: clause.title })),
+      missingVariableCount: sectionMissingVars.size || undefined,
+      clauses,
+    };
+  });
+
+  const defaultSectionId = sections.some((section) => section.id === "overview")
+    ? "overview"
+    : sections[0]?.id;
 
   return (
     <div className="space-y-8 policy-print">
@@ -320,64 +395,8 @@ export default async function PolicyDetailPage({
         </div>
       </header>
 
-      {policy.code === "COMPLAINTS" ? (
-        <>
-          <section className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-              <div>
-                <h2 className="text-lg font-semibold text-slate-900">Time limits snapshot</h2>
-                <p className="mt-2 text-sm text-slate-500">
-                  Centralised view of DISP/PSR requirements for complaints handling timelines.
-                </p>
-              </div>
-              <div className="flex items-center gap-2 text-xs text-slate-500">
-                <Clock className="h-4 w-4 text-slate-400" />
-                Timeline reference
-              </div>
-            </div>
-            <div className="mt-6 grid gap-4 md:grid-cols-4">
-              {[
-                { label: "3-day SRC", description: "DISP 1.5" },
-                { label: "15 days (PSD)", description: "PSR" },
-                { label: "35 days (PSD exception)", description: "PSR" },
-                { label: "8 weeks (Non-PSD)", description: "DISP" },
-              ].map((item) => (
-                <div key={item.label} className="rounded-2xl border border-slate-100 bg-slate-50/80 p-4">
-                  <p className="text-sm font-semibold text-slate-900">{item.label}</p>
-                  <p className="text-xs text-slate-500">{item.description}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
-            <div className="flex flex-col gap-2">
-              <h2 className="text-lg font-semibold text-slate-900">MI snapshot</h2>
-              <p className="text-sm text-slate-500">
-                Executive-facing KPIs tied to complaints governance. Populate via evidence links or MI uploads.
-              </p>
-            </div>
-            <div className="mt-6 grid gap-4 md:grid-cols-4">
-              {[
-                { label: "% on-time final responses", value: metrics.onTimeFinalResponses, suffix: "%" },
-                { label: "Avg days to resolve (PSD)", value: metrics.avgDaysPsd, suffix: "days" },
-                { label: "FOS overturn rate", value: metrics.fosOverturnRate, suffix: "%" },
-                { label: "Vulnerable complaints on time", value: metrics.vulnerableOnTime, suffix: "%" },
-              ].map((item) => (
-                <div key={item.label} className="rounded-2xl border border-slate-100 bg-slate-50/80 p-4">
-                  <p className="text-xs uppercase tracking-[0.2em] text-slate-400">{item.label}</p>
-                  <p className="mt-2 text-lg font-semibold text-slate-900">
-                    {typeof item.value === "number" ? `${item.value}${item.suffix ? ` ${item.suffix}` : ""}` : "No data yet"}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </section>
-        </>
-      ) : null}
-
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="space-y-8">
+        <div className="space-y-6">
           <section className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
             <h2 className="text-lg font-semibold text-slate-900">Document overview</h2>
             <p className="mt-2 text-sm text-slate-600">{policy.template.description}</p>
@@ -398,265 +417,11 @@ export default async function PolicyDetailPage({
               </div>
             ) : null}
           </section>
-
-          {policySections.length ? (
-            <section className="space-y-6">
-              <div className="space-y-2">
-                <h2 className="text-lg font-semibold text-slate-900">Policy principles</h2>
-                <p className="text-sm text-slate-500">
-                  Core governance commitments, roles, and regulatory expectations. These sections are board-facing and
-                  form the policy statement.
-                </p>
-              </div>
-
-              {policySections.map((section) => (
-                <article key={section.id} className="space-y-4 rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
-                  <header className="space-y-1">
-                    <p className="text-xs font-semibold uppercase tracking-[0.3em] text-indigo-500">Section</p>
-                    <h3 className="text-xl font-semibold text-slate-900">{section.title}</h3>
-                    <p className="text-sm text-slate-500">{section.summary}</p>
-                  </header>
-
-                  <div className="space-y-2">
-                    <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-400">Firm notes</p>
-                    {section.customText ? (
-                      <div
-                        className={proseClass}
-                        dangerouslySetInnerHTML={{ __html: renderMarkdown(section.customText, glossary) }}
-                      />
-                    ) : section.requiresFirmNotes ? (
-                      <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-                        <p className="text-sm text-amber-800">
-                          Add your firm-specific contact points, SLAs, and escalation details. Required to publish.
-                        </p>
-                        <Button asChild size="sm" variant="outline" className="mt-3 border-amber-200 text-amber-800">
-                          <Link href={`/policies/${policy.id}/edit`}>Add firm notes</Link>
-                        </Button>
-                      </div>
-                    ) : (
-                      <p className="text-sm italic text-slate-400">No bespoke content captured yet.</p>
-                    )}
-                  </div>
-
-                  {section.clauses.length ? (
-                    <div className="space-y-3">
-                      <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-400">Included clauses</p>
-                      <div className="space-y-3">
-                        {section.clauses.map((clause) => (
-                          <div key={clause.id} className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
-                            <div className="flex items-start justify-between gap-3">
-                              <div>
-                                <p className="text-sm font-semibold text-slate-800">{clause.title}</p>
-                                <p className="text-xs text-slate-500">{clause.summary}</p>
-                              </div>
-                              {clause.isMandatory ? <Badge variant="secondary" className="text-[11px]">Mandatory</Badge> : null}
-                            </div>
-                            <div
-                              className={`${proseClass} mt-3`}
-                              dangerouslySetInnerHTML={{
-                                __html: renderMarkdown(
-                                  renderClause(
-                                    clause.content,
-                                    renderContext,
-                                    clauseVariables[clause.id] ?? {},
-                                    { onMissingVariable: renderMissingChip },
-                                  ),
-                                  glossary,
-                                ),
-                              }}
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ) : null}
-                </article>
-              ))}
-            </section>
-          ) : null}
-
-          {procedureSections.length ? (
-            <section className="space-y-6">
-              <div className="space-y-2">
-                <h2 className="text-lg font-semibold text-slate-900">Operational procedure</h2>
-                <p className="text-sm text-slate-500">
-                  Step-by-step handling instructions and workflow detail. Expand each section for operational guidance.
-                </p>
-              </div>
-
-              {procedureSections.map((section) => (
-                <details key={section.id} className="group rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
-                  <summary className="flex cursor-pointer list-none items-start justify-between gap-4">
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-[0.3em] text-indigo-500">Procedure</p>
-                      <h3 className="mt-1 text-xl font-semibold text-slate-900">{section.title}</h3>
-                      <p className="text-sm text-slate-500">{section.summary}</p>
-                    </div>
-                    <ChevronDown className="mt-1 h-5 w-5 text-slate-400 transition-transform group-open:rotate-180" />
-                  </summary>
-
-                  <div className="mt-4 space-y-4">
-                    <div className="space-y-2">
-                      <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-400">Firm notes</p>
-                      {section.customText ? (
-                        <div
-                          className={proseClass}
-                          dangerouslySetInnerHTML={{ __html: renderMarkdown(section.customText, glossary) }}
-                        />
-                      ) : section.requiresFirmNotes ? (
-                        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-                          <p className="text-sm text-amber-800">
-                            Add your firm-specific SLAs, digital channel list, and escalation tree. Required to publish.
-                          </p>
-                          <Button asChild size="sm" variant="outline" className="mt-3 border-amber-200 text-amber-800">
-                            <Link href={`/policies/${policy.id}/edit`}>Add firm notes</Link>
-                          </Button>
-                        </div>
-                      ) : (
-                        <p className="text-sm italic text-slate-400">No bespoke content captured yet.</p>
-                      )}
-                    </div>
-
-                    {section.clauses.length ? (
-                      <div className="space-y-3">
-                        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-400">Included clauses</p>
-                        <div className="space-y-3">
-                          {section.clauses.map((clause) => (
-                            <div key={clause.id} className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
-                              <div className="flex items-start justify-between gap-3">
-                                <div>
-                                  <p className="text-sm font-semibold text-slate-800">{clause.title}</p>
-                                  <p className="text-xs text-slate-500">{clause.summary}</p>
-                                </div>
-                                {clause.isMandatory ? <Badge variant="secondary" className="text-[11px]">Mandatory</Badge> : null}
-                              </div>
-                              <div
-                                className={`${proseClass} mt-3`}
-                                dangerouslySetInnerHTML={{
-                                  __html: renderMarkdown(
-                                    renderClause(
-                                      clause.content,
-                                      renderContext,
-                                      clauseVariables[clause.id] ?? {},
-                                      { onMissingVariable: renderMissingChip },
-                                    ),
-                                    glossary,
-                                  ),
-                                }}
-                              />
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ) : null}
-                  </div>
-                </details>
-              ))}
-            </section>
-          ) : null}
-
-          {appendixSections.length ? (
-            <section className="space-y-6 rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
-              <div className="space-y-2">
-                <h2 className="text-lg font-semibold text-slate-900">Appendices & templates</h2>
-                <p className="text-sm text-slate-500">
-                  Letter templates and annexes are kept out of the main policy narrative. Expand a card to view the template.
-                </p>
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                {appendixSections.flatMap((section) =>
-                  section.clauses.map((clause) => {
-                    const context = { ...renderContext, ...(clauseVariables[clause.id] ?? {}) };
-                    const requiredVars = clause.variables?.length
-                      ? clause.variables.map((variable) => variable.name)
-                      : extractLiquidVariables(clause.content);
-                    const missingVars = requiredVars.filter((variable) =>
-                      findMissingTemplateVariables(`{{${variable}}}`, context).length,
-                    );
-
-                    return (
-                      <details key={clause.id} className="group rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
-                        <summary className="flex cursor-pointer list-none items-start justify-between gap-3">
-                          <div>
-                            <p className="text-sm font-semibold text-slate-900">{clause.title}</p>
-                            <p className="text-xs text-slate-500">{clause.summary}</p>
-                            {requiredVars.length ? (
-                              <div className="mt-2 flex flex-wrap gap-2">
-                                {requiredVars.slice(0, 4).map((variable) => (
-                                  <span
-                                    key={variable}
-                                    className={`rounded-full px-2 py-1 text-[11px] font-semibold ${
-                                      missingVars.includes(variable)
-                                        ? "bg-rose-100 text-rose-700"
-                                        : "bg-slate-100 text-slate-600"
-                                    }`}
-                                  >
-                                    {variable}
-                                  </span>
-                                ))}
-                                {requiredVars.length > 4 ? (
-                                  <span className="rounded-full bg-slate-100 px-2 py-1 text-[11px] text-slate-600">
-                                    +{requiredVars.length - 4} more
-                                  </span>
-                                ) : null}
-                              </div>
-                            ) : null}
-                          </div>
-                          <ChevronDown className="mt-1 h-5 w-5 text-slate-400 transition-transform group-open:rotate-180" />
-                        </summary>
-                        <div
-                          className={`${proseClass} mt-4`}
-                          dangerouslySetInnerHTML={{
-                            __html: renderMarkdown(
-                              renderClause(clause.content, renderContext, clauseVariables[clause.id] ?? {}, {
-                                onMissingVariable: renderMissingChip,
-                              }),
-                              glossary,
-                            ),
-                          }}
-                        />
-                      </details>
-                    );
-                  }),
-                )}
-              </div>
-            </section>
-          ) : null}
-
-          {additionalClauses.length ? (
-            <section className="space-y-4 rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
-              <header className="space-y-1">
-                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-indigo-500">Additional clauses</p>
-                <h3 className="text-xl font-semibold text-slate-900">Supplementary requirements</h3>
-                <p className="text-sm text-slate-500">Clauses inserted outside of the default template sections.</p>
-              </header>
-              <div className="space-y-3">
-                {additionalClauses.map((clause) => (
-                  <div key={clause.id} className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-sm font-semibold text-slate-800">{clause.title}</p>
-                        <p className="text-xs text-slate-500">{clause.summary}</p>
-                      </div>
-                      {clause.isMandatory ? <Badge variant="secondary" className="text-[11px]">Mandatory</Badge> : null}
-                    </div>
-                    <div
-                      className={`${proseClass} mt-3`}
-                      dangerouslySetInnerHTML={{
-                        __html: renderMarkdown(
-                          renderClause(clause.content, renderContext, clauseVariables[clause.id] ?? {}, {
-                            onMissingVariable: renderMissingChip,
-                          }),
-                          glossary,
-                        ),
-                      }}
-                    />
-                  </div>
-                ))}
-              </div>
-            </section>
-          ) : null}
+          <PolicyReaderClient
+            sections={readerSections}
+            defaultSectionId={defaultSectionId}
+            overview={overview}
+          />
         </div>
 
         <aside className="space-y-6 lg:sticky lg:top-6">
