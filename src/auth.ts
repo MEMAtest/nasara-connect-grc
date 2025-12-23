@@ -1,5 +1,6 @@
 import NextAuth, { DefaultSession } from "next-auth"
 import Google from "next-auth/providers/google"
+import { isAuthDisabled } from "@/lib/auth-utils"
 
 declare module "next-auth" {
   interface Session {
@@ -29,6 +30,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     error: "/auth/error",
   },
   callbacks: {
+    authorized({ auth }) {
+      if (isAuthDisabled()) return true
+      return !!auth
+    },
     async jwt({ token, account, profile }) {
       if (account && profile) {
         token.id = profile.sub
