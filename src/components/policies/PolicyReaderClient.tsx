@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { cn } from "@/lib/utils";
 
 const proseClass =
-  "prose prose-slate max-w-none prose-sm text-slate-700 prose-headings:text-slate-900 " +
+  "policy-blocks prose prose-slate max-w-none prose-sm text-slate-700 prose-headings:text-slate-900 " +
   "prose-li:marker:text-slate-400 prose-table:w-full prose-table:border-collapse prose-th:bg-slate-50 " +
   "prose-th:text-slate-700 prose-td:border prose-th:border prose-td:border-slate-200 prose-th:border-slate-200";
 
@@ -255,7 +255,7 @@ export function PolicyReaderClient({
                   <ul className="space-y-2 text-sm text-slate-700">
                     {activeSection.clauseHighlights.map((clause) => (
                       <li key={clause.id} className="flex items-start gap-2">
-                        <span className="text-slate-300">•</span>
+                        <span className="mt-2 h-1.5 w-1.5 rounded-full bg-slate-300" />
                         <span>{clause.title}</span>
                       </li>
                     ))}

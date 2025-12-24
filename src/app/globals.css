@@ -287,6 +287,52 @@
   cursor: help;
 }
 
+.policy-blocks ul,
+.policy-blocks ol {
+  list-style: none;
+  padding-left: 0;
+  margin-left: 0;
+}
+
+.policy-blocks li {
+  margin: 0.35rem 0;
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.75rem;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.policy-blocks ul > li {
+  border-left: 4px solid #c7d2fe;
+}
+
+.policy-blocks ol {
+  counter-reset: policy-counter;
+}
+
+.policy-blocks ol > li {
+  position: relative;
+  padding-left: 2.4rem;
+  counter-increment: policy-counter;
+}
+
+.policy-blocks ol > li::before {
+  content: counter(policy-counter);
+  position: absolute;
+  left: 0.75rem;
+  top: 0.6rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 999px;
+  background: #e2e8f0;
+  color: #475569;
+  font-size: 0.7rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 details > summary {
   list-style: none;
 }
@@ -307,6 +353,12 @@ details > summary::-webkit-details-marker {
 
   .policy-print details > * {
     display: block !important;
+  }
+
+  .policy-print .policy-blocks li {
+    break-inside: avoid;
+    background: #ffffff;
+    border-color: #cbd5e1;
   }
 
   .policy-print .shadow-sm,
