@@ -3,11 +3,15 @@ import { NextResponse } from "next/server"
 import { isAuthDisabled } from "@/lib/auth-utils"
 
 export default auth((req) => {
+  const { pathname } = req.nextUrl
+
   if (isAuthDisabled()) {
+    if (pathname.startsWith('/auth/login') || pathname.startsWith('/auth/error')) {
+      return NextResponse.redirect(new URL('/authorization-pack', req.url))
+    }
     return NextResponse.next()
   }
 
-  const { pathname } = req.nextUrl
   const isLoggedIn = !!req.auth
 
   // Define protected routes
