@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import type { WizardStepProps } from "./types";
 import { getRequiredPolicies } from "@/lib/policies";
 import { POLICY_TEMPLATES, getApplicableClauses, getTemplateByCode } from "@/lib/policies/templates";
+import { assembleComplaintsPolicy, DEFAULT_COMPLAINTS_ANSWERS } from "@/lib/policies/assemblers/complaints";
 
 export function StepTemplateSelect({ state, updateState, onNext, onBack }: WizardStepProps) {
   const [searchTerm, setSearchTerm] = useState("");
@@ -30,11 +31,16 @@ export function StepTemplateSelect({ state, updateState, onNext, onBack }: Wizar
   const handleSelect = (code: string) => {
     const template = getTemplateByCode(code);
     if (template) {
-      const initialSectionClauses: Record<string, string[]> = {};
-      template.sections.forEach((section) => {
-        initialSectionClauses[section.id] = [...section.suggestedClauses];
-      });
       const applicableClauses = getApplicableClauses(template.code, state.permissions);
+      const complaintsAnswers = state.complaintsAnswers ?? DEFAULT_COMPLAINTS_ANSWERS;
+      const initialSectionClauses =
+        template.code === "COMPLAINTS"
+          ? assembleComplaintsPolicy(template, complaintsAnswers).sectionClauses
+          : template.sections.reduce<Record<string, string[]>>((acc, section) => {
+              acc[section.id] = [...section.suggestedClauses];
+              return acc;
+            }, {});
+
       const clauseIds = Array.from(new Set(Object.values(initialSectionClauses).flatMap((ids) => ids)));
       const selectedClauses = clauseIds
         .map((id) => applicableClauses.find((clause) => clause.id === id))
@@ -43,6 +49,7 @@ export function StepTemplateSelect({ state, updateState, onNext, onBack }: Wizar
       updateState((current) => ({
         ...current,
         selectedTemplate: template,
+        complaintsAnswers,
         sectionClauses: initialSectionClauses,
         sectionNotes: {},
         clauseVariables: {},

@@ -7,6 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AddressAutocomplete } from "@/components/inputs/AddressAutocomplete";
 import type { WizardStepProps } from "./types";
 import { DEFAULT_PERMISSIONS, getRequiredPolicies } from "@/lib/policies";
 
@@ -105,10 +106,9 @@ export function StepPermissionCheck({ state, updateState, onNext, onBack }: Wiza
           </div>
           <div className="space-y-2 md:col-span-2">
             <Label htmlFor="firm-address">Registered address</Label>
-            <Input
-              id="firm-address"
+            <AddressAutocomplete
               value={state.firmProfile.registeredAddress ?? ""}
-              onChange={(event) => handleFirmProfileChange("registeredAddress", event.target.value)}
+              onChange={(value) => handleFirmProfileChange("registeredAddress", value)}
               placeholder="Street, City, Postcode"
             />
           </div>

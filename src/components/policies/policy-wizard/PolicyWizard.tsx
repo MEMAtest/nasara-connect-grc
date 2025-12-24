@@ -10,6 +10,7 @@ import { StepApprovals } from "./StepApprovals";
 import { StepReview } from "./StepReview";
 import type { WizardFormState, WizardStepDefinition } from "./types";
 import { DEFAULT_PERMISSIONS } from "@/lib/policies";
+import { DEFAULT_COMPLAINTS_ANSWERS } from "@/lib/policies/assemblers/complaints";
 
 const STEP_DEFINITIONS: WizardStepDefinition[] = [
   {
@@ -24,8 +25,8 @@ const STEP_DEFINITIONS: WizardStepDefinition[] = [
   },
   {
     id: "content",
-    title: "Content",
-    description: "Compose policy content",
+    title: "Assembler",
+    description: "Answer questions to assemble modules",
   },
   {
     id: "approvals",
@@ -55,6 +56,7 @@ const buildInitialState = (permissionsOverride?: typeof DEFAULT_PERMISSIONS): Wi
   },
   permissions: { ...(permissionsOverride ?? DEFAULT_PERMISSIONS) },
   selectedTemplate: undefined,
+  complaintsAnswers: { ...DEFAULT_COMPLAINTS_ANSWERS },
   sectionClauses: {},
   sectionNotes: {},
   clauseVariables: {},

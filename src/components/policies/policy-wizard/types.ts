@@ -1,4 +1,5 @@
 import type { FirmPermissions } from "@/lib/policies";
+import type { ComplaintsAssemblerAnswers } from "@/lib/policies/assemblers/complaints";
 import type { PolicyClause, PolicyTemplate } from "@/lib/policies/templates";
 
 export interface FirmProfile {
@@ -21,6 +22,7 @@ export interface WizardFormState {
   firmProfile: FirmProfile;
   permissions: FirmPermissions;
   selectedTemplate?: PolicyTemplate;
+  complaintsAnswers?: ComplaintsAssemblerAnswers;
   sectionClauses: Record<string, string[]>;
   sectionNotes: Record<string, string>;
   clauseVariables: Record<string, Record<string, string>>;

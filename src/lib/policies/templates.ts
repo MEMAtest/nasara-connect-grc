@@ -5,6 +5,7 @@ import { NASARA_POLICY_SCAFFOLDS } from "./seeds/nasara_policy_scaffolds";
 import mfsFinancialCrimeClauses from "./seeds/mfs_financial_crime.clauses.json";
 import mfsConsumerDutyClauses from "./seeds/mfs_consumer_duty.clauses.json";
 import mfsComplaintsClauses from "./seeds/mfs_complaints.clauses.json";
+import mfsComplaintsFragments from "./seeds/mfs_complaints.fragments.json";
 import mfsFinancialCrimeTemplate from "./seeds/mfs_financial_crime.template.json";
 import mfsConsumerDutyTemplate from "./seeds/mfs_consumer_duty.template.json";
 import mfsComplaintsTemplate from "./seeds/mfs_complaints.template.json";
@@ -164,6 +165,7 @@ const MFS_SEED_CLAUSES: PolicyClause[] = ([] as DocxSeedClause[])
   .concat(mfsFinancialCrimeClauses as unknown as DocxSeedClause[])
   .concat(mfsConsumerDutyClauses as unknown as DocxSeedClause[])
   .concat(mfsComplaintsClauses as unknown as DocxSeedClause[])
+  .concat(mfsComplaintsFragments as unknown as DocxSeedClause[])
   .map((clause) => {
     const appliesTo =
       clause.policy_key === "mfs_financial_crime"

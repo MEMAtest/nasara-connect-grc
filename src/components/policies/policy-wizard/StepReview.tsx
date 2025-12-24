@@ -4,11 +4,15 @@ import { CheckCircle2, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getApplicableClauses } from "@/lib/policies/templates";
+import { assembleComplaintsPolicy, DEFAULT_COMPLAINTS_ANSWERS } from "@/lib/policies/assemblers/complaints";
 import { renderClause } from "@/lib/policies/liquid-renderer";
 import type { WizardStepProps } from "./types";
 
 export function StepReview({ state, onBack, onNext, isSubmitting }: WizardStepProps) {
   const template = state.selectedTemplate;
+  const complaintsAnswers = state.complaintsAnswers ?? DEFAULT_COMPLAINTS_ANSWERS;
+  const complaintsAssembly = template?.code === "COMPLAINTS" ? assembleComplaintsPolicy(template, complaintsAnswers) : null;
+  const complaintsModules = complaintsAssembly?.modules ?? [];
 
   const handleExport = () => {
     if (!template) return;
@@ -83,17 +87,54 @@ export function StepReview({ state, onBack, onNext, isSubmitting }: WizardStepPr
           )}
         </SummaryCard>
 
-        <SummaryCard title="Clauses" description="Clauses added to this draft">
-          {state.selectedClauses.length ? (
-            <ul className="space-y-1 text-sm text-slate-600">
-              {state.selectedClauses.map((clause) => (
-                <li key={clause.id}>• {clause.title}</li>
+        <SummaryCard title="Modules" description="Assembled policy modules">
+          {complaintsModules.length ? (
+            <div className="space-y-3">
+              {complaintsModules.slice(0, 6).map((module) => (
+                <div key={module.id} className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">{module.title}</p>
+                      <p className="text-xs text-slate-500">{module.summary}</p>
+                    </div>
+                    <Badge variant="outline" className="text-[11px]">
+                      {module.kind === "static" ? "Static" : "Dynamic"}
+                    </Badge>
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-slate-500">
+                    {module.reasons.map((reason) => (
+                      <span key={`${module.id}-${reason}`} className="rounded-full bg-white px-2 py-1">
+                        {reason}
+                      </span>
+                    ))}
+                  </div>
+                </div>
               ))}
-            </ul>
+              {complaintsModules.length > 6 ? (
+                <p className="text-xs text-slate-400">+ {complaintsModules.length - 6} more modules</p>
+              ) : null}
+            </div>
           ) : (
-            <span className="text-sm text-slate-500">No additional clauses inserted</span>
+            <span className="text-sm text-slate-500">Modules will appear once a template is selected.</span>
           )}
         </SummaryCard>
+
+        {template?.code === "COMPLAINTS" ? (
+          <SummaryCard title="Assembler inputs" description="Key answers driving the complaints policy">
+            <div className="flex flex-wrap gap-2 text-xs text-slate-600">
+              <span className="rounded-full bg-slate-100 px-2 py-1">Depth: {complaintsAnswers.detailLevel}</span>
+              <span className="rounded-full bg-slate-100 px-2 py-1">Jurisdiction: {complaintsAnswers.jurisdiction}</span>
+              <span className="rounded-full bg-slate-100 px-2 py-1">
+                Rails: {complaintsAnswers.paymentRails.map((rail) => rail.toUpperCase()).join(", ")}
+              </span>
+              <span className="rounded-full bg-slate-100 px-2 py-1">ID: {complaintsAnswers.idMethod}</span>
+              <span className="rounded-full bg-slate-100 px-2 py-1">Oversight: {complaintsAnswers.oversight}</span>
+              <span className="rounded-full bg-slate-100 px-2 py-1">
+                Vulnerability: {complaintsAnswers.vulnerabilityFocus}
+              </span>
+            </div>
+          </SummaryCard>
+        ) : null}
 
         <SummaryCard title="Approvals" description="Who needs to sign off">
           <ul className="space-y-1 text-sm text-slate-600">

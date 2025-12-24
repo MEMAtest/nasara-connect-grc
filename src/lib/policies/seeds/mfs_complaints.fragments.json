@@ -1,0 +1,72 @@
+[
+  {
+    "id": "complaints-fragment-eea-passporting",
+    "policy_key": "mfs_complaints",
+    "title": "EEA passporting complaints overlay",
+    "body_md": "Where the firm operates under UK and EEA passporting arrangements, complaints handling follows DISP and the EBA Guidelines on complaints management for payment service providers. The firm maintains a single complaints framework with local adaptations for language, distribution channels, and jurisdiction-specific reporting.\n\nThe complaints function ensures that: (1) customer communications and outcome letters are issued in the appropriate local language; (2) escalation routes and local ADR bodies are clearly signposted; and (3) cross-border complaints are logged with country-of-origin and corridor identifiers to support regional trend analysis.\n\nFor passported activity, the firm records the home/host regulator contact points and maintains a contact matrix for resolution co-operation, ensuring that time limits are tracked in line with both FCA DISP and EBA expectations.",
+    "variables": []
+  },
+  {
+    "id": "complaints-fragment-stripe-rail",
+    "policy_key": "mfs_complaints",
+    "title": "Stripe rail reconciliation protocol",
+    "body_md": "Complaints involving Stripe-processed payments are investigated with a dedicated reconciliation workflow. The firm maintains a monthly reconciliation checklist covering disputes, chargebacks, and settlement timing exceptions.\n\nWhere a complaint relates to card authorisation or settlement, operations staff pull the Stripe event timeline (authorisation, capture, settlement, chargeback) and match it to internal ledger entries. Any variances are logged in the complaints case file with supporting evidence (settlement report, event logs, and customer communication).\n\nIf third-party action is required, the firm ensures the customer receives a clear handover statement, expected timelines, and a single point of contact for updates.",
+    "variables": []
+  },
+  {
+    "id": "complaints-fragment-thunes-rail",
+    "policy_key": "mfs_complaints",
+    "title": "Thunes corridor complaint handling",
+    "body_md": "For Thunes-powered corridors, the firm applies a corridor-level triage to identify whether the complaint relates to network availability, partner pay-out delays, FX rate application, or beneficiary verification.\n\nThe case file includes the corridor identifier, partner payout status, and any exception codes returned by Thunes. A timeline of outbound and inbound events is attached so the root cause can be attributed to either internal controls or partner processing.\n\nThe firm escalates corridor issues within 1 business day and documents partner responses as evidence for complaint resolution and trend analysis.",
+    "variables": []
+  },
+  {
+    "id": "complaints-fragment-swift-rail",
+    "policy_key": "mfs_complaints",
+    "title": "SWIFT transfer complaint workflow",
+    "body_md": "Complaints involving SWIFT transfers follow a structured trace and repair workflow. The firm logs SWIFT message references, value dates, and intermediary bank details to establish the end-to-end journey.\n\nInvestigations include MT message tracking, beneficiary bank responses, and any fee or return code explanations. Where funds are returned, the firm calculates customer impact and communicates outcomes within the applicable DISP/PSR timelines.\n\nAll SWIFT-related complaints include an evidence pack containing message confirmations, reconciliation entries, and customer communications.",
+    "variables": []
+  },
+  {
+    "id": "complaints-fragment-manual-id-triage",
+    "policy_key": "mfs_complaints",
+    "title": "Manual KYC triage for complaints",
+    "body_md": "Where onboarding or account access complaints are linked to manual KYC checks, the firm follows a documented manual triage checklist. Agents confirm identity evidence, verify decision rationale, and record any manual overrides.\n\nThe checklist includes proof-of-identity validity, source-of-funds review status, and any escalation that was required. All manual interventions are logged in the complaints case file for audit purposes.",
+    "variables": []
+  },
+  {
+    "id": "complaints-fragment-ai-id-triage",
+    "policy_key": "mfs_complaints",
+    "title": "AI-assisted identity review controls",
+    "body_md": "Where AI-assisted identity checks are used, complaints involving onboarding or account access include an AI decision audit. The firm records model outputs, confidence scores, and any human overrides.\n\nComplaints staff validate that AI decisions are explainable and that a human reviewer can override where required. Any model bias or false positive pattern is escalated to the model governance owner and included in the RCA log.",
+    "variables": []
+  },
+  {
+    "id": "complaints-fragment-hybrid-id-triage",
+    "policy_key": "mfs_complaints",
+    "title": "Hybrid identity review escalation",
+    "body_md": "For hybrid identity checks, complaints handling records both automated outputs and manual reviewer decisions. The firm logs the trigger that moved a case from automated to manual review and ensures outcome letters reflect this escalation path.\n\nHybrid review complaints are reviewed monthly to confirm that manual overrides remain consistent and that edge cases are fed back into the onboarding control framework.",
+    "variables": []
+  },
+  {
+    "id": "complaints-fragment-enhanced-oversight",
+    "policy_key": "mfs_complaints",
+    "title": "Enhanced complaints oversight",
+    "body_md": "Enhanced oversight includes quarterly audit sampling, independent quality assurance reviews, and formal Board-level reporting on complaint outcomes.\n\nThe firm maintains an enhanced MI pack covering timeliness, uphold rates, vulnerable-customer outcomes, and remediation actions. Findings are tracked through action plans with accountable owners and deadlines.",
+    "variables": []
+  },
+  {
+    "id": "complaints-fragment-vulnerability-champion",
+    "policy_key": "mfs_complaints",
+    "title": "Board-level vulnerability champion",
+    "body_md": "A Board-appointed Vulnerability Champion provides oversight of complaints involving vulnerable customers. The Champion reviews MI, approves material changes to vulnerability handling, and ensures outcomes are consistent with Consumer Duty expectations.\n\nThe role includes sponsoring training, reviewing escalated cases, and reporting to the Board on trends and remediation.",
+    "variables": []
+  },
+  {
+    "id": "complaints-fragment-high-vulnerability-support",
+    "policy_key": "mfs_complaints",
+    "title": "Enhanced support for high-vulnerability segments",
+    "body_md": "For firms serving high-vulnerability segments, complaints handling includes enhanced support and non-digital access. The firm offers telephone support, large-print or alternative-format correspondence, and warm handovers to carers or authorised representatives where applicable.\n\nCase handlers must document adjustments offered, the customer’s preferred communication method, and any follow-up needed to ensure comprehension and fair outcomes.",
+    "variables": []
+  }
+]
