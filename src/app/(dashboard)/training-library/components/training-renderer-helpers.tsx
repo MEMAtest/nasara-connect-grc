@@ -18,10 +18,39 @@ marked.setOptions({
   gfm: true,
 });
 
+const normalizeMarkdown = (input: string) => {
+  const normalized = input.replace(/\r\n/g, "\n");
+  const trimmed = normalized.replace(/^\s*\n/, "").replace(/\n\s*$/, "");
+  const lines = trimmed.split("\n");
+  const nonEmpty = lines.filter((line) => line.trim().length > 0);
+  if (!nonEmpty.length) return trimmed;
+
+  const indentOf = (line: string) => line.match(/^[ \t]*/)?.[0].length ?? 0;
+  const firstIndent = indentOf(nonEmpty[0]);
+  let minIndent = Math.min(...nonEmpty.map(indentOf));
+
+  if (firstIndent === 0 && minIndent === 0) {
+    const restIndents = nonEmpty.slice(1).map(indentOf).filter((indent) => indent > 0);
+    if (restIndents.length) {
+      minIndent = Math.min(...restIndents);
+    }
+  }
+
+  if (!minIndent) return trimmed;
+
+  return lines
+    .map((line) => {
+      if (!line.trim()) return "";
+      const indent = indentOf(line);
+      return line.slice(Math.min(indent, minIndent));
+    })
+    .join("\n");
+};
+
 export function MarkdownContent({ content, className = "" }: { content: string; className?: string }) {
   const html = useMemo(() => {
     if (!content) return "";
-    return marked.parse(content, { async: false }) as string;
+    return marked.parse(normalizeMarkdown(content), { async: false }) as string;
   }, [content]);
 
   return (
@@ -31,6 +60,8 @@ export function MarkdownContent({ content, className = "" }: { content: string; 
     />
   );
 }
+
+export { normalizeMarkdown };
 
 export const formatListItem = (item: unknown) => {
   if (typeof item === "string" || typeof item === "number") return String(item);

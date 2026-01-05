@@ -33,6 +33,7 @@ import {
   Lock,
   AlertCircle
 } from "lucide-react";
+import { amlFundamentalsModule } from "../content/aml-fundamentals-complete";
 
 type Stage = "hook" | "content" | "practice" | "summary";
 const stageOrder: Stage[] = ["hook", "content", "practice", "summary"];
@@ -102,34 +103,39 @@ export function AMLTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
     setCurrentContentSection(nextIndex);
   }, [currentContentSection, currentStage, deepLink?.section]);
 
-  useEffect(() => {
-    if (!onDeepLinkChange) return;
-    if (currentStage !== "content") {
-      onDeepLinkChange({ stage: currentStage });
-      return;
-    }
-    onDeepLinkChange({ stage: currentStage, section: String(currentContentSection) });
-  }, [currentContentSection, currentStage, onDeepLinkChange]);
-
   const calculatePracticeScore = () => {
     const totalQuestions = 2;
     const correctCount = Number(selectedAnswers.corp === "corp_b") + Number(selectedAnswers.change === "change_c");
     return Math.round((correctCount / totalQuestions) * 100);
   };
 
+  const syncDeepLink = (stage: Stage, section?: number) => {
+    if (!onDeepLinkChange) return;
+    if (stage !== "content") {
+      onDeepLinkChange({ stage });
+      return;
+    }
+    const targetSection = typeof section === "number" ? section : currentContentSection;
+    onDeepLinkChange({ stage, section: String(targetSection) });
+  };
+
   const nextStage = () => {
     const currentIndex = stageOrder.indexOf(currentStage);
     if (currentIndex < stageOrder.length - 1) {
-      setCurrentStage(stageOrder[currentIndex + 1]);
+      const nextStageValue = stageOrder[currentIndex + 1];
+      setCurrentStage(nextStageValue);
       setCurrentContentSection(0);
+      syncDeepLink(nextStageValue, nextStageValue === "content" ? 0 : undefined);
     } else {
-      onComplete?.(calculatePracticeScore(), 0);
+      onComplete?.(calculatePracticeScore(), amlFundamentalsModule.duration || 0);
     }
   };
 
   const nextContentSection = () => {
     if (currentContentSection < 3) {
-      setCurrentContentSection(currentContentSection + 1);
+      const nextIndex = currentContentSection + 1;
+      setCurrentContentSection(nextIndex);
+      syncDeepLink("content", nextIndex);
     } else {
       nextStage();
     }

@@ -157,15 +157,6 @@ export function FinancialCrimeTrainingRenderer({
   }, [currentStage, deepLink?.stage]);
 
   useEffect(() => {
-    if (!onDeepLinkChange) return;
-    if (currentStage !== "content") {
-      onDeepLinkChange({ stage: currentStage });
-      return;
-    }
-    onDeepLinkChange({ stage: currentStage, section: String(currentLessonIndex) });
-  }, [currentLessonIndex, currentStage, onDeepLinkChange]);
-
-  useEffect(() => {
     if (currentStage !== "content") return;
     const section = deepLink?.section;
     if (!section) return;
@@ -274,10 +265,27 @@ export function FinancialCrimeTrainingRenderer({
     return Math.round((correctCount / content.assessmentQuestions.length) * 100);
   };
 
+  const syncDeepLink = (stage: StageKey, section?: number) => {
+    if (!onDeepLinkChange) return;
+    if (stage !== "content") {
+      onDeepLinkChange({ stage });
+      return;
+    }
+    const targetSection = typeof section === "number" ? section : currentLessonIndex;
+    onDeepLinkChange({ stage, section: String(targetSection) });
+  };
+
+  const handleLessonSelect = (index: number) => {
+    setCurrentLessonIndex(index);
+    syncDeepLink("content", index);
+  };
+
   const nextStage = () => {
     const currentIndex = STAGE_ORDER.indexOf(currentStage);
     if (currentIndex < STAGE_ORDER.length - 1) {
-      setCurrentStage(STAGE_ORDER[currentIndex + 1]);
+      const nextStageValue = STAGE_ORDER[currentIndex + 1];
+      setCurrentStage(nextStageValue);
+      syncDeepLink(nextStageValue, nextStageValue === "content" ? currentLessonIndex : undefined);
     } else {
       const practiceScore = calculatePracticeScore();
       const assessmentScore = calculateAssessmentScore();
@@ -399,7 +407,7 @@ export function FinancialCrimeTrainingRenderer({
                   className={`w-full justify-start ${
                     index === currentLessonIndex ? "bg-red-600 hover:bg-red-700 text-white" : "border-red-200"
                   }`}
-                  onClick={() => setCurrentLessonIndex(index)}
+                  onClick={() => handleLessonSelect(index)}
                 >
                   <span className="mr-2 text-xs">0{index + 1}</span>
                   {lesson.title}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +31,7 @@ import { GamificationHub } from "./components/GamificationHub";
 import { SocialLearning } from "./components/SocialLearning";
 import { ProgressTracker } from "./components/ProgressTracker";
 import { dailyMicroChallenges, sampleMicroLessons, trainingSimulations } from "./lib/trainingContent";
+import { PlayfulModuleCard } from "@/components/training/PlayfulModuleCard";
 
 interface UserProgress {
   completed_pathways: number;
@@ -43,6 +44,21 @@ interface UserProgress {
   weekly_goal: number;
   weekly_progress: number;
   badges_count: number;
+}
+
+interface ModuleProgress {
+  module_id: string;
+  status: "not_started" | "in_progress" | "completed";
+  progress_percentage: number;
+  score?: number | null;
+  updated_at?: string | null;
+}
+
+interface CertificateDownload {
+  module_id: string;
+  download_count: number;
+  downloaded_at: string;
+  score?: number | null;
 }
 
 const defaultProgress: UserProgress = {
@@ -62,7 +78,8 @@ export function TrainingLibraryClient() {
   const [selectedPersona, setSelectedPersona] = useState<string>("all");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [userProgress, setUserProgress] = useState<UserProgress>(defaultProgress);
-  const [isLoadingProgress, setIsLoadingProgress] = useState(true);
+  const [moduleProgress, setModuleProgress] = useState<Record<string, ModuleProgress>>({});
+  const [certificateDownloads, setCertificateDownloads] = useState<Record<string, CertificateDownload>>({});
 
   const pathways = learningPathways;
   const allModules = getAllTrainingModules();
@@ -92,12 +109,66 @@ export function TrainingLibraryClient() {
         }
       } catch (error) {
         console.error("Failed to load training progress:", error);
-      } finally {
-        setIsLoadingProgress(false);
       }
     }
     loadProgress();
   }, []);
+
+  useEffect(() => {
+    async function loadModuleProgress() {
+      try {
+        const response = await fetch("/api/training/modules");
+        if (!response.ok) return;
+        const data = await response.json();
+        const progressMap: Record<string, ModuleProgress> = {};
+        (data.modules || []).forEach((module: ModuleProgress) => {
+          if (module?.module_id) {
+            progressMap[module.module_id] = module;
+          }
+        });
+        setModuleProgress(progressMap);
+      } catch (error) {
+        console.error("Failed to load module progress:", error);
+      }
+    }
+
+    loadModuleProgress();
+  }, []);
+
+  useEffect(() => {
+    async function loadCertificateDownloads() {
+      try {
+        const response = await fetch("/api/training/certificates");
+        if (!response.ok) return;
+        const data = await response.json();
+        const downloadMap: Record<string, CertificateDownload> = {};
+        (data.certificates || []).forEach((cert: CertificateDownload) => {
+          if (cert?.module_id) {
+            downloadMap[cert.module_id] = cert;
+          }
+        });
+        setCertificateDownloads(downloadMap);
+      } catch (error) {
+        console.error("Failed to load certificate downloads:", error);
+      }
+    }
+
+    loadCertificateDownloads();
+  }, []);
+
+  const { continueModuleId, continueLabel } = useMemo(() => {
+    const inProgress = Object.values(moduleProgress)
+      .filter((module) => module.status === "in_progress")
+      .sort((a, b) => {
+        const aTime = a.updated_at ? Date.parse(a.updated_at) : 0;
+        const bTime = b.updated_at ? Date.parse(b.updated_at) : 0;
+        return bTime - aTime;
+      });
+    if (inProgress.length) {
+      return { continueModuleId: inProgress[0].module_id, continueLabel: "Resume Learning" };
+    }
+    return { continueModuleId: "aml-fundamentals", continueLabel: "Continue Learning" };
+  }, [moduleProgress]);
 
   const microLessons = sampleMicroLessons;
 
@@ -167,9 +238,9 @@ export function TrainingLibraryClient() {
             {userProgress.weekly_progress}% Weekly Goal
           </Badge>
           <Button className="bg-teal-600 hover:bg-teal-700" asChild>
-            <a href="/training-library/lesson/aml-fundamentals">
+            <a href={`/training-library/lesson/${continueModuleId}`}>
               <Play className="mr-2 h-4 w-4" />
-              Continue Learning
+              {continueLabel}
             </a>
           </Button>
         </div>
@@ -316,109 +387,57 @@ export function TrainingLibraryClient() {
           </Card>
 
           {/* Featured Training Content */}
-          <Card className="border border-emerald-200 bg-gradient-to-r from-emerald-50 to-teal-50 mb-6">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-emerald-900">
-                <Star className="h-5 w-5" />
-                Featured Training Content
-              </CardTitle>
-              <CardDescription>Beautifully designed, interactive training modules</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {featuredModules.slice(0, 3).map((module) => {
-                  const getIconComponent = (iconName: string) => {
-                    switch (iconName) {
-                      case 'alert-circle': return AlertCircle;
-                      case 'users': return Users;
-                      case 'shield': return Shield;
-                      case 'crown': return Crown;
-                      case 'file-text': return BookOpen;
-                      case 'award': return Award;
-                      default: return Target;
-                    }
-                  };
+          <div className="mb-6 p-6 bg-gradient-to-r from-teal-50 via-emerald-50 to-cyan-50 rounded-2xl border border-emerald-200">
+            <div className="flex items-center gap-2 mb-2">
+              <Star className="h-5 w-5 text-emerald-600" />
+              <h2 className="text-xl font-bold text-emerald-900">Featured Training</h2>
+              <span className="text-xl">🌟</span>
+            </div>
+            <p className="text-sm text-emerald-700 mb-4">Start with our most popular interactive modules</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {featuredModules.slice(0, 3).map((module) => (
+                <PlayfulModuleCard
+                  key={module.id}
+                  id={module.id}
+                  title={module.title}
+                  description={module.description}
+                  category={module.category || ""}
+                  duration={module.duration}
+                  difficulty={(module.difficulty as "beginner" | "intermediate" | "advanced") || "beginner"}
+                  progress={moduleProgress[module.id]}
+                  certificate={certificateDownloads[module.id]}
+                />
+              ))}
+            </div>
+          </div>
 
-                  const IconComponent = getIconComponent(module.icon);
-                  const colorClasses = {
-                    red: 'bg-red-100 text-red-600',
-                    blue: 'bg-blue-100 text-blue-600',
-                    orange: 'bg-orange-100 text-orange-600',
-                    purple: 'bg-purple-100 text-purple-600',
-                    green: 'bg-green-100 text-green-600',
-                    indigo: 'bg-indigo-100 text-indigo-600'
-                  }[module.color] || 'bg-gray-100 text-gray-600';
-
-                  return (
-                    <div key={module.id} className="p-4 bg-white rounded-lg border border-emerald-200">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${colorClasses}`}>
-                          <IconComponent className="h-5 w-5" />
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-slate-900">{module.title}</h4>
-                          <p className="text-sm text-slate-600">{module.description}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4 text-xs text-slate-500">
-                          <span>{module.duration} min</span>
-                          <span className="capitalize">{module.difficulty}</span>
-                          <span>+{module.points} points</span>
-                        </div>
-                        <Button size="sm" asChild>
-                          <a href={`/training-library/lesson/${module.id}`}>
-                            <Play className="mr-2 h-4 w-4" />
-                            Start
-                          </a>
-                        </Button>
-                      </div>
-                    </div>
-                  );
-                })}
+          {/* Module Library - Playful Cards */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                  <BookOpen className="h-5 w-5 text-teal-600" />
+                  Module Library
+                </h2>
+                <p className="text-sm text-slate-500">Browse all training modules and start where you need.</p>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Module Library */}
-          <Card className="border border-slate-100">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BookOpen className="h-5 w-5 text-slate-700" />
-                Module Library
-              </CardTitle>
-              <CardDescription>Browse all training modules and start where you need.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                {filteredModules.map((module) => (
-                  <div key={module.id} className="rounded-lg border border-slate-200 bg-white p-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <h4 className="font-semibold text-slate-900">{module.title}</h4>
-                        <p className="text-sm text-slate-600 mt-1">{module.description}</p>
-                      </div>
-                      <Badge variant="outline" className="capitalize">
-                        {module.category?.replace(/-/g, " ")}
-                      </Badge>
-                    </div>
-                    <div className="mt-4 flex items-center justify-between">
-                      <div className="flex items-center gap-3 text-xs text-slate-500">
-                        <span className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {module.duration} min
-                        </span>
-                        <span className="capitalize">{module.difficulty}</span>
-                      </div>
-                      <Button size="sm" variant="outline" asChild>
-                        <a href={`/training-library/lesson/${module.id}`}>Start</a>
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {filteredModules.map((module) => (
+                <PlayfulModuleCard
+                  key={module.id}
+                  id={module.id}
+                  title={module.title}
+                  description={module.description}
+                  category={module.category || ""}
+                  duration={module.duration}
+                  difficulty={(module.difficulty as "beginner" | "intermediate" | "advanced") || "beginner"}
+                  progress={moduleProgress[module.id]}
+                  certificate={certificateDownloads[module.id]}
+                />
+              ))}
+            </div>
+          </div>
 
           {/* Learning Pathways Grid */}
           <div className="grid gap-6">

@@ -1,6 +1,6 @@
 "use client";
 
-import { use } from "react";
+import { use, useCallback, useEffect, useRef, useState } from "react";
 import { TrainingContentRenderer } from "../../components/TrainingContentRenderer";
 import { getTrainingModule } from "../../content";
 import { trainingSimulations, dailyMicroChallenges, sampleMicroLessons } from "../../lib/trainingContent";
@@ -24,45 +24,97 @@ export function LessonClient({ params }: LessonClientProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { id } = use(params);
+  const lastProgressRef = useRef(0);
+  const searchParamsString = searchParams?.toString() ?? "";
+  const [deepLink, setDeepLink] = useState(() => {
+    const params = new URLSearchParams(searchParamsString);
+    return {
+      stage: params.get("stage") ?? undefined,
+      section: params.get("section") ?? undefined,
+    };
+  });
 
   const trainingModule = getTrainingModule(id);
   const simulation = trainingSimulations.find((item) => item.id === id);
   const microChallenge = dailyMicroChallenges.find((item) => item.id === id);
   const microLesson = sampleMicroLessons.find((item) => item.id === id);
 
-  const deepLink = {
-    stage: searchParams?.get("stage") ?? undefined,
-    section: searchParams?.get("section") ?? undefined,
-  };
+  useEffect(() => {
+    const params = new URLSearchParams(searchParamsString);
+    const nextStage = params.get("stage") ?? undefined;
+    const nextSection = params.get("section") ?? undefined;
+    setDeepLink((prev) => {
+      if (prev.stage === nextStage && prev.section === nextSection) {
+        return prev;
+      }
+      return { stage: nextStage, section: nextSection };
+    });
+  }, [searchParamsString]);
 
-  const handleDeepLinkChange = (next: { stage?: string; section?: string }) => {
-    const nextParams = new URLSearchParams(searchParams?.toString());
-    if (next.stage) {
-      nextParams.set("stage", next.stage);
+  const handleDeepLinkChange = useCallback((next: { stage?: string; section?: string }) => {
+    const nextStage = typeof next.stage === "string" && next.stage.length ? next.stage : undefined;
+    const nextSection = typeof next.section === "string" && next.section.length ? next.section : undefined;
+    setDeepLink((prev) => {
+      if (prev.stage === nextStage && prev.section === nextSection) {
+        return prev;
+      }
+      return { stage: nextStage, section: nextSection };
+    });
+
+    const nextParams = new URLSearchParams(searchParamsString);
+    if (nextStage) {
+      nextParams.set("stage", nextStage);
     } else {
       nextParams.delete("stage");
     }
-    if (next.section) {
-      nextParams.set("section", next.section);
+    if (nextSection) {
+      nextParams.set("section", nextSection);
     } else {
       nextParams.delete("section");
     }
     const nextQuery = nextParams.toString();
-    const currentQuery = searchParams?.toString() ?? "";
-    if (nextQuery === currentQuery) return;
-    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname);
-  };
+    if (nextQuery !== searchParamsString) {
+      router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname);
+    }
+  }, [pathname, router, searchParamsString]);
 
   const handleComplete = (score: number, timeSpent: number) => {
-    // Handle lesson completion - update progress, award points, etc.
-    console.log(`Lesson completed with score: ${score}%, time: ${timeSpent}min`);
-    // Navigate back to training library or next lesson
-    router.push('/training-library');
+    const payload = {
+      moduleId: id,
+      status: "completed",
+      progressPercentage: 100,
+      score,
+      maxScore: 100,
+      timeSpent,
+    };
+
+    fetch("/api/training/modules", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }).catch((error) => {
+      console.error("Failed to update training module progress:", error);
+    }).finally(() => {
+      router.push("/training-library");
+    });
   };
 
   const handleProgress = (progress: number) => {
-    // Handle progress updates
-    console.log(`Progress: ${progress}%`);
+    const nextProgress = Math.min(100, Math.max(0, Math.round(progress)));
+    if (nextProgress <= lastProgressRef.current) return;
+    lastProgressRef.current = nextProgress;
+
+    fetch("/api/training/modules", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        moduleId: id,
+        status: "in_progress",
+        progressPercentage: nextProgress,
+      }),
+    }).catch((error) => {
+      console.error("Failed to update training module progress:", error);
+    });
   };
 
   return (

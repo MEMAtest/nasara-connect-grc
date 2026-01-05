@@ -6,7 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { getSessionIdentity } from '@/lib/auth-utils';
+import { getSessionIdentity, isAuthDisabled } from '@/lib/auth-utils';
 import { logError, logApiRequest } from '@/lib/logger';
 import {
   initTrainingDatabase,
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
   logApiRequest('GET', '/api/training/progress');
 
   try {
-    const session = await auth();
+    const session = isAuthDisabled() ? null : await auth();
     const identity = getSessionIdentity(session);
 
     if (!identity?.email) {
@@ -48,7 +48,7 @@ export async function PUT(request: NextRequest) {
   logApiRequest('PUT', '/api/training/progress');
 
   try {
-    const session = await auth();
+    const session = isAuthDisabled() ? null : await auth();
     const identity = getSessionIdentity(session);
 
     if (!identity?.email) {

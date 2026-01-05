@@ -30,8 +30,11 @@ import {
 import { marked } from "marked";
 import { getTrainingModule } from "../content";
 import { normalizeTrainingModule } from "../lib/module-normalizer";
+import { normalizeMarkdown } from "./training-renderer-helpers";
+import { AMLTrainingRenderer } from "./AMLTrainingRenderer";
 import { FinancialCrimeTrainingRenderer } from "./FinancialCrimeTrainingRenderer";
 import { CustomerProtectionTrainingRenderer } from "./CustomerProtectionTrainingRenderer";
+import { KYCTrainingRenderer } from "./KYCTrainingRenderer";
 import { OperationalRiskTrainingRenderer } from "./OperationalRiskTrainingRenderer";
 import { RegulatoryComplianceTrainingRenderer } from "./RegulatoryComplianceTrainingRenderer";
 
@@ -45,7 +48,7 @@ marked.setOptions({
 function MarkdownContent({ content, className = "" }: { content: string; className?: string }) {
   const html = useMemo(() => {
     if (!content) return "";
-    return marked.parse(content, { async: false }) as string;
+    return marked.parse(normalizeMarkdown(content), { async: false }) as string;
   }, [content]);
 
   return (
@@ -87,6 +90,28 @@ export function TrainingContentRenderer({ contentId, onComplete, onProgress, dee
           </CardContent>
         </Card>
       </div>
+    );
+  }
+
+  if (contentId === "aml-fundamentals") {
+    return (
+      <AMLTrainingRenderer
+        onComplete={onComplete}
+        onProgress={onProgress}
+        deepLink={deepLink}
+        onDeepLinkChange={onDeepLinkChange}
+      />
+    );
+  }
+
+  if (contentId === "kyc-fundamentals") {
+    return (
+      <KYCTrainingRenderer
+        onComplete={onComplete}
+        onProgress={onProgress}
+        deepLink={deepLink}
+        onDeepLinkChange={onDeepLinkChange}
+      />
     );
   }
 
@@ -328,15 +353,6 @@ function GenericTrainingRenderer({ moduleId, module, onComplete, onProgress, dee
   }, [currentStage, deepLink?.stage]);
 
   useEffect(() => {
-    if (!onDeepLinkChange) return;
-    if (currentStage !== "content") {
-      onDeepLinkChange({ stage: currentStage });
-      return;
-    }
-    onDeepLinkChange({ stage: currentStage, section: String(currentLessonIndex) });
-  }, [currentLessonIndex, currentStage, onDeepLinkChange]);
-
-  useEffect(() => {
     if (currentStage !== "content") return;
     const section = deepLink?.section;
     if (!section) return;
@@ -384,10 +400,27 @@ function GenericTrainingRenderer({ moduleId, module, onComplete, onProgress, dee
     return Math.round((correctCount / content.practiceScenarios.length) * 100);
   };
 
+  const syncDeepLink = (stage: GenericStageKey, section?: number) => {
+    if (!onDeepLinkChange) return;
+    if (stage !== "content") {
+      onDeepLinkChange({ stage });
+      return;
+    }
+    const targetSection = typeof section === "number" ? section : currentLessonIndex;
+    onDeepLinkChange({ stage, section: String(targetSection) });
+  };
+
+  const handleLessonSelect = (index: number) => {
+    setCurrentLessonIndex(index);
+    syncDeepLink("content", index);
+  };
+
   const nextStage = () => {
     const currentIndex = GENERIC_STAGE_ORDER.indexOf(currentStage);
     if (currentIndex < GENERIC_STAGE_ORDER.length - 1) {
-      setCurrentStage(GENERIC_STAGE_ORDER[currentIndex + 1]);
+      const nextStageValue = GENERIC_STAGE_ORDER[currentIndex + 1];
+      setCurrentStage(nextStageValue);
+      syncDeepLink(nextStageValue, nextStageValue === "content" ? currentLessonIndex : undefined);
     } else {
       const practiceScore = calculatePracticeScore();
       const estimatedMinutes = typeof content.estimatedDuration === 'number'
@@ -862,7 +895,7 @@ function GenericTrainingRenderer({ moduleId, module, onComplete, onProgress, dee
           <div className="flex justify-between items-center">
             <Button
               variant="outline"
-              onClick={() => setCurrentLessonIndex(Math.max(0, currentLessonIndex - 1))}
+              onClick={() => handleLessonSelect(Math.max(0, currentLessonIndex - 1))}
               disabled={currentLessonIndex === 0}
             >
               Previous Lesson
@@ -872,7 +905,7 @@ function GenericTrainingRenderer({ moduleId, module, onComplete, onProgress, dee
             </span>
             <Button
               variant="outline"
-              onClick={() => setCurrentLessonIndex(Math.min(content.lessons.length - 1, currentLessonIndex + 1))}
+              onClick={() => handleLessonSelect(Math.min(content.lessons.length - 1, currentLessonIndex + 1))}
               disabled={currentLessonIndex >= content.lessons.length - 1}
             >
               Next Lesson

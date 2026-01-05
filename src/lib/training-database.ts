@@ -119,6 +119,19 @@ export async function initTrainingDatabase() {
       )
     `);
 
+    // Certificate download tracking table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS training_certificate_events (
+        id VARCHAR(255) PRIMARY KEY,
+        user_id VARCHAR(255) NOT NULL,
+        module_id VARCHAR(255) NOT NULL,
+        score INTEGER,
+        download_count INTEGER DEFAULT 1,
+        downloaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user_id, module_id)
+      )
+    `);
+
     // Daily Activity Log (for streak tracking)
     await client.query(`
       CREATE TABLE IF NOT EXISTS training_activity_log (
@@ -138,6 +151,7 @@ export async function initTrainingDatabase() {
     await client.query(`CREATE INDEX IF NOT EXISTS idx_training_module_progress_user ON training_module_progress(user_id)`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_training_pathway_progress_user ON training_pathway_progress(user_id)`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_training_badges_user ON training_badges(user_id)`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_training_certificates_user ON training_certificate_events(user_id)`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_training_activity_log_user ON training_activity_log(user_id, activity_date)`);
 
     logger.info('Training database tables initialized successfully');
@@ -367,6 +381,48 @@ export async function updateModuleProgress(
 
   logDbOperation('update', 'training_module_progress', Date.now() - startTime);
   return result.rows[0];
+}
+
+// =====================================================
+// Certificate Tracking
+// =====================================================
+
+export async function logCertificateDownload(
+  userId: string,
+  moduleId: string,
+  score?: number
+): Promise<void> {
+  const startTime = Date.now();
+  await pool.query(
+    `INSERT INTO training_certificate_events (id, user_id, module_id, score)
+     VALUES ($1, $2, $3, $4)
+     ON CONFLICT (user_id, module_id)
+     DO UPDATE SET
+       downloaded_at = CURRENT_TIMESTAMP,
+       download_count = training_certificate_events.download_count + 1,
+       score = EXCLUDED.score`,
+    [`cert-${crypto.randomUUID()}`, userId, moduleId, typeof score === "number" ? score : null]
+  );
+  logDbOperation('insert', 'training_certificate_events', Date.now() - startTime);
+}
+
+export interface CertificateDownload {
+  id: string;
+  user_id: string;
+  module_id: string;
+  score: number | null;
+  download_count: number;
+  downloaded_at: Date;
+}
+
+export async function getCertificateDownloads(userId: string): Promise<CertificateDownload[]> {
+  const startTime = Date.now();
+  const result = await pool.query<CertificateDownload>(
+    'SELECT * FROM training_certificate_events WHERE user_id = $1 ORDER BY downloaded_at DESC',
+    [userId]
+  );
+  logDbOperation('query', 'training_certificate_events', Date.now() - startTime);
+  return result.rows;
 }
 
 // =====================================================

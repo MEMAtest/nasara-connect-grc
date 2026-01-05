@@ -26,7 +26,7 @@ import {
 import { kycFundamentalsModule } from '../content/kyc-fundamentals';
 
 interface KYCTrainingRendererProps {
-  onComplete?: () => void;
+  onComplete?: (score: number, timeSpent: number) => void;
   onProgress?: (progress: number) => void;
   deepLink?: { stage?: string; section?: string };
   onDeepLinkChange?: (deepLink: { stage?: string; section?: string }) => void;
@@ -77,6 +77,15 @@ export function KYCTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
   const progress = (completedSections.size / totalSections) * 100;
   const activeSectionId = sections[currentSection]?.id ?? String(currentSection);
 
+  const calculateScenarioScore = () => {
+    const totalScenarios = kycModule.practiceScenarios.length;
+    if (!totalScenarios) return 100;
+    const correctCount = kycModule.practiceScenarios.reduce((count, scenario) => {
+      return selectedAnswers[scenario.id] === scenario.correctAnswer ? count + 1 : count;
+    }, 0);
+    return Math.round((correctCount / totalScenarios) * 100);
+  };
+
   const handleSectionComplete = (sectionIndex: number) => {
     const newCompleted = new Set(completedSections);
     newCompleted.add(sectionIndex);
@@ -84,7 +93,7 @@ export function KYCTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
     onProgress?.(((newCompleted.size) / totalSections) * 100);
 
     if (newCompleted.size === totalSections) {
-      onComplete?.();
+      onComplete?.(calculateScenarioScore(), kycModule.duration);
     }
   };
 
@@ -710,11 +719,16 @@ export function KYCTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
     setCurrentSection(nextIndex);
   }, [currentSection, deepLink?.section, deepLink?.stage, sections]);
 
-  useEffect(() => {
+  const syncDeepLink = (index: number) => {
     if (!onDeepLinkChange) return;
-    if (deepLink?.stage === "content" && deepLink?.section === activeSectionId) return;
-    onDeepLinkChange({ stage: "content", section: activeSectionId });
-  }, [activeSectionId, deepLink?.section, deepLink?.stage, onDeepLinkChange]);
+    const nextSectionId = sections[index]?.id ?? String(index);
+    onDeepLinkChange({ stage: "content", section: nextSectionId });
+  };
+
+  const handleSectionChange = (index: number) => {
+    setCurrentSection(index);
+    syncDeepLink(index);
+  };
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -744,7 +758,7 @@ export function KYCTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
 
       <Tabs value={sections[currentSection]?.id} onValueChange={(value) => {
         const sectionIndex = sections.findIndex(s => s.id === value);
-        if (sectionIndex !== -1) setCurrentSection(sectionIndex);
+        if (sectionIndex !== -1) handleSectionChange(sectionIndex);
       }}>
         <TabsList className="grid w-full grid-cols-4 lg:grid-cols-7 mb-8">
           {sections.map((section, index) => (
@@ -763,7 +777,7 @@ export function KYCTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
           <div className="flex justify-between mt-8">
             <Button
               variant="outline"
-              onClick={() => setCurrentSection(Math.max(0, currentSection - 1))}
+              onClick={() => handleSectionChange(Math.max(0, currentSection - 1))}
               disabled={currentSection === 0}
             >
               Previous
@@ -772,7 +786,7 @@ export function KYCTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
               onClick={() => {
                 handleSectionComplete(currentSection);
                 if (currentSection < sections.length - 1) {
-                  setCurrentSection(currentSection + 1);
+                  handleSectionChange(currentSection + 1);
                 }
               }}
             >

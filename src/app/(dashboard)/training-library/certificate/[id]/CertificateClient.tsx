@@ -40,7 +40,19 @@ export function CertificateClient({ moduleTitle, moduleId, learnerName }: Certif
               Back to Training Library
             </a>
           </Button>
-          <Button onClick={() => window.print()} className="bg-teal-600 hover:bg-teal-700">
+          <Button
+            onClick={() => {
+              fetch("/api/training/certificates", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ moduleId, score }),
+              }).catch(() => {
+              }).finally(() => {
+                window.print();
+              });
+            }}
+            className="bg-teal-600 hover:bg-teal-700"
+          >
             <Download className="mr-2 h-4 w-4" />
             Download PDF
           </Button>
