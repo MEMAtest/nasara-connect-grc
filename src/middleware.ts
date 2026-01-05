@@ -1,13 +1,17 @@
 import { auth } from "@/auth"
 import { NextResponse } from "next/server"
-import { isAuthDisabled } from "@/lib/auth-utils"
+
+// Auth temporarily disabled - set to false to re-enable login
+const AUTH_DISABLED = true
 
 export default auth((req) => {
   const { pathname } = req.nextUrl
 
-  if (isAuthDisabled()) {
+  if (AUTH_DISABLED) {
     if (pathname.startsWith('/auth/login') || pathname.startsWith('/auth/error')) {
-      return NextResponse.redirect(new URL('/authorization-pack', req.url))
+      const response = NextResponse.redirect(new URL('/authorization-pack', req.url))
+      response.headers.set('X-Robots-Tag', 'noindex, nofollow')
+      return response
     }
     return NextResponse.next()
   }
@@ -38,7 +42,15 @@ export default auth((req) => {
 
   // Redirect to dashboard if trying to access login while already logged in
   if (pathname === '/auth/login' && isLoggedIn) {
-    return NextResponse.redirect(new URL('/authorization-pack', req.url))
+    const response = NextResponse.redirect(new URL('/authorization-pack', req.url))
+    response.headers.set('X-Robots-Tag', 'noindex, nofollow')
+    return response
+  }
+
+  if (pathname.startsWith('/auth')) {
+    const response = NextResponse.next()
+    response.headers.set('X-Robots-Tag', 'noindex, nofollow')
+    return response
   }
 
   return NextResponse.next()

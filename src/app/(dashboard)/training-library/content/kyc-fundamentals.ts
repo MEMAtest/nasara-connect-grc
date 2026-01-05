@@ -67,7 +67,17 @@ This is where many firms fall short. We must understand:
 - Source of funds and wealth
 - Business model and revenue streams for corporate customers
 
-This understanding forms the baseline for ongoing monitoring and suspicious activity detection.`,
+This understanding forms the baseline for ongoing monitoring and suspicious activity detection.
+
+**CDD Completion and Onboarding Decision**
+- CDD should be completed before a relationship is established or transactions are processed
+- If CDD cannot be completed, the relationship must not proceed and activity should be reviewed for suspicion
+
+**Verification Methods**
+- Documentary checks (passport, national ID, driving license)
+- Electronic verification against trusted data sources
+- Biometric checks where appropriate (liveness, face match)
+- Additional verification for higher-risk customers`,
 
         keyConcepts: [
           {
@@ -148,7 +158,17 @@ Risk is not static. Our assessment must consider:
 - Regulatory updates and new typologies
 - Intelligence from law enforcement
 - Internal suspicious activity reports
-- External adverse media`,
+- External adverse media
+
+**Risk Scoring and Documentation**
+- Use a consistent scoring model so risk decisions are comparable across teams
+- Record the key drivers of the score (geography, product, customer type, channel)
+- Align the score to required controls (SDD, CDD, or EDD)
+
+**Trigger Events for Re-Scoring**
+- Ownership changes or new UBOs
+- Sudden changes in transaction behavior
+- New adverse media or sanctions exposure`,
 
         keyConcepts: [
           {
@@ -240,7 +260,12 @@ All monitoring activities must be documented:
 - Suspicious activity identified
 - Management decisions on account continuation
 - Enhanced measures applied
-- Training records for staff involved`,
+- Training records for staff involved
+
+**Escalation and Refresh**
+- Refresh CDD when key identity or ownership details change
+- Record customer contact attempts and non-responses
+- Escalate to the MLRO when suspicion remains after review`,
 
         keyConcepts: [
           {
@@ -271,6 +296,108 @@ All monitoring activities must be documented:
           'Money Laundering Regulations 2017 - Regulation 28(11) (Ongoing Monitoring)',
           'JMLSG Guidance Part I Section 5 - Ongoing Monitoring',
           'FCA Financial Crime Guide - Chapter 6 (Transaction Monitoring)'
+        ]
+      }
+    },
+    {
+      id: 'beneficial-ownership-kyb',
+      title: 'Beneficial Ownership and KYB',
+      type: 'content',
+      duration: 4,
+      content: {
+        learningPoint: 'Apply robust KYB checks and verify beneficial ownership for corporate customers',
+        mainContent: `KYB is about understanding who ultimately owns and controls a business customer. The default threshold is 25 percent ownership or control, but lower thresholds may apply based on risk.
+
+**Ownership and Control Tests**
+- Ownership: identify any individual with 25 percent or more of shares or voting rights
+- Control: identify individuals with the power to appoint or remove directors or exercise dominant influence
+- Consider layered ownership across multiple entities, not just the immediate shareholder
+
+**When No UBO Is Identified**
+- Identify the senior managing official
+- Document the steps taken to establish ownership and why no UBO could be confirmed
+
+**Evidence to Collect**
+- Company registry extract and shareholder register
+- Corporate structure chart with ownership percentages
+- Director and controller identification documents
+
+**Core KYB steps**
+- Verify company registration and directors
+- Identify and verify UBOs
+- Understand business model, expected activity, and source of funds
+- Review ownership layers and offshore entities for risk
+
+**High risk triggers**
+- Trust structures or nominee shareholders
+- Complex multi jurisdiction ownership
+- Rapidly changing directors or shareholders
+
+When ownership is complex, request additional documentation and verify independently.`,
+        keyConcepts: [
+          {
+            term: 'UBO',
+            definition: 'Ultimate beneficial owner, usually 25 percent ownership or control threshold'
+          },
+          {
+            term: 'KYB',
+            definition: 'Know Your Business checks covering ownership, control, and business purpose'
+          },
+          {
+            term: 'Control Test',
+            definition: 'Assessment of who can exercise significant influence over the entity'
+          }
+        ],
+        realExamples: [
+          'A corporate customer owned by a trust requires verification of trustees and beneficiaries.',
+          'A holding company in a high risk jurisdiction triggers enhanced due diligence and deeper ownership mapping.'
+        ],
+        regulatoryRequirements: [
+          'Money Laundering Regulations 2017 - Regulation 28 (Beneficial Ownership)',
+          'JMLSG Guidance Part I Section 4 - Corporate customers'
+        ]
+      }
+    },
+    {
+      id: 'record-keeping-qa',
+      title: 'Record Keeping, QA, and Audit Readiness',
+      type: 'content',
+      duration: 4,
+      content: {
+        learningPoint: 'Evidence every decision with clear documentation and QA checks',
+        mainContent: `KYC evidence must be clear, retrievable, and timely. Regulators expect you to show:
+
+- What documents were obtained and verified
+- How risk was assessed and why the rating was set
+- When reviews were completed and by whom
+- Why any exceptions or overrides were approved
+
+**Quality assurance** is essential. Sample checks ensure files meet standards and expose gaps early. If evidence is weak, remediation should be documented and tracked.
+
+**Retention and Access**
+- Retain KYC records for the regulatory minimum defined in policy (often at least 5 years after the relationship ends)
+- Control access to sensitive documents and track who viewed or changed files
+
+**QA Program**
+- Use risk-based sampling so higher-risk files get more scrutiny
+- Track error rates and root causes, then retrain or update templates as needed`,
+        keyConcepts: [
+          {
+            term: 'Record Retention',
+            definition: 'Maintain KYC records for required periods and ensure audit access'
+          },
+          {
+            term: 'QA Review',
+            definition: 'Independent review of KYC files to confirm quality and completeness'
+          }
+        ],
+        realExamples: [
+          'A QA review finds missing source of funds evidence and triggers remediation.',
+          'An audit request is fulfilled quickly because documents and risk rationale are structured and searchable.'
+        ],
+        regulatoryRequirements: [
+          'Money Laundering Regulations 2017 - Regulation 40 (Record Keeping)',
+          'FCA expectations for audit ready evidence'
         ]
       }
     }
