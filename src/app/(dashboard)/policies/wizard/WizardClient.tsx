@@ -26,10 +26,12 @@ export function WizardClient() {
           templateCode: state.selectedTemplate?.code,
           permissions: state.permissions,
           sectionClauses: state.sectionClauses,
+          sectionOptions: state.sectionOptions,
           sectionNotes: state.sectionNotes,
           clauseVariables: state.clauseVariables,
           firmProfile: state.firmProfile,
           approvals: state.approvals,
+          detailLevel: state.detailLevel,
         }),
       });
       if (!response.ok) {

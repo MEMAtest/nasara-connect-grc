@@ -162,6 +162,97 @@ FG21/1 is not a separate regime – it explains how existing obligations apply i
     },
 
     {
+      id: 'identification-disclosure',
+      title: 'Identification, Disclosure and Recording',
+      type: 'content',
+      duration: 14,
+      content: {
+        learningPoint: 'Recognise vulnerability indicators and record them lawfully with customer consent and care.',
+        mainContent: `Identifying vulnerability is a practical skill. It is not about labels, but about recognising signals and adapting support. Firms should allow both **self-disclosure** and **observed indicators** to be recorded sensitively.
+
+**Where Indicators Appear**
+- Calls or chats where customers express distress, confusion, or urgency
+- Missed payments, sudden arrears, or repeated contact attempts
+- Requests for unusual help (third-party support, large-print documents, extended deadlines)
+
+**How to Ask**
+- Use respectful, neutral language
+- Explain why the information helps provide better support
+- Give customers control over what they disclose
+
+**Recording and Data Privacy**
+- Record only what is necessary to support the customer
+- Use clear vulnerability flags with categories, not intrusive medical details
+- Ensure consent and explain how the data will be used
+- Provide opt-out and review options where appropriate
+
+**Escalation Triggers**
+- Indicators of financial abuse or coercion
+- Signs of significant mental health distress
+- Repeated misunderstandings that could cause foreseeable harm`,
+        keyConcepts: [
+          { term: 'Self-Disclosure', definition: 'When a customer voluntarily tells the firm about a vulnerability.' },
+          { term: 'Observed Indicator', definition: 'Behavior or circumstances suggesting vulnerability without explicit disclosure.' },
+          { term: 'Vulnerability Flag', definition: 'A structured marker in systems to prompt tailored support.' },
+          { term: 'Lawful Processing', definition: 'Collecting only necessary data with consent and clear purpose.' }
+        ],
+        realExamples: [
+          'A customer mentions caring responsibilities and asks for longer response times; the agent records a vulnerability flag and offers alternative channels.',
+          'A customer repeatedly misunderstands repayment options, triggering a referral to a specialist support team.'
+        ],
+        regulatoryRequirements: [
+          'FCA FG21/1 – Understanding and responding to vulnerability',
+          'UK GDPR and Data Protection Act 2018 – Lawful processing and minimisation'
+        ]
+      }
+    },
+    {
+      id: 'support-adjustments-escalation',
+      title: 'Support Adjustments and Escalation',
+      type: 'content',
+      duration: 16,
+      content: {
+        learningPoint: 'Adapt processes to reduce harm and provide equitable outcomes.',
+        mainContent: `Once vulnerability is identified, the firm must adapt. Adjustments should be practical, consistent, and proportionate to the customer's needs.
+
+**Common Adjustments**
+- Alternative channels (phone or paper instead of digital-only)
+- Slower pacing and confirmation of understanding
+- Extended timeframes for documentation or decisions
+- Third-party involvement where consent is provided
+- Tailored communications (large print, simplified language, translations)
+
+**Forbearance and Financial Support**
+- Payment plans or temporary concessions for customers in distress
+- Referrals to debt advice or support organisations
+- Clear explanation of consequences and options
+
+**Escalation and Specialist Support**
+- Build a clear referral pathway to trained specialists
+- Document decisions and reasons for adjustments
+- Ensure vulnerable outcomes are tracked and reviewed
+
+**Avoiding Harm**
+- Do not apply rigid scripts that block reasonable adjustments
+- Do not penalise customers for disclosure
+- Ensure support is consistent across channels`,
+        keyConcepts: [
+          { term: 'Reasonable Adjustment', definition: 'A change to process or communication to support vulnerable customers.' },
+          { term: 'Support Pathway', definition: 'Defined escalation route to specialist help.' },
+          { term: 'Outcome Equity', definition: 'Ensuring vulnerable customers achieve outcomes as good as others.' }
+        ],
+        realExamples: [
+          'A bereaved customer received a single point of contact and extended deadlines to provide documentation.',
+          'A customer with low digital capability was moved to phone support with simplified statements.'
+        ],
+        regulatoryRequirements: [
+          'FCA FG21/1 – Practical actions to support vulnerable customers',
+          'Consumer Duty – Avoid foreseeable harm and support customers'
+        ]
+      }
+    },
+
+    {
       id: 'embedding-vulnerability',
       title: 'Embedding Vulnerability Across the Customer Journey',
       type: 'content',

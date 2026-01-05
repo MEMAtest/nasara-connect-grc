@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AlertTriangle, FileText, GraduationCap, Shield } from "lucide-react";
+import { PolicyDocumentActions } from "@/components/policies/PolicyDocumentActions";
+import { PolicyInlineEditor } from "@/components/policies/PolicyInlineEditor";
 import { PolicyReaderClient, type PolicyReaderOverview, type PolicyReaderSection } from "@/components/policies/PolicyReaderClient";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -321,7 +323,7 @@ export default async function PolicyDetailPage({
 
   return (
     <div className="space-y-8 policy-print">
-      <header className="rounded-3xl border border-slate-100 bg-white p-6 shadow-lg">
+      <header className="policy-screen rounded-3xl border border-slate-100 bg-white p-6 shadow-lg">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-4">
             <p className="text-xs font-semibold uppercase tracking-[0.32em] text-indigo-500">Policy document</p>
@@ -365,6 +367,7 @@ export default async function PolicyDetailPage({
                 <Link href={`/policies/${policy.id}/edit`}>Edit policy</Link>
               </Button>
             </div>
+            <PolicyDocumentActions policyId={policy.id} />
           </div>
         </div>
 
@@ -397,34 +400,47 @@ export default async function PolicyDetailPage({
 
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="space-y-6">
-          <section className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-slate-900">Document overview</h2>
-            <p className="mt-2 text-sm text-slate-600">{policy.template.description}</p>
-            <dl className="mt-4 grid gap-4 sm:grid-cols-2">
-              <div className="rounded-xl border border-slate-100 bg-slate-50/80 p-4">
-                <dt className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">Template</dt>
-                <dd className="mt-1 text-sm text-slate-700">{policy.template.name}</dd>
-              </div>
-              <div className="rounded-xl border border-slate-100 bg-slate-50/80 p-4">
-                <dt className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">Category</dt>
-                <dd className="mt-1 text-sm text-slate-700">{policy.template.category}</dd>
-              </div>
-            </dl>
-            {governanceScope ? (
-              <div className="mt-4 rounded-xl border border-slate-100 bg-slate-50/80 p-4">
-                <dt className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">Scope statement</dt>
-                <dd className="mt-2 text-sm text-slate-700">{governanceScope}</dd>
-              </div>
-            ) : null}
-          </section>
+          <div className="policy-screen">
+            <section className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+              <h2 className="text-lg font-semibold text-slate-900">Document overview</h2>
+              <p className="mt-2 text-sm text-slate-600">{policy.template.description}</p>
+              <dl className="mt-4 grid gap-4 sm:grid-cols-2">
+                <div className="rounded-xl border border-slate-100 bg-slate-50/80 p-4">
+                  <dt className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">Template</dt>
+                  <dd className="mt-1 text-sm text-slate-700">{policy.template.name}</dd>
+                </div>
+                <div className="rounded-xl border border-slate-100 bg-slate-50/80 p-4">
+                  <dt className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">Category</dt>
+                  <dd className="mt-1 text-sm text-slate-700">{policy.template.category}</dd>
+                </div>
+              </dl>
+              {governanceScope ? (
+                <div className="mt-4 rounded-xl border border-slate-100 bg-slate-50/80 p-4">
+                  <dt className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">Scope statement</dt>
+                  <dd className="mt-2 text-sm text-slate-700">{governanceScope}</dd>
+                </div>
+              ) : null}
+            </section>
+          </div>
           <PolicyReaderClient
             sections={readerSections}
             defaultSectionId={defaultSectionId}
             overview={overview}
+            reportMeta={{
+              title: policy.name,
+              subtitle: policy.description,
+              firmName: firmName ?? "",
+              status: policy.status.replace("_", " "),
+              owner: governanceOwner,
+              version: governanceVersion,
+              effectiveDate: formatDate(governance.effectiveDate as string | undefined),
+              nextReview: formatDate(governance.nextReviewAt as string | undefined),
+              updatedAt: lastUpdatedLabel,
+            }}
           />
         </div>
 
-        <aside className="space-y-6 lg:sticky lg:top-6">
+        <aside className="policy-screen space-y-6 lg:sticky lg:top-6">
           {missingMetadata.length || missingFirmNotes.length || missingVariables.size ? (
             <section className="rounded-3xl border border-amber-200 bg-amber-50 p-5 shadow-sm">
               <div className="flex items-start gap-3">
@@ -452,6 +468,26 @@ export default async function PolicyDetailPage({
               </Button>
             </section>
           ) : null}
+
+          <PolicyInlineEditor
+            policyId={policy.id}
+            sections={sections.map((section) => ({
+              id: section.id,
+              title: section.title,
+              requiresFirmNotes: section.requiresFirmNotes,
+            }))}
+            initialSectionNotes={sectionNotes}
+            initialGovernance={{
+              owner: governanceOwner,
+              version: governanceVersion,
+              effectiveDate: typeof governance.effectiveDate === "string" ? governance.effectiveDate : "",
+              nextReviewAt: typeof governance.nextReviewAt === "string" ? governance.nextReviewAt : "",
+              scopeStatement: governanceScope,
+              distributionList: governanceDistribution.join(", "),
+              linkedProcedures: governanceProcedures,
+            }}
+            initialCustomContent={customContent as Record<string, unknown>}
+          />
 
           <section className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">
             <div className="flex items-start justify-between gap-2">

@@ -8,6 +8,9 @@ import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import Link from 'next/link'
+import { Navigation } from '@/components/landing/Navigation'
+import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
+import { SOLUTION_PAGES } from '@/lib/seo/marketing-data'
 
 // 3D Components
 import dynamic from 'next/dynamic'
@@ -23,8 +26,19 @@ export default function SolutionsPage() {
 
   return (
     <div className="relative overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
+      <BreadcrumbJsonLd
+        items={[
+          { name: 'Home', path: '/' },
+          { name: 'Solutions', path: '/solutions' }
+        ]}
+      />
+      <Navigation variant="solid" />
+
       {/* Hero Overview Section */}
       <HeroSection />
+
+      {/* Solution Links */}
+      <SolutionsGridSection />
 
       {/* Industry Sectors Tabs */}
       <SectorsSection activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -32,6 +46,43 @@ export default function SolutionsPage() {
       {/* Final CTA */}
       <FinalCTA />
     </div>
+  )
+}
+
+function SolutionsGridSection() {
+  return (
+    <section className="px-4 pb-20">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex items-center justify-between mb-10">
+          <div>
+            <Badge className="mb-3 bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
+              Regulatory outcomes
+            </Badge>
+            <h2 className="text-3xl font-bold text-white">Outcome-focused solutions</h2>
+            <p className="mt-3 text-slate-400 max-w-2xl">
+              Explore dedicated compliance workflows mapped to FCA expectations and audit evidence.
+            </p>
+          </div>
+          <Link href="/features" className="hidden lg:inline-flex text-sm text-emerald-300 hover:text-emerald-200">
+            View platform features →
+          </Link>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {SOLUTION_PAGES.map((solution) => (
+            <Link key={solution.slug} href={`/solutions/${solution.slug}`} className="block">
+              <Card className="h-full border-slate-800 bg-slate-900/60 p-6 hover:border-emerald-500/50 transition-all">
+                <h3 className="text-xl font-semibold text-white">{solution.title}</h3>
+                <p className="mt-3 text-sm text-slate-400">{solution.summary}</p>
+                <span className="mt-4 inline-flex text-sm font-semibold text-emerald-400">
+                  {`Explore ${solution.title}`}
+                </span>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </section>
   )
 }
 
@@ -67,6 +118,13 @@ function HeroSection() {
             From traditional banking to cutting-edge FinTech, Nasara Connect delivers sector-specific
             compliance solutions that understand your regulatory landscape, operational complexity, and strategic goals.
           </p>
+          <Link
+            href="/grc-platform"
+            className="inline-flex items-center justify-center text-sm font-semibold text-emerald-300 hover:text-emerald-200"
+          >
+            Explore the governance, risk &amp; compliance platform
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Link>
 
           <div className="flex flex-wrap items-center justify-center gap-4 pt-8">
             {[
@@ -245,7 +303,7 @@ function SectorsSection({ activeTab, setActiveTab }: { activeTab: string, setAct
         },
         {
           title: 'Transaction Monitoring',
-          desc: 'AI-powered anomaly detection, fraud pattern recognition, and automated suspicious activity reporting.'
+          desc: 'Automated anomaly detection, fraud pattern recognition, and suspicious activity reporting.'
         },
         {
           title: 'PSD2/3 Compliance',

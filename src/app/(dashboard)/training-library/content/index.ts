@@ -8,6 +8,7 @@ import { pepsTrainingModule } from './peps-training';
 import { sarsTrainingModule } from './sars-training';
 import { smcrTrainingModule } from './smcr-training';
 import { consumerDutyModule } from './consumer-duty';
+import { consumerDutyImplementationModule } from './consumer-duty-implementation';
 import { financialCrimeAmlModule } from './financial-crime-aml';
 import { vulnerableCustomersModule } from './vulnerable-customers';
 import { clientCategorisationModule } from './client-categorisation';
@@ -16,6 +17,8 @@ import { complaintsHandlingModule } from './complaints-handling';
 import { financialPromotionsModule } from './financial-promotions';
 import { outsourcingThirdPartyModule } from './outsourcing-third-party';
 import { operationalResilienceModule } from './operational-resilience';
+import { operationalResilienceFrameworkModule } from './operational-resilience-framework';
+import { moneyLaunderingRedFlagsModule } from './money-laundering-red-flags';
 
 // Core Training Modules Registry
 export const trainingModules: Record<string, TrainingModule> = {
@@ -26,6 +29,7 @@ export const trainingModules: Record<string, TrainingModule> = {
   'sars-training': sarsTrainingModule,
   'smcr-training': smcrTrainingModule,
   'consumer-duty': consumerDutyModule,
+  'consumer-duty-implementation': consumerDutyImplementationModule,
   'financial-crime-aml': financialCrimeAmlModule,
   'vulnerable-customers': vulnerableCustomersModule,
   'client-categorisation': clientCategorisationModule,
@@ -34,6 +38,8 @@ export const trainingModules: Record<string, TrainingModule> = {
   'financial-promotions': financialPromotionsModule,
   'outsourcing-third-party': outsourcingThirdPartyModule,
   'operational-resilience': operationalResilienceModule,
+  'operational-resilience-framework': operationalResilienceFrameworkModule,
+  'money-laundering-red-flags': moneyLaunderingRedFlagsModule,
 };
 
 // Helper function to get module by ID
@@ -105,11 +111,13 @@ export const trainingCategories = {
 export const personaRecommendations = {
   'compliance-officer': [
     'aml-fundamentals',
+    'money-laundering-red-flags',
     'kyc-fundamentals',
     'sanctions-training',
     'peps-training',
     'sars-training',
     'consumer-duty',
+    'consumer-duty-implementation',
     'financial-crime-aml',
     'vulnerable-customers',
     'client-categorisation',
@@ -117,11 +125,13 @@ export const personaRecommendations = {
     'complaints-handling',
     'financial-promotions',
     'outsourcing-third-party',
-    'operational-resilience'
+    'operational-resilience',
+    'operational-resilience-framework'
   ],
   'senior-manager': [
     'smcr-training',
     'consumer-duty',
+    'consumer-duty-implementation',
     'aml-fundamentals',
     'sars-training',
     'financial-crime-aml',
@@ -131,11 +141,13 @@ export const personaRecommendations = {
     'complaints-handling',
     'financial-promotions',
     'outsourcing-third-party',
-    'operational-resilience'
+    'operational-resilience',
+    'operational-resilience-framework'
   ],
   'mlro': [
     'sars-training',
     'aml-fundamentals',
+    'money-laundering-red-flags',
     'kyc-fundamentals',
     'sanctions-training',
     'peps-training',
@@ -143,6 +155,7 @@ export const personaRecommendations = {
   ],
   'relationship-manager': [
     'consumer-duty',
+    'consumer-duty-implementation',
     'kyc-fundamentals',
     'peps-training',
     'sanctions-training',
@@ -153,13 +166,16 @@ export const personaRecommendations = {
   'operations-staff': [
     'sanctions-training',
     'aml-fundamentals',
+    'money-laundering-red-flags',
     'financial-crime-aml',
     'client-categorisation',
     'outsourcing-third-party',
-    'operational-resilience'
+    'operational-resilience',
+    'operational-resilience-framework'
   ],
   'customer-service': [
     'consumer-duty',
+    'consumer-duty-implementation',
     'kyc-fundamentals',
     'aml-fundamentals',
     'vulnerable-customers',
@@ -168,12 +184,14 @@ export const personaRecommendations = {
   ],
   'kyc-specialist': [
     'kyc-fundamentals',
+    'money-laundering-red-flags',
     'peps-training',
     'financial-crime-aml'
   ],
   'certified-person': [
     'smcr-training',
     'consumer-duty',
+    'consumer-duty-implementation',
     'vulnerable-customers',
     'client-categorisation',
     'suitability-appropriateness'
@@ -197,9 +215,10 @@ export const learningPathways = {
     title: 'Essential AML & Financial Crime Prevention',
     description: 'Comprehensive pathway covering all aspects of anti-money laundering and financial crime prevention',
     category: 'mandatory',
-    estimatedDuration: 75, // minutes
+    estimatedDuration: 120, // minutes
     modules: [
       'aml-fundamentals',
+      'money-laundering-red-flags',
       'kyc-fundamentals',
       'sanctions-training',
       'peps-training',
@@ -263,9 +282,10 @@ export const learningPathways = {
     title: 'Consumer Duty & Customer Outcomes',
     description: 'Comprehensive pathway covering the FCA Consumer Duty, fair value, vulnerable customers, and delivering good outcomes',
     category: 'mandatory',
-    estimatedDuration: 75,
+    estimatedDuration: 110,
     modules: [
       'consumer-duty',
+      'consumer-duty-implementation',
       'kyc-fundamentals'
     ],
     targetRoles: ['senior-manager', 'compliance-officer', 'relationship-manager', 'customer-service', 'certified-person'],
@@ -284,10 +304,11 @@ export const learningPathways = {
     title: 'Financial Crime Specialist Programme',
     description: 'Advanced pathway covering UK financial crime framework, POCA 2002, MLR 2017, and practical application of risk-based approaches',
     category: 'mandatory',
-    estimatedDuration: 85,
+    estimatedDuration: 160,
     modules: [
       'financial-crime-aml',
       'aml-fundamentals',
+      'money-laundering-red-flags',
       'sars-training',
       'sanctions-training'
     ],
@@ -399,10 +420,11 @@ export const learningPathways = {
     title: 'Operational Resilience & Third-Party Risk Management',
     description: 'Comprehensive pathway covering FCA operational resilience requirements, outsourcing, third-party risk, and incident management in line with PS21/3 and SYSC 15A',
     category: 'mandatory',
-    estimatedDuration: 140,
+    estimatedDuration: 240,
     modules: [
       'outsourcing-third-party',
       'operational-resilience',
+      'operational-resilience-framework',
       'consumer-duty'
     ],
     targetRoles: ['senior-manager', 'compliance-officer', 'operations-staff', 'certified-person'],

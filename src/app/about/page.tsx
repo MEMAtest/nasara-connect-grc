@@ -6,6 +6,7 @@ import { ArrowRight, Calendar, Users, Target, Shield, Sparkles, CheckCircle2 } f
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 
 // Components
 import dynamic from 'next/dynamic'
@@ -16,6 +17,12 @@ const TimelineCalendar3D = dynamic(() => import('@/components/landing/3d/Timelin
 export default function AboutPage() {
   return (
     <div className="relative overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
+      <BreadcrumbJsonLd
+        items={[
+          { name: 'Home', path: '/' },
+          { name: 'About', path: '/about' }
+        ]}
+      />
       {/* Hero Section */}
       <HeroSection />
 
@@ -229,7 +236,7 @@ function TimelineSection() {
     { year: '2023', quarter: 'Q1', title: 'Product Suite Launch', desc: 'Intelligence, Reconciliation, Framework modules live' },
     { year: '2023', quarter: 'Q3', title: 'Series A Funding', desc: '£5M raised to accelerate growth' },
     { year: '2024', quarter: 'Q1', title: '50+ Clients Milestone', desc: 'Serving banking, payments, wealth, insurance sectors' },
-    { year: '2024', quarter: 'Q4', title: 'AI-Powered Features', desc: 'Predictive regulatory intelligence deployed' },
+    { year: '2024', quarter: 'Q4', title: 'Regulatory Intelligence', desc: 'Predictive regulatory insights deployed' },
   ]
 
   return (

@@ -360,3 +360,306 @@ export const operationalResilienceFrameworkContent = {
     }
   } as MicroLesson
 };
+
+export const operationalResilienceFrameworkModule: TrainingModule = {
+  id: "operational-resilience-framework",
+  title: "Operational Resilience Framework",
+  description: "Design impact tolerances, map dependencies, and test severe but plausible scenarios.",
+  category: "operational-risk",
+  duration: 40,
+  difficulty: "advanced",
+  targetPersonas: ["operations-staff", "compliance-officer", "senior-manager", "certified-person"],
+  prerequisiteModules: ["operational-resilience", "outsourcing-third-party"],
+  tags: ["operational-resilience", "impact-tolerance", "ibs", "scenario-testing", "third-party-risk"],
+  learningOutcomes: [
+    "Identify important business services and map critical dependencies",
+    "Set realistic impact tolerances based on customer harm",
+    "Design severe but plausible scenarios and testing plans",
+    "Coordinate incident response and recovery across teams",
+    "Evidence governance, testing, and remediation for regulators"
+  ],
+  hook: {
+    title: "The Day Services Stopped",
+    content: "A major cloud outage takes out digital banking, payments, and support channels at once. Customers cannot access funds, merchants cannot take payments, and support queues spike. Operational resilience is the difference between controlled disruption and systemic harm.",
+    statistic: "Each hour of severe disruption can cause millions in customer and market impact."
+  },
+  lessons: [
+    {
+      id: "ibs-mapping",
+      title: "Identify Important Business Services",
+      type: "content",
+      duration: 12,
+      content: {
+        learningPoint: "Important business services are defined by customer harm and market impact.",
+        mainContent: "Start with customer outcomes and market integrity, not internal functions. An important business service is one where disruption would cause intolerable harm to customers or threaten market stability. Map the service end-to-end across people, process, technology, and third parties.\n\nMapping needs to be usable in a crisis, not a static diagram. Keep it updated as vendors, systems, or channels change.",
+        keyConcepts: [
+          { term: "Important Business Service", definition: "A service whose disruption could cause intolerable harm to customers or markets." },
+          { term: "Dependency Mapping", definition: "Identifying critical people, processes, systems, and third parties." }
+        ],
+        realExamples: [
+          "Payments processing and settlement",
+          "Customer account access and authentication"
+        ],
+        visual: {
+          type: "category_grid",
+          categories: [
+            {
+              icon: "user",
+              title: "People",
+              description: "Critical roles and decision makers.",
+              examples: ["Incident lead", "Operations responders", "Customer support"],
+              riskLevel: "medium"
+            },
+            {
+              icon: "briefcase",
+              title: "Process",
+              description: "Workflow dependencies and manual steps.",
+              examples: ["Settlement processes", "Manual approvals"],
+              riskLevel: "medium"
+            },
+            {
+              icon: "credit-card",
+              title: "Technology",
+              description: "Systems, data, and infrastructure.",
+              examples: ["Core banking", "Payment gateway", "Monitoring tools"],
+              riskLevel: "high"
+            },
+            {
+              icon: "map-pin",
+              title: "Third Parties",
+              description: "Vendors and outsourced services.",
+              examples: ["Cloud provider", "KYC vendor", "Card processor"],
+              riskLevel: "high"
+            }
+          ]
+        }
+      }
+    },
+    {
+      id: "impact-tolerances",
+      title: "Set Impact Tolerances",
+      type: "content",
+      duration: 10,
+      content: {
+        learningPoint: "Impact tolerances define the maximum disruption you can allow.",
+        mainContent: "Impact tolerances must be set for each important business service based on harm, not convenience. They should reflect maximum tolerable outage duration, transaction backlog, and recovery thresholds.\n\nSet tolerances collaboratively with operations, risk, compliance, and customer teams. Document assumptions and test them against realistic scenarios.",
+        keyConcepts: [
+          { term: "Impact Tolerance", definition: "The maximum level of disruption that can be tolerated for a service." },
+          { term: "Intolerable Harm", definition: "Customer or market harm beyond acceptable thresholds." }
+        ],
+        realExamples: [
+          { title: "Payments", description: "Maximum 2 hours disruption before intolerable harm." },
+          { title: "Account Access", description: "Maximum 4 hours disruption during peak hours." }
+        ],
+        visual: {
+          type: "process_flow",
+          steps: [
+            {
+              number: 1,
+              title: "Define Harm Thresholds",
+              description: "Agree what intolerable harm looks like for customers.",
+              examples: ["Service unavailability", "Delayed payments"],
+              redFlags: ["No customer impact criteria"],
+              color: "red"
+            },
+            {
+              number: 2,
+              title: "Set Tolerances",
+              description: "Document maximum outage and recovery limits.",
+              examples: ["2 hours downtime", "4 hours backlog"],
+              redFlags: ["Unrealistic targets", "No evidence base"],
+              color: "amber"
+            },
+            {
+              number: 3,
+              title: "Test and Review",
+              description: "Validate tolerances with scenario testing.",
+              examples: ["Simulation exercises", "Post-incident reviews"],
+              redFlags: ["No testing cadence"],
+              color: "green"
+            }
+          ]
+        }
+      }
+    },
+    {
+      id: "scenario-testing",
+      title: "Scenario Testing and Response",
+      type: "content",
+      duration: 10,
+      content: {
+        learningPoint: "Severe but plausible scenarios prove resilience in real-world conditions.",
+        mainContent: "Scenario testing should reflect the most damaging but plausible events: cyber attacks, cloud outages, supplier failures, or compound events. Tests must involve key teams, simulate operational pressure, and produce measurable learning outcomes.\n\nCapture evidence, update plans, and ensure remediation actions are tracked to completion.",
+        keyConcepts: [
+          { term: "Severe but Plausible", definition: "High-impact scenarios that are realistic enough to occur." },
+          { term: "Lessons Learned", definition: "Documented improvements from tests or incidents." }
+        ],
+        realExamples: [
+          "Cloud outage with simultaneous spike in customer demand.",
+          "Third-party outage impacting both KYC and payments."
+        ],
+        visual: {
+          type: "infographic",
+          elements: [
+            { icon: "alert-triangle", text: "Stress the system", description: "Simulate multi-point failures and pressure.", color: "red" },
+            { icon: "search", text: "Measure impact", description: "Track tolerance breaches and recovery time.", color: "amber" },
+            { icon: "shield", text: "Remediate fast", description: "Assign actions and retest improvements.", color: "green" }
+          ]
+        }
+      }
+    },
+    {
+      id: "incident-response-communications",
+      title: "Incident Response and Communications",
+      type: "content",
+      duration: 8,
+      content: {
+        learningPoint: "Response quality determines whether disruption becomes customer harm.",
+        mainContent: "Incident response must align to impact tolerances, not just technical recovery. Teams should know when to declare a major incident, how to coordinate across functions, and how to communicate clearly.\n\nEffective response includes rapid triage, harm assessment, customer communications, and regulatory notifications when thresholds are met. Evidence trails should be preserved for post-incident review and board reporting.",
+        keyConcepts: [
+          { term: "Major Incident", definition: "A disruption that threatens impact tolerances or customer harm thresholds." },
+          { term: "Harm Assessment", definition: "Evaluation of customer and market impact during an incident." },
+          { term: "Regulatory Notification", definition: "Required communications to regulators when thresholds are breached." }
+        ],
+        realExamples: [
+          "A firm issued a customer status page within 30 minutes of a payments outage, reducing inbound call pressure.",
+          "An incident log captured recovery actions and decision points for audit review."
+        ]
+      }
+    },
+    {
+      id: "governance-third-party",
+      title: "Governance, Self-Assessment and Third-Party Exit",
+      type: "content",
+      duration: 8,
+      content: {
+        learningPoint: "Operational resilience requires board ownership and credible exit plans.",
+        mainContent: "Regulators expect a board-approved self-assessment that explains how the firm meets resilience requirements. This includes the rationale for impact tolerances, results of scenario testing, and remediation progress.\n\nThird-party exit planning must be practical, not theoretical. Critical services should have documented transition steps and tested contingencies.",
+        keyConcepts: [
+          { term: "Self-Assessment", definition: "Board-level document explaining resilience approach and evidence." },
+          { term: "Exit Plan", definition: "Documented approach to migrate or replace critical third-party services." },
+          { term: "Governance Cadence", definition: "Regular board and senior management review of resilience evidence." }
+        ],
+        realExamples: [
+          "A board required quarterly resilience updates tied to testing outcomes and remediation actions.",
+          "A firm tested a vendor exit plan using a sandbox environment before renewal."
+        ]
+      }
+    }
+  ],
+  practiceScenarios: [
+    {
+      id: "resilience-1",
+      title: "Impact Tolerance Breach",
+      scenario: "A payments outage lasts 3 hours, exceeding the 2-hour impact tolerance. Customer complaints are rising.",
+      question: "What is the most appropriate immediate action?",
+      options: [
+        { text: "Wait until systems recover before notifying stakeholders", isCorrect: false },
+        { text: "Trigger incident governance, communicate, and document the breach", isCorrect: true },
+        { text: "Only log the incident if regulators ask for it", isCorrect: false }
+      ],
+      explanation: "Impact tolerance breaches require formal escalation, communication, and documentation.",
+      learningPoints: [
+        "Breach reporting must be timely and evidence-based.",
+        "Governance should activate during incidents, not after.",
+        "Document the breach and recovery actions."
+      ]
+    },
+    {
+      id: "resilience-2",
+      title: "Third-Party Failure",
+      scenario: "A critical vendor outage takes out both onboarding and transaction monitoring.",
+      question: "Which step should come first?",
+      options: [
+        { text: "Run an ad-hoc audit next quarter", isCorrect: false },
+        { text: "Activate contingency workflows and assess customer harm", isCorrect: true },
+        { text: "Ignore it because the vendor is liable", isCorrect: false }
+      ],
+      explanation: "Operational resilience requires immediate contingency activation and harm assessment.",
+      learningPoints: [
+        "Third-party failures still impact your firm.",
+        "Contingency workflows protect customers.",
+        "Customer harm assessment guides response."
+      ]
+    }
+  ],
+  assessmentQuestions: [
+    {
+      id: "resilience-q1",
+      question: "What is the primary basis for defining an important business service?",
+      options: [
+        "Revenue contribution",
+        "Customer harm and market impact",
+        "Internal headcount supporting it",
+        "Technology cost"
+      ],
+      correctAnswer: 1,
+      explanation: "Important business services are defined by potential customer harm and market impact."
+    },
+    {
+      id: "resilience-q2",
+      question: "Why are severe but plausible scenarios required?",
+      options: [
+        "To create the most extreme possible test",
+        "To validate resilience under realistic high-impact conditions",
+        "To replace all other controls testing",
+        "To avoid documenting results"
+      ],
+      correctAnswer: 1,
+      explanation: "Scenario testing must be realistic and high impact to demonstrate resilience."
+    }
+  ],
+  summary: {
+    keyTakeaways: [
+      "Operational resilience is about customer harm and market integrity, not internal convenience.",
+      "Mapping people, process, technology, and third parties is essential for IBS.",
+      "Impact tolerances must be evidence-based and tested regularly.",
+      "Scenario testing should produce measurable learning and remediation.",
+      "Governance and documentation are critical for regulatory scrutiny."
+    ],
+    nextSteps: [
+      "Map your top 3 important business services and dependencies.",
+      "Set impact tolerances and validate them with a tabletop exercise.",
+      "Create a remediation tracker for resilience test outcomes."
+    ],
+    quickReference: {
+      title: "Operational Resilience Checklist",
+      items: [
+        { term: "IBS Definition", definition: "Service whose disruption causes intolerable harm." },
+        { term: "Impact Tolerance", definition: "Maximum disruption allowed for an IBS." },
+        { term: "Scenario Testing", definition: "Severe but plausible tests with evidence." },
+        { term: "Remediation", definition: "Actions tracked to close resilience gaps." }
+      ]
+    }
+  },
+  visualAssets: {
+    diagrams: [
+      {
+        id: "ibs-map",
+        title: "IBS Dependency Map",
+        description: "End-to-end mapping across people, process, technology, and vendors.",
+        type: "mapping"
+      },
+      {
+        id: "tolerance-dashboard",
+        title: "Impact Tolerance Dashboard",
+        description: "Service tolerance thresholds with breach indicators.",
+        type: "dashboard"
+      }
+    ],
+    infographics: [
+      {
+        id: "testing-cycle",
+        title: "Testing and Remediation Cycle",
+        description: "Plan, test, learn, remediate, and re-test loop."
+      }
+    ],
+    images: [
+      {
+        section: "incident-response",
+        description: "Incident response timeline with key decision points."
+      }
+    ],
+    style: "Operational resilience visuals with dependency mapping and recovery timelines"
+  }
+};

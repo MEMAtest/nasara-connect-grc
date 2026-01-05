@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
 import { Navigation } from '@/components/landing/Navigation'
+import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 
 // 3D Component
 import dynamic from 'next/dynamic'
@@ -19,6 +20,12 @@ export default function PricingPage() {
 
   return (
     <div className="relative overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
+      <BreadcrumbJsonLd
+        items={[
+          { name: 'Home', path: '/' },
+          { name: 'Pricing', path: '/pricing' }
+        ]}
+      />
       <Navigation variant="solid" />
 
       {/* Hero Section */}
@@ -676,7 +683,7 @@ function FinalCTA() {
               Start Free Trial
               <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
-            <Link href="/contact">
+            <Link href="/request-demo">
               <Button size="lg" variant="outline" className="border-slate-700 text-slate-300 hover:bg-slate-800 text-lg px-10">
                 Talk to Sales
               </Button>

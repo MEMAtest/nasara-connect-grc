@@ -26,7 +26,7 @@ import {
   Shield,
   Loader2
 } from "lucide-react";
-import { featuredModules, learningPathways } from "./content";
+import { featuredModules, learningPathways, getAllTrainingModules } from "./content";
 import { GamificationHub } from "./components/GamificationHub";
 import { SocialLearning } from "./components/SocialLearning";
 import { ProgressTracker } from "./components/ProgressTracker";
@@ -65,6 +65,10 @@ export function TrainingLibraryClient() {
   const [isLoadingProgress, setIsLoadingProgress] = useState(true);
 
   const pathways = learningPathways;
+  const allModules = getAllTrainingModules();
+  const filteredModules = selectedPersona === "all"
+    ? allModules
+    : allModules.filter((module) => Array.isArray(module.targetPersonas) && module.targetPersonas.includes(selectedPersona));
 
   // Fetch user progress from API
   useEffect(() => {
@@ -372,6 +376,46 @@ export function TrainingLibraryClient() {
                     </div>
                   );
                 })}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Module Library */}
+          <Card className="border border-slate-100">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BookOpen className="h-5 w-5 text-slate-700" />
+                Module Library
+              </CardTitle>
+              <CardDescription>Browse all training modules and start where you need.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                {filteredModules.map((module) => (
+                  <div key={module.id} className="rounded-lg border border-slate-200 bg-white p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h4 className="font-semibold text-slate-900">{module.title}</h4>
+                        <p className="text-sm text-slate-600 mt-1">{module.description}</p>
+                      </div>
+                      <Badge variant="outline" className="capitalize">
+                        {module.category?.replace(/-/g, " ")}
+                      </Badge>
+                    </div>
+                    <div className="mt-4 flex items-center justify-between">
+                      <div className="flex items-center gap-3 text-xs text-slate-500">
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {module.duration} min
+                        </span>
+                        <span className="capitalize">{module.difficulty}</span>
+                      </div>
+                      <Button size="sm" variant="outline" asChild>
+                        <a href={`/training-library/lesson/${module.id}`}>Start</a>
+                      </Button>
+                    </div>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>

@@ -20,6 +20,7 @@ import {
   Shield,
   Search,
   FileText,
+  Image,
   Star,
   Brain,
   Zap,
@@ -28,8 +29,11 @@ import {
 } from "lucide-react";
 import { marked } from "marked";
 import { getTrainingModule } from "../content";
-import { AMLTrainingRenderer } from "./AMLTrainingRenderer";
-import { KYCTrainingRenderer } from "./KYCTrainingRenderer";
+import { normalizeTrainingModule } from "../lib/module-normalizer";
+import { FinancialCrimeTrainingRenderer } from "./FinancialCrimeTrainingRenderer";
+import { CustomerProtectionTrainingRenderer } from "./CustomerProtectionTrainingRenderer";
+import { OperationalRiskTrainingRenderer } from "./OperationalRiskTrainingRenderer";
+import { RegulatoryComplianceTrainingRenderer } from "./RegulatoryComplianceTrainingRenderer";
 
 // Configure marked for simple inline formatting
 marked.setOptions({
@@ -65,7 +69,7 @@ interface TrainingContentRendererProps {
 
 export function TrainingContentRenderer({ contentId, onComplete, onProgress, deepLink, onDeepLinkChange }: TrainingContentRendererProps) {
   // Get the training module from our content registry
-  const trainingModule = getTrainingModule(contentId);
+  const trainingModule = normalizeTrainingModule(getTrainingModule(contentId)) as TrainingModuleData | undefined;
 
   // If no module found, show error state
   if (!trainingModule) {
@@ -86,21 +90,73 @@ export function TrainingContentRenderer({ contentId, onComplete, onProgress, dee
     );
   }
 
-  // Route to specialized renderers based on module ID
-  switch (contentId) {
-    case 'aml-fundamentals':
-      return <AMLTrainingRenderer onComplete={onComplete} onProgress={onProgress} deepLink={deepLink} onDeepLinkChange={onDeepLinkChange} />;
-    case 'kyc-fundamentals':
-      return <KYCTrainingRenderer onComplete={onComplete} onProgress={onProgress} deepLink={deepLink} onDeepLinkChange={onDeepLinkChange} />;
-    default:
-      // For modules without specialized renderers, use generic renderer
-      return <GenericTrainingRenderer module={trainingModule} onComplete={onComplete} onProgress={onProgress} deepLink={deepLink} onDeepLinkChange={onDeepLinkChange} />;
+  if (trainingModule.category === "financial-crime-prevention") {
+    return (
+      <FinancialCrimeTrainingRenderer
+        moduleId={contentId}
+        module={trainingModule}
+        onComplete={onComplete}
+        onProgress={onProgress}
+        deepLink={deepLink}
+        onDeepLinkChange={onDeepLinkChange}
+      />
+    );
   }
+
+  if (trainingModule.category === "customer-protection") {
+    return (
+      <CustomerProtectionTrainingRenderer
+        moduleId={contentId}
+        module={trainingModule}
+        onComplete={onComplete}
+        onProgress={onProgress}
+        deepLink={deepLink}
+        onDeepLinkChange={onDeepLinkChange}
+      />
+    );
+  }
+
+  if (trainingModule.category === "operational-risk") {
+    return (
+      <OperationalRiskTrainingRenderer
+        moduleId={contentId}
+        module={trainingModule}
+        onComplete={onComplete}
+        onProgress={onProgress}
+        deepLink={deepLink}
+        onDeepLinkChange={onDeepLinkChange}
+      />
+    );
+  }
+
+  if (trainingModule.category === "regulatory-compliance") {
+    return (
+      <RegulatoryComplianceTrainingRenderer
+        moduleId={contentId}
+        module={trainingModule}
+        onComplete={onComplete}
+        onProgress={onProgress}
+        deepLink={deepLink}
+        onDeepLinkChange={onDeepLinkChange}
+      />
+    );
+  }
+
+  return (
+    <GenericTrainingRenderer
+      moduleId={contentId}
+      module={trainingModule}
+      onComplete={onComplete}
+      onProgress={onProgress}
+      deepLink={deepLink}
+      onDeepLinkChange={onDeepLinkChange}
+    />
+  );
 }
 
 // Generic renderer for modules without specialized components
-type GenericStageKey = 'hook' | 'content' | 'practice' | 'summary';
-const GENERIC_STAGE_ORDER: GenericStageKey[] = ['hook', 'content', 'practice', 'summary'];
+type GenericStageKey = 'hook' | 'content' | 'practice' | 'assessment' | 'summary';
+const GENERIC_STAGE_ORDER: GenericStageKey[] = ['hook', 'content', 'practice', 'assessment', 'summary'];
 
 // Key concept can be either a string or an object with term/definition
 interface KeyConceptObject {
@@ -113,8 +169,24 @@ interface LessonContentObject {
   learningPoint?: string;
   mainContent?: string;
   keyConcepts?: (string | KeyConceptObject)[];
-  realExamples?: string[];
+  realExamples?: Array<string | { title: string; description?: string; outcome?: string }>;
   regulatoryRequirements?: string[];
+  visual?: Record<string, unknown>;
+}
+
+interface VisualAssetItem {
+  id?: string;
+  title?: string;
+  description: string;
+  type?: string;
+  section?: string;
+}
+
+interface TrainingVisualAssets {
+  diagrams?: VisualAssetItem[];
+  infographics?: VisualAssetItem[];
+  images?: VisualAssetItem[];
+  style?: string;
 }
 
 interface TrainingModuleData {
@@ -137,7 +209,7 @@ interface TrainingModuleData {
     duration?: number;
     content: string | LessonContentObject;
     keyConcepts?: (string | KeyConceptObject)[];
-    realExamples?: string[];
+    realExamples?: Array<string | { title: string; description?: string; outcome?: string }>;
   }>;
   practiceScenarios?: Array<{
     id: string;
@@ -173,11 +245,13 @@ interface TrainingModuleData {
   summary?: {
     keyTakeaways?: string[];
     nextSteps?: string[];
-    quickReference?: string[];
+    quickReference?: string[] | { title?: string; items?: Array<{ term: string; definition: string }> };
   };
+  visualAssets?: TrainingVisualAssets;
 }
 
-function GenericTrainingRenderer({ module, onComplete, onProgress, deepLink, onDeepLinkChange }: {
+function GenericTrainingRenderer({ moduleId, module, onComplete, onProgress, deepLink, onDeepLinkChange }: {
+  moduleId: string;
   module: TrainingModuleData;
   onComplete?: (score: number, timeSpent: number) => void;
   onProgress?: (progress: number) => void;
@@ -188,6 +262,8 @@ function GenericTrainingRenderer({ module, onComplete, onProgress, deepLink, onD
     ? ((deepLink?.stage as GenericStageKey) ?? "hook")
     : "hook";
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
+  const [assessmentAnswers, setAssessmentAnswers] = useState<Record<string, string>>({});
+  const [assessmentTouched, setAssessmentTouched] = useState(false);
   const [currentLessonIndex, setCurrentLessonIndex] = useState(() => {
     if (initialStage !== "content") return 0;
     const parsed = Number(deepLink?.section);
@@ -196,6 +272,21 @@ function GenericTrainingRenderer({ module, onComplete, onProgress, deepLink, onD
     return Math.max(0, Math.min(parsed, maxIndex));
   });
   const [currentStage, setCurrentStage] = useState<GenericStageKey>(initialStage);
+
+  const formatListItem = (item: unknown) => {
+    if (typeof item === "string" || typeof item === "number") return String(item);
+    if (!item || typeof item !== "object") return "";
+    const record = item as Record<string, unknown>;
+    const term = typeof record.term === "string" ? record.term : "";
+    const definition = typeof record.definition === "string" ? record.definition : "";
+    if (term && definition) return `${term}: ${definition}`;
+    const title = typeof record.title === "string" ? record.title : "";
+    const description = typeof record.description === "string" ? record.description : "";
+    const outcome = typeof record.outcome === "string" ? record.outcome : "";
+    const text = typeof record.text === "string" ? record.text : "";
+    const parts = [title || text, description, outcome ? `Outcome: ${outcome}` : ""].filter(Boolean);
+    return parts.join(" - ");
+  };
 
   // Use actual module content
   const content = {
@@ -214,8 +305,10 @@ function GenericTrainingRenderer({ module, onComplete, onProgress, deepLink, onD
     assessmentQuestions: module.assessmentQuestions || [],
     summary: {
       keyTakeaways: module.summary?.keyTakeaways || [],
-      nextSteps: module.summary?.nextSteps || []
-    }
+      nextSteps: module.summary?.nextSteps || [],
+      quickReference: module.summary?.quickReference
+    },
+    visualAssets: module.visualAssets
   };
 
   useEffect(() => {
@@ -301,8 +394,44 @@ function GenericTrainingRenderer({ module, onComplete, onProgress, deepLink, onD
         ? content.estimatedDuration
         : Number(content.estimatedDuration ?? 0);
 
-      onComplete?.(practiceScore, Number.isFinite(estimatedMinutes) ? estimatedMinutes : 0);
+      const assessmentScore = calculateAssessmentScore();
+      const scores = [
+        content.practiceScenarios.length ? practiceScore : undefined,
+        content.assessmentQuestions.length ? assessmentScore : undefined,
+      ].filter((score): score is number => typeof score === "number");
+      const finalScore = scores.length ? Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length) : 100;
+
+      onComplete?.(finalScore, Number.isFinite(estimatedMinutes) ? estimatedMinutes : 0);
     }
+  };
+
+  const calculateAssessmentScore = () => {
+    if (content.assessmentQuestions.length === 0) {
+      return 100;
+    }
+
+    const correctCount = content.assessmentQuestions.reduce((count, question) => {
+      const selectedId = assessmentAnswers[question.id];
+      if (!selectedId) return count;
+
+      const selectedIndex = question.options.findIndex((opt, idx) => {
+        if (typeof opt === 'string') return `opt-${idx}` === selectedId;
+        return (opt.id || `opt-${idx}`) === selectedId;
+      });
+
+      if (typeof question.correctAnswer === 'number') {
+        return selectedIndex === question.correctAnswer ? count + 1 : count;
+      }
+
+      const selectedOption = question.options[selectedIndex];
+      if (typeof selectedOption === 'object' && selectedOption.isCorrect) {
+        return count + 1;
+      }
+
+      return count;
+    }, 0);
+
+    return Math.round((correctCount / content.assessmentQuestions.length) * 100);
   };
 
   const renderVisual = (visual: Record<string, unknown>) => {
@@ -370,7 +499,7 @@ function GenericTrainingRenderer({ module, onComplete, onProgress, deepLink, onD
                           {step.examples?.map((example: string, i: number) => (
                             <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
                               <CheckCircle2 className="h-3 w-3 text-emerald-500 mt-0.5 shrink-0" />
-                              {example}
+                              {formatListItem(example)}
                             </li>
                           ))}
                         </ul>
@@ -381,7 +510,7 @@ function GenericTrainingRenderer({ module, onComplete, onProgress, deepLink, onD
                           {step.redFlags?.map((flag: string, i: number) => (
                             <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
                               <AlertTriangle className="h-3 w-3 text-red-500 mt-0.5 shrink-0" />
-                              {flag}
+                              {formatListItem(flag)}
                             </li>
                           ))}
                         </ul>
@@ -446,7 +575,7 @@ function GenericTrainingRenderer({ module, onComplete, onProgress, deepLink, onD
                           category.riskLevel === 'medium' ? 'bg-amber-500' :
                           'bg-green-500'
                         }`}></div>
-                        {example}
+                        {formatListItem(example)}
                       </li>
                     ))}
                   </ul>
@@ -469,6 +598,75 @@ function GenericTrainingRenderer({ module, onComplete, onProgress, deepLink, onD
       default:
         return null;
     }
+  };
+
+  const formatVisualTitle = (value: string) => {
+    return value
+      .replace(/[-_]/g, " ")
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+  };
+
+  const renderVisualAssets = () => {
+    if (!content.visualAssets) return null;
+    const { diagrams = [], infographics = [], images = [], style } = content.visualAssets;
+    if (diagrams.length === 0 && infographics.length === 0 && images.length === 0) return null;
+
+    return (
+      <Card className="border border-slate-200 bg-slate-50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-slate-900">
+            <Image className="h-5 w-5 text-slate-600" />
+            Visual Toolkit
+          </CardTitle>
+          <CardDescription>Quick visual references to reinforce the lesson</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {diagrams.map((diagram, index) => (
+              <div key={`diagram-${diagram.id || index}`} className="rounded-lg border border-slate-200 bg-white p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-slate-500" />
+                    <h4 className="text-sm font-semibold text-slate-900">{diagram.title}</h4>
+                  </div>
+                  {diagram.type ? (
+                    <Badge variant="outline" className="text-xs capitalize">
+                      {diagram.type}
+                    </Badge>
+                  ) : null}
+                </div>
+                <p className="text-xs text-slate-600">{diagram.description}</p>
+              </div>
+            ))}
+            {infographics.map((infographic, index) => (
+              <div key={`infographic-${infographic.id || index}`} className="rounded-lg border border-slate-200 bg-white p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <BarChart3 className="h-4 w-4 text-slate-500" />
+                  <h4 className="text-sm font-semibold text-slate-900">{infographic.title}</h4>
+                </div>
+                <p className="text-xs text-slate-600">{infographic.description}</p>
+              </div>
+            ))}
+            {images.map((image, index) => {
+              const fallbackTitle = image.section ? formatVisualTitle(image.section) : "Visual Reference";
+              const title = image.title || fallbackTitle;
+              return (
+                <div key={`image-${image.id || image.section || index}`} className="rounded-lg border border-slate-200 bg-white p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Image className="h-4 w-4 text-slate-500" />
+                    <h4 className="text-sm font-semibold text-slate-900">{title}</h4>
+                  </div>
+                  <p className="text-xs text-slate-600">{image.description}</p>
+                </div>
+              );
+            })}
+          </div>
+          {style ? (
+            <p className="text-xs text-slate-500">Design style: {style}</p>
+          ) : null}
+        </CardContent>
+      </Card>
+    );
   };
 
   const renderHookStage = () => (
@@ -500,7 +698,7 @@ function GenericTrainingRenderer({ module, onComplete, onProgress, deepLink, onD
                 {content.learningOutcomes.slice(0, 5).map((outcome, index) => (
                   <li key={index} className="text-sm text-amber-800 flex items-start gap-2">
                     <CheckCircle2 className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
-                    {outcome}
+                    {formatListItem(outcome)}
                   </li>
                 ))}
               </ul>
@@ -539,13 +737,22 @@ function GenericTrainingRenderer({ module, onComplete, onProgress, deepLink, onD
   };
 
   // Helper function to extract real examples from lesson
-  const getLessonRealExamples = (lesson: typeof content.lessons[0]): string[] => {
+  const getLessonRealExamples = (
+    lesson: typeof content.lessons[0],
+  ): Array<string | { title: string; description?: string; outcome?: string }> => {
     // First check if content is an object with realExamples
     if (typeof lesson.content === 'object' && lesson.content.realExamples) {
       return lesson.content.realExamples;
     }
     // Then check lesson-level realExamples
     return lesson.realExamples || [];
+  };
+
+  const getLessonVisual = (lesson: typeof content.lessons[0]) => {
+    if (typeof lesson.content === "object" && lesson.content.visual) {
+      return lesson.content.visual;
+    }
+    return null;
   };
 
   const renderContentStage = () => {
@@ -572,6 +779,7 @@ function GenericTrainingRenderer({ module, onComplete, onProgress, deepLink, onD
     const lessonContent = currentLesson ? getLessonContent(currentLesson.content) : '';
     const keyConcepts = currentLesson ? getLessonKeyConcepts(currentLesson) : [];
     const realExamples = currentLesson ? getLessonRealExamples(currentLesson) : [];
+    const lessonVisual = currentLesson ? getLessonVisual(currentLesson) : null;
 
     return (
       <div className="space-y-8">
@@ -611,19 +819,43 @@ function GenericTrainingRenderer({ module, onComplete, onProgress, deepLink, onD
                     <FileText className="h-4 w-4" />
                     Real-World Examples
                   </h4>
-                  <ul className="space-y-2">
+                  <ul className="space-y-3">
                     {realExamples.map((example, i) => (
                       <li key={i} className="text-sm text-amber-800 flex items-start gap-2">
                         <ArrowRight className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
-                        {example}
+                        {typeof example === 'string' ? (
+                          <span>{example}</span>
+                        ) : (
+                          <div className="space-y-1">
+                            <p className="font-semibold text-amber-900">{example.title}</p>
+                            {example.description ? <p className="text-amber-800">{example.description}</p> : null}
+                            {example.outcome ? (
+                              <p className="text-amber-700">
+                                <span className="font-semibold">Outcome:</span> {example.outcome}
+                              </p>
+                            ) : null}
+                          </div>
+                        )}
                       </li>
                     ))}
                   </ul>
                 </div>
               )}
+
+              {lessonVisual && (
+                <div className="mt-6 p-4 bg-slate-50 border border-slate-200 rounded-lg">
+                  <h4 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
+                    <Image className="h-4 w-4" />
+                    Visual Reference
+                  </h4>
+                  {renderVisual(lessonVisual)}
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
+
+        {renderVisualAssets()}
 
         {/* Lesson navigation */}
         {content.lessons.length > 1 && (
@@ -849,6 +1081,154 @@ function GenericTrainingRenderer({ module, onComplete, onProgress, deepLink, onD
     );
   };
 
+  const getAssessmentOptionText = (option: typeof content.assessmentQuestions[0]['options'][0]): string => {
+    if (typeof option === 'string') return option;
+    return option.text || '';
+  };
+
+  const getAssessmentOptionId = (option: typeof content.assessmentQuestions[0]['options'][0], index: number): string => {
+    if (typeof option === 'string') return `opt-${index}`;
+    return option.id || `opt-${index}`;
+  };
+
+  const isAssessmentCorrect = (question: typeof content.assessmentQuestions[0], selectedId: string): boolean => {
+    const selectedIndex = question.options.findIndex((opt, idx) => getAssessmentOptionId(opt, idx) === selectedId);
+
+    if (typeof question.correctAnswer === 'number') {
+      return selectedIndex === question.correctAnswer;
+    }
+
+    const selectedOption = question.options[selectedIndex];
+    if (typeof selectedOption === 'object' && selectedOption.isCorrect !== undefined) {
+      return selectedOption.isCorrect;
+    }
+
+    return false;
+  };
+
+  const renderAssessmentStage = () => {
+    if (content.assessmentQuestions.length === 0) {
+      return (
+        <div className="space-y-6">
+          <div className="text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 rounded-full text-sm font-medium mb-6">
+              <FileText className="h-4 w-4" />
+              Assessment
+            </div>
+          </div>
+          <Card className="border border-slate-200">
+            <CardContent className="p-8 text-center">
+              <p className="text-slate-600">Assessment questions for this module are being prepared.</p>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+
+    const assessmentScore = calculateAssessmentScore();
+    const assessmentCompleted = content.assessmentQuestions.every((question) => assessmentAnswers[question.id]);
+
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-100 text-indigo-800 rounded-full text-sm font-medium mb-6">
+            <FileText className="h-4 w-4" />
+            Assessment
+          </div>
+        </div>
+
+        <h2 className="text-2xl font-bold text-slate-900 text-center mb-6">
+          Knowledge Check
+        </h2>
+
+        {content.assessmentQuestions.map((question, index) => {
+          const selectedId = assessmentAnswers[question.id];
+          const answered = Boolean(selectedId);
+          const isCorrect = selectedId ? isAssessmentCorrect(question, selectedId) : false;
+
+          return (
+            <Card key={question.id} className="border border-indigo-200">
+              <CardHeader>
+                <CardTitle className="text-base">
+                  Question {index + 1} of {content.assessmentQuestions.length}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-slate-800">{question.question}</p>
+                <div className="space-y-3">
+                  {question.options.map((option, optionIndex) => {
+                    const optionId = getAssessmentOptionId(option, optionIndex);
+                    const optionText = getAssessmentOptionText(option);
+                    const isSelected = selectedId === optionId;
+                    return (
+                      <label
+                        key={optionId}
+                        className={`flex items-start gap-3 p-4 border rounded-lg cursor-pointer transition-colors ${
+                          isSelected
+                            ? 'border-indigo-500 bg-indigo-50'
+                            : 'border-slate-200 hover:border-slate-300'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name={question.id}
+                          value={optionId}
+                          checked={isSelected}
+                          onChange={() => {
+                            setAssessmentTouched(true);
+                            setAssessmentAnswers(prev => ({ ...prev, [question.id]: optionId }));
+                          }}
+                          className="mt-1"
+                        />
+                        <span className="text-slate-700">{optionText}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+
+                {answered && (
+                  <div className={`p-3 rounded-lg border ${
+                    isCorrect
+                      ? 'border-emerald-200 bg-emerald-50'
+                      : 'border-red-200 bg-red-50'
+                  }`}>
+                    <div className="flex items-center gap-2">
+                      {isCorrect ? (
+                        <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                      ) : (
+                        <AlertTriangle className="h-4 w-4 text-red-600" />
+                      )}
+                      <span className="text-sm font-medium">
+                        {isCorrect ? 'Correct' : 'Review this concept'}
+                      </span>
+                    </div>
+                    {question.explanation && (
+                      <p className="text-xs text-slate-600 mt-2">{question.explanation}</p>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })}
+
+        {assessmentTouched && (
+          <Card className="border border-indigo-200 bg-indigo-50">
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <div className="text-sm font-semibold text-indigo-900">Assessment Progress</div>
+                <div className="text-xs text-indigo-700">
+                  {assessmentCompleted ? "All questions answered." : "Complete all questions to finalize your score."}
+                </div>
+              </div>
+              <Badge className="bg-indigo-600">{assessmentScore}%</Badge>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    );
+  };
+
   const renderSummaryStage = () => (
     <div className="space-y-6">
       <div className="text-center">
@@ -870,9 +1250,31 @@ function GenericTrainingRenderer({ module, onComplete, onProgress, deepLink, onD
               <div className="text-sm text-slate-600">Time Spent</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">+{Math.round((content.estimatedDuration || 10) * 5)}</div>
-              <div className="text-sm text-slate-600">Points Earned</div>
+              <div className="text-2xl font-bold text-purple-600">{calculateAssessmentScore()}%</div>
+              <div className="text-sm text-slate-600">Assessment Score</div>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border border-slate-200">
+        <CardHeader>
+          <CardTitle>Nasara Connect Certificate</CardTitle>
+          <CardDescription>Complete the assessment to unlock your certificate.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div>
+              <p className="text-sm text-slate-700">Pass mark: 80%</p>
+              <p className="text-xs text-slate-500">Certificate includes module title, score, and issue date.</p>
+            </div>
+            {calculateAssessmentScore() >= 80 ? (
+              <Button asChild className="bg-teal-600 hover:bg-teal-700">
+                <a href={`/training-library/certificate/${moduleId}?score=${calculateAssessmentScore()}`}>Download Certificate</a>
+              </Button>
+            ) : (
+              <Badge variant="outline" className="text-slate-500">Complete assessment to unlock</Badge>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -890,7 +1292,7 @@ function GenericTrainingRenderer({ module, onComplete, onProgress, deepLink, onD
               {content.summary.keyTakeaways.map((takeaway, index) => (
                 <li key={index} className="flex items-start gap-3 p-3 border border-slate-200 rounded-lg">
                   <CheckCircle2 className="h-5 w-5 text-emerald-500 mt-0.5 shrink-0" />
-                  <span className="text-slate-700">{takeaway}</span>
+                  <span className="text-slate-700">{formatListItem(takeaway)}</span>
                 </li>
               ))}
             </ul>
@@ -909,13 +1311,57 @@ function GenericTrainingRenderer({ module, onComplete, onProgress, deepLink, onD
               {content.summary.nextSteps.map((step, index) => (
                 <div key={index} className="flex items-center gap-3 p-3 border border-slate-200 rounded-lg hover:border-slate-300 transition-colors">
                   <ArrowRight className="h-4 w-4 text-slate-400" />
-                  <span className="text-slate-700">{step}</span>
+                  <span className="text-slate-700">{formatListItem(step)}</span>
                 </div>
               ))}
             </div>
           </CardContent>
         </Card>
       )}
+
+      {(() => {
+        const quickReference = content.summary.quickReference;
+        const hasQuickReference = Array.isArray(quickReference)
+          ? quickReference.length > 0
+          : Boolean(quickReference && (quickReference.items?.length || quickReference.title));
+
+        if (!hasQuickReference) return null;
+
+        return (
+        <Card className="border border-slate-200">
+          <CardHeader>
+            <CardTitle>Quick Reference</CardTitle>
+            <CardDescription>Key terms and reminders for day-to-day use</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {Array.isArray(quickReference) ? (
+              <ul className="space-y-2">
+                {quickReference.map((item, index) => (
+                  <li key={index} className="text-sm text-slate-700 flex items-start gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-500 mt-0.5 shrink-0" />
+                    {formatListItem(item)}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className="space-y-3">
+                {quickReference.title ? (
+                  <h4 className="text-sm font-semibold text-slate-900">{quickReference.title}</h4>
+                ) : null}
+                <div className="space-y-2">
+                  {(quickReference.items || []).map((item, index) => (
+                    <div key={index} className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                      <div className="text-sm font-semibold text-slate-900">{item.term}</div>
+                      <div className="text-sm text-slate-600">{item.definition}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+        );
+      })()}
     </div>
   );
 
@@ -927,6 +1373,8 @@ function GenericTrainingRenderer({ module, onComplete, onProgress, deepLink, onD
         return renderContentStage();
       case 'practice':
         return renderPracticeStage();
+      case 'assessment':
+        return renderAssessmentStage();
       case 'summary':
         return renderSummaryStage();
       default:
@@ -969,6 +1417,7 @@ function GenericTrainingRenderer({ module, onComplete, onProgress, deepLink, onD
             <span className={currentStage === 'hook' ? 'font-medium text-slate-700' : ''}>Hook</span>
             <span className={currentStage === 'content' ? 'font-medium text-slate-700' : ''}>Content</span>
             <span className={currentStage === 'practice' ? 'font-medium text-slate-700' : ''}>Practice</span>
+            <span className={currentStage === 'assessment' ? 'font-medium text-slate-700' : ''}>Assessment</span>
             <span className={currentStage === 'summary' ? 'font-medium text-slate-700' : ''}>Summary</span>
           </div>
         </CardContent>

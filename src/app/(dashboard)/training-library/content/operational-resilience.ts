@@ -119,6 +119,45 @@ Boards must:
       ]
     },
     {
+      id: 'impact-tolerances-evidence',
+      title: 'Setting Impact Tolerances and Evidence',
+      duration: 20,
+      content: `Impact tolerances define the maximum level of disruption you can tolerate for each important business service. They are not aspirational targets; they must be evidence-based and linked to customer harm.
+
+**Setting Impact Tolerances**
+- Define what "intolerable harm" means for your customer base
+- Use quantitative and qualitative measures (time, volume, customer type)
+- Consider critical periods (payroll, market cut-offs, holidays)
+
+**Evidence Expectations**
+- Document the rationale and assumptions behind each tolerance
+- Link tolerances to mapping outputs and scenario testing
+- Show how tolerances were approved and reviewed by the board
+
+**Monitoring for Breaches**
+- Track elapsed downtime and customer impact in real time
+- Record when tolerances are exceeded and why
+- Use breach events to drive remediation and investment decisions`,
+      keyConcepts: [
+        'Impact tolerance is the maximum disruption allowed for a service',
+        'Tolerances must be linked to harm, not convenience',
+        'Board approval and evidence are mandatory',
+        'Breaches require documented remediation'
+      ],
+      realExamples: [
+        {
+          title: 'Evidence-Based Tolerance',
+          description: 'A payments firm set a 2-hour tolerance based on customer harm analysis and settlement cut-offs.',
+          outcome: 'Tolerance was accepted in FCA review due to clear evidence'
+        },
+        {
+          title: 'Tolerance Breach Response',
+          description: 'A firm exceeded tolerance during a cyber incident and documented the root cause and remediation plan.',
+          outcome: 'Board approved resilience investment and re-tested controls'
+        }
+      ]
+    },
+    {
       id: 'mapping-testing-self-assessment',
       title: 'Mapping, Scenario Testing & Self-Assessment',
       duration: 25,
@@ -187,6 +226,45 @@ A good self-assessment:
           title: 'Scenario Test Failure',
           description: 'A firm\'s scenario test for data centre loss revealed recovery time would exceed impact tolerance by 6 hours due to untested backup restoration.',
           outcome: 'Investment in improved backup infrastructure and regular restoration testing'
+        }
+      ]
+    },
+    {
+      id: 'third-party-cyber-integration',
+      title: 'Third-Party and Cyber Integration',
+      duration: 20,
+      content: `Operational resilience depends on third parties and cyber controls. Firms must integrate vendor dependencies and cyber risk into resilience mapping and testing.
+
+**Third-Party Integration**
+- Map critical suppliers, cloud providers and data processors
+- Include subcontractor dependencies where material
+- Align SLAs to impact tolerances and testing outcomes
+
+**Cyber Resilience**
+- Treat cyber incidents as operational resilience scenarios
+- Test ransomware, data integrity loss and DDoS scenarios
+- Ensure incident response playbooks align with impact tolerances
+
+**Coordination**
+- Run joint exercises with key vendors
+- Share resilience metrics and incident learnings
+- Document responsibilities and escalation routes`,
+      keyConcepts: [
+        'Third-party dependencies must be included in IBS mapping',
+        'Cyber scenarios are mandatory for severe but plausible testing',
+        'Joint exercises improve response realism',
+        'Clear ownership reduces response delays'
+      ],
+      realExamples: [
+        {
+          title: 'Cloud Outage Exercise',
+          description: 'A firm ran a joint test with its cloud provider to simulate a region outage.',
+          outcome: 'Identified recovery gaps and revised failover plans'
+        },
+        {
+          title: 'Ransomware Scenario',
+          description: 'A simulated ransomware event exceeded tolerance due to manual reconciliation delays.',
+          outcome: 'Automation investment and updated playbooks'
         }
       ]
     },

@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import Link from 'next/link'
 import { Navigation } from '@/components/landing/Navigation'
+import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 
 const audiences = [
   {
@@ -134,6 +135,12 @@ const audiences = [
 export default function AudiencePage() {
   return (
     <div className="relative overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 min-h-screen">
+      <BreadcrumbJsonLd
+        items={[
+          { name: 'Home', path: '/' },
+          { name: 'Audience', path: '/audience' }
+        ]}
+      />
       <Navigation variant="solid" />
 
       {/* Hero */}
@@ -199,7 +206,7 @@ export default function AudiencePage() {
                 {/* CTA */}
                 <Link href={`/audience/${audience.id}`}>
                   <Button className={`w-full bg-gradient-to-r ${audience.gradient}`}>
-                    Learn More
+                    {`Explore ${audience.title}`}
                     <ArrowRight className="ml-2 w-4 h-4" />
                   </Button>
                 </Link>

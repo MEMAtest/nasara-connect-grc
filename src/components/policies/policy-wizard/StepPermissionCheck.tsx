@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AddressAutocomplete } from "@/components/inputs/AddressAutocomplete";
+import { CompaniesHouseLookup } from "@/components/inputs/CompaniesHouseLookup";
 import type { WizardStepProps } from "./types";
 import { DEFAULT_PERMISSIONS, getRequiredPolicies } from "@/lib/policies";
 
@@ -65,16 +66,46 @@ export function StepPermissionCheck({ state, updateState, onNext, onBack }: Wiza
       </div>
 
       <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <p className="text-sm font-semibold text-slate-800">Companies House lookup</p>
+        <p className="mt-1 text-xs text-slate-500">Search the UK register to prefill legal name, company number, SIC, and address.</p>
+        <div className="mt-4">
+          <CompaniesHouseLookup
+            onSelect={(company) => {
+              updateState((current) => ({
+                ...current,
+                firmProfile: {
+                  ...current.firmProfile,
+                  name: company.legalName,
+                  companyNumber: company.companyNumber,
+                  sicCodes: company.sicCodes,
+                  registeredAddress: company.registeredAddress,
+                },
+              }));
+            }}
+          />
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <p className="text-sm font-semibold text-slate-800">Firm profile</p>
         <p className="mt-1 text-xs text-slate-500">Used to prefill variables across clauses and document headers.</p>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="firm-name">Firm name *</Label>
+            <Label htmlFor="firm-name">Legal name *</Label>
             <Input
               id="firm-name"
               value={state.firmProfile.name}
               onChange={(event) => handleFirmProfileChange("name", event.target.value)}
               placeholder="e.g. Nasara Payments Ltd"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="firm-company-number">Company number</Label>
+            <Input
+              id="firm-company-number"
+              value={state.firmProfile.companyNumber ?? ""}
+              onChange={(event) => handleFirmProfileChange("companyNumber", event.target.value)}
+              placeholder="e.g. 12345678"
             />
           </div>
           <div className="space-y-2">
@@ -104,12 +135,33 @@ export function StepPermissionCheck({ state, updateState, onNext, onBack }: Wiza
               placeholder="e.g. https://example.com"
             />
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="firm-sic">SIC codes</Label>
+            <Input
+              id="firm-sic"
+              value={(state.firmProfile.sicCodes ?? []).join(", ")}
+              onChange={(event) =>
+                updateState((current) => ({
+                  ...current,
+                  firmProfile: {
+                    ...current.firmProfile,
+                    sicCodes: event.target.value
+                      .split(",")
+                      .map((value) => value.trim())
+                      .filter(Boolean),
+                  },
+                }))
+              }
+              placeholder="e.g. 64999, 66190"
+            />
+          </div>
           <div className="space-y-2 md:col-span-2">
             <Label htmlFor="firm-address">Registered address</Label>
             <AddressAutocomplete
               value={state.firmProfile.registeredAddress ?? ""}
               onChange={(value) => handleFirmProfileChange("registeredAddress", value)}
               placeholder="Street, City, Postcode"
+              countryCodes={["gb"]}
             />
           </div>
         </div>

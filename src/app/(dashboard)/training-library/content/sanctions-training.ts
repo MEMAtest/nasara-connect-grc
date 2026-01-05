@@ -414,6 +414,77 @@ When a genuine sanctions match is identified:
           'Data Protection Act 2018 - Record keeping and data sharing'
         ]
       }
+    },
+    {
+      id: 'sanctions-evasion-typologies',
+      title: 'Evasion Typologies and Red Flags',
+      type: 'content',
+      duration: 4,
+      content: {
+        learningPoint: 'Recognize common evasion techniques and apply targeted controls',
+        mainContent: `Sanctions evasion relies on hiding identity, origin, or destination. The most common methods include:
+
+- Use of shell companies and layered ownership
+- Proxy directors or nominee shareholders
+- Trade based laundering and falsified invoices
+- Routing through low scrutiny jurisdictions
+- Use of intermediaries and correspondent banks
+
+Effective detection is pattern based. Combine name screening with ownership, transaction context, and trade documentation checks.`,
+        keyConcepts: [
+          {
+            term: 'Evasion Typology',
+            definition: 'A known pattern used to bypass sanctions controls'
+          },
+          {
+            term: 'Trade Based Evasion',
+            definition: 'Manipulating invoices, goods, or routing to hide sanctioned activity'
+          }
+        ],
+        realExamples: [
+          'Multiple related entities share directors but rotate names to avoid list matches.',
+          'Shipping documents show inconsistent ports of origin versus payment routes.'
+        ],
+        regulatoryRequirements: [
+          'FCA Financial Crime Guide - Chapter 8 (Evasion typologies)',
+          'HM Treasury Sanctions Guidance - risk indicators'
+        ]
+      }
+    },
+    {
+      id: 'sanctions-governance',
+      title: 'Governance, MI, and Accountability',
+      type: 'content',
+      duration: 4,
+      content: {
+        learningPoint: 'Embed sanctions oversight through clear roles, MI, and accountability',
+        mainContent: `Sanctions compliance is a governance issue, not just a screening issue. Regulators expect:
+
+- Named accountability (SMF ownership and MLRO oversight)
+- Clear escalation paths for high risk cases
+- Management information on alerts, true matches, and reporting
+- Regular testing and independent assurance
+
+Strong MI highlights control weaknesses early and supports board oversight.`,
+        keyConcepts: [
+          {
+            term: 'Accountable Owner',
+            definition: 'Senior role responsible for sanctions framework effectiveness'
+          },
+          {
+            term: 'MI Pack',
+            definition: 'Regular reporting on alerts, matches, and control effectiveness'
+          }
+        ],
+        realExamples: [
+          'Monthly sanctions dashboard includes false positive rates, time to resolve, and reporting volume.',
+          'Board receives quarterly updates on sanctions incidents and remediation plans.'
+        ],
+        regulatoryRequirements: [
+          'FCA SYSC 6.1.1 - Systems and controls',
+          'SMCR - accountability for compliance frameworks'
+        ]
+      }
     }
   ],
 

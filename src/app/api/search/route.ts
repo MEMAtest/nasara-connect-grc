@@ -39,7 +39,7 @@ const navigationItems: SearchResult[] = [
   { id: 'nav-training', type: 'module', title: 'Training Library', description: 'Compliance training and courses', url: '/training-library', relevance: 1 },
   { id: 'nav-policies', type: 'module', title: 'Policies', description: 'Policy management and generation', url: '/policies', relevance: 1 },
   { id: 'nav-payments', type: 'module', title: 'Payments', description: 'Payment services and transactions', url: '/payments', relevance: 1 },
-  { id: 'nav-ai', type: 'module', title: 'AI Assistant', description: 'AI-powered compliance assistant', url: '/ai-chat', relevance: 1 },
+  { id: 'nav-ai', type: 'module', title: 'AI Assistant', description: 'Guided compliance assistant', url: '/ai-chat', relevance: 1 },
   { id: 'nav-settings', type: 'module', title: 'Settings', description: 'Account and organization settings', url: '/settings', relevance: 1 },
 ];
 

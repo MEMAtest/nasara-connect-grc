@@ -210,6 +210,118 @@ Provide easy-to-use, responsive support so customers can act in their interests:
     },
 
     {
+      id: 'product-lifecycle-distribution',
+      title: 'Product Lifecycle, Distribution Chain and PROD Alignment',
+      type: 'content',
+      duration: 12,
+      content: {
+        learningPoint: 'The Duty applies end-to-end across design, distribution, servicing and exit.',
+        mainContent: `The Duty is not a marketing standard or a point-of-sale requirement. It applies across the entire product lifecycle and distribution chain, from design to exit. Firms must understand their role as a manufacturer, distributor, or both.
+
+**Lifecycle Responsibilities**
+1. **Design and Approval** – define target market and product purpose, assess foreseeable harm, and document fair value assumptions.
+2. **Distribution** – ensure channels, scripts, and intermediaries align to target market and outcomes.
+3. **Servicing** – monitor outcomes, support customers, and adapt journeys based on evidence.
+4. **Exit and Switching** – remove unreasonable friction and ensure customers can act in their interests.
+
+**Distribution Chain Expectations**
+- Manufacturers must provide clear product information and target market data to distributors.
+- Distributors must use the information to sell and service the product appropriately.
+- Both must share outcomes data, complaints, and emerging risks.
+
+**PROD and Consumer Duty**
+PROD product governance already requires target market definition, product testing, and reviews. The Duty strengthens this by making good outcomes a regulatory standard, not a best practice.
+
+**Third Parties and Appointed Representatives**
+Where products are sold or serviced via partners, the firm still owns the outcome. Contracts, SLAs and oversight need to embed Duty expectations.`,
+        keyConcepts: [
+          {
+            term: 'Distribution Chain',
+            definition: 'All parties involved in manufacturing, distributing, or servicing a product for retail customers.'
+          },
+          {
+            term: 'PROD',
+            definition: 'Product governance rules covering target market, product review, and distribution strategy.'
+          },
+          {
+            term: 'Target Market',
+            definition: 'The group of customers whose needs, characteristics and objectives a product is designed to meet.'
+          },
+          {
+            term: 'Lifecycle Ownership',
+            definition: 'Accountability for outcomes at every stage of the product journey.'
+          }
+        ],
+        realExamples: [
+          'A manufacturer supplied target market data to an online distributor but did not monitor outcomes, leading to mis-selling and poor value complaints.',
+          'A firm updated its exit process to make cancellations as easy as onboarding, reducing complaints and improving Duty outcomes.'
+        ],
+        regulatoryRequirements: [
+          'PRIN 2A.3 - Products and services outcome',
+          'PROD 3 - Product governance for manufacturers and distributors',
+          'FG22/5 - Distribution chain expectations'
+        ]
+      }
+    },
+    {
+      id: 'governance-mi-outcomes',
+      title: 'Governance, MI and Outcomes Evidence',
+      type: 'content',
+      duration: 12,
+      content: {
+        learningPoint: 'Boards must evidence outcomes with meaningful MI, not just policies.',
+        mainContent: `The Duty requires governance that is outcomes-led. Senior management must be able to demonstrate how they assess and improve outcomes, not just confirm that policies exist.
+
+**Governance Expectations**
+- Board approval of the Duty implementation plan and ongoing oversight
+- Named accountable owners for each outcome
+- Clear escalation routes when outcomes fall below expectations
+
+**Outcome-Focused MI**
+Good MI is specific, forward-looking and segmented by customer groups:
+- Price and value: cost vs benefit metrics by segment
+- Understanding: comprehension testing results and error rates
+- Support: time to resolve, drop-off points, channel access
+- Vulnerable outcomes: comparison of outcomes for customers with vulnerability indicators
+
+**Evidence and Remediation**
+- Document why outcomes are good or poor
+- Track remediation actions and re-test
+- Maintain audit-ready packs for FCA review
+
+**Consumer Duty Champion**
+- Senior leader who challenges and promotes Duty outcomes
+- Ensures visibility in board discussions and decision-making`,
+        keyConcepts: [
+          {
+            term: 'Outcome-Led MI',
+            definition: 'Management information that measures customer impact rather than operational volume.'
+          },
+          {
+            term: 'Remediation Cycle',
+            definition: 'Identify harm, implement fixes, and re-test outcomes.'
+          },
+          {
+            term: 'Duty Champion',
+            definition: 'Senior leader responsible for promoting Duty outcomes at board level.'
+          },
+          {
+            term: 'Evidence Pack',
+            definition: 'Documented proof of outcomes, decision-making and actions.'
+          }
+        ],
+        realExamples: [
+          'A board receives quarterly outcome dashboards that highlight fair value gaps and required remediation actions.',
+          'Customer comprehension testing found confusion on fees, triggering a rewrite of product communications and follow-up testing.'
+        ],
+        regulatoryRequirements: [
+          'PRIN 2A.8 - Governance and monitoring expectations',
+          'FG22/5 - Board reporting and evidence of outcomes'
+        ]
+      }
+    },
+
+    {
       id: 'vulnerable-customers',
       title: 'Vulnerable Customers, Governance & MI',
       type: 'content',

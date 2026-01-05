@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import Link from 'next/link'
 import { Navigation } from '@/components/landing/Navigation'
+import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 import { notFound } from 'next/navigation'
 import dynamic from 'next/dynamic'
 
@@ -246,6 +247,13 @@ export default function AudienceSectorPage({ params }: { params: Promise<{ id: s
 
   return (
     <div className="relative overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 min-h-screen">
+      <BreadcrumbJsonLd
+        items={[
+          { name: 'Home', path: '/' },
+          { name: 'Audience', path: '/audience' },
+          { name: sector.title, path: `/audience/${sector.id}` }
+        ]}
+      />
       <Navigation variant="solid" />
 
       {/* Hero Section */}
@@ -298,7 +306,7 @@ function HeroSection({ sector }: { sector: typeof sectorData[SectorId] }) {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
-              <Link href="/contact">
+              <Link href="/request-demo">
                 <Button size="lg" className={`bg-gradient-to-r ${sector.gradient} text-lg px-8`}>
                   Request Demo
                   <ArrowRight className="ml-2 w-5 h-5" />
@@ -557,7 +565,7 @@ function CTASection({ sector }: { sector: typeof sectorData[SectorId] }) {
             Join 100+ {sector.title.toLowerCase()} using Nasara Connect
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/contact">
+            <Link href="/request-demo">
               <Button size="lg" className={`bg-gradient-to-r ${sector.gradient} text-lg px-8`}>
                 Request Demo
                 <ArrowRight className="ml-2 w-5 h-5" />

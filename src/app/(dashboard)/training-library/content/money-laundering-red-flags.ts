@@ -628,3 +628,342 @@ export const moneyLaunderingRedFlagsContent = {
     ]
   } as Assessment
 };
+
+export const moneyLaunderingRedFlagsModule: TrainingModule = {
+  id: "money-laundering-red-flags",
+  title: "Money Laundering Red Flags: Recognition and Response",
+  description: "Identify suspicious patterns quickly and respond with the right escalation steps and documentation.",
+  category: "financial-crime-prevention",
+  duration: 45,
+  difficulty: "intermediate",
+  targetPersonas: ["compliance-officer", "kyc-specialist", "relationship-manager", "operations-staff"],
+  prerequisiteModules: ["aml-fundamentals", "kyc-fundamentals"],
+  tags: ["aml", "red-flags", "structuring", "suspicious-activity", "escalation"],
+  learningOutcomes: [
+    "Identify common transaction, behavior, and geographic red flags across customer journeys",
+    "Apply a risk-based approach to determine when enhanced due diligence is required",
+    "Document red flag indicators to support escalation and investigation",
+    "Know when and how to involve the MLRO and file internal SARs",
+    "Distinguish isolated anomalies from emerging suspicious patterns"
+  ],
+  hook: {
+    title: "The GBP 50,000 Cash Deposit",
+    content: "A customer arrives with GBP 50,000 in cash and wants it deposited immediately. They avoid questions about source of funds and want to split deposits across two accounts. It might be legitimate, but the pattern and behavior are classic red flags. Your response now protects the firm and the financial system.",
+    statistic: "Firms that spot structuring early reduce suspicious transaction exposure by up to 60%."
+  },
+  lessons: [
+    {
+      id: "red-flag-categories",
+      title: "Red Flag Categories and What They Signal",
+      type: "content",
+      duration: 12,
+      content: {
+        learningPoint: "Red flags cluster around customer behavior, transactions, geography, and business activity.",
+        mainContent: "Red flags are not proof of laundering on their own. They are signals that warrant scrutiny, proportional investigation, and documentation. The most reliable indicators appear as patterns across time, channels, or related parties.\n\nA good red flag framework helps front-line staff recognize risk without over-escalating. Focus on the intersection between unusual behavior and inconsistency with the customer profile, declared purpose, and expected activity.",
+        keyConcepts: [
+          { term: "Behavioral Red Flag", definition: "Unusual customer conduct such as urgency, evasiveness, or reluctance to provide details." },
+          { term: "Transaction Red Flag", definition: "Patterns like structuring, rapid movement, or round-number activity that avoids thresholds." },
+          { term: "Geographic Red Flag", definition: "Connections to high-risk jurisdictions or unusual cross-border flows." },
+          { term: "Business Red Flag", definition: "Commercial activity inconsistent with stated business model or financial position." }
+        ],
+        realExamples: [
+          "Customer insists on cash deposits split across multiple accounts with no clear reason.",
+          "Business account receives large international transfers that do not align with stated services."
+        ],
+        visual: {
+          type: "category_grid",
+          categories: [
+            {
+              icon: "user",
+              title: "Customer Behavior",
+              description: "Signals from how the customer acts and responds.",
+              examples: ["Evasive answers", "Unusual urgency", "Reluctance to show source of funds"],
+              riskLevel: "medium"
+            },
+            {
+              icon: "credit-card",
+              title: "Transaction Patterns",
+              description: "Suspicious timing, size, or frequency of payments.",
+              examples: ["Structuring near thresholds", "Rapid in-and-out transfers", "Round-number activity"],
+              riskLevel: "high"
+            },
+            {
+              icon: "map-pin",
+              title: "Geographic Risk",
+              description: "Links to high-risk or sanctioned jurisdictions.",
+              examples: ["High-risk countries", "Unusual cross-border activity", "PEP connections"],
+              riskLevel: "high"
+            },
+            {
+              icon: "briefcase",
+              title: "Business Activity",
+              description: "Commercial activity inconsistent with purpose.",
+              examples: ["Cash-intensive without rationale", "Complex ownership", "No clear economic purpose"],
+              riskLevel: "medium"
+            }
+          ]
+        }
+      }
+    },
+    {
+      id: "transaction-patterns",
+      title: "Transaction Pattern Indicators",
+      type: "content",
+      duration: 12,
+      content: {
+        learningPoint: "Look for structuring, rapid movement, and inconsistent activity versus the customer profile.",
+        mainContent: "Patterns matter more than single anomalies. Transactions just below thresholds, rapid movement between related accounts, or repeated round-number transfers suggest intent to avoid scrutiny. Use customer profiles and risk ratings to compare expected versus observed behavior.\n\nEnsure alerts are documented with time, channel, amount, and rationale for escalation. This makes internal reviews faster and supports any SAR decision.",
+        keyConcepts: [
+          { term: "Structuring", definition: "Breaking transactions into smaller amounts to avoid reporting thresholds." },
+          { term: "Rapid Movement", definition: "Funds moved quickly across accounts with no clear purpose." },
+          { term: "Round-Number Activity", definition: "Repeated transfers of uniform, rounded amounts." }
+        ],
+        realExamples: [
+          { title: "Weekly GBP 9,900 cash deposits", description: "Regular deposits just below reporting thresholds." },
+          { title: "Immediate outbound transfers", description: "Incoming funds moved out within hours to multiple destinations." }
+        ],
+        visual: {
+          type: "process_flow",
+          steps: [
+            {
+              number: 1,
+              title: "Detect the Pattern",
+              description: "Spot recurring amounts, timing, or counterparties.",
+              examples: ["Repeated GBP 9,900 deposits", "Same-day withdrawals after transfers"],
+              redFlags: ["Multiple deposits just below thresholds", "No clear business rationale"],
+              color: "red"
+            },
+            {
+              number: 2,
+              title: "Compare to Profile",
+              description: "Check stated purpose, expected activity, and source of funds.",
+              examples: ["Declared income vs cash volume", "Business model vs payment flows"],
+              redFlags: ["Activity exceeds stated profile", "Sudden spikes with no explanation"],
+              color: "amber"
+            },
+            {
+              number: 3,
+              title: "Document and Escalate",
+              description: "Record evidence and route to MLRO or compliance.",
+              examples: ["Attach account history", "Note customer responses"],
+              redFlags: ["Customer refuses source of funds details", "Attempts to split transactions"],
+              color: "green"
+            }
+          ]
+        }
+      }
+    },
+    {
+      id: "customer-behavior",
+      title: "Customer Behavior and Documentation",
+      type: "content",
+      duration: 10,
+      content: {
+        learningPoint: "Behavioral cues matter when combined with transaction facts and documentation gaps.",
+        mainContent: "Customers who are evasive, unusually urgent, or inconsistent in their explanations should trigger enhanced questioning. Be professional and neutral, focusing on factual clarifications.\n\nDocumentation is critical. Record what was asked, what was provided, and any inconsistencies. Clear documentation supports escalation decisions and protects staff.",
+        keyConcepts: [
+          { term: "Enhanced Due Diligence", definition: "Additional checks required for higher-risk customers or transactions." },
+          { term: "Source of Funds", definition: "Where the money for a transaction comes from." },
+          { term: "Source of Wealth", definition: "How a customer accumulated overall wealth." }
+        ],
+        realExamples: [
+          "Customer refuses to provide any documentation for a large cash deposit.",
+          "Customer provides contradictory explanations for transaction purpose."
+        ],
+        visual: {
+          type: "infographic",
+          elements: [
+            { icon: "alert-triangle", text: "Evasive answers", description: "Avoids or deflects source of funds questions", color: "red" },
+            { icon: "search", text: "Documentation gaps", description: "Missing or inconsistent evidence of funds", color: "amber" },
+            { icon: "shield", text: "Neutral escalation", description: "Document facts and refer to MLRO", color: "green" }
+          ]
+        }
+      }
+    },
+    {
+      id: "geography-channel-risk",
+      title: "Geographic and Channel Risk Signals",
+      type: "content",
+      duration: 10,
+      content: {
+        learningPoint: "Cross-border patterns and channel shifts can reveal hidden risk.",
+        mainContent: "Geographic and channel red flags are often overlooked because they look like operational quirks. They are not. Sudden shifts in country exposure, counterparties in high-risk jurisdictions, or unusual channel usage can signal layering and concealment.\n\nPay close attention to destination countries, corridor changes, and the use of intermediaries or payment service providers. These patterns are rarely random and should be assessed against the customer's stated business model and expected activity.",
+        keyConcepts: [
+          { term: "High-Risk Jurisdiction", definition: "Countries with weak AML controls or higher corruption risk." },
+          { term: "Channel Shift", definition: "Unexpected change in the way a customer moves funds or accesses services." },
+          { term: "Corridor Risk", definition: "Concentration of transfers to high-risk destinations or new corridors." }
+        ],
+        realExamples: [
+          "A local retailer begins sending weekly transfers to multiple high-risk jurisdictions with no trade documentation.",
+          "Customer moves from card transfers to cash deposits and international wires in a short period.",
+          "Payments routed through multiple intermediaries without a clear business purpose."
+        ],
+        visual: {
+          type: "process_flow",
+          steps: [
+            {
+              number: 1,
+              title: "Identify the Shift",
+              description: "Spot sudden changes in destination countries or channels.",
+              examples: ["New high-risk corridors", "New intermediaries"],
+              redFlags: ["No change in stated business purpose"],
+              color: "red"
+            },
+            {
+              number: 2,
+              title: "Validate the Rationale",
+              description: "Check for trade, invoice, or contractual evidence.",
+              examples: ["Trade documents", "Counterparty contracts"],
+              redFlags: ["Vague or missing evidence"],
+              color: "amber"
+            },
+            {
+              number: 3,
+              title: "Document and Escalate",
+              description: "Record facts and escalate if inconsistency remains.",
+              examples: ["Alert notes", "Internal SAR draft"],
+              redFlags: ["Repeated unexplained changes"],
+              color: "green"
+            }
+          ]
+        }
+      }
+    },
+    {
+      id: "escalation-and-reporting",
+      title: "Escalation and Reporting",
+      type: "content",
+      duration: 11,
+      content: {
+        learningPoint: "Escalation is about evidence, not accusation.",
+        mainContent: "Escalate when red flags persist or when documentation does not support the transaction. Use internal SAR processes, provide factual narratives, and avoid tipping off customers.\n\nGood escalation includes what you observed, why it is inconsistent, and what evidence was reviewed. This helps MLROs make timely, defensible decisions.",
+        keyConcepts: [
+          { term: "Internal SAR", definition: "Report to MLRO describing suspicious activity and rationale." },
+          { term: "Tipping Off", definition: "Warning a customer about a suspicion or SAR, which is prohibited." }
+        ],
+        realExamples: [
+          { title: "Cash deposits with no source evidence", description: "Escalate with transaction history and customer responses." },
+          { title: "Cross-border transfers to unrelated parties", description: "Document counterparties and pattern evidence." }
+        ]
+      }
+    }
+  ],
+  practiceScenarios: [
+    {
+      id: "ml-red-flags-1",
+      title: "Structured Cash Deposits",
+      scenario: "A customer deposits GBP 9,800 in cash every Friday for six weeks. They say it is from a small retail business, but cannot provide any invoices or sales records.",
+      question: "What is the best next step?",
+      options: [
+        { text: "Accept the deposits and note the explanation", isCorrect: false },
+        { text: "Escalate for review with documented pattern evidence", isCorrect: true },
+        { text: "Refuse all deposits immediately", isCorrect: false }
+      ],
+      explanation: "The consistent deposits just below thresholds suggest structuring. Escalate with evidence rather than refusing service.",
+      learningPoints: [
+        "Patterns matter more than single transactions.",
+        "Document evidence before escalation.",
+        "Avoid tipping off the customer."
+      ]
+    },
+    {
+      id: "ml-red-flags-2",
+      title: "Rapid International Transfers",
+      scenario: "A customer receives a GBP 75,000 transfer and moves the funds out to three offshore accounts within 24 hours, citing 'investment opportunities.'",
+      question: "What should you do?",
+      options: [
+        { text: "Allow the transfer because the funds are already in the account", isCorrect: false },
+        { text: "Request documentation and escalate if the rationale is unclear", isCorrect: true },
+        { text: "Block the account without review", isCorrect: false }
+      ],
+      explanation: "Rapid movement and vague purpose are high-risk indicators. Escalate with documentation and rationale.",
+      learningPoints: [
+        "Rapid movement with unclear purpose is high risk.",
+        "Gather evidence and follow escalation procedures.",
+        "Stay neutral and factual in customer communications."
+      ]
+    }
+  ],
+  assessmentQuestions: [
+    {
+      id: "ml-red-flags-q1",
+      question: "Which pattern is most indicative of structuring?",
+      options: [
+        "One-off large payment with full documentation",
+        "Regular deposits just below a reporting threshold",
+        "Monthly payroll deposits from a known employer",
+        "A single transfer to a long-standing supplier"
+      ],
+      correctAnswer: 1,
+      explanation: "Repeated deposits just below thresholds are a classic structuring indicator."
+    },
+    {
+      id: "ml-red-flags-q2",
+      question: "What should an internal SAR include?",
+      options: [
+        "Only the transaction amount and date",
+        "Your opinion of the customer",
+        "Factual observations, evidence, and rationale for concern",
+        "A request for customer termination"
+      ],
+      correctAnswer: 2,
+      explanation: "Internal SARs must be factual, evidence-based, and focused on observations and rationale."
+    }
+  ],
+  summary: {
+    keyTakeaways: [
+      "Red flags are signals that require evidence-based review, not immediate conclusions.",
+      "Patterns across time and channels are stronger indicators than isolated events.",
+      "Documenting evidence and rationale supports defensible escalation decisions.",
+      "Neutral communication and anti-tipping safeguards protect staff and the firm."
+    ],
+    nextSteps: [
+      "Review your firm's internal SAR workflow and escalation SLAs.",
+      "Align transaction monitoring thresholds with risk appetite.",
+      "Complete the SARs training module for escalation documentation standards."
+    ],
+    quickReference: {
+      title: "Red Flag Quick Reference",
+      items: [
+        { term: "Structuring", definition: "Repeated transactions just below reporting thresholds." },
+        { term: "Rapid Movement", definition: "Funds moved out quickly without clear business purpose." },
+        { term: "Behavioral Cues", definition: "Evasiveness, urgency, or inconsistent explanations." },
+        { term: "Escalation Trigger", definition: "Patterned red flags with missing or weak evidence." }
+      ]
+    }
+  },
+  visualAssets: {
+    diagrams: [
+      {
+        id: "red-flag-decision-tree",
+        title: "Red Flag Decision Tree",
+        description: "Visual flow from detection to documentation to MLRO escalation.",
+        type: "process"
+      },
+      {
+        id: "escalation-steps",
+        title: "Escalation Steps",
+        description: "Checklist of evidence required before submitting an internal SAR.",
+        type: "checklist"
+      }
+    ],
+    infographics: [
+      {
+        id: "transaction-patterns",
+        title: "Transaction Pattern Indicators",
+        description: "Structuring, rapid movement, round-number activity, and counterparty risk."
+      }
+    ],
+    images: [
+      {
+        section: "scenarios",
+        description: "Scenario board highlighting common cash and international transfer red flags."
+      },
+      {
+        section: "documentation",
+        description: "Annotated example of a well-documented escalation note."
+      }
+    ],
+    style: "Professional AML visuals with clear risk indicators and escalation flows"
+  }
+};

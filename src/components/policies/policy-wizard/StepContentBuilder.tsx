@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Plus } from "lucide-react";
+import { ChevronDown, Plus } from "lucide-react";
 import { renderPolicyMarkdown } from "@/lib/policies/markdown";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,8 +20,11 @@ import {
   assembleComplaintsPolicy,
   DEFAULT_COMPLAINTS_ANSWERS,
   type ComplaintsAssemblerAnswers,
+  type ComplaintsChannel,
   type ComplaintsModule,
+  type ComplaintsPaymentRail,
 } from "@/lib/policies/assemblers/complaints";
+import { toComplaintsDetailLevel, toPolicyDetailLevel } from "./detail-level";
 
 function renderMarkdown(value: string) {
   if (!value) return "";
@@ -54,8 +57,18 @@ function toDisplay(value: string) {
 export function StepContentBuilder({ state, updateState, onNext, onBack }: WizardStepProps) {
   const template = state.selectedTemplate;
   const [activeSectionId, setActiveSectionId] = useState("");
+  const [activeTab, setActiveTab] = useState("assembler");
 
-  const complaintsAnswers = state.complaintsAnswers ?? DEFAULT_COMPLAINTS_ANSWERS;
+  const complaintsAnswers = useMemo(() => {
+    if (state.complaintsAnswers) return state.complaintsAnswers;
+    if (state.detailLevel) {
+      return {
+        ...DEFAULT_COMPLAINTS_ANSWERS,
+        detailLevel: toComplaintsDetailLevel(state.detailLevel),
+      };
+    }
+    return DEFAULT_COMPLAINTS_ANSWERS;
+  }, [state.complaintsAnswers, state.detailLevel]);
 
   const applicableClauses = useMemo(() => {
     if (!template) return [] as PolicyClause[];
@@ -76,6 +89,18 @@ export function StepContentBuilder({ state, updateState, onNext, onBack }: Wizar
   }, [template, complaintsAnswers, state.sectionClauses]);
 
   const assemblyKey = useMemo(() => JSON.stringify(assembly.sectionClauses), [assembly.sectionClauses]);
+  const modules = assembly.modules;
+  const sectionIds = Object.keys(assembly.sectionClauses);
+  const moduleStats = useMemo(() => {
+    const clauseIds = new Set(modules.flatMap((module) => module.clauseIds));
+    return {
+      total: modules.length,
+      staticCount: modules.filter((module) => module.kind === "static").length,
+      dynamicCount: modules.filter((module) => module.kind === "dynamic").length,
+      sectionCount: sectionIds.length,
+      clauseCount: clauseIds.size,
+    };
+  }, [modules, sectionIds.length]);
 
   useEffect(() => {
     if (!template || template.code !== "COMPLAINTS") return;
@@ -103,6 +128,8 @@ export function StepContentBuilder({ state, updateState, onNext, onBack }: Wizar
         name: state.firmProfile.name,
         tradingName: state.firmProfile.tradingName || undefined,
         registeredAddress: state.firmProfile.registeredAddress || undefined,
+        companyNumber: state.firmProfile.companyNumber || undefined,
+        sicCodes: state.firmProfile.sicCodes || undefined,
         fcaReference: state.firmProfile.fcaReference || undefined,
         website: state.firmProfile.website || undefined,
       },
@@ -144,8 +171,6 @@ export function StepContentBuilder({ state, updateState, onNext, onBack }: Wizar
     );
   }
 
-  const modules = assembly.modules;
-  const sectionIds = Object.keys(assembly.sectionClauses);
   const overview: PolicyReaderOverview | null = {
     timeline: [
       { label: "3-day SRC", description: "DISP 1.5" },
@@ -192,17 +217,76 @@ export function StepContentBuilder({ state, updateState, onNext, onBack }: Wizar
   const activeSection = activeSectionId || sectionIds[0];
 
   const updateComplaintsAnswers = (updates: Partial<ComplaintsAssemblerAnswers>) => {
-    updateState((current) => ({
-      ...current,
-      complaintsAnswers: {
+    updateState((current) => {
+      const nextAnswers = {
         ...(current.complaintsAnswers ?? DEFAULT_COMPLAINTS_ANSWERS),
         ...updates,
-      },
-    }));
+      };
+
+      return {
+        ...current,
+        complaintsAnswers: nextAnswers,
+        detailLevel: updates.detailLevel ? toPolicyDetailLevel(nextAnswers.detailLevel) : current.detailLevel,
+      };
+    });
   };
 
+  const railLabels: Record<ComplaintsPaymentRail, string> = {
+    stripe: "Stripe",
+    thunes: "Thunes",
+    swift: "SWIFT",
+    other: "Other",
+  };
+  const channelLabels: Record<ComplaintsChannel, string> = {
+    web: "Web",
+    email: "Email",
+    social: "Social",
+    phone: "Phone",
+    branch: "Branch",
+  };
+  const summaryItems = [
+    {
+      label: "Depth",
+      value:
+        complaintsAnswers.detailLevel === "focused"
+          ? "Essential"
+          : complaintsAnswers.detailLevel === "standard"
+            ? "Standard"
+            : "Comprehensive",
+    },
+    {
+      label: "Jurisdiction",
+      value: complaintsAnswers.jurisdiction === "uk" ? "UK only" : "UK + EEA",
+    },
+    {
+      label: "Rails",
+      value: complaintsAnswers.paymentRails.length
+        ? complaintsAnswers.paymentRails.map((rail) => railLabels[rail]).join(", ")
+        : "None",
+    },
+    {
+      label: "ID method",
+      value:
+        complaintsAnswers.idMethod === "manual"
+          ? "Manual"
+          : complaintsAnswers.idMethod === "hybrid"
+          ? "Hybrid"
+          : "AI-assisted",
+    },
+    {
+      label: "Oversight",
+      value: complaintsAnswers.oversight === "standard" ? "Standard" : "Enhanced",
+    },
+    {
+      label: "Channels",
+      value: complaintsAnswers.channels.length
+        ? complaintsAnswers.channels.map((channel) => channelLabels[channel]).join(", ")
+        : "None",
+    },
+  ];
+
   return (
-    <Tabs defaultValue="assembler" className="space-y-6">
+    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-2">
           <h2 className="text-xl font-semibold text-slate-900">Complaints policy assembler</h2>
@@ -210,39 +294,79 @@ export function StepContentBuilder({ state, updateState, onNext, onBack }: Wizar
             Answer the firm questions and we assemble a tailored complaints policy from static modules and dynamic fragments.
           </p>
         </div>
-        <TabsList className="bg-slate-100 text-slate-500">
-          <TabsTrigger value="assembler">Assembler</TabsTrigger>
-          <TabsTrigger value="preview">Preview</TabsTrigger>
-        </TabsList>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => setActiveTab("preview")}>
+            Preview output
+          </Button>
+          <TabsList className="bg-slate-100 text-slate-500">
+            <TabsTrigger value="assembler">Assembler</TabsTrigger>
+            <TabsTrigger value="preview">Preview</TabsTrigger>
+          </TabsList>
+        </div>
       </div>
 
       <TabsContent value="assembler" className="space-y-6">
-        <div className="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
-          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="space-y-4">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-indigo-500">Firm profile</p>
-                <p className="mt-1 text-sm text-slate-500">These answers drive dynamic policy fragments.</p>
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+          <section className="space-y-4">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-indigo-500">Assembler summary</p>
+                  <p className="mt-1 text-sm text-slate-500">Live snapshot of the policy build as you answer questions.</p>
+                </div>
+                <div className="flex flex-wrap gap-2 text-[11px]">
+                  <Badge variant="secondary">{moduleStats.sectionCount} sections</Badge>
+                  <Badge variant="secondary">{moduleStats.total} modules</Badge>
+                  <Badge variant="secondary">{moduleStats.staticCount} static</Badge>
+                  <Badge variant="secondary">{moduleStats.dynamicCount} dynamic</Badge>
+                  <Badge variant="secondary">{moduleStats.clauseCount} clauses</Badge>
+                </div>
               </div>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                {summaryItems.map((item) => (
+                  <div key={item.label} className="rounded-xl border border-slate-200 bg-slate-50/80 px-3 py-2">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">{item.label}</p>
+                    <p className="text-sm font-semibold text-slate-800">{item.value}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
 
-              <div className="space-y-3">
+            <details className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm" open>
+              <summary className="flex cursor-pointer items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-slate-900">Coverage & scope</p>
+                  <p className="text-xs text-slate-500">Set the policy depth and regulatory perimeter.</p>
+                </div>
+                <ChevronDown className="h-4 w-4 text-slate-400" />
+              </summary>
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label>Policy depth</Label>
-                  <Select value={complaintsAnswers.detailLevel} onValueChange={(value) => updateComplaintsAnswers({ detailLevel: value as ComplaintsAssemblerAnswers["detailLevel"] })}>
+                  <Select
+                    value={complaintsAnswers.detailLevel}
+                    onValueChange={(value) =>
+                      updateComplaintsAnswers({ detailLevel: value as ComplaintsAssemblerAnswers["detailLevel"] })
+                    }
+                  >
                     <SelectTrigger className="h-9">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="focused">Focused (lean, targeted)</SelectItem>
-                      <SelectItem value="standard">Standard (balanced)</SelectItem>
-                      <SelectItem value="enterprise">Enterprise (full coverage)</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <SelectContent>
+                    <SelectItem value="focused">Essential (lean, targeted)</SelectItem>
+                    <SelectItem value="standard">Standard (balanced)</SelectItem>
+                    <SelectItem value="enterprise">Comprehensive (full coverage)</SelectItem>
+                  </SelectContent>
+                </Select>
                 </div>
-
                 <div className="space-y-2">
                   <Label>Jurisdiction</Label>
-                  <Select value={complaintsAnswers.jurisdiction} onValueChange={(value) => updateComplaintsAnswers({ jurisdiction: value as ComplaintsAssemblerAnswers["jurisdiction"] })}>
+                  <Select
+                    value={complaintsAnswers.jurisdiction}
+                    onValueChange={(value) =>
+                      updateComplaintsAnswers({ jurisdiction: value as ComplaintsAssemblerAnswers["jurisdiction"] })
+                    }
+                  >
                     <SelectTrigger className="h-9">
                       <SelectValue />
                     </SelectTrigger>
@@ -252,10 +376,38 @@ export function StepContentBuilder({ state, updateState, onNext, onBack }: Wizar
                     </SelectContent>
                   </Select>
                 </div>
+                <div className="space-y-2">
+                  <Label>Vulnerability focus</Label>
+                  <Select
+                    value={complaintsAnswers.vulnerabilityFocus}
+                    onValueChange={(value) =>
+                      updateComplaintsAnswers({ vulnerabilityFocus: value as ComplaintsAssemblerAnswers["vulnerabilityFocus"] })
+                    }
+                  >
+                    <SelectTrigger className="h-9">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="standard">Standard vulnerability coverage</SelectItem>
+                      <SelectItem value="high">High vulnerability focus</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </details>
 
+            <details className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm" open>
+              <summary className="flex cursor-pointer items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-slate-900">Payments & identity</p>
+                  <p className="text-xs text-slate-500">Select payment rails and the ID verification method.</p>
+                </div>
+                <ChevronDown className="h-4 w-4 text-slate-400" />
+              </summary>
+              <div className="mt-4 grid gap-4">
                 <div className="space-y-2">
                   <Label>Payment rails</Label>
-                  <div className="space-y-2">
+                  <div className="grid gap-2 sm:grid-cols-2">
                     {(["stripe", "thunes", "swift", "other"] as const).map((rail) => (
                       <label key={rail} className="flex items-center gap-3 rounded-lg border border-slate-200 px-3 py-2">
                         <Checkbox
@@ -267,15 +419,17 @@ export function StepContentBuilder({ state, updateState, onNext, onBack }: Wizar
                             updateComplaintsAnswers({ paymentRails: next });
                           }}
                         />
-                        <span className="text-sm text-slate-700 capitalize">{rail}</span>
+                        <span className="text-sm text-slate-700">{railLabels[rail]}</span>
                       </label>
                     ))}
                   </div>
                 </div>
-
                 <div className="space-y-2">
                   <Label>ID method</Label>
-                  <Select value={complaintsAnswers.idMethod} onValueChange={(value) => updateComplaintsAnswers({ idMethod: value as ComplaintsAssemblerAnswers["idMethod"] })}>
+                  <Select
+                    value={complaintsAnswers.idMethod}
+                    onValueChange={(value) => updateComplaintsAnswers({ idMethod: value as ComplaintsAssemblerAnswers["idMethod"] })}
+                  >
                     <SelectTrigger className="h-9">
                       <SelectValue />
                     </SelectTrigger>
@@ -286,10 +440,52 @@ export function StepContentBuilder({ state, updateState, onNext, onBack }: Wizar
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+            </details>
 
+            <details className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <summary className="flex cursor-pointer items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-slate-900">Channels & intake</p>
+                  <p className="text-xs text-slate-500">Define the channels used to accept complaints.</p>
+                </div>
+                <ChevronDown className="h-4 w-4 text-slate-400" />
+              </summary>
+              <div className="mt-4 space-y-2">
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {(["web", "email", "social", "phone", "branch"] as const).map((channel) => (
+                    <label key={channel} className="flex items-center gap-3 rounded-lg border border-slate-200 px-3 py-2">
+                      <Checkbox
+                        checked={complaintsAnswers.channels.includes(channel)}
+                        onCheckedChange={() => {
+                          const next = complaintsAnswers.channels.includes(channel)
+                            ? complaintsAnswers.channels.filter((value) => value !== channel)
+                            : [...complaintsAnswers.channels, channel];
+                          updateComplaintsAnswers({ channels: next });
+                        }}
+                      />
+                      <span className="text-sm text-slate-700">{channelLabels[channel]}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </details>
+
+            <details className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <summary className="flex cursor-pointer items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-slate-900">Governance & appendices</p>
+                  <p className="text-xs text-slate-500">Decide oversight depth and any optional appendices.</p>
+                </div>
+                <ChevronDown className="h-4 w-4 text-slate-400" />
+              </summary>
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label>Oversight depth</Label>
-                  <Select value={complaintsAnswers.oversight} onValueChange={(value) => updateComplaintsAnswers({ oversight: value as ComplaintsAssemblerAnswers["oversight"] })}>
+                  <Select
+                    value={complaintsAnswers.oversight}
+                    onValueChange={(value) => updateComplaintsAnswers({ oversight: value as ComplaintsAssemblerAnswers["oversight"] })}
+                  >
                     <SelectTrigger className="h-9">
                       <SelectValue />
                     </SelectTrigger>
@@ -299,127 +495,118 @@ export function StepContentBuilder({ state, updateState, onNext, onBack }: Wizar
                     </SelectContent>
                   </Select>
                 </div>
-
-                <div className="space-y-2">
-                  <Label>Vulnerability focus</Label>
-                  <Select value={complaintsAnswers.vulnerabilityFocus} onValueChange={(value) => updateComplaintsAnswers({ vulnerabilityFocus: value as ComplaintsAssemblerAnswers["vulnerabilityFocus"] })}>
-                    <SelectTrigger className="h-9">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="standard">Standard vulnerability coverage</SelectItem>
-                      <SelectItem value="high">High vulnerability focus</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Channels supported</Label>
-                  <div className="space-y-2">
-                    {(["web", "email", "social", "phone", "branch"] as const).map((channel) => (
-                      <label key={channel} className="flex items-center gap-3 rounded-lg border border-slate-200 px-3 py-2">
-                        <Checkbox
-                          checked={complaintsAnswers.channels.includes(channel)}
-                          onCheckedChange={() => {
-                            const next = complaintsAnswers.channels.includes(channel)
-                              ? complaintsAnswers.channels.filter((value) => value !== channel)
-                              : [...complaintsAnswers.channels, channel];
-                            updateComplaintsAnswers({ channels: next });
-                          }}
-                        />
-                        <span className="text-sm text-slate-700 capitalize">{channel}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
                 <div className="space-y-2">
                   <Label>Governance additions</Label>
-                  <label className="flex items-center gap-3 rounded-lg border border-slate-200 px-3 py-2">
-                    <Checkbox
-                      checked={complaintsAnswers.vulnerabilityChampion}
-                      onCheckedChange={() =>
-                        updateComplaintsAnswers({ vulnerabilityChampion: !complaintsAnswers.vulnerabilityChampion })
-                      }
-                    />
-                    <span className="text-sm text-slate-700">Board-level vulnerability champion</span>
-                  </label>
-                  <label className="flex items-center gap-3 rounded-lg border border-slate-200 px-3 py-2">
-                    <Checkbox
-                      checked={complaintsAnswers.includeAppendices}
-                      onCheckedChange={() => updateComplaintsAnswers({ includeAppendices: !complaintsAnswers.includeAppendices })}
-                    />
-                    <span className="text-sm text-slate-700">Include letter templates & appendices</span>
-                  </label>
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-3 rounded-lg border border-slate-200 px-3 py-2">
+                      <Checkbox
+                        checked={complaintsAnswers.vulnerabilityChampion}
+                        onCheckedChange={() =>
+                          updateComplaintsAnswers({ vulnerabilityChampion: !complaintsAnswers.vulnerabilityChampion })
+                        }
+                      />
+                      <span className="text-sm text-slate-700">Board-level vulnerability champion</span>
+                    </label>
+                    <label className="flex items-center gap-3 rounded-lg border border-slate-200 px-3 py-2">
+                      <Checkbox
+                        checked={complaintsAnswers.includeAppendices}
+                        onCheckedChange={() =>
+                          updateComplaintsAnswers({ includeAppendices: !complaintsAnswers.includeAppendices })
+                        }
+                      />
+                      <span className="text-sm text-slate-700">Include letter templates & appendices</span>
+                    </label>
+                  </div>
                 </div>
               </div>
-            </div>
+            </details>
           </section>
 
-          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-indigo-500">Assembled modules</p>
-                <p className="mt-1 text-sm text-slate-500">Each module is included because of your selections.</p>
-              </div>
-              <div className="flex gap-2">
-                <Badge variant="secondary" className="text-[11px]">
-                  {modules.filter((module) => module.kind === "static").length} static
-                </Badge>
-                <Badge variant="secondary" className="text-[11px]">
-                  {modules.filter((module) => module.kind === "dynamic").length} dynamic
-                </Badge>
-              </div>
+          <aside className="space-y-4">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-indigo-500">Assembly map</p>
+              <p className="mt-1 text-sm text-slate-500">Every module and clause that will appear in the policy.</p>
             </div>
 
-            <ScrollArea className="mt-4 h-[58vh]">
-              <div className="space-y-4 pr-4">
-                {Object.keys(groupedModules).map((sectionId) => (
-                  <div key={sectionId} className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
-                    <div className="space-y-1">
-                      <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-400">
-                        {toDisplay(sectionId)}
-                      </p>
-                      <p className="text-sm font-semibold text-slate-900">
-                        {template.sections.find((section) => section.id === sectionId)?.title ?? toDisplay(sectionId)}
-                      </p>
-                      <p className="text-xs text-slate-500">
-                        {template.sections.find((section) => section.id === sectionId)?.summary ?? ""}
-                      </p>
-                    </div>
+            <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold text-slate-900">Modules by section</p>
+                <Badge variant="outline" className="text-[11px]">
+                  {moduleStats.total} total
+                </Badge>
+              </div>
 
-                    <div className="mt-3 space-y-3">
-                      {groupedModules[sectionId].map((module) => (
-                        <div key={module.id} className="rounded-xl border border-slate-200 bg-white p-3">
-                          <div className="flex items-start justify-between gap-3">
-                            <div>
-                              <p className="text-sm font-semibold text-slate-900">{module.title}</p>
-                              <p className="text-xs text-slate-500">{module.summary}</p>
+              <ScrollArea className="mt-4 h-[58vh]">
+                <div className="space-y-4 pr-4">
+                  {Object.keys(groupedModules).map((sectionId) => (
+                    <div key={sectionId} className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
+                      <div className="space-y-1">
+                        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-400">
+                          {toDisplay(sectionId)}
+                        </p>
+                        <p className="text-sm font-semibold text-slate-900">
+                          {template.sections.find((section) => section.id === sectionId)?.title ?? toDisplay(sectionId)}
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          {template.sections.find((section) => section.id === sectionId)?.summary ?? ""}
+                        </p>
+                      </div>
+
+                      <div className="mt-3 space-y-3">
+                        {groupedModules[sectionId].map((module) => (
+                          <div key={module.id} className="rounded-xl border border-slate-200 bg-white p-3">
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <p className="text-sm font-semibold text-slate-900">{module.title}</p>
+                                <p className="text-xs text-slate-500">{module.summary}</p>
+                              </div>
+                              <div className="flex flex-col items-end gap-1 text-[11px] text-slate-400">
+                                <Badge variant="outline" className="text-[11px]">
+                                  {module.kind === "static" ? "Static" : "Dynamic"}
+                                </Badge>
+                                <span>{module.clauseIds.length} clauses</span>
+                              </div>
                             </div>
-                            <Badge variant="outline" className="text-[11px]">
-                              {module.kind === "static" ? "Static module" : "Dynamic fragment"}
-                            </Badge>
+                            <div className="mt-3 flex flex-wrap gap-2 text-[11px] text-slate-500">
+                              {module.reasons.map((reason) => (
+                                <span key={`${module.id}-${reason}`} className="rounded-full bg-slate-100 px-2 py-1">
+                                  {reason}
+                                </span>
+                              ))}
+                            </div>
                           </div>
-                          <div className="mt-3 flex flex-wrap gap-2 text-[11px] text-slate-500">
-                            {module.reasons.map((reason) => (
-                              <span key={`${module.id}-${reason}`} className="rounded-full bg-slate-100 px-2 py-1">
-                                {reason}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-          </section>
+                  ))}
+                </div>
+              </ScrollArea>
+            </section>
+          </aside>
         </div>
       </TabsContent>
 
       <TabsContent value="preview" className="space-y-4">
-        <PolicyReaderClient sections={readerSections} defaultSectionId={activeSection} overview={overview} />
+        <div className="flex flex-col gap-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-slate-900">Print-ready preview</p>
+            <p className="text-xs text-slate-500">Use the print layout to export a professional policy report.</p>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => window.print()}>
+            Print report
+          </Button>
+        </div>
+        <PolicyReaderClient
+          sections={readerSections}
+          defaultSectionId={activeSection}
+          overview={overview}
+          reportMeta={{
+            title: template.name,
+            subtitle: template.description,
+            firmName: state.firmProfile.name,
+            status: "Draft",
+          }}
+        />
       </TabsContent>
 
       <div className="flex items-center justify-between">

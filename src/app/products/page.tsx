@@ -65,7 +65,7 @@ function HeroSection() {
             </h1>
 
             <p className="text-xl text-slate-400 leading-relaxed">
-              Nasara Connect combines cutting-edge AI, robust automation, and intuitive governance tools
+              Nasara Connect combines advanced automation, robust workflows, and intuitive governance tools
               into a single, powerful ecosystem engineered for financial institutions.
             </p>
           </div>
@@ -73,7 +73,7 @@ function HeroSection() {
           {/* Key Differentiators */}
           <div className="grid grid-cols-2 gap-4">
             {[
-              { icon: Brain, text: 'AI-Powered Insights' },
+              { icon: Brain, text: 'Predictive Insights' },
               { icon: Zap, text: 'Automated Workflows' },
               { icon: Shield, text: 'Unified Governance' },
               { icon: Network, text: 'Scalable Architecture' }
@@ -115,11 +115,11 @@ function ProductModulesSection() {
   const modules = [
     {
       title: 'Regulatory Intelligence Engine',
-      description: 'Transform regulatory chaos into strategic clarity with AI-powered intelligence that scans global horizons, predicts impact, and delivers actionable insights before regulations hit.',
+      description: 'Transform regulatory chaos into strategic clarity with predictive intelligence that scans global horizons, anticipates impact, and delivers actionable insights before regulations hit.',
       visual: <IntelligenceModule3D />,
       features: [
         'Predictive regulatory alerting',
-        'AI-powered impact analysis',
+        'Impact analysis & mapping',
         'Global horizon scanning',
         'Automated compliance mapping'
       ],
@@ -128,11 +128,11 @@ function ProductModulesSection() {
     },
     {
       title: 'Automated Reconciliation & Risk',
-      description: 'Surgical precision meets operational scale. Automate complex financial reconciliations, detect anomalies with AI, and orchestrate remediation workflows that save hours and eliminate errors.',
+      description: 'Surgical precision meets operational scale. Automate complex financial reconciliations, detect anomalies early, and orchestrate remediation workflows that save hours and eliminate errors.',
       visual: <ReconciliationModule3D />,
       features: [
         'Dynamic reconciliation rules',
-        'AI anomaly detection',
+        'Anomaly detection',
         'Automated remediation workflows',
         'Immutable audit trails'
       ],

@@ -92,11 +92,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Approvals payload missing" }, { status: 400 });
   }
 
+  const detailLevel = typeof body.detailLevel === "string" ? body.detailLevel : undefined;
+
   const customContent = {
     firmProfile: body.firmProfile ?? {},
     sectionClauses,
+    sectionOptions: body.sectionOptions ?? {},
     sectionNotes: body.sectionNotes ?? {},
     clauseVariables: body.clauseVariables ?? {},
+    detailLevel,
+    approvals,
   };
 
   const suggestedMappings = Array.isArray((template as PolicyTemplate & { suggestedMappings?: unknown }).suggestedMappings)

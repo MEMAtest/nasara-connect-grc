@@ -1152,7 +1152,7 @@ export async function seedCaseStudies(): Promise<void> {
         ],
         beforeAfter: {
           before: { label: "Reactive Approach", value: "24hr response", details: ["Manual monitoring", "Daily reports", "Limited visibility"] },
-          after: { label: "Proactive Defense", value: "5min response", details: ["AI-powered alerts", "Real-time dashboards", "Predictive analytics"] }
+          after: { label: "Proactive Defense", value: "5min response", details: ["Automated alerts", "Real-time dashboards", "Predictive analytics"] }
         },
         sortOrder: 2,
         isPublished: true,

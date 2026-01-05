@@ -95,7 +95,20 @@ COBS 4 applies to:
 - Communications about MiFID business, insurance, consumer credit
 - Approvals of promotions for unauthorised persons (s21 gateway)
 
-The rules also interact with the Consumer Duty, requiring firms to ensure communications support good customer understanding.`,
+The rules also interact with the Consumer Duty, requiring firms to ensure communications support good customer understanding.
+
+**Promotion vs Factual Information**
+Not every factual statement is a promotion. The difference is intent and context:
+- Is it an invitation or inducement to act?
+- Is it targeted to encourage a product decision?
+- Would a reasonable customer view it as marketing?
+When in doubt, treat it as a promotion and apply the standard.
+
+**Channel Consistency**
+Promotions must be compliant across all channels. A compliant web page can become non-compliant if a short-form social post or email headline oversells the same product without equivalent warnings.
+
+**Consumer Duty Link**
+Fair, clear and not misleading aligns with the Duty's consumer understanding outcome. If testing shows customers misunderstand, the promotion is not clear, even if legal text is present.`,
       keyConcepts: [
         'Financial promotion = invitation or inducement to engage in investment/regulated activity',
         'COBS 4.2.1R: communications must be fair, clear and not misleading',
@@ -144,6 +157,15 @@ The rules also interact with the Consumer Duty, requiring firms to ensure commun
 - Firms must keep records of financial promotions
 - Records should show approval process, sign-off, and any amendments
 - Retention typically for regulatory purposes (check specific rules)
+
+**Prominence in Practice**
+- Warnings should be in the same font size and weight as key claims
+- On mobile, warnings must be visible without extra scrolling
+- Use contrast and spacing so warnings are not visually minimized
+
+**Retention and Audit Trail**
+- Keep the approved version, evidence supporting each claim, and all revisions
+- Retain records for the regulatory minimum defined in your policy (often 5 years or more)
 
 **The Financial Promotions Gateway (PS23/13)**
 
@@ -195,6 +217,104 @@ The FCA can:
       ]
     },
     {
+      id: 'approval-workflow',
+      title: 'Approval Workflow, Sign-Off and Record Keeping',
+      duration: 20,
+      content: `A compliant promotion is the result of a disciplined approval workflow. The FCA expects firms to evidence review, challenge, and accountability for every promotion across every channel.
+
+**Approval Workflow Essentials**
+- Define who can approve promotions and at what level
+- Use a consistent checklist aligned to COBS 4 and Consumer Duty
+- Capture versions and changes throughout review
+
+**Workflow Gates**
+1. Marketing brief and claim substantiation pack
+2. Product owner review for accuracy and target market fit
+3. Compliance and legal review against COBS 4 and Consumer Duty
+4. Final approver sign-off and publish log
+
+**Claim Substantiation**
+Every material claim should have evidence attached: data source, date, and owner. If a claim cannot be substantiated, it should be removed or rewritten.
+
+**What to Check Before Approval**
+- Balance of benefits and risks
+- Prominence and proximity of warnings
+- Clarity for the target audience
+- Alignment to product scope and target market
+
+**Record Keeping**
+- Keep the final approved version and review evidence
+- Retain supporting analysis, audience testing, and risk assessments
+- Maintain an audit trail showing who approved and when
+
+**Third-Party Promotions**
+- Approvals for unauthorised persons require enhanced due diligence
+- Ensure introducers and affiliates do not alter approved content without permission`,
+      keyConcepts: [
+        'Approval must be documented and role-based',
+        'Version control and audit trails are mandatory',
+        'Target market alignment is part of approval',
+        'Unauthorised promotions require additional oversight'
+      ],
+      realExamples: [
+        {
+          title: 'Missing Approval Evidence',
+          description: 'A promotion was live on social media without any compliance review record.',
+          outcome: 'FCA required withdrawal and remediation of approval processes'
+        },
+        {
+          title: 'Controlled Workflow',
+          description: 'A firm used a standard checklist and stored approvals alongside final assets.',
+          outcome: 'Approval evidence met regulatory expectations during review'
+        }
+      ]
+    },
+    {
+      id: 'monitoring-testing',
+      title: 'Monitoring, Testing and Remediation',
+      duration: 20,
+      content: `Approval is not the end of compliance. Promotions must be monitored for ongoing accuracy, customer understanding and distribution integrity.
+
+**Ongoing Monitoring**
+- Review live promotions regularly for drift or outdated claims
+- Monitor third-party and affiliate usage
+- Check distribution against target market boundaries
+
+**Monitoring Cadence**
+- Review high-risk campaigns weekly; low-risk campaigns at least monthly
+- Trigger immediate review after regulatory updates, complaint spikes, or adverse media
+
+**Customer Understanding Testing**
+- Run comprehension testing on key messages and risks
+- Track complaint themes, drop-offs, and mis-selling indicators
+
+**Evidence Signals**
+- Call transcripts and chat logs showing misunderstanding
+- Click-through and abandonment rates at key decision points
+
+**Remediation**
+- Withdraw or amend promotions that are misleading or unclear
+- Document fixes and re-test outcomes
+- Update templates and guidance to prevent repeat issues`,
+      keyConcepts: [
+        'Promotions require ongoing monitoring, not one-time approval',
+        'Customer understanding evidence supports Consumer Duty',
+        'Remediation should be documented and systemic'
+      ],
+      realExamples: [
+        {
+          title: 'Influencer Drift',
+          description: 'An influencer altered approved wording and removed risk warnings.',
+          outcome: 'Promotion withdrawn and affiliate controls tightened'
+        },
+        {
+          title: 'Outcome Testing',
+          description: 'Comprehension testing showed customers misread fees, prompting content redesign.',
+          outcome: 'Improved understanding and reduced complaints'
+        }
+      ]
+    },
+    {
       id: 'high-risk-crypto-social',
       title: 'High-Risk Investments, Cryptoassets & Social Media',
       duration: 20,
@@ -214,6 +334,10 @@ Categories include:
 - Personalised risk warnings where applicable
 - Marketing restrictions (e.g. no incentives to invest)
 - 24-hour cooling-off period for direct offer promotions
+
+**Positive Friction**
+- Require active risk acknowledgment before a customer can proceed
+- Reconfirm warnings at the final decision point, not just at entry
 
 **Cryptoasset Promotions**
 
@@ -252,7 +376,12 @@ The FCA has:
 - Pre-approve all sponsored content
 - Include required warnings in the post itself (not just linked)
 - Monitor what influencers actually post
-- Have contracts requiring compliance and right to approve`,
+- Have contracts requiring compliance and right to approve
+
+**Affiliate and Influencer Controls**
+- Pre-approve scripts and key claims
+- Monitor live posts and enforce takedown SLAs
+- Keep evidence of approvals, monitoring checks, and remediation`,
       keyConcepts: [
         'High-risk investments have enhanced warning and appropriateness requirements',
         'Cryptoasset promotions now in scope of COBS 4 with specific requirements',

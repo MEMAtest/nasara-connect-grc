@@ -19,6 +19,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import Link from 'next/link'
 import { Navigation } from '@/components/landing/Navigation'
+import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 import dynamic from 'next/dynamic'
 
 // Dynamic 3D component imports - Feature-specific visualizations
@@ -39,6 +40,8 @@ const features = [
     description: 'Build your complete FCA authorization application with intelligent document generation, gap analysis, and regulatory guidance.',
     gradient: 'from-blue-500 to-cyan-600',
     Component3D: AuthorizationPack3D,
+    detailHref: '/features/authorization-pack',
+    ctaLabel: 'Explore Authorization Pack',
     benefits: [
       'Auto-generate required FCA documents',
       'Real-time completeness tracking',
@@ -55,6 +58,8 @@ const features = [
     description: 'Comprehensive risk identification, assessment, and monitoring with automated control testing and real-time dashboards.',
     gradient: 'from-red-500 to-orange-600',
     Component3D: RiskAssessment3D,
+    detailHref: '/features/risk-assessment',
+    ctaLabel: 'Explore Risk Assessment',
     benefits: [
       'Risk register management',
       'Control effectiveness testing',
@@ -71,6 +76,8 @@ const features = [
     description: 'End-to-end Senior Managers & Certification Regime compliance including responsibilities mapping, fitness assessments, and breach reporting.',
     gradient: 'from-emerald-500 to-teal-600',
     Component3D: SmcrManagement3D,
+    detailHref: '/features/smcr-management',
+    ctaLabel: 'Explore SM&CR Management',
     benefits: [
       'Statement of Responsibilities builder',
       'Certification regime tracking',
@@ -84,9 +91,11 @@ const features = [
     icon: FileText,
     title: 'Policy Management',
     tagline: 'Living documents that evolve with regulation',
-    description: 'AI-powered policy creation with automatic updates when regulations change. Version control, attestations, and gap analysis included.',
+    description: 'Automated policy creation with updates when regulations change. Version control, attestations, and gap analysis included.',
     gradient: 'from-violet-500 to-purple-600',
     Component3D: PolicyManagement3D,
+    detailHref: '/features/policy-management',
+    ctaLabel: 'Explore Policy Management',
     benefits: [
       'Template library with 50+ policies',
       'Auto-update on regulatory changes',
@@ -103,6 +112,8 @@ const features = [
     description: 'Build and execute your Compliance Monitoring Plan with scheduled testing, evidence collection, and regulatory reporting.',
     gradient: 'from-amber-500 to-yellow-600',
     Component3D: ComplianceMonitoring3D,
+    detailHref: '/features/compliance-monitoring',
+    ctaLabel: 'Explore Compliance Monitoring',
     benefits: [
       'CMP builder & scheduler',
       'Test execution tracking',
@@ -119,6 +130,8 @@ const features = [
     description: 'Comprehensive training modules covering FCA requirements, conduct rules, financial crime, and more. Track completions and certifications.',
     gradient: 'from-pink-500 to-rose-600',
     Component3D: TrainingLibrary3D,
+    detailHref: '/features/training-library',
+    ctaLabel: 'Explore Training Library',
     benefits: [
       'CPD-accredited courses',
       'Progress tracking & reporting',
@@ -135,6 +148,8 @@ const features = [
     description: 'Ask questions, get instant answers on FCA rules, draft documents, and receive proactive compliance guidance powered by AI.',
     gradient: 'from-cyan-500 to-blue-600',
     Component3D: AiAssistant3D,
+    detailHref: '/features/ai-assistant',
+    ctaLabel: 'Explore AI Assistant',
     benefits: [
       'Natural language queries',
       'Document drafting assistance',
@@ -227,6 +242,12 @@ function FloatingNodes() {
 export default function FeaturesPage() {
   return (
     <div className="relative overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 min-h-screen">
+      <BreadcrumbJsonLd
+        items={[
+          { name: 'Home', path: '/' },
+          { name: 'Features', path: '/features' }
+        ]}
+      />
       <Navigation variant="solid" />
 
       {/* Floating Nodes Background */}
@@ -253,6 +274,13 @@ export default function FeaturesPage() {
             <p className="text-xl text-slate-400 max-w-3xl mx-auto">
               From authorization to ongoing monitoring, our integrated platform covers every aspect of FCA compliance.
             </p>
+            <Link
+              href="/grc-platform"
+              className="mt-6 inline-flex items-center justify-center text-sm font-semibold text-emerald-300 hover:text-emerald-200"
+            >
+              Explore the governance, risk &amp; compliance platform
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
           </motion.div>
         </div>
       </section>
@@ -282,7 +310,7 @@ export default function FeaturesPage() {
               Join 100+ FCA-regulated firms using Nasara Connect
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/contact">
+              <Link href="/request-demo">
                 <Button size="lg" className="bg-gradient-to-r from-emerald-500 to-teal-600 text-lg px-8">
                   Request Demo
                   <ArrowRight className="ml-2 w-5 h-5" />
@@ -390,9 +418,9 @@ function FeatureSection({ feature, index }: { feature: typeof features[0], index
           ))}
         </ul>
 
-        <Link href="/contact">
+        <Link href={feature.detailHref}>
           <Button className={`bg-gradient-to-r ${feature.gradient} mt-4`}>
-            Learn More
+            {feature.ctaLabel}
             <ArrowRight className="ml-2 w-4 h-4" />
           </Button>
         </Link>

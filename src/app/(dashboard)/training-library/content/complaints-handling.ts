@@ -90,7 +90,19 @@ FOS can:
 - Consider complaints unresolved within the statutory timescale (usually 8 weeks) or earlier where the firm has issued its final response
 - Make determinations that, if accepted by the complainant, are **binding on the firm** up to the applicable monetary limit
 
-FOS outcomes influence both direct redress and future root cause analysis and policy changes.`,
+FOS outcomes influence both direct redress and future root cause analysis and policy changes.
+
+**Complaint vs Service Request**
+- A request for information or a routine service action is not a complaint unless dissatisfaction is expressed
+- If the customer expresses dissatisfaction about delay, quality, or impact, log it as a complaint
+
+**Third-Party Complaints**
+- Complaints can be raised by representatives or family members
+- Verify authority, but do not delay logging or triage
+
+**Jurisdiction Boundaries**
+- FOS jurisdiction depends on activity and complainant status
+- If unsure, log the complaint and assess jurisdiction as part of triage`,
       keyConcepts: [
         'DISP defines complaint broadly: any expression of dissatisfaction, oral or written, justified or not',
         'Eligible complainants include consumers, micro-enterprises, small businesses, charities',
@@ -144,6 +156,15 @@ Headline DISP timeframes (firms must always check specific rules for their secto
 - Set out the firm's investigation outcome and any offer of redress
 - Explain that the customer can refer to FOS within **six months**, enclosing the FOS leaflet or relevant signposting text
 
+**Summary Resolution Communication (SRC) essentials**
+- Confirm the outcome and any redress provided
+- Explain the customer's right to reopen or refer to FOS if dissatisfied
+- Provide clear contact details and reference number
+
+**Acknowledgement and Case Control**
+- Acknowledge promptly with a complaint reference and expected timelines
+- Keep a clear audit trail of all contacts, evidence, and decisions
+
 **Record-Keeping and Reporting**
 
 DISP requires firms to:
@@ -183,6 +204,93 @@ The FCA's Consumer Duty outputs emphasise that:
           title: 'Missed 8-Week Deadline',
           description: 'A complex complaint drifted past 8 weeks with only informal email updates. No holding letter was sent, and FOS was not signposted.',
           outcome: 'DISP breach; customer complained to FOS about both the original issue and the poor complaint handling'
+        }
+      ]
+    },
+    {
+      id: 'intake-triage-ownership',
+      title: 'Complaint Intake, Triage and Ownership',
+      duration: 18,
+      content: `A complaint is any expression of dissatisfaction about a regulated activity. The first failure point in most complaints frameworks is intake: the issue is not logged or is misclassified.
+
+**Intake Expectations**
+- Frontline teams must recognise complaints across all channels (phone, email, social, in-person)
+- Complaints must be logged even if the customer does not use the word "complaint"
+- Ownership and escalation routes must be clear from day one
+
+**Triage and Classification**
+- Identify whether the complaint relates to PSD or non-PSD activities
+- Flag vulnerable customers early and apply support adjustments
+- Separate "service requests" from complaints only if DISP definition is clearly not met
+
+**Ownership and Case Management**
+- Assign a named owner responsible for investigation and deadlines
+- Record complaint category, product, channel, and severity for MI
+- Use handoff controls so complaints do not bounce between teams
+
+**Documentation**
+- Capture the customer narrative in their own words
+- Record timestamps and any immediate actions
+- Ensure audit trails for handoffs between teams`,
+      keyConcepts: [
+        'Complaint definition is broad and channel-agnostic',
+        'Intake is a control, not an admin task',
+        'Triage determines applicable time limits and escalation',
+        'Early vulnerability flags improve outcomes'
+      ],
+      realExamples: [
+        {
+          title: 'Misclassified Feedback',
+          description: 'A call handler tagged a complaint as "feedback" because the customer was polite.',
+          outcome: 'DISP breach after the issue escalated to FOS'
+        },
+        {
+          title: 'Early Triage Success',
+          description: 'A PSD-related complaint was identified on day one and routed to the correct SLA track.',
+          outcome: 'Resolved within regulatory timelines'
+        }
+      ]
+    },
+    {
+      id: 'time-limits-fos-redress',
+      title: 'Time Limits, FOS Escalation and Redress',
+      duration: 18,
+      content: `Complaints handling timelines vary depending on product type and rules. Failure to apply the right timeline is one of the most common DISP breaches.
+
+**Key Time Limits**
+- **Summary Resolution (SRC):** resolve within 3 business days with a summary resolution communication
+- **PSD complaints:** 15 business days, extendable to 35 in exceptional circumstances
+- **Non-PSD complaints:** 8-week maximum for final response or holding letter
+
+**Exceptional Circumstances (PSD)**
+- Only valid where the firm can demonstrate factors outside its control
+- The customer must be informed of the reason and expected response date
+- Evidence should be retained for audit and regulatory review
+
+**FOS Escalation**
+- Customers must be signposted to the FOS in the final response or when time limits are exceeded
+- FOS decisions are binding if accepted by the complainant
+
+**Redress and Remedies**
+- Redress should put the customer back in the position they would have been in
+- Consider compensation for distress/inconvenience where appropriate
+- Document rationale for redress decisions and any systemic fixes`,
+      keyConcepts: [
+        'Correct time limits are critical (SRC, PSD 15/35 days, non-PSD 8 weeks)',
+        'FOS signposting is mandatory in final responses',
+        'Redress must be fair, consistent, and documented',
+        'Exceptional circumstances for PSD extensions must be evidenced'
+      ],
+      realExamples: [
+        {
+          title: 'PSD Timeline Miss',
+          description: 'A payment complaint was treated as an 8-week case and breached the 15-day rule.',
+          outcome: 'FCA criticism and remediation for process failure'
+        },
+        {
+          title: 'Clear FOS Signpost',
+          description: 'A firm issued a final response with clear FOS referral rights and timeline.',
+          outcome: 'Reduced escalation disputes and clearer audit trail'
         }
       ]
     },
@@ -227,7 +335,21 @@ Good practice:
 
 - Clear **ownership** of RCA actions
 - Regular challenge at **Risk / Conduct / Board** committees
-- Linking complaints MI with other metrics (e.g. lapse rates, arrears, vulnerability flags, product changes)`,
+- Linking complaints MI with other metrics (e.g. lapse rates, arrears, vulnerability flags, product changes)
+
+**RCA Taxonomy Example**
+- Process failure (handoffs, delays, missing checks)
+- Communication failure (unclear letters, misleading scripts)
+- Product design issue (value, eligibility, complexity)
+- Third-party failure (outsourced service, vendor errors)
+- Conduct issue (mis-selling, poor advice, unsuitable outcomes)
+
+**MI Pack Essentials**
+- Volumes and timeliness (by product and channel)
+- FOS escalation rate and uphold rate
+- Vulnerable customer outcomes vs non-vulnerable
+- Top root causes and remediation status
+- Repeat complaint hotspots and trend commentary`,
       keyConcepts: [
         'RCA identifies systemic issues, not just individual complaint fixes',
         'Analyse trends by channel, product, journey stage',

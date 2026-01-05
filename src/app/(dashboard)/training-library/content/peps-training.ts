@@ -557,6 +557,141 @@ Structured questioning during onboarding to identify PEP status:
           'Data Protection Act 2018 - Lawful basis for PEP data processing'
         ]
       }
+    },
+    {
+      id: 'ongoing-monitoring-exit',
+      title: 'Ongoing Monitoring, Reviews and Exit Decisions',
+      type: 'content',
+      duration: 4,
+      content: {
+        learningPoint: 'PEP risk changes over time and requires structured monitoring, refresh cycles and documented exit decisions.',
+        mainContent: `PEP risk does not end at onboarding. A relationship that was acceptable at day one can become high-risk quickly if the customer gains new influence, faces allegations, or becomes sanctioned. Ongoing monitoring is therefore a core control, not an optional enhancement.
+
+**Monitoring Expectations**
+
+**1. Periodic Reviews**
+- Review frequency must be risk-based (for example, quarterly for higher-risk PEPs, annually for lower-risk PEPs)
+- Refresh key data: role, influence level, country risk, source of wealth, beneficial ownership
+- Re-validate documentation used in original approval and identify any gaps
+
+**2. Transaction and Activity Monitoring**
+- Apply lower thresholds for alert generation in higher-risk PEP relationships
+- Monitor for unusual movement of funds across related accounts or nominees
+- Watch for changes in counterparties or jurisdictions
+- Capture narrative around high-value transactions and large cash or asset movements
+
+**3. Trigger Events**
+Trigger events require immediate review, not waiting for the next scheduled refresh:
+- Appointment to a new or more influential public role
+- Adverse media linking the PEP to corruption or sanctions
+- Change in ownership structure or control through trusts or family members
+- Unexplained wealth increase or asset acquisition
+
+**Risk Reduction and De-PEP Decisions**
+- The 12-month rule is not automatic de-risking. Risk can persist long after a role ends.
+- Any de-escalation must be documented with rationale, risk indicators, and approvals.
+
+**Exit Decisions**
+Ending a PEP relationship is sometimes the right risk decision, but it must be:
+- Consistent with firm policy
+- Approved at the right level
+- Documented with evidence and risk rationale
+- Managed carefully to avoid tipping off`,
+        keyConcepts: [
+          {
+            term: 'Trigger Event',
+            definition: 'A change that requires immediate review, such as new public office, sanctions exposure, or adverse media.'
+          },
+          {
+            term: 'Risk-Based Review Cadence',
+            definition: 'The frequency of PEP reviews tailored to the assessed risk profile.'
+          },
+          {
+            term: 'De-PEP Decision',
+            definition: 'A documented decision to downgrade PEP status based on evidence and elapsed time.'
+          },
+          {
+            term: 'Exit Decision',
+            definition: 'A formal decision to end the relationship, documented and approved at senior level.'
+          }
+        ],
+        realExamples: [
+          'A former minister left office 18 months ago but remained politically influential. The firm maintained enhanced monitoring with documented rationale.',
+          'A PEP customer was linked to adverse media about procurement fraud, triggering immediate review and senior management escalation.',
+          'A PEP relationship was exited after repeated unexplained wealth increases and refusal to provide evidence of source of funds.'
+        ],
+        regulatoryRequirements: [
+          'Money Laundering Regulations 2017 - Regulation 35 (ongoing monitoring)',
+          'JMLSG Guidance Part I Section 5.3.7 - Ongoing monitoring of PEPs',
+          'FCA Financial Crime Guide - Ongoing due diligence expectations'
+        ]
+      }
+    },
+    {
+      id: 'pep-governance-approvals',
+      title: 'Governance, Approvals and Documentation Standards',
+      type: 'content',
+      duration: 4,
+      content: {
+        learningPoint: 'PEP controls must be backed by senior approval, clear ownership, and audit-ready evidence.',
+        mainContent: `PEP controls are only defensible if the governance and documentation are robust. Regulators expect to see a clear audit trail showing why a PEP was accepted, what risks were considered, and who approved the decision.
+
+**Senior Management Approval**
+- New PEP relationships require approval at a defined senior level
+- Approval must include documented risk assessment and EDD summary
+- Enhanced scrutiny where country risk or corruption indices are elevated
+
+**Ownership and Accountability**
+- MLRO or nominated officer should oversee the PEP framework execution
+- Business owners are responsible for information accuracy and escalation
+- Compliance must provide challenge and independent review
+
+**Documentation Standards**
+Minimum evidence set for each PEP relationship:
+- PEP classification rationale (domestic/foreign/international organisation)
+- Source of wealth and source of funds evidence
+- Approval record with risk summary and conditions
+- Ongoing monitoring records and review cadence
+- Escalations, decisions, and any exceptions
+
+**Quality Assurance**
+- Regular file reviews of PEP decisions and monitoring logs
+- Sample testing of false positives and missed PEPs
+- MI reporting to senior management on PEP exposure and issues
+
+**Data and Privacy**
+- PEP data is sensitive and must be processed lawfully
+- Retention periods should align to AML record-keeping requirements
+- Access controls should restrict PEP data to need-to-know roles`,
+        keyConcepts: [
+          {
+            term: 'Senior Management Approval',
+            definition: 'Formal sign-off by designated senior leaders for new PEP relationships.'
+          },
+          {
+            term: 'EDD File',
+            definition: 'Documented evidence pack supporting PEP onboarding and monitoring decisions.'
+          },
+          {
+            term: 'Quality Assurance',
+            definition: 'Independent checks that PEP decisions meet policy and regulatory standards.'
+          },
+          {
+            term: 'Management Information (MI)',
+            definition: 'Regular reporting on PEP exposure, review status and incidents.'
+          }
+        ],
+        realExamples: [
+          'A firm required dual approval for foreign PEPs from the MLRO and business head, reducing approval bottlenecks and improving documentation quality.',
+          'Quality assurance sampling found that 20% of PEP files lacked evidence of source of wealth, leading to remediation and retraining.',
+          'Monthly MI reports highlighted a backlog of overdue PEP reviews, prompting resource reallocation.'
+        ],
+        regulatoryRequirements: [
+          'Money Laundering Regulations 2017 - Regulation 35 (senior management approval)',
+          'FCA SYSC 6.3 - Financial crime systems and controls',
+          'JMLSG Guidance Part I Section 5.3 - Governance and documentation'
+        ]
+      }
     }
   ],
 

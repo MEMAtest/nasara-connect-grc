@@ -234,7 +234,7 @@ function DraggableScene() {
       label: 'Intelligence',
       size: [1.8, 1.5, 0.3] as [number, number, number],
       icon: 'network',
-      description: 'AI-powered regulatory intelligence & monitoring'
+      description: 'Regulatory intelligence & monitoring'
     },
     {
       position: [2, 2, 0] as [number, number, number],

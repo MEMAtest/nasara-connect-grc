@@ -709,6 +709,73 @@ The legal test is deliberately broad:
     },
 
     {
+      id: 'sar-quality-consent',
+      title: 'SAR Quality, MLRO Decisioning and Consent',
+      type: 'content',
+      duration: 4,
+      content: {
+        learningPoint: 'High-quality SARs and clear MLRO decisioning are essential for lawful action and defensible outcomes.',
+        mainContent: `A SAR is only useful if it gives law enforcement enough to act. The MLRO must also make clear, documented decisions on whether to report, whether to seek consent (DAML), and how to proceed with transactions.
+
+**What Makes a High-Quality SAR**
+- Clear subject details: full name, DOB, addresses, identifiers, account numbers
+- Factual narrative: what happened, when, amounts, channels, counterparties
+- Why it is suspicious: inconsistencies, red flags, changes in behavior
+- Supporting evidence: references to documents, alerts, conversations, and logs
+- Avoids speculation: focus on facts and risk rationale
+
+**MLRO Decisioning**
+MLROs should maintain a decision log that records:
+- The suspicion threshold and basis
+- Information reviewed and any gaps
+- Whether additional information was requested
+- The final decision and rationale
+- Any post-decision controls (account monitoring, restrictions, exit)
+
+**Consent and DAML Requests**
+Where a firm needs to proceed with a transaction that may involve criminal property, the MLRO can seek a Defence Against Money Laundering (DAML) by filing a SAR and requesting consent from the NCA.
+
+Key points:
+- The NCA has a statutory response period before consent is deemed refused or granted
+- If consent is refused, a moratorium period applies and the firm must not proceed
+- All timelines and decisions must be documented
+
+**Quality Assurance**
+- Regular sampling of SARs for clarity and completeness
+- Feedback loops to improve staff submissions
+- Training on writing fact-based narratives`,
+        keyConcepts: [
+          {
+            term: 'Defence Against Money Laundering (DAML)',
+            definition: 'A legal defence obtained by seeking NCA consent to proceed with a transaction involving suspected criminal property.'
+          },
+          {
+            term: 'Moratorium Period',
+            definition: 'A legal period after a consent refusal during which transactions must not proceed.'
+          },
+          {
+            term: 'SAR Narrative',
+            definition: 'The factual summary that explains what happened and why it is suspicious.'
+          },
+          {
+            term: 'MLRO Decision Log',
+            definition: 'Documented record of decisions, evidence, and actions taken.'
+          }
+        ],
+        realExamples: [
+          'A SAR that included timestamps, account numbers, and inconsistent explanations was graded high quality and resulted in law enforcement follow-up.',
+          'An MLRO requested DAML for a pending outbound transfer and documented the consent timeline and final decision.',
+          'Quality review found SARs lacked subject identifiers, prompting updated guidance and re-training.'
+        ],
+        regulatoryRequirements: [
+          'POCA 2002 - Consent and moratorium provisions',
+          'NCA SARs Guidance - Quality expectations and DAML process',
+          'FCA SYSC 6.3 - Record keeping and governance expectations'
+        ]
+      }
+    },
+
+    {
       id: 'confidentiality-management',
       title: 'Confidentiality and Tipping-Off Prevention',
       type: 'content',

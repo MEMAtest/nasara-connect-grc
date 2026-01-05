@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -39,37 +39,43 @@ export function KYCTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
 
   const kycModule = kycFundamentalsModule;
 
-  const buildSectionIds = () => ([
-    'hook',
-    'pillars',
-    'risk',
-    'monitoring',
-    ...kycModule.practiceScenarios.map((_, index) => `scenario-${index}`),
-    'summary',
-  ]);
+  const sections = useMemo(
+    () => ([
+      { id: 'hook', title: 'The Crisis' },
+      { id: 'pillars', title: 'CDD Pillars' },
+      { id: 'risk', title: 'Risk Assessment' },
+      { id: 'monitoring', title: 'Ongoing Monitoring' },
+      ...kycModule.practiceScenarios.map((_, index) => ({
+        id: `scenario-${index}`,
+        title: `Scenario ${index + 1}`,
+      })),
+      { id: 'summary', title: 'Summary' },
+    ]),
+    [kycModule.practiceScenarios],
+  );
 
   const getInitialSectionIndex = () => {
-    const ids = buildSectionIds();
     const stage = deepLink?.stage;
     const section = deepLink?.section;
 
     if (stage === 'hook') return 0;
-    if (stage === 'summary') return ids.length - 1;
-    if (stage === 'practice') return Math.max(0, ids.findIndex((id) => id.startsWith('scenario-')));
+    if (stage === 'summary') return sections.length - 1;
+    if (stage === 'practice') return Math.max(0, sections.findIndex((item) => item.id.startsWith('scenario-')));
 
     if (section) {
-      const byId = ids.findIndex((id) => id === section);
+      const byId = sections.findIndex((item) => item.id === section);
       if (byId !== -1) return byId;
       const parsed = Number(section);
-      if (Number.isFinite(parsed)) return Math.max(0, Math.min(parsed, ids.length - 1));
+      if (Number.isFinite(parsed)) return Math.max(0, Math.min(parsed, sections.length - 1));
     }
 
     return 0;
   };
 
   const [currentSection, setCurrentSection] = useState(getInitialSectionIndex);
-  const totalSections = 1 + kycModule.lessons.length + kycModule.practiceScenarios.length + 1; // Hook + Lessons + Scenarios + Summary
+  const totalSections = sections.length;
   const progress = (completedSections.size / totalSections) * 100;
+  const activeSectionId = sections[currentSection]?.id ?? String(currentSection);
 
   const handleSectionComplete = (sectionIndex: number) => {
     const newCompleted = new Set(completedSections);
@@ -109,7 +115,7 @@ export function KYCTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
               <div className="text-sm text-muted-foreground">Synthetic ID Fraud Growth</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-blue-600">AI-Powered</div>
+              <div className="text-3xl font-bold text-blue-600">Tech-Enabled</div>
               <div className="text-sm text-muted-foreground">New Criminal Methods</div>
             </div>
           </div>
@@ -649,18 +655,28 @@ export function KYCTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
     </div>
   );
 
-  const sections = [
-    { id: 'hook', title: 'The Crisis', component: renderHookSection },
-    { id: 'pillars', title: 'CDD Pillars', component: renderCDDPillars },
-    { id: 'risk', title: 'Risk Assessment', component: renderRiskAssessment },
-    { id: 'monitoring', title: 'Ongoing Monitoring', component: renderOngoingMonitoring },
-    ...kycModule.practiceScenarios.map((scenario, index) => ({
-      id: `scenario-${index}`,
-      title: `Scenario ${index + 1}`,
-      component: () => renderScenario(scenario, index)
-    })),
-    { id: 'summary', title: 'Summary', component: renderSummary }
-  ];
+  const renderSection = (sectionId: string) => {
+    switch (sectionId) {
+      case 'hook':
+        return renderHookSection();
+      case 'pillars':
+        return renderCDDPillars();
+      case 'risk':
+        return renderRiskAssessment();
+      case 'monitoring':
+        return renderOngoingMonitoring();
+      case 'summary':
+        return renderSummary();
+      default: {
+        if (!sectionId.startsWith('scenario-')) return null;
+        const scenarioIndex = Number(sectionId.replace('scenario-', ''));
+        if (!Number.isFinite(scenarioIndex)) return null;
+        const scenario = kycModule.practiceScenarios[scenarioIndex];
+        if (!scenario) return null;
+        return renderScenario(scenario, scenarioIndex);
+      }
+    }
+  };
 
   useEffect(() => {
     const stage = deepLink?.stage;
@@ -692,12 +708,13 @@ export function KYCTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
     const nextIndex = Math.max(0, Math.min(parsed, sections.length - 1));
     if (nextIndex === currentSection) return;
     setCurrentSection(nextIndex);
-  }, [currentSection, deepLink?.section, sections]);
+  }, [currentSection, deepLink?.section, deepLink?.stage, sections]);
 
   useEffect(() => {
-    const sectionId = sections[currentSection]?.id ?? String(currentSection);
-    onDeepLinkChange?.({ stage: "content", section: sectionId });
-  }, [currentSection, onDeepLinkChange, sections]);
+    if (!onDeepLinkChange) return;
+    if (deepLink?.stage === "content" && deepLink?.section === activeSectionId) return;
+    onDeepLinkChange({ stage: "content", section: activeSectionId });
+  }, [activeSectionId, deepLink?.section, deepLink?.stage, onDeepLinkChange]);
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -741,30 +758,28 @@ export function KYCTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
           ))}
         </TabsList>
 
-        {sections.map((section) => (
-          <TabsContent key={section.id} value={section.id} className="mt-6">
-            {section.component()}
-            <div className="flex justify-between mt-8">
-              <Button
-                variant="outline"
-                onClick={() => setCurrentSection(Math.max(0, currentSection - 1))}
-                disabled={currentSection === 0}
-              >
-                Previous
-              </Button>
-              <Button
-                onClick={() => {
-                  handleSectionComplete(currentSection);
-                  if (currentSection < sections.length - 1) {
-                    setCurrentSection(currentSection + 1);
-                  }
-                }}
-              >
-                {currentSection === sections.length - 1 ? 'Complete Training' : 'Next Section'}
-              </Button>
-            </div>
-          </TabsContent>
-        ))}
+        <TabsContent value={activeSectionId} className="mt-6" key={activeSectionId}>
+          {renderSection(activeSectionId)}
+          <div className="flex justify-between mt-8">
+            <Button
+              variant="outline"
+              onClick={() => setCurrentSection(Math.max(0, currentSection - 1))}
+              disabled={currentSection === 0}
+            >
+              Previous
+            </Button>
+            <Button
+              onClick={() => {
+                handleSectionComplete(currentSection);
+                if (currentSection < sections.length - 1) {
+                  setCurrentSection(currentSection + 1);
+                }
+              }}
+            >
+              {currentSection === sections.length - 1 ? 'Complete Training' : 'Next Section'}
+            </Button>
+          </div>
+        </TabsContent>
       </Tabs>
     </div>
   );

@@ -314,3 +314,279 @@ export const consumerDutyImplementationContent = {
     }
   } as MicroLesson
 };
+
+export const consumerDutyImplementationModule: TrainingModule = {
+  id: "consumer-duty-implementation",
+  title: "Consumer Duty Implementation",
+  description: "Translate the Duty into practical controls, fair value evidence, and board-ready outcomes monitoring.",
+  category: "customer-protection",
+  duration: 35,
+  difficulty: "intermediate",
+  targetPersonas: ["compliance-officer", "senior-manager", "operations-staff", "relationship-manager", "customer-service"],
+  prerequisiteModules: ["consumer-duty"],
+  tags: ["consumer-duty", "fair-value", "outcomes", "governance", "vulnerable-customers"],
+  learningOutcomes: [
+    "Translate Principle 12 into measurable outcomes and governance responsibilities",
+    "Design fair value assessments that evidence benefit vs cost",
+    "Implement communications testing and monitoring for understanding",
+    "Embed vulnerable customer support into day-to-day operations",
+    "Build MI that demonstrates outcomes to boards and regulators"
+  ],
+  hook: {
+    title: "The GBP 2.8 Billion Wake-Up Call",
+    content: "Since the Duty went live, firms have returned billions to customers after poor value and weak outcomes were identified. Consumer Duty is not a policy statement; it is an operational standard. The quality of your evidence and monitoring determines whether you are compliant.",
+    statistic: "More than GBP 2.8bn returned to customers after Duty-driven reviews."
+  },
+  lessons: [
+    {
+      id: "duty-structure",
+      title: "From Principle to Outcomes",
+      type: "content",
+      duration: 10,
+      content: {
+        learningPoint: "Principle 12 and the cross-cutting rules drive every outcome test.",
+        mainContent: "Consumer Duty shifts compliance from process adherence to outcomes evidence. The cross-cutting rules (good faith, avoid foreseeable harm, enable customers) apply across the customer lifecycle, and the four outcomes provide the structure for measurement.\n\nImplementation starts with clarity: map products and journeys to the four outcomes, then design evidence and monitoring for each.",
+        keyConcepts: [
+          { term: "Principle 12", definition: "Act to deliver good outcomes for retail customers." },
+          { term: "Cross-Cutting Rules", definition: "Good faith, avoid foreseeable harm, and enable customers to pursue their financial objectives." },
+          { term: "Outcome Framework", definition: "Products and services, price and value, consumer understanding, and consumer support." }
+        ],
+        realExamples: [
+          "Products with complex terms that customers consistently misunderstand.",
+          "Legacy customers paying materially more than new customers without justification."
+        ],
+        visual: {
+          type: "infographic",
+          elements: [
+            { icon: "shield", text: "Act in good faith", description: "Demonstrate fairness in design and servicing.", color: "green" },
+            { icon: "alert-triangle", text: "Avoid foreseeable harm", description: "Design controls to prevent predictable detriment.", color: "amber" },
+            { icon: "search", text: "Enable customers", description: "Support informed decisions with clear communications.", color: "red" }
+          ]
+        }
+      }
+    },
+    {
+      id: "fair-value",
+      title: "Fair Value and Product Governance",
+      type: "content",
+      duration: 10,
+      content: {
+        learningPoint: "Fair value requires evidence of benefit vs cost for each target market segment.",
+        mainContent: "Fair value is not a pricing exercise; it is a holistic assessment of the total price paid relative to the expected benefits. Build a repeatable assessment method, include distribution channels, and test outcomes for different customer segments.\n\nGood evidence combines quantitative analysis (fees, returns, complaints, retention) with qualitative insights (customer feedback, vulnerabilities, service performance).",
+        keyConcepts: [
+          { term: "Target Market", definition: "The customer segment the product is designed for and tested against." },
+          { term: "Fair Value Assessment", definition: "Evidence that price aligns with benefits, quality, and outcomes." },
+          { term: "Product Governance", definition: "Design, approval, monitoring, and review of products over their lifecycle." }
+        ],
+        realExamples: [
+          { title: "Savings product with loyalty penalty", description: "Assess legacy customers vs new customers and justify pricing." },
+          { title: "Insurance add-ons", description: "Evidence that add-ons deliver value for the target market." }
+        ],
+        visual: {
+          type: "process_flow",
+          steps: [
+            {
+              number: 1,
+              title: "Define Target Market",
+              description: "Clarify who the product is for and who it is not for.",
+              examples: ["Target market profile", "Exclusion criteria"],
+              redFlags: ["Products sold outside target market", "Weak distribution controls"],
+              color: "red"
+            },
+            {
+              number: 2,
+              title: "Assess Price vs Benefit",
+              description: "Compare total costs with expected benefits and outcomes.",
+              examples: ["Fee analysis", "Outcome evidence"],
+              redFlags: ["Loyalty penalties", "Hidden fees"],
+              color: "amber"
+            },
+            {
+              number: 3,
+              title: "Monitor and Adjust",
+              description: "Track outcomes and revise pricing or design if needed.",
+              examples: ["Regular reviews", "Board reporting"],
+              redFlags: ["Repeated complaints", "Declining outcomes"],
+              color: "green"
+            }
+          ]
+        }
+      }
+    },
+    {
+      id: "understanding-support",
+      title: "Consumer Understanding and Support",
+      type: "content",
+      duration: 8,
+      content: {
+        learningPoint: "Outcomes depend on communications clarity and friction-free support.",
+        mainContent: "Customer understanding requires communications that are clear, timely, and tested. Support requires accessible channels, trained staff, and adaptations for vulnerable customers. Track key moments where understanding or support fails (onboarding, changes, complaints, cancellations).\n\nEvidence includes readability testing, customer feedback, and interaction outcomes.",
+        keyConcepts: [
+          { term: "Communications Testing", definition: "Structured testing of clarity and comprehension before release." },
+          { term: "Support Accessibility", definition: "Availability of channels that meet customer needs, including vulnerabilities." }
+        ],
+        realExamples: [
+          "Removing jargon from eligibility criteria to reduce decline disputes.",
+          "Adding call-back support for vulnerable customers who cannot use digital channels."
+        ]
+      }
+    },
+    {
+      id: "outcome-testing-remediation",
+      title: "Outcome Testing and Remediation",
+      type: "content",
+      duration: 7,
+      content: {
+        learningPoint: "Evidence good outcomes with testing, then fix what fails.",
+        mainContent: "Implementation is not complete until outcomes are tested and improvements are tracked. The Duty expects firms to proactively identify where customers do not understand, where value is weak, or where support barriers cause harm.\n\nTesting methods include customer surveys, comprehension testing, mystery shopping, complaints analysis, and journey analytics. Remediation must be documented, assigned to owners, and re-tested for impact.",
+        keyConcepts: [
+          { term: "Outcome Testing", definition: "Structured testing of customer understanding, value, and support outcomes." },
+          { term: "Remediation", definition: "Actions taken to improve outcomes once weaknesses are identified." },
+          { term: "Journey Analytics", definition: "Tracking drop-off and friction points across customer journeys." }
+        ],
+        realExamples: [
+          "Testing showed customers misunderstood cancellation terms, triggering a rewrite and simplified exit flow.",
+          "Complaints analysis found value concerns for legacy customers, leading to a targeted pricing review."
+        ]
+      }
+    },
+    {
+      id: "governance-mi",
+      title: "Governance, MI, and Evidence",
+      type: "content",
+      duration: 7,
+      content: {
+        learningPoint: "Boards need outcome-led MI and clear accountability.",
+        mainContent: "Governance should assign accountable owners for each outcome, set review cadences, and require evidence packs. MI should track outcomes, not just volumes. Example metrics include fair value deltas, complaint root causes, and vulnerable customer outcomes.\n\nEvidence packs should be easy to audit and link directly to product decisions and customer impact.",
+        keyConcepts: [
+          { term: "Outcome MI", definition: "Measures of customer impact, not just operational throughput." },
+          { term: "Accountable Owner", definition: "Senior role responsible for outcome delivery and evidence." }
+        ],
+        realExamples: [
+          "Board receives quarterly outcomes dashboard with commentary and action plans.",
+          "Product owners review fair value metrics before pricing changes."
+        ]
+      }
+    }
+  ],
+  practiceScenarios: [
+    {
+      id: "consumer-duty-1",
+      title: "Pricing Review for Legacy Customers",
+      scenario: "A product review shows long-standing customers pay 30% more than new customers for the same service. Retention is high but complaints are rising.",
+      question: "What is the best Consumer Duty response?",
+      options: [
+        { text: "Maintain pricing because retention is strong", isCorrect: false },
+        { text: "Conduct a fair value assessment and remediate pricing if outcomes are poor", isCorrect: true },
+        { text: "Offer ad-hoc discounts only to those who complain", isCorrect: false }
+      ],
+      explanation: "Consumer Duty requires fair value evidence for all customers. Targeted discounts after complaints do not address systemic poor value.",
+      learningPoints: [
+        "Fair value applies across customer cohorts.",
+        "Evidence must be documented and reviewed.",
+        "Remediation should be systemic, not reactive."
+      ]
+    },
+    {
+      id: "consumer-duty-2",
+      title: "Communications Clarity",
+      scenario: "Customers consistently misunderstand a critical eligibility condition in your onboarding documents.",
+      question: "What should you do first?",
+      options: [
+        { text: "Add a longer legal disclaimer", isCorrect: false },
+        { text: "Test and redesign communications to improve comprehension", isCorrect: true },
+        { text: "Rely on support staff to explain after onboarding", isCorrect: false }
+      ],
+      explanation: "Consumer Duty requires communications that enable understanding at the right time. Testing and redesign are required.",
+      learningPoints: [
+        "Understanding must be designed, not assumed.",
+        "Testing with customers is evidence of compliance.",
+        "Support cannot compensate for unclear onboarding materials."
+      ]
+    }
+  ],
+  assessmentQuestions: [
+    {
+      id: "consumer-duty-q1",
+      question: "Which is the best example of outcome-led MI?",
+      options: [
+        "Monthly volume of customer support calls",
+        "Number of complaints received",
+        "Fair value delta for each target market segment",
+        "Total revenue per product line"
+      ],
+      correctAnswer: 2,
+      explanation: "Outcome-led MI focuses on customer outcomes such as value delivered to each segment."
+    },
+    {
+      id: "consumer-duty-q2",
+      question: "When does a firm meet the Consumer Duty standard?",
+      options: [
+        "When policies are updated",
+        "When evidence shows good outcomes for customers",
+        "When complaints volumes decrease",
+        "When products are profitable"
+      ],
+      correctAnswer: 1,
+      explanation: "Consumer Duty is evidenced by outcomes, not just policy changes."
+    }
+  ],
+  summary: {
+    keyTakeaways: [
+      "Consumer Duty is an operational standard requiring evidence of outcomes.",
+      "Fair value assessments must compare price to benefits for each target market.",
+      "Communications and support must be designed and tested for understanding.",
+      "Boards need outcome-led MI and clear accountability.",
+      "Vulnerable customer support must be integrated into everyday processes."
+    ],
+    nextSteps: [
+      "Map your products to the four outcomes and assign accountable owners.",
+      "Run a fair value assessment using real outcome data.",
+      "Design an outcomes dashboard for board review."
+    ],
+    quickReference: {
+      title: "Consumer Duty Implementation Checklist",
+      items: [
+        { term: "Outcomes Mapping", definition: "Link products and journeys to each Duty outcome." },
+        { term: "Fair Value Evidence", definition: "Document price vs benefit for each target market." },
+        { term: "Communications Testing", definition: "Prove customers understand key information." },
+        { term: "Support Accessibility", definition: "Ensure channels meet vulnerable customer needs." },
+        { term: "Outcome MI", definition: "Report outcomes and actions to the board." }
+      ]
+    }
+  },
+  visualAssets: {
+    diagrams: [
+      {
+        id: "outcome-map",
+        title: "Consumer Duty Outcome Map",
+        description: "Linking Principle 12, cross-cutting rules, and the four outcomes.",
+        type: "framework"
+      },
+      {
+        id: "governance-loop",
+        title: "Governance and MI Loop",
+        description: "Outcome monitoring, board review, remediation, and re-testing cycle.",
+        type: "process"
+      }
+    ],
+    infographics: [
+      {
+        id: "fair-value",
+        title: "Fair Value Evidence Checklist",
+        description: "Key data inputs for fair value assessments and reviews."
+      }
+    ],
+    images: [
+      {
+        section: "outcomes",
+        description: "Outcome dashboard with good/poor outcome comparisons."
+      },
+      {
+        section: "communications",
+        description: "Before and after example of simplified customer communication."
+      }
+    ],
+    style: "Customer-first visuals with clear outcome frameworks and evidence cues"
+  }
+};

@@ -197,7 +197,12 @@ Employees not in Senior Manager or Certification functions:
 - Enhanced recruitment and vetting procedures
 - Ongoing training and development programs
 - Technology investments for monitoring and reporting
-- Legal and professional advisory costs`,
+- Legal and professional advisory costs
+
+**Reasonable Steps Framework**
+- Set clear governance, delegation, and oversight
+- Ensure MI and escalation routes exist and are used
+- Document decisions, challenge, and follow-up actions`,
 
         keyConcepts: [
           {
@@ -454,7 +459,12 @@ Independent directors providing challenge and oversight:
 - Coordination between legal entities
 - Group-wide vs. local responsibilities
 - Regulatory relationship management
-- Capital and resource allocation`,
+- Capital and resource allocation
+
+**SoR Updates**
+- Update Statements of Responsibilities when duties change
+- Document handover and acceptance of new responsibilities
+- Ensure the responsibilities map is consistent with updated SoRs`,
 
         keyConcepts: [
           {
@@ -491,6 +501,53 @@ Independent directors providing challenge and oversight:
     },
 
     {
+      id: 'handover-notifications',
+      title: 'Handover, Regulatory References and Notifications',
+      type: 'content',
+      duration: 5,
+      content: {
+        learningPoint: 'Clear handovers and timely notifications protect firms and individuals.',
+        mainContent: `SM&CR requires firms to manage transitions and regulatory communications with discipline. Poor handovers and missed notifications are common findings in FCA reviews.
+
+**Handover Procedures**
+- Document responsibilities, risks, and open issues when roles change
+- Provide clear ownership of ongoing regulatory commitments
+- Maintain handover records for audit and accountability
+
+**Regulatory References**
+- Firms must obtain and provide regulatory references for senior managers and certified persons
+- References should cover disciplinary findings, conduct rule breaches, and relevant investigations
+
+**Notifications**
+- Notify regulators of certain breaches, role changes, or withdrawals
+- Ensure timelines for updates to SoRs and approvals are met
+- Maintain evidence of submissions and responses
+
+**Handover Pack Essentials**
+- Key risks and open issues
+- Committees, reporting lines, and MI cadence
+- Outstanding regulatory commitments and deadlines`,
+        keyConcepts: [
+          {
+            term: 'Handover Certificate',
+            definition: 'Documented record of responsibilities, risks, and open actions during role changes.'
+          },
+          {
+            term: 'Regulatory Reference',
+            definition: 'Reference provided to new employers detailing conduct and disciplinary history.'
+          },
+          {
+            term: 'Form C/D Notifications',
+            definition: 'Regulatory notifications for changes, withdrawals, or breaches.'
+          }
+        ],
+        realExamples: [
+          'A senior manager left without a formal handover, creating gaps in accountability that were later criticised by the FCA.',
+          'A firm failed to update the FCA after a role change, leading to delays in approval and compliance issues.'
+        ]
+      }
+    },
+    {
       id: 'certification-regime',
       title: 'Certification Regime and Fitness Assessment',
       type: 'content',
@@ -498,6 +555,20 @@ Independent directors providing challenge and oversight:
       content: {
         learningPoint: 'Implement effective certification procedures and ongoing fitness and propriety assessments for key personnel',
         mainContent: `The Certification Regime covers individuals who are not Senior Managers but perform functions that could pose significant risk to the firm or consumers. Unlike Senior Managers, these individuals do not require regulatory approval but must be certified annually by their firm.
+
+**Fit and Proper Assessment**
+- Honesty, integrity, and reputation
+- Competence and capability for the role
+- Financial soundness where relevant
+
+**Annual Certification Evidence**
+- Training completion and competence checks
+- Performance reviews and supervision records
+- Conduct breaches, remediation, and outcomes
+
+**Certification Withdrawal**
+- If certification cannot be granted, the individual must stop performing the role
+- Document the decision, rationale, and any required notifications
 
 **Certification Functions Overview:**
 
@@ -983,7 +1054,12 @@ These fundamental rules apply to everyone in scope:
 - Recognition of international qualifications
 - Coordination with industry standards
 - Professional development pathways
-- Joint disciplinary procedures where appropriate`,
+- Joint disciplinary procedures where appropriate
+
+**Conduct Rule Breach Reporting**
+- Establish internal reporting routes and investigation steps
+- Record facts, decision rationale, and remediation
+- Report serious breaches to regulators in line with policy`,
 
         keyConcepts: [
           {

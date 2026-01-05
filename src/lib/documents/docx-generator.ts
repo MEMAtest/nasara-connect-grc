@@ -1,6 +1,6 @@
 /**
- * DOCX Document Generator
- * Converts policy clauses to branded DOCX format
+ * Professional DOCX Document Generator
+ * Creates FCA-standard policy documents with proper structure
  */
 
 import {
@@ -15,14 +15,63 @@ import {
   TableCell,
   WidthType,
   convertInchesToTwip,
+  PageBreak,
+  Header,
+  Footer,
+  PageNumber,
+  NumberFormat,
+  TableOfContents,
+  StyleLevel,
+  SectionType,
+  PageNumberSeparator,
 } from 'docx';
 import type { FirmBranding } from '../policies/types';
+import { sanitizeClauseContent, DEFAULT_SANITIZE_OPTIONS } from '../policies/content-sanitizer';
 
 // =====================================================
 // TYPES
 // =====================================================
 
+export interface PolicySection {
+  id: string;
+  title: string;
+  sectionType: 'policy' | 'procedure' | 'appendix';
+  clauses: Array<{
+    title: string;
+    code: string;
+    rendered_body: string;
+    is_mandatory: boolean;
+  }>;
+  customNotes?: string;
+}
+
 export interface DocumentGenerationOptions {
+  policyTitle: string;
+  policyVersion: string;
+  firmName: string;
+  branding: FirmBranding;
+  sections: PolicySection[];
+  metadata?: {
+    generated_by?: string;
+    generated_at?: string;
+    approved_by?: string;
+    approved_at?: string;
+    effective_date?: string;
+    next_review_date?: string;
+    owner?: string;
+    classification?: string;
+  };
+  watermark?: boolean;
+  versionHistory?: Array<{
+    version: string;
+    date: string;
+    author: string;
+    changes: string;
+  }>;
+}
+
+// Legacy interface for backward compatibility
+export interface LegacyDocumentGenerationOptions {
   policyTitle: string;
   policyVersion: string;
   firmName: string;
@@ -45,20 +94,38 @@ export interface DocumentGenerationOptions {
 
 interface ParsedContent {
   type: 'paragraph' | 'heading' | 'list' | 'table' | 'code' | 'blockquote';
-  level?: number; // For headings
+  level?: number;
   text?: string;
-  items?: string[]; // For lists
-  ordered?: boolean; // For lists
+  items?: string[];
+  ordered?: boolean;
   style?: 'bold' | 'italic' | 'code';
 }
+
+// =====================================================
+// CONSTANTS
+// =====================================================
+
+const MARGINS = {
+  top: convertInchesToTwip(1),
+  right: convertInchesToTwip(1),
+  bottom: convertInchesToTwip(1),
+  left: convertInchesToTwip(1.25), // Slightly wider left margin for binding
+};
+
+const COLORS = {
+  primary: '4F46E5',
+  secondary: '6366F1',
+  text: '1F2937',
+  muted: '6B7280',
+  border: 'E5E7EB',
+  warning: 'F59E0B',
+  error: 'EF4444',
+};
 
 // =====================================================
 // MARKDOWN PARSER
 // =====================================================
 
-/**
- * Parse Markdown to structured content for DOCX generation
- */
 export function parseMarkdownToStructure(markdown: string): ParsedContent[] {
   const content: ParsedContent[] = [];
   const lines = markdown.split('\n');
@@ -67,7 +134,6 @@ export function parseMarkdownToStructure(markdown: string): ParsedContent[] {
   while (i < lines.length) {
     const line = lines[i];
 
-    // Skip empty lines
     if (!line.trim()) {
       i++;
       continue;
@@ -123,9 +189,6 @@ export function parseMarkdownToStructure(markdown: string): ParsedContent[] {
   return content;
 }
 
-/**
- * Parse inline formatting (bold, italic, code)
- */
 export function parseInlineFormatting(text: string): TextRun[] {
   const runs: TextRun[] = [];
   let current = '';
@@ -135,6 +198,7 @@ export function parseInlineFormatting(text: string): TextRun[] {
     // Bold **text**
     if (text.substring(i, i + 2) === '**') {
       if (current) {
+        // Don't set bold at all for normal text - omitting the property is cleaner
         runs.push(new TextRun({ text: current }));
         current = '';
       }
@@ -187,7 +251,7 @@ export function parseInlineFormatting(text: string): TextRun[] {
           new TextRun({
             text: codeText,
             font: 'Courier New',
-            color: '666666',
+            color: COLORS.muted,
           })
         );
       }
@@ -195,7 +259,6 @@ export function parseInlineFormatting(text: string): TextRun[] {
       continue;
     }
 
-    // Regular character
     current += text[i];
     i++;
   }
@@ -208,231 +271,484 @@ export function parseInlineFormatting(text: string): TextRun[] {
 }
 
 // =====================================================
-// DOCX GENERATION
+// DOCUMENT COMPONENTS
 // =====================================================
 
-/**
- * Generate DOCX document from clauses
- */
-export function generateDocx(options: DocumentGenerationOptions): Document {
-  const { policyTitle, policyVersion, firmName, branding, clauses, metadata, watermark } =
-    options;
-  const primaryHex = branding?.primary_color ?? '#4F46E5';
-  const normalizedPrimaryColor =
-    primaryHex.replace('#', '').trim().toUpperCase() || '4F46E5';
-  const documentFont = branding?.font ?? 'Calibri';
+function createCoverPage(
+  firmName: string,
+  policyTitle: string,
+  policyVersion: string,
+  effectiveDate: string | undefined,
+  classification: string | undefined,
+  primaryColor: string
+): Paragraph[] {
+  return [
+    // Spacer
+    new Paragraph({ text: '', spacing: { after: 2400 } }),
 
-  const sections: Array<Paragraph | Table> = [];
-
-  // Title Page
-  sections.push(
+    // Firm name
     new Paragraph({
-      text: firmName,
-      heading: HeadingLevel.TITLE,
-      alignment: AlignmentType.CENTER,
-      spacing: { after: 200 },
-    }),
-    new Paragraph({
-      text: policyTitle,
-      heading: HeadingLevel.HEADING_1,
-      alignment: AlignmentType.CENTER,
-      spacing: { after: 100 },
-    }),
-    new Paragraph({
-      text: `Version ${policyVersion}`,
+      children: [
+        new TextRun({
+          text: firmName.toUpperCase(),
+          bold: true,
+          size: 28,
+          color: COLORS.muted,
+          font: 'Calibri',
+        }),
+      ],
       alignment: AlignmentType.CENTER,
       spacing: { after: 400 },
-    })
-  );
+    }),
 
-  // Metadata table
-  if (metadata) {
-    const metadataRows: TableRow[] = [];
-
-    if (metadata.generated_at) {
-      metadataRows.push(
-        new TableRow({
-          children: [
-            new TableCell({
-              children: [new Paragraph({ text: 'Generated:', bold: true })],
-              width: { size: 30, type: WidthType.PERCENTAGE },
-            }),
-            new TableCell({
-              children: [
-                new Paragraph({
-                  text: new Date(metadata.generated_at).toLocaleDateString(),
-                }),
-              ],
-            }),
-          ],
-        })
-      );
-    }
-
-    if (metadata.effective_date) {
-      metadataRows.push(
-        new TableRow({
-          children: [
-            new TableCell({
-              children: [new Paragraph({ text: 'Effective Date:', bold: true })],
-            }),
-            new TableCell({
-              children: [
-                new Paragraph({
-                  text: new Date(metadata.effective_date).toLocaleDateString(),
-                }),
-              ],
-            }),
-          ],
-        })
-      );
-    }
-
-    if (metadata.approved_by) {
-      metadataRows.push(
-        new TableRow({
-          children: [
-            new TableCell({
-              children: [new Paragraph({ text: 'Approved By:', bold: true })],
-            }),
-            new TableCell({
-              children: [new Paragraph({ text: metadata.approved_by })],
-            }),
-          ],
-        })
-      );
-    }
-
-    if (metadataRows.length > 0) {
-      sections.push(
-        new Table({
-          rows: metadataRows,
-          width: { size: 100, type: WidthType.PERCENTAGE },
-          margins: {
-            top: convertInchesToTwip(0.1),
-            bottom: convertInchesToTwip(0.1),
-            left: convertInchesToTwip(0.1),
-            right: convertInchesToTwip(0.1),
-          },
-        })
-      );
-      sections.push(
-        new Paragraph({
-          text: '',
-          spacing: { after: 400 },
-        })
-      );
-    }
-  }
-
-  // Watermark for drafts
-  if (watermark) {
-    sections.push(
-      new Paragraph({
-        text: '⚠️ DRAFT - NOT FOR DISTRIBUTION',
-        alignment: AlignmentType.CENTER,
-        spacing: { after: 200 },
-        border: {
-          top: { color: 'FF0000', space: 1, style: BorderStyle.SINGLE, size: 6 },
-          bottom: { color: 'FF0000', space: 1, style: BorderStyle.SINGLE, size: 6 },
-        },
-      }),
-      new Paragraph({
-        text: '',
-        spacing: { after: 200 },
-      })
-    );
-  }
-
-  // Table of Contents placeholder
-  sections.push(
+    // Policy title
     new Paragraph({
-      text: 'Table of Contents',
-      heading: HeadingLevel.HEADING_1,
+      children: [
+        new TextRun({
+          text: policyTitle,
+          bold: true,
+          size: 56,
+          color: primaryColor,
+          font: 'Calibri',
+        }),
+      ],
+      alignment: AlignmentType.CENTER,
       spacing: { after: 200 },
+    }),
+
+    // Version
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: `Version ${policyVersion}`,
+          size: 24,
+          color: COLORS.muted,
+          font: 'Calibri',
+        }),
+      ],
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 200 },
+    }),
+
+    // Effective date
+    ...(effectiveDate ? [
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: `Effective: ${new Date(effectiveDate).toLocaleDateString('en-GB', {
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric'
+            })}`,
+            size: 22,
+            color: COLORS.muted,
+            font: 'Calibri',
+          }),
+        ],
+        alignment: AlignmentType.CENTER,
+        spacing: { after: 800 },
+      }),
+    ] : []),
+
+    // Classification badge
+    ...(classification ? [
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: classification.toUpperCase(),
+            bold: true,
+            size: 20,
+            color: COLORS.warning,
+            font: 'Calibri',
+          }),
+        ],
+        alignment: AlignmentType.CENTER,
+        border: {
+          top: { color: COLORS.warning, space: 8, style: BorderStyle.SINGLE, size: 8 },
+          bottom: { color: COLORS.warning, space: 8, style: BorderStyle.SINGLE, size: 8 },
+          left: { color: COLORS.warning, space: 8, style: BorderStyle.SINGLE, size: 8 },
+          right: { color: COLORS.warning, space: 8, style: BorderStyle.SINGLE, size: 8 },
+        },
+        spacing: { after: 400 },
+      }),
+    ] : []),
+
+    // Spacer before page break
+    new Paragraph({ text: '', spacing: { after: 2400 } }),
+  ];
+}
+
+function createDocumentControlSection(
+  metadata: DocumentGenerationOptions['metadata'],
+  versionHistory: DocumentGenerationOptions['versionHistory'],
+  primaryColor: string
+): (Paragraph | Table)[] {
+  const elements: (Paragraph | Table)[] = [];
+
+  // Section heading
+  elements.push(
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: 'Document Control',
+          bold: true,
+          size: 32,
+          color: primaryColor,
+        }),
+      ],
+      heading: HeadingLevel.HEADING_1,
+      spacing: { before: 400, after: 300 },
     })
   );
 
-  clauses.forEach((clause, index) => {
-    sections.push(
-      new Paragraph({
-        text: `${index + 1}. ${clause.title}`,
-        spacing: { after: 100 },
+  // Metadata table - using fixed column widths in DXA (twentieths of a point)
+  // Total width ~9360 DXA (6.5 inches at 1440 DXA per inch)
+  const LABEL_COL_WIDTH = 2800; // ~30% of page width
+  const VALUE_COL_WIDTH = 6560; // ~70% of page width
+
+  const metadataRows: TableRow[] = [];
+
+  const addMetadataRow = (label: string, value: string) => {
+    metadataRows.push(
+      new TableRow({
+        children: [
+          new TableCell({
+            children: [new Paragraph({
+              children: [new TextRun({ text: label, bold: true, size: 22 })]
+            })],
+            width: { size: LABEL_COL_WIDTH, type: WidthType.DXA },
+            shading: { fill: 'F9FAFB' },
+            margins: {
+              top: convertInchesToTwip(0.08),
+              bottom: convertInchesToTwip(0.08),
+              left: convertInchesToTwip(0.1),
+              right: convertInchesToTwip(0.1),
+            },
+          }),
+          new TableCell({
+            children: [new Paragraph({
+              children: [new TextRun({ text: value, size: 22 })]
+            })],
+            width: { size: VALUE_COL_WIDTH, type: WidthType.DXA },
+            margins: {
+              top: convertInchesToTwip(0.08),
+              bottom: convertInchesToTwip(0.08),
+              left: convertInchesToTwip(0.1),
+              right: convertInchesToTwip(0.1),
+            },
+          }),
+        ],
       })
     );
+  };
+
+  if (metadata?.owner) addMetadataRow('Document Owner', metadata.owner);
+  if (metadata?.approved_by) addMetadataRow('Approved By', metadata.approved_by);
+  if (metadata?.approved_at) addMetadataRow('Approval Date', new Date(metadata.approved_at).toLocaleDateString('en-GB'));
+  if (metadata?.effective_date) addMetadataRow('Effective Date', new Date(metadata.effective_date).toLocaleDateString('en-GB'));
+  if (metadata?.next_review_date) addMetadataRow('Next Review Date', new Date(metadata.next_review_date).toLocaleDateString('en-GB'));
+  if (metadata?.classification) addMetadataRow('Classification', metadata.classification);
+  if (metadata?.generated_at) addMetadataRow('Generated', new Date(metadata.generated_at).toLocaleDateString('en-GB'));
+
+  if (metadataRows.length > 0) {
+    elements.push(
+      new Table({
+        rows: metadataRows,
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        columnWidths: [LABEL_COL_WIDTH, VALUE_COL_WIDTH],
+      })
+    );
+    elements.push(new Paragraph({ text: '', spacing: { after: 400 } }));
+  }
+
+  // Version history
+  if (versionHistory && versionHistory.length > 0) {
+    elements.push(
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: 'Version History',
+            bold: true,
+            size: 26,
+            color: primaryColor,
+          }),
+        ],
+        heading: HeadingLevel.HEADING_2,
+        spacing: { before: 300, after: 200 },
+      })
+    );
+
+    // Version history column widths (15%, 20%, 25%, 40%)
+    const VERSION_COL = 1400;
+    const DATE_COL = 1870;
+    const AUTHOR_COL = 2340;
+    const CHANGES_COL = 3750;
+
+    const historyRows: TableRow[] = [
+      // Header row
+      new TableRow({
+        children: [
+          new TableCell({
+            children: [new Paragraph({
+              children: [new TextRun({ text: 'Version', bold: true, size: 20, color: 'FFFFFF' })]
+            })],
+            width: { size: VERSION_COL, type: WidthType.DXA },
+            shading: { fill: primaryColor },
+            margins: {
+              top: convertInchesToTwip(0.06),
+              bottom: convertInchesToTwip(0.06),
+              left: convertInchesToTwip(0.08),
+              right: convertInchesToTwip(0.08),
+            },
+          }),
+          new TableCell({
+            children: [new Paragraph({
+              children: [new TextRun({ text: 'Date', bold: true, size: 20, color: 'FFFFFF' })]
+            })],
+            width: { size: DATE_COL, type: WidthType.DXA },
+            shading: { fill: primaryColor },
+            margins: {
+              top: convertInchesToTwip(0.06),
+              bottom: convertInchesToTwip(0.06),
+              left: convertInchesToTwip(0.08),
+              right: convertInchesToTwip(0.08),
+            },
+          }),
+          new TableCell({
+            children: [new Paragraph({
+              children: [new TextRun({ text: 'Author', bold: true, size: 20, color: 'FFFFFF' })]
+            })],
+            width: { size: AUTHOR_COL, type: WidthType.DXA },
+            shading: { fill: primaryColor },
+            margins: {
+              top: convertInchesToTwip(0.06),
+              bottom: convertInchesToTwip(0.06),
+              left: convertInchesToTwip(0.08),
+              right: convertInchesToTwip(0.08),
+            },
+          }),
+          new TableCell({
+            children: [new Paragraph({
+              children: [new TextRun({ text: 'Changes', bold: true, size: 20, color: 'FFFFFF' })]
+            })],
+            width: { size: CHANGES_COL, type: WidthType.DXA },
+            shading: { fill: primaryColor },
+            margins: {
+              top: convertInchesToTwip(0.06),
+              bottom: convertInchesToTwip(0.06),
+              left: convertInchesToTwip(0.08),
+              right: convertInchesToTwip(0.08),
+            },
+          }),
+        ],
+      }),
+      // Data rows
+      ...versionHistory.map(entry =>
+        new TableRow({
+          children: [
+            new TableCell({
+              children: [new Paragraph({ children: [new TextRun({ text: entry.version, size: 20 })] })],
+              width: { size: VERSION_COL, type: WidthType.DXA },
+              margins: { top: convertInchesToTwip(0.04), bottom: convertInchesToTwip(0.04), left: convertInchesToTwip(0.08), right: convertInchesToTwip(0.08) },
+            }),
+            new TableCell({
+              children: [new Paragraph({ children: [new TextRun({ text: entry.date, size: 20 })] })],
+              width: { size: DATE_COL, type: WidthType.DXA },
+              margins: { top: convertInchesToTwip(0.04), bottom: convertInchesToTwip(0.04), left: convertInchesToTwip(0.08), right: convertInchesToTwip(0.08) },
+            }),
+            new TableCell({
+              children: [new Paragraph({ children: [new TextRun({ text: entry.author, size: 20 })] })],
+              width: { size: AUTHOR_COL, type: WidthType.DXA },
+              margins: { top: convertInchesToTwip(0.04), bottom: convertInchesToTwip(0.04), left: convertInchesToTwip(0.08), right: convertInchesToTwip(0.08) },
+            }),
+            new TableCell({
+              children: [new Paragraph({ children: [new TextRun({ text: entry.changes, size: 20 })] })],
+              width: { size: CHANGES_COL, type: WidthType.DXA },
+              margins: { top: convertInchesToTwip(0.04), bottom: convertInchesToTwip(0.04), left: convertInchesToTwip(0.08), right: convertInchesToTwip(0.08) },
+            }),
+          ],
+        })
+      ),
+    ];
+
+    elements.push(
+      new Table({
+        rows: historyRows,
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        columnWidths: [VERSION_COL, DATE_COL, AUTHOR_COL, CHANGES_COL],
+      })
+    );
+  }
+
+  return elements;
+}
+
+function createTableOfContents(sections: PolicySection[], primaryColor: string): Paragraph[] {
+  const elements: Paragraph[] = [];
+
+  elements.push(
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: 'Contents',
+          bold: true,
+          size: 32,
+          color: primaryColor,
+        }),
+      ],
+      heading: HeadingLevel.HEADING_1,
+      spacing: { before: 400, after: 300 },
+    })
+  );
+
+  let sectionNumber = 1;
+  sections.forEach((section) => {
+    if (section.sectionType !== 'appendix') {
+      elements.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: `${sectionNumber}. ${section.title}`,
+              size: 22,
+            }),
+          ],
+          spacing: { after: 100 },
+        })
+      );
+      sectionNumber++;
+    }
   });
 
-  sections.push(
-    new Paragraph({
-      text: '',
-      spacing: { after: 400 },
-    })
-  );
+  // Appendices
+  const appendices = sections.filter(s => s.sectionType === 'appendix');
+  if (appendices.length > 0) {
+    elements.push(
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: 'Appendices',
+            size: 22,
+            bold: true,
+          }),
+        ],
+        spacing: { before: 200, after: 100 },
+      })
+    );
 
-  // Page break before content
-  sections.push(
+    appendices.forEach((appendix, idx) => {
+      elements.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: `Appendix ${String.fromCharCode(65 + idx)}: ${appendix.title}`,
+              size: 22,
+            }),
+          ],
+          spacing: { after: 100 },
+          indent: { left: convertInchesToTwip(0.25) },
+        })
+      );
+    });
+  }
+
+  return elements;
+}
+
+function createSectionContent(
+  section: PolicySection,
+  sectionIndex: number,
+  isAppendix: boolean,
+  primaryColor: string
+): (Paragraph | Table)[] {
+  const elements: (Paragraph | Table)[] = [];
+
+  // Section heading
+  const sectionLabel = isAppendix
+    ? `Appendix ${String.fromCharCode(65 + sectionIndex)}`
+    : `${sectionIndex + 1}`;
+
+  elements.push(
     new Paragraph({
-      text: '',
+      children: [
+        new TextRun({
+          text: `${sectionLabel}. ${section.title}`,
+          bold: true,
+          size: 32,
+          color: primaryColor,
+        }),
+      ],
+      heading: HeadingLevel.HEADING_1,
+      spacing: { before: 400, after: 200 },
       pageBreakBefore: true,
     })
   );
 
-  // Clauses
-  clauses.forEach((clause, clauseIndex) => {
-    // Clause title
-    sections.push(
-      new Paragraph({
-        text: `${clauseIndex + 1}. ${clause.title}`,
-        heading: HeadingLevel.HEADING_1,
-        spacing: { before: 400, after: 200 },
-      })
-    );
-
-    // Clause code (metadata)
-    sections.push(
+  // Section type badge
+  if (section.sectionType === 'procedure') {
+    elements.push(
       new Paragraph({
         children: [
           new TextRun({
-            text: `Code: ${clause.code}`,
-            color: '666666',
+            text: 'PROCEDURE',
+            bold: true,
             size: 18,
+            color: 'FFFFFF',
           }),
         ],
+        shading: { fill: '3B82F6' },
         spacing: { after: 200 },
       })
     );
+  }
 
-    // Mandatory badge
-    if (clause.is_mandatory) {
-      sections.push(
+  // Custom notes at start of section
+  if (section.customNotes) {
+    elements.push(
+      new Paragraph({
+        children: parseInlineFormatting(section.customNotes),
+        spacing: { after: 200 },
+        shading: { fill: 'FEF3C7' },
+        border: {
+          left: { color: COLORS.warning, space: 1, style: BorderStyle.SINGLE, size: 12 },
+        },
+        indent: { left: convertInchesToTwip(0.1) },
+      })
+    );
+  }
+
+  // Render each clause
+  section.clauses.forEach((clause, clauseIdx) => {
+    // Clause subheading (only if multiple clauses in section)
+    if (section.clauses.length > 1) {
+      elements.push(
         new Paragraph({
           children: [
             new TextRun({
-              text: '⚠️ MANDATORY',
+              text: clause.title,
               bold: true,
-              color: 'FF0000',
+              size: 26,
+              color: COLORS.text,
             }),
           ],
-          spacing: { after: 200 },
+          heading: HeadingLevel.HEADING_2,
+          spacing: { before: 300, after: 150 },
         })
       );
     }
 
-    // Parse and render clause body
-    const parsedContent = parseMarkdownToStructure(clause.rendered_body);
+    // Sanitize and parse clause content
+    const sanitizedContent = sanitizeClauseContent(clause.rendered_body, DEFAULT_SANITIZE_OPTIONS);
+    const parsedContent = parseMarkdownToStructure(sanitizedContent);
 
     parsedContent.forEach((item) => {
       switch (item.type) {
         case 'heading':
-          sections.push(
+          elements.push(
             new Paragraph({
               text: item.text || '',
-              heading:
-                item.level === 2
-                  ? HeadingLevel.HEADING_2
-                  : item.level === 3
-                    ? HeadingLevel.HEADING_3
-                    : HeadingLevel.HEADING_4,
+              heading: item.level === 2 ? HeadingLevel.HEADING_2
+                     : item.level === 3 ? HeadingLevel.HEADING_3
+                     : HeadingLevel.HEADING_4,
               spacing: { before: 200, after: 100 },
             })
           );
@@ -440,10 +756,10 @@ export function generateDocx(options: DocumentGenerationOptions): Document {
 
         case 'paragraph':
           if (item.text) {
-            sections.push(
+            elements.push(
               new Paragraph({
                 children: parseInlineFormatting(item.text),
-                spacing: { after: 100 },
+                spacing: { after: 120 },
               })
             );
           }
@@ -451,14 +767,12 @@ export function generateDocx(options: DocumentGenerationOptions): Document {
 
         case 'list':
           if (item.items) {
-            item.items.forEach((listItem) => {
-              sections.push(
+            item.items.forEach((listItem, listIdx) => {
+              elements.push(
                 new Paragraph({
                   children: parseInlineFormatting(listItem),
-                  bullet: item.ordered
-                    ? { level: 0 }
-                    : { level: 0 },
-                  spacing: { after: 50 },
+                  bullet: { level: 0 },
+                  spacing: { after: 60 },
                 })
               );
             });
@@ -467,18 +781,14 @@ export function generateDocx(options: DocumentGenerationOptions): Document {
 
         case 'blockquote':
           if (item.text) {
-            sections.push(
+            elements.push(
               new Paragraph({
                 children: parseInlineFormatting(item.text),
-                spacing: { after: 100 },
-                indent: { left: convertInchesToTwip(0.5) },
+                spacing: { after: 120 },
+                indent: { left: convertInchesToTwip(0.4) },
+                shading: { fill: 'F3F4F6' },
                 border: {
-                  left: {
-                    color: normalizedPrimaryColor,
-                    space: 1,
-                    style: BorderStyle.SINGLE,
-                    size: 12,
-                  },
+                  left: { color: primaryColor, space: 1, style: BorderStyle.SINGLE, size: 16 },
                 },
               })
             );
@@ -487,53 +797,205 @@ export function generateDocx(options: DocumentGenerationOptions): Document {
       }
     });
 
-    // Spacing after clause
-    sections.push(
+    // Spacing between clauses
+    if (clauseIdx < section.clauses.length - 1) {
+      elements.push(new Paragraph({ text: '', spacing: { after: 200 } }));
+    }
+  });
+
+  return elements;
+}
+
+function createDraftWatermark(): Paragraph {
+  return new Paragraph({
+    children: [
+      new TextRun({
+        text: 'DRAFT - NOT APPROVED',
+        bold: true,
+        size: 24,
+        color: COLORS.error,
+      }),
+    ],
+    alignment: AlignmentType.CENTER,
+    spacing: { after: 200 },
+    border: {
+      top: { color: COLORS.error, space: 4, style: BorderStyle.SINGLE, size: 8 },
+      bottom: { color: COLORS.error, space: 4, style: BorderStyle.SINGLE, size: 8 },
+      left: { color: COLORS.error, space: 4, style: BorderStyle.SINGLE, size: 8 },
+      right: { color: COLORS.error, space: 4, style: BorderStyle.SINGLE, size: 8 },
+    },
+  });
+}
+
+// =====================================================
+// MAIN EXPORT FUNCTION
+// =====================================================
+
+export function generateDocx(options: DocumentGenerationOptions | LegacyDocumentGenerationOptions): Document {
+  // Handle legacy format
+  const isLegacy = 'clauses' in options && !('sections' in options);
+
+  let sections: PolicySection[];
+  if (isLegacy) {
+    // Convert legacy format to sections
+    const legacyOpts = options as LegacyDocumentGenerationOptions;
+    sections = [{
+      id: 'main',
+      title: 'Policy Content',
+      sectionType: 'policy',
+      clauses: legacyOpts.clauses,
+    }];
+  } else {
+    sections = (options as DocumentGenerationOptions).sections;
+  }
+
+  const { policyTitle, policyVersion, firmName, branding, metadata, watermark } = options;
+  const versionHistory = 'versionHistory' in options ? options.versionHistory : undefined;
+
+  const primaryHex = branding?.primary_color ?? '#4F46E5';
+  const primaryColor = primaryHex.replace('#', '').trim().toUpperCase() || '4F46E5';
+  const documentFont = branding?.font ?? 'Calibri';
+
+  // Build document sections
+  const docChildren: (Paragraph | Table)[] = [];
+
+  // 1. Cover page
+  docChildren.push(...createCoverPage(
+    firmName,
+    policyTitle,
+    policyVersion,
+    metadata?.effective_date,
+    metadata?.classification,
+    primaryColor
+  ));
+
+  // Draft watermark (on cover if draft)
+  if (watermark) {
+    docChildren.push(createDraftWatermark());
+  }
+
+  // Page break after cover
+  docChildren.push(new Paragraph({ children: [new PageBreak()] }));
+
+  // 2. Document control
+  docChildren.push(...createDocumentControlSection(metadata, versionHistory, primaryColor));
+
+  // Page break
+  docChildren.push(new Paragraph({ children: [new PageBreak()] }));
+
+  // 3. Table of contents
+  docChildren.push(...createTableOfContents(sections, primaryColor));
+
+  // 4. Main sections (non-appendix)
+  const mainSections = sections.filter(s => s.sectionType !== 'appendix');
+  mainSections.forEach((section, idx) => {
+    docChildren.push(...createSectionContent(section, idx, false, primaryColor));
+  });
+
+  // 5. Appendices
+  const appendixSections = sections.filter(s => s.sectionType === 'appendix');
+  if (appendixSections.length > 0) {
+    // Appendices divider
+    docChildren.push(
       new Paragraph({
-        text: '',
+        children: [
+          new TextRun({
+            text: 'APPENDICES',
+            bold: true,
+            size: 36,
+            color: primaryColor,
+          }),
+        ],
+        alignment: AlignmentType.CENTER,
+        pageBreakBefore: true,
         spacing: { after: 400 },
       })
     );
-  });
 
-  // Footer section
-  sections.push(
-    new Paragraph({
-      text: '',
-      pageBreakBefore: true,
-    }),
-    new Paragraph({
-      text: 'End of Document',
-      heading: HeadingLevel.HEADING_1,
-      alignment: AlignmentType.CENTER,
-      spacing: { before: 400, after: 200 },
-    }),
+    appendixSections.forEach((section, idx) => {
+      docChildren.push(...createSectionContent(section, idx, true, primaryColor));
+    });
+  }
+
+  // 6. End of document
+  docChildren.push(
     new Paragraph({
       children: [
         new TextRun({
-          text: `Generated by ${firmName}`,
-          color: '666666',
+          text: '— End of Document —',
+          italics: true,
+          size: 20,
+          color: COLORS.muted,
         }),
       ],
       alignment: AlignmentType.CENTER,
+      pageBreakBefore: true,
+      spacing: { before: 800 },
     })
   );
 
-  // Create document
+  // Create document with headers and footers
   const doc = new Document({
     sections: [
       {
         properties: {
           page: {
-            margin: {
-              top: convertInchesToTwip(1),
-              right: convertInchesToTwip(1),
-              bottom: convertInchesToTwip(1),
-              left: convertInchesToTwip(1),
-            },
+            margin: MARGINS,
           },
         },
-        children: sections,
+        headers: {
+          default: new Header({
+            children: [
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: `${firmName} | ${policyTitle}`,
+                    size: 18,
+                    color: COLORS.muted,
+                  }),
+                ],
+                alignment: AlignmentType.RIGHT,
+              }),
+            ],
+          }),
+        },
+        footers: {
+          default: new Footer({
+            children: [
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: `Version ${policyVersion} | `,
+                    size: 18,
+                    color: COLORS.muted,
+                  }),
+                  new TextRun({
+                    text: 'Page ',
+                    size: 18,
+                    color: COLORS.muted,
+                  }),
+                  new TextRun({
+                    children: [PageNumber.CURRENT],
+                    size: 18,
+                    color: COLORS.muted,
+                  }),
+                  new TextRun({
+                    text: ' of ',
+                    size: 18,
+                    color: COLORS.muted,
+                  }),
+                  new TextRun({
+                    children: [PageNumber.TOTAL_PAGES],
+                    size: 18,
+                    color: COLORS.muted,
+                  }),
+                ],
+                alignment: AlignmentType.CENTER,
+              }),
+            ],
+          }),
+        },
+        children: docChildren,
       },
     ],
     styles: {
@@ -541,47 +1003,51 @@ export function generateDocx(options: DocumentGenerationOptions): Document {
         document: {
           run: {
             font: documentFont,
-            size: 22, // 11pt
+            size: 22,
+            // Don't specify bold at all - let it default to not bold
           },
           paragraph: {
             spacing: {
-              line: 276, // 1.15 line spacing
+              line: 276,
               before: 0,
               after: 160,
             },
           },
         },
-      },
-      paragraphStyles: [
-        {
-          id: 'Heading1',
-          name: 'Heading 1',
-          basedOn: 'Normal',
-          next: 'Normal',
+        heading1: {
           run: {
-            color: normalizedPrimaryColor,
-            size: 32, // 16pt
+            font: documentFont,
+            size: 32,
             bold: true,
+            color: primaryColor,
           },
           paragraph: {
             spacing: { before: 480, after: 240 },
           },
         },
-        {
-          id: 'Heading2',
-          name: 'Heading 2',
-          basedOn: 'Normal',
-          next: 'Normal',
+        heading2: {
           run: {
-            color: normalizedPrimaryColor,
-            size: 28, // 14pt
+            font: documentFont,
+            size: 26,
             bold: true,
+            color: primaryColor,
           },
           paragraph: {
             spacing: { before: 360, after: 180 },
           },
         },
-      ],
+        heading3: {
+          run: {
+            font: documentFont,
+            size: 24,
+            bold: true,
+            color: COLORS.text,
+          },
+          paragraph: {
+            spacing: { before: 280, after: 140 },
+          },
+        },
+      },
     },
   });
 

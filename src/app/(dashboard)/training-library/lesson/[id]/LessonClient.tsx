@@ -9,7 +9,7 @@ import { DailyMicroChallenge } from "../../components/DailyMicroChallenge";
 import { MicroLearning } from "../../components/MicroLearning";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, ArrowLeft } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { LinkedPoliciesPanel } from "@/components/policies/LinkedPoliciesPanel";
 import { Card, CardContent } from "@/components/ui/card";
 

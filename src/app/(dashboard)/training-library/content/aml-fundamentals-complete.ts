@@ -676,7 +676,152 @@ export const amlFundamentalsModule = {
     Every SAR you file could prevent the next NatWest case. Every investigation you conduct properly could save lives.`,
     keyQuestion: 'If you saw £50,000 in cash deposits daily from a small business, would you know exactly what steps to take to investigate and report this suspicious activity?'
   },
-  lessons: [],
+  lessons: [
+    {
+      id: "aml-foundations",
+      title: "The Money Laundering Lifecycle",
+      type: "content",
+      duration: 6,
+      content: {
+        learningPoint: "Understand placement, layering, and integration and why each stage matters.",
+        mainContent: `Money laundering turns criminal proceeds into usable funds. The process is usually split into three stages that leave different signals in your systems.
+
+**Placement** is the entry point. Criminals introduce illicit funds into the financial system, often through cash deposits, money services, or structured transfers.
+
+**Layering** obscures the trail using complex transfers, multiple accounts, and cross-border activity. The goal is to confuse the audit trail.
+
+**Integration** makes funds appear legitimate through assets, business revenue, or investment returns.
+
+Each stage has distinct red flags. Your job is to spot the pattern across time, not just a single event.`,
+        keyConcepts: [
+          { term: "Placement", definition: "Introducing illicit funds into the financial system." },
+          { term: "Layering", definition: "Complex movement of funds to obscure origin." },
+          { term: "Integration", definition: "Reintroducing funds as seemingly legitimate." }
+        ],
+        realExamples: [
+          "A cash-intensive business suddenly deposits daily round amounts across multiple branches.",
+          "Funds move through multiple related accounts within 24 hours with no clear purpose."
+        ],
+        regulatoryRequirements: [
+          "MLR 2017 - risk based controls for customer due diligence and monitoring"
+        ]
+      }
+    },
+    {
+      id: "aml-regulatory-framework",
+      title: "Regulatory Framework and Firm Obligations",
+      type: "content",
+      duration: 6,
+      content: {
+        learningPoint: "Know the core laws and what regulators expect in daily operations.",
+        mainContent: `AML compliance in the UK is rooted in three pillars:
+
+- **POCA 2002**: Defines money laundering offences and the duty to report suspicious activity.
+- **MLR 2017**: Requires risk-based CDD, monitoring, record keeping, and governance.
+- **FCA expectations**: Controls must be effective, evidenced, and embedded in the business.
+
+Regulators focus on outcomes. You must show how decisions were made, why controls were applied, and what evidence supports the decision.`,
+        keyConcepts: [
+          { term: "POCA 2002", definition: "Criminalises money laundering and defines reporting duties." },
+          { term: "MLR 2017", definition: "Sets requirements for CDD, EDD, monitoring, and governance." },
+          { term: "FCA Financial Crime Guide", definition: "Expectation of effective, evidenced controls." }
+        ],
+        realExamples: [
+          "A firm failed to document EDD for a high risk customer and was cited for weak governance.",
+          "An MLRO could not evidence why a suspicious pattern was not escalated."
+        ],
+        regulatoryRequirements: [
+          "POCA 2002 - suspicious activity reporting",
+          "MLR 2017 - record keeping and governance"
+        ]
+      }
+    },
+    {
+      id: "aml-risk-based-approach",
+      title: "Risk Based Approach and Customer Profiling",
+      type: "content",
+      duration: 6,
+      content: {
+        learningPoint: "Apply risk factors consistently and adjust controls based on risk.",
+        mainContent: `Risk based AML means focusing resources where harm is most likely. You evaluate risk across:
+
+- Customer profile (occupation, ownership structure, PEP status)
+- Geography (high risk jurisdictions, sanctions exposure)
+- Products and channels (cash, cross border, online)
+- Transaction behavior (volume, frequency, counterparties)
+
+When risk is higher, apply enhanced due diligence and tighter monitoring. The goal is consistent decisions backed by evidence, not intuition.`,
+        keyConcepts: [
+          { term: "Risk Appetite", definition: "The level of AML risk the firm is willing to accept." },
+          { term: "EDD", definition: "Enhanced controls for higher risk customers or activity." },
+          { term: "Ongoing Monitoring", definition: "Continuous review of customer behavior and risk." }
+        ],
+        realExamples: [
+          "A low risk retail customer is reviewed annually, while a high risk corporate customer is reviewed quarterly.",
+          "Cross border payments to high risk jurisdictions trigger enhanced monitoring alerts."
+        ],
+        regulatoryRequirements: [
+          "MLR 2017 - risk based CDD and monitoring"
+        ]
+      }
+    },
+    {
+      id: "aml-detection-escalation",
+      title: "Detection, Monitoring, and Escalation",
+      type: "content",
+      duration: 6,
+      content: {
+        learningPoint: "Detect patterns early and escalate with clear evidence.",
+        mainContent: `Monitoring is where most suspicious activity is detected. Alerts are signals, not proof. Good escalation relies on evidence:
+
+- Document the pattern and timeline
+- Compare activity to expected profile
+- Record customer explanations and gaps
+
+Escalate when the evidence does not reconcile. Do not tip off the customer. Your escalation must be factual, timely, and complete.`,
+        keyConcepts: [
+          { term: "SAR", definition: "Suspicious Activity Report submitted through internal MLRO process." },
+          { term: "Tipping Off", definition: "Warning a customer about suspicion or reporting, which is prohibited." }
+        ],
+        realExamples: [
+          "Repeated deposits just under reporting thresholds with no credible explanation.",
+          "Rapid in and out transfers across multiple jurisdictions."
+        ],
+        regulatoryRequirements: [
+          "POCA 2002 - reporting suspicious activity",
+          "FCA expectations - timely escalation and evidence"
+        ]
+      }
+    },
+    {
+      id: "aml-governance-culture",
+      title: "Governance, Roles, and AML Culture",
+      type: "content",
+      duration: 6,
+      content: {
+        learningPoint: "AML effectiveness depends on clear ownership and consistent training.",
+        mainContent: `AML governance is not just policies. It is accountability and culture:
+
+- The MLRO owns reporting decisions and regulatory engagement.
+- First line teams identify and escalate risk.
+- Second line monitors controls and provides oversight.
+
+Training, quality assurance, and MI keep the program effective. Regulators expect you to show evidence of governance, not just policy documents.`,
+        keyConcepts: [
+          { term: "MLRO", definition: "Designated officer responsible for AML reporting and oversight." },
+          { term: "Three Lines of Defense", definition: "Business, oversight, and audit roles in risk management." },
+          { term: "MI", definition: "Management information used for governance and monitoring." }
+        ],
+        realExamples: [
+          "Quarterly AML dashboard to senior management covering alerts, SARs, and trends.",
+          "Training completion tracked and reported with follow up actions."
+        ],
+        regulatoryRequirements: [
+          "MLR 2017 - governance and training requirements"
+        ]
+      }
+    }
+  ],
   practiceScenarios: [],
   assessmentQuestions: [],
   summary: {

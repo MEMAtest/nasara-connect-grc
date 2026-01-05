@@ -4,7 +4,20 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowRight, ChevronDown, Menu, X } from 'lucide-react'
+import {
+  ArrowRight,
+  ChevronDown,
+  Menu,
+  X,
+  Activity,
+  BarChart3,
+  CreditCard,
+  FileCheck2,
+  Scale,
+  Shield,
+  ShieldAlert,
+  ShieldCheck,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   AuthorizationIcon,
@@ -31,16 +44,36 @@ interface NavigationProps {
 
 const navItems = [
   {
+    label: 'Governance, Risk & Compliance',
+    href: '/grc-platform',
+  },
+  {
     label: 'Features',
     href: '/features',
     dropdown: [
-      { label: 'Authorization Pack', href: '/features#authorization', Icon: AuthorizationIcon },
-      { label: 'Risk Assessment', href: '/features#risk', Icon: RiskIcon },
-      { label: 'SM&CR Management', href: '/features#smcr', Icon: SmcrIcon },
-      { label: 'Policy Management', href: '/features#policies', Icon: PolicyIcon },
-      { label: 'Compliance Monitoring', href: '/features#cmp', Icon: ComplianceIcon },
-      { label: 'Training Library', href: '/features#training', Icon: TrainingIcon },
-      { label: 'AI Assistant', href: '/features#ai', Icon: AiIcon },
+      { label: 'Authorization Pack', href: '/features/authorization-pack', Icon: AuthorizationIcon },
+      { label: 'SM&CR Management', href: '/features/smcr-management', Icon: SmcrIcon },
+      { label: 'Compliance Monitoring', href: '/features/compliance-monitoring', Icon: ComplianceIcon },
+      { label: 'Policy Management', href: '/features/policy-management', Icon: PolicyIcon },
+      { label: 'Risk Assessment', href: '/features/risk-assessment', Icon: RiskIcon },
+      { label: 'Training Library', href: '/features/training-library', Icon: TrainingIcon },
+      { label: 'AI Assistant', href: '/features/ai-assistant', Icon: AiIcon },
+      { label: 'Safeguarding', href: '/features/safeguarding', Icon: ShieldCheck },
+      { label: 'Financial Promotions', href: '/features/financial-promotions', Icon: ShieldAlert },
+    ]
+  },
+  {
+    label: 'Solutions',
+    href: '/solutions',
+    dropdown: [
+      { label: 'FCA Authorisation', href: '/solutions/fca-authorisation', Icon: FileCheck2 },
+      { label: 'SM&CR', href: '/solutions/smcr', Icon: Shield },
+      { label: 'Compliance Monitoring Plan', href: '/solutions/compliance-monitoring-plan', Icon: BarChart3 },
+      { label: 'Consumer Duty', href: '/solutions/consumer-duty', Icon: Scale },
+      { label: 'Safeguarding', href: '/solutions/safeguarding', Icon: ShieldCheck },
+      { label: 'CASS Compliance', href: '/solutions/cass-compliance', Icon: CreditCard },
+      { label: 'Operational Resilience', href: '/solutions/operational-resilience', Icon: Activity },
+      { label: 'Financial Promotions', href: '/solutions/financial-promotions-compliance', Icon: ShieldAlert },
     ]
   },
   {
@@ -59,9 +92,10 @@ const navItems = [
     label: 'Resources',
     href: '/resources',
     dropdown: [
-      { label: 'Documentation', href: '/resources#docs', Icon: DocsIcon },
-      { label: 'Guides & Tutorials', href: '/resources#guides', Icon: GuidesIcon },
-      { label: 'Blog & Insights', href: '/resources#blog', Icon: BlogIcon },
+      { label: 'Guides', href: '/resources/guides', Icon: GuidesIcon },
+      { label: 'Templates', href: '/resources/templates', Icon: DocsIcon },
+      { label: 'Blog & Insights', href: '/blog', Icon: BlogIcon },
+      { label: 'Tools', href: '/tools/smcr-responsibilities-map', Icon: DocsIcon },
     ]
   },
   {
@@ -189,7 +223,7 @@ export function Navigation({ variant = 'transparent' }: NavigationProps) {
                     Sign In
                   </Button>
                 </Link>
-                <Link href="/contact">
+                <Link href="/request-demo">
                   <Button className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 shadow-lg shadow-emerald-500/25">
                     Request Demo
                     <ArrowRight className="ml-2 w-4 h-4" />
@@ -255,7 +289,7 @@ export function Navigation({ variant = 'transparent' }: NavigationProps) {
                   Sign In
                 </Button>
               </Link>
-              <Link href="/contact" onClick={() => setMobileMenuOpen(false)}>
+              <Link href="/request-demo" onClick={() => setMobileMenuOpen(false)}>
                 <Button className="w-full bg-gradient-to-r from-emerald-500 to-teal-600">
                   Request Demo
                   <ArrowRight className="ml-2 w-4 h-4" />

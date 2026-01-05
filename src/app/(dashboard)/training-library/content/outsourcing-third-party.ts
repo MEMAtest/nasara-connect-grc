@@ -64,6 +64,14 @@ The FCA's Senior Management Arrangements, Systems and Controls (SYSC) sourcebook
 
 **Critical principle: Regulatory responsibilities remain with the firm**, even where third parties perform key functions such as compliance support, IT and customer service.
 
+**Material Outsourcing**
+For critical or important outsourced functions, firms should document:
+- Why the function is material
+- How the arrangement supports important business services
+- The risk assessment and mitigation plan
+
+Regulators may expect notification or engagement for material arrangements, depending on the firm type and sector rules.
+
 **Outsourcing vs Other Third-Party Arrangements**
 
 The FCA distinguishes:
@@ -118,6 +126,10 @@ FCA Guidance FG16/5 clarifies how existing outsourcing rules apply when using cl
 - **Data security and confidentiality** (including location and access)
 - **Business continuity and exit** – avoiding lock-in and ensuring recoverability
 - **Audit and access rights** – including regulators' access where appropriate
+
+**Shared Responsibility Model**
+- The provider secures the platform, but the firm remains accountable for data access, configuration, and monitoring
+- Misconfiguration is still a firm risk, not a provider excuse
 
 The EBA Guidelines on outsourcing arrangements remain a useful benchmark for good practice around critical functions, governance, due diligence and exit planning.
 
@@ -177,6 +189,102 @@ Key points:
       ]
     },
     {
+      id: 'third-party-risk-assessment',
+      title: 'Third-Party Risk Assessment and Materiality',
+      duration: 20,
+      content: `Not all third-party arrangements are equal. Firms must determine materiality and apply proportionate controls based on the service's impact on customers and market integrity.
+
+**Materiality Assessment**
+- Is the service critical to an important business service?
+- Would failure cause intolerable harm to customers?
+- Are there concentration risks with a single provider?
+- Does the provider have access to sensitive data or critical systems?
+
+**Risk Dimensions**
+- Operational risk (availability, resilience, recovery)
+- Conduct risk (customer impact, service quality, complaints)
+- Data risk (location, confidentiality, access controls)
+- Concentration risk (single points of failure across providers)
+
+**Risk Scoring**
+- Document inherent risk and residual risk after controls
+- Use consistent scoring to compare vendors and prioritize remediation
+- Re-score after material changes, incidents, or contract renewals
+
+**Due Diligence Evidence**
+- Financial stability and ownership checks
+- Security certifications, penetration tests, and audit reports
+- Resilience testing results and incident history
+
+**Subcontracting**
+- Map critical subcontractors and fourth parties
+- Ensure contracts allow visibility and audit rights
+- Avoid uncontrolled dependency chains`,
+      keyConcepts: [
+        'Materiality drives the intensity of controls',
+        'Critical services require enhanced oversight',
+        'Concentration risk must be mapped and monitored',
+        'Subcontractor transparency is essential'
+      ],
+      realExamples: [
+        {
+          title: 'Concentration Risk',
+          description: 'Multiple business services depended on the same cloud provider and region.',
+          outcome: 'Firm introduced multi-region architecture and contingency plans'
+        },
+        {
+          title: 'Hidden Subcontractor',
+          description: 'A vendor used a subcontractor for data processing without approval.',
+          outcome: 'Contract updated with approval and audit requirements'
+        }
+      ]
+    },
+    {
+      id: 'ongoing-oversight-exit',
+      title: 'Ongoing Oversight, Incident Management and Exit',
+      duration: 20,
+      content: `Outsourcing governance does not end at contract signature. Firms must monitor performance, manage incidents, and maintain exit readiness.
+
+**Ongoing Oversight**
+- Regular performance reviews against SLAs and KPIs
+- Incident reporting thresholds aligned to impact tolerances
+- Testing of business continuity and resilience measures
+
+**Performance Management**
+- Define breach thresholds and remediation timelines
+- Record SLA breaches and follow-up actions
+- Escalate repeat issues to senior management and the board
+
+**Incident Management**
+- Clear escalation paths between firm and provider
+- Joint playbooks for severe but plausible scenarios
+- Evidence capture for regulatory reporting and board review
+
+**Exit Planning**
+- Maintain a realistic, tested exit plan for critical services
+- Include data migration, licensing, and operational transition steps
+- Review exit feasibility annually or after material change
+- Define triggers for exit, including control failures or repeated breaches`,
+      keyConcepts: [
+        'Oversight is continuous, not periodic',
+        'Incident response must be coordinated and rehearsed',
+        'Exit planning must be practical and tested',
+        'Evidence trails protect the firm in regulatory scrutiny'
+      ],
+      realExamples: [
+        {
+          title: 'Incident Escalation Gap',
+          description: 'A provider failed to notify the firm within agreed timeframes during an outage.',
+          outcome: 'SLA and escalation procedures were tightened'
+        },
+        {
+          title: 'Untested Exit Plan',
+          description: 'A firm discovered its exit plan assumed capabilities it did not have.',
+          outcome: 'Exit plan reworked and tested in a controlled exercise'
+        }
+      ]
+    },
+    {
       id: 'consumer-duty-distribution-governance',
       title: 'Consumer Duty, Distribution Chains & Governance',
       duration: 20,
@@ -200,6 +308,11 @@ Good practice for Duty-aligned outsourcing:
   - Provide MI on customer interactions, complaints, vulnerabilities and service levels
   - Cooperate in remediation exercises and policy changes
 - Build rights to change processes and scripts to address foreseeable harm or poor outcomes identified via MI
+
+**Outcome Controls**
+- Sample call monitoring and script QA for customer-facing vendors
+- Test communications for clarity and understanding with vulnerable segments
+- Track outcome deltas between in-house and outsourced channels
 
 **Governance, MI and Board Reporting**
 

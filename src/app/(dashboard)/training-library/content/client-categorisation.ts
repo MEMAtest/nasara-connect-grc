@@ -155,6 +155,88 @@ The FCA's latest COBS 3 updates make it even clearer that firms can "opt up prot
       ]
     },
     {
+      id: 'elective-professional-evidence',
+      title: 'Elective Professional Tests and Evidence Packs',
+      duration: 20,
+      content: `Elective professional categorisation is one of the highest-risk areas for FCA scrutiny. Firms must evidence that a client genuinely meets the COBS 3.5 test, not just sign a form.
+
+**The Three-Part Elective Test**
+The client must meet at least two of the following:
+1. **Transaction Frequency** – carried out significant transactions in relevant markets at an average frequency of 10 per quarter over the last four quarters.
+2. **Portfolio Size** – financial instrument portfolio exceeds EUR 500,000.
+3. **Professional Experience** – worked in the financial sector for at least one year in a professional position requiring knowledge of relevant transactions or services.
+
+**Evidence Standards**
+- Documented proof of transaction history or portfolio size
+- Confirmation of professional experience (role, employer, duties)
+- Clear file note of how criteria were assessed and met
+- Written warnings of protections lost and client acknowledgement
+
+**Common Failures**
+- Reliance on client self-certification alone
+- Missing evidence for transaction frequency or portfolio value
+- Generic disclosures without explicit loss-of-protection warnings
+- No review of continued eligibility as circumstances change`,
+      keyConcepts: [
+        'Elective professional status requires evidence, not just consent',
+        'Two out of three criteria must be met and documented',
+        'Warnings and acknowledgements must be explicit and recorded',
+        'Eligibility should be reviewed over time'
+      ],
+      realExamples: [
+        {
+          title: 'Weak Evidence File',
+          description: 'A firm categorised a client as elective professional based on a questionnaire with no supporting transaction data.',
+          outcome: 'FCA required recategorisation to retail and remediation of affected transactions'
+        },
+        {
+          title: 'Robust Evidence Pack',
+          description: 'A firm documented portfolio statements, transaction history and role verification before approval.',
+          outcome: 'Categorisation decision withstood FCA review'
+        }
+      ]
+    },
+    {
+      id: 'categorisation-impacts',
+      title: 'Impact on Suitability, Disclosure and Duty',
+      duration: 20,
+      content: `Client categorisation changes the entire compliance perimeter. Mis-categorisation cascades into breaches across multiple COBS requirements.
+
+**Key Impacts**
+- **Suitability (COBS 9A):** mandatory for retail clients receiving advice
+- **Appropriateness (COBS 10A):** required for non-advised complex products for retail clients
+- **Disclosure rules:** retail clients receive the highest standards of disclosure and clarity
+- **Consumer Duty scope:** retail clients are fully within the Duty; professional and ECPs may have reduced protections depending on activity
+
+**Why This Matters**
+- If a client is wrongly treated as professional, they are still retail in law
+- Firms can face FOS and FCA findings for unsuitable recommendations or poor disclosures
+- Firms may need to remediate entire cohorts if categorisation is flawed
+
+**Good Practice**
+- Link categorisation data to advice and sales workflows
+- Use automated checks so retail protections cannot be bypassed
+- Ensure compliance review for any changes in category`,
+      keyConcepts: [
+        'Mis-categorised clients are treated as retail in law',
+        'Suitability and appropriateness requirements flow from category',
+        'Consumer Duty protections are strongest for retail clients',
+        'Disclosure rules are stricter for retail clients'
+      ],
+      realExamples: [
+        {
+          title: 'Cascade Failure',
+          description: 'A firm classified SMEs as professional, skipped suitability, and later faced multiple FOS findings.',
+          outcome: 'Remediation and client re-categorisation across the portfolio'
+        },
+        {
+          title: 'Workflow Safeguards',
+          description: 'A firm integrated categorisation into CRM so retail protections were enforced at every step.',
+          outcome: 'Reduced compliance errors and clearer audit trail'
+        }
+      ]
+    },
+    {
       id: 'governance-records-fca-review',
       title: 'Governance, Records and FCA Expectations (2025 Review)',
       duration: 20,

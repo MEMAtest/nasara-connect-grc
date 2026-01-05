@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { ChevronRight } from 'lucide-react'
+import Link from 'next/link'
 import { CaseStudyIcon } from './CaseStudyIcons'
 import { CaseStudyModal } from './CaseStudyModal'
 import type { CaseStudy } from '@/lib/database'
@@ -48,10 +49,10 @@ export function CaseStudiesSection() {
           <h2 className="text-2xl font-bold text-white mb-2">
             Trusted by Forward-Thinking Financial Institutions
           </h2>
-          <a href="#" className="text-emerald-400 hover:text-emerald-300 text-sm inline-flex items-center gap-1">
-            Read Our Case Studies
+          <Link href="/case-studies" className="text-emerald-400 hover:text-emerald-300 text-sm inline-flex items-center gap-1">
+            Read our case studies
             <ChevronRight className="w-4 h-4" />
-          </a>
+          </Link>
         </motion.div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8">

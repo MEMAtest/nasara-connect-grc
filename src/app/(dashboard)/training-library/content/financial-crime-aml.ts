@@ -290,6 +290,107 @@ More risk = More scrutiny. Less risk = Proportionate (not absent) controls.`,
     },
 
     {
+      id: 'transaction-monitoring-alerts',
+      title: 'Transaction Monitoring, Alerts and Case Management',
+      type: 'content',
+      duration: 14,
+      content: {
+        learningPoint: 'Monitoring is about identifying patterns, documenting decisions, and escalating consistently.',
+        mainContent: `Transaction monitoring is the operational heart of AML. It turns the risk-based approach into daily controls by detecting patterns that cannot be seen in isolated transactions.
+
+**Monitoring Principles**
+- Use customer profiles to define "expected" activity
+- Calibrate thresholds by risk level, not a single firm-wide setting
+- Focus on patterns across time, channels and related parties
+
+**Alert Triage and Review**
+Effective alert handling includes:
+- Initial screening: check for obvious false positives or data quality errors
+- Pattern review: compare activity to expected behavior and peer groups
+- Documentation: record rationale for closing or escalating alerts
+- Escalation: route to compliance or MLRO when suspicion persists
+
+**Case Management**
+- Group related alerts into a single case to see end-to-end context
+- Attach supporting evidence (account notes, KYC, adverse media, transaction trails)
+- Track decisions and actions with clear ownership and timestamps
+
+**Model Tuning and Quality**
+- Monitor false positive rates and missed suspicious activity
+- Adjust scenarios and thresholds based on typologies and intelligence
+- Regularly review coverage for high-risk products, jurisdictions and customer types
+
+**What Good Looks Like**
+- A clear audit trail for why alerts were closed or escalated
+- Escalations tied to documented red flags
+- Consistent decisions across teams and channels`,
+        keyConcepts: [
+          { term: 'Transaction Monitoring', definition: 'Systematic detection of unusual activity using scenarios, rules and analytics.' },
+          { term: 'Alert Triage', definition: 'Initial review to determine if an alert requires investigation or escalation.' },
+          { term: 'Case Management', definition: 'Grouping alerts and evidence into a single investigation with documented decisions.' },
+          { term: 'False Positive', definition: 'An alert that appears suspicious but is ultimately legitimate.' }
+        ],
+        realExamples: [
+          'A customer shows a sudden spike in outbound transfers to new counterparties, triggering a case review with KYC refresh.',
+          'Alert tuning reduced false positives by 20% after thresholds were adjusted by customer risk tier.'
+        ],
+        regulatoryRequirements: [
+          'MLR 2017 Regulation 19 - Policies, controls and procedures',
+          'FCA SYSC 6.3 - Financial crime systems and controls',
+          'JMLSG Guidance Part I - Ongoing monitoring expectations'
+        ]
+      }
+    },
+    {
+      id: 'high-risk-customers-sanctions',
+      title: 'High-Risk Customers, Sanctions and Escalation',
+      type: 'content',
+      duration: 14,
+      content: {
+        learningPoint: 'High-risk relationships require enhanced scrutiny, documented approvals, and clear escalation paths.',
+        mainContent: `High-risk customers require deeper due diligence and more frequent monitoring. These risks are often concentrated around PEPs, high-risk third countries, complex ownership structures, and sanctions exposure.
+
+**High-Risk Customer Categories**
+- Politically exposed persons (PEPs) and close associates
+- Customers linked to high-risk third countries or weak AML regimes
+- Complex ownership chains with trusts, nominees or shell companies
+- Cash-intensive or high-risk business models
+
+**Sanctions Overlap**
+- Sanctions compliance is absolute: a sanctions hit is not a risk assessment issue, it is a prohibition issue
+- Screening must cover customers, beneficial owners, counterparties and payments
+- Escalate and freeze where required by policy and law
+
+**Enhanced Due Diligence Controls**
+- Source of wealth and funds verification
+- Senior management approval before onboarding
+- More frequent reviews and lower alert thresholds
+- Clear documentation of risk acceptance rationale
+
+**Escalation and Exit**
+- Define triggers for escalation and potential exit decisions
+- Avoid tipping off, but protect the firm from ongoing exposure
+- Record decisions with evidence and approvals`,
+        keyConcepts: [
+          { term: 'High-Risk Third Country', definition: 'Jurisdictions identified by FATF or regulators as having weak AML controls.' },
+          { term: 'PEP', definition: 'Individuals with prominent public functions and their close associates or family members.' },
+          { term: 'Sanctions Exposure', definition: 'Direct or indirect connection to sanctioned persons, entities or jurisdictions.' },
+          { term: 'Enhanced Due Diligence', definition: 'Additional checks required for higher-risk relationships.' }
+        ],
+        realExamples: [
+          'A new corporate customer with a layered offshore structure required senior management approval and independent source of wealth verification.',
+          'A payment to a counterparty in a sanctioned jurisdiction triggered immediate escalation and transaction blocking.',
+          'A PEP relationship was downgraded only after documented evidence of reduced influence and a formal approval process.'
+        ],
+        regulatoryRequirements: [
+          'MLR 2017 Regulation 33 - Enhanced due diligence',
+          'Sanctions and Anti-Money Laundering Act 2018',
+          'FCA Financial Crime Guide - PEPs and sanctions expectations'
+        ]
+      }
+    },
+
+    {
       id: 'red-flags-sars-governance',
       title: 'Red Flags, SARs, Governance & MI',
       type: 'content',

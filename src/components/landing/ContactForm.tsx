@@ -91,7 +91,7 @@ export default function ContactForm() {
                   Get Your Personalized Demo
                 </h3>
                 <p className="text-slate-600 dark:text-slate-400">
-                  See how Nasara Connect can transform your GRC workflow
+                  See how Nasara Connect can transform your governance, risk, and compliance workflow
                 </p>
               </div>
 

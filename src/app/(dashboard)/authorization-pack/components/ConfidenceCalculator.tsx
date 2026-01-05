@@ -180,7 +180,7 @@ export function ConfidenceCalculator({
                 Submission Confidence
               </CardTitle>
               <CardDescription>
-                AI-powered confidence assessment for FCA submission
+                Automated confidence assessment for FCA submission
               </CardDescription>
             </div>
             <div className="text-right">

@@ -243,6 +243,88 @@ Courts have interpreted these strictly:
           outcome: 'Suitability requirements applied; firm faced enforcement for systematic failures'
         }
       ]
+    },
+    {
+      id: 'execution-only-boundaries',
+      title: 'Execution-Only Boundaries and Client Initiative',
+      duration: 18,
+      content: `Execution-only is a narrow exemption, not a default. Firms must ensure the customer initiates the transaction and that the product is non-complex under COBS 10/10A.
+
+**Execution-Only Conditions**
+- Client initiates the transaction without recommendation
+- The instrument is non-complex under the FCA rules
+- Appropriate risk warnings are provided
+- The firm does not encourage or steer the decision
+
+**Red Flags for Misuse**
+- Scripted sales language that implies suitability
+- "Recommended lists" for execution-only journeys
+- Complex products presented without appropriateness testing
+- Customer confusion about what they are buying
+
+**Documentation Expectations**
+- Record how client initiative was demonstrated
+- Evidence that the product is non-complex
+- Archive the specific warning shown to the customer
+
+Misusing execution-only creates suitability liability even if the paperwork says otherwise.`,
+      keyConcepts: [
+        'Execution-only exemption is narrow and evidence-based',
+        'Client initiative must be genuine and documented',
+        'Non-complex classification must be defensible',
+        'Risk warnings must be specific and prominent'
+      ],
+      realExamples: [
+        {
+          title: 'Prompted Execution-Only',
+          description: 'A firm suggested a product and then processed the trade as execution-only.',
+          outcome: 'FOS treated the interaction as advice and applied suitability standards'
+        },
+        {
+          title: 'Defensible Execution-Only',
+          description: 'A platform recorded the client journey, warnings, and product classification for a non-complex ETF.',
+          outcome: 'Execution-only treatment upheld'
+        }
+      ]
+    },
+    {
+      id: 'governance-ongoing-suitability',
+      title: 'Governance, Ongoing Suitability and File Reviews',
+      duration: 18,
+      content: `Suitability is not a one-off event. Firms providing ongoing advice or discretionary services must evidence that recommendations remain suitable and represent fair value.
+
+**Ongoing Suitability Expectations**
+- Periodic reviews aligned to client circumstances and service proposition
+- Reassessment when material changes occur (income, objectives, risk tolerance)
+- Evidence that ongoing charges match delivered services
+
+**File Review and QA**
+- Sample advice files to test completeness and rationale
+- Check that suitability reports explain WHY a recommendation was made
+- Verify capacity for loss and risk tolerance assessments
+
+**MI and Governance**
+- Track review completion rates, suitability exceptions, and client outcomes
+- Escalate recurring issues to senior management
+- Align advice charging to the Consumer Duty fair value outcome`,
+      keyConcepts: [
+        'Ongoing suitability requires periodic reviews and evidence',
+        'Advice charging must align to delivered services',
+        'File review and QA prevent systemic suitability failures',
+        'Outcome-focused MI should be reported to senior management'
+      ],
+      realExamples: [
+        {
+          title: 'Missed Review Gap',
+          description: 'A firm charged ongoing advice fees but could not evidence reviews for 30% of clients.',
+          outcome: 'Regulatory remediation and fee refunds'
+        },
+        {
+          title: 'Structured QA',
+          description: 'Quarterly file reviews identified weak capacity for loss analysis, leading to updated templates and training.',
+          outcome: 'Improved suitability evidence and reduced complaints'
+        }
+      ]
     }
   ],
   practiceScenarios: [
