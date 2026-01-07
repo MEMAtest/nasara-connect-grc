@@ -279,98 +279,70 @@ The gap between policy and practice is where harm happens. Your firm may have a 
       duration: 20,
       content: {
         learningPoint: 'Apply vulnerability considerations to customer understanding, product design, communications and support',
-        mainContent: `FG21/1 and the 2025 FCA review emphasise four main areas where firms must embed vulnerability: culture & governance, understanding customer needs, product & journey design, and communications & support.
-
-**Understanding Your Vulnerable Customer Base**
-
-Firms cannot support vulnerable customers if they don't know who they are. Data and insight should inform:
-
-**What to Understand:**
-• How many customers show vulnerability indicators
-• Which drivers are most common in your customer base
-• Where vulnerability is likely to surface in customer journeys
-• Whether outcomes differ for vulnerable vs non-vulnerable customers
-
-**Key Touchpoints Where Vulnerability Surfaces:**
-• Onboarding and affordability checks
-• Collections and arrears management
-• Claims processing (especially complex or disputed claims)
-• Bereavement and third-party notifications
-• Fraud and scam victims
-• Complaints and disputes
-• Product changes, renewals and exits
-
-**Data Sources:**
-• Complaints and root cause analysis
-• Arrears and forbearance patterns
-• Support line interactions and call recordings
-• Vulnerability flags in CRM systems
-• Customer research and feedback
-• Industry benchmarking
-
----
-
-**Designing Products and Journeys with Vulnerability in Mind**
-
-The FCA expects vulnerability to be considered at the design stage, not retrofitted.
-
-**Good Practice Includes:**
-• Build **flexibility** into processes – allow staff to deviate from standard procedures where justified
-• Avoid products or features likely to cause **disproportionate harm** to customers with common vulnerabilities
-• Test journeys with customers who have different vulnerability characteristics
-• Ensure digital journeys have **assisted alternatives** for those who can't self-serve
-• Design **exit processes** that don't trap vulnerable customers in unsuitable products
-• Consider how product features interact with vulnerability (e.g. complex fee structures, short decision windows)
-
-**Questions for Product Design:**
-• Who might struggle with this product or process?
-• What would happen if a customer with [specific vulnerability] tried to use this?
-• Are we relying on capabilities that vulnerable customers may lack?
-• How would a bereaved family member navigate this process?
-
----
-
-**Communications & Channel Design**
-
-The FCA's vulnerable customer guidance and Consumer Duty consumer understanding outcome overlap strongly here.
-
-**Communication Principles:**
-• Use **plain language** – avoid jargon, complex sentences, and unnecessary technical terms
-• Provide **layered communications** – key points upfront, more detail available for those who want it
-• Offer **multiple channels** – phone, digital, post, assisted digital, face-to-face where appropriate
-• Allow customers to **switch channels** where their preferred channel isn't working
-• Test communications with customers who have different capability levels
-
-**Avoiding Digital Exclusion:**
-• Don't force digital-only journeys for high-stakes decisions
-• Provide telephone support with reasonable wait times
-• Offer paper alternatives where needed
-• Consider assisted digital options (staff helping customers navigate online)
-• Monitor which customer groups struggle with digital channels
-
-**AI and Automation Warning:**
-The FCA has warned that rapid adoption of AI and automated tools can compound harm for vulnerable customers if not carefully designed. Chatbots, automated decision-making, and digital-only processes may exclude or disadvantage vulnerable customers.
-
----
-
-**Support, Collections and Complaints**
-
-The 2025 FCA review highlights particular weaknesses in bereavement handling, power of attorney processes, and support during crises.
-
-**Expectations:**
-• Staff should be trained to **recognise distress** and adjust tone, pace and process
-• Firms should **not rigidly apply** standard procedures where they would cause avoidable harm
-• Complaint and collections processes must avoid **unreasonable barriers**
-• Vulnerable customers should not have to **repeat their story** multiple times
-• Forbearance options should be genuinely available and clearly communicated
-• Exit and switching should not be harder than entry
-
-**Collections Specifically:**
-• Recognise signs of financial distress and adjust approach
-• Offer meaningful forbearance options (payment holidays, reduced payments, interest freezes)
-• Don't use aggressive tactics that exploit vulnerability
-• Refer to debt advice where appropriate
-• Monitor outcomes to ensure collections activity isn't causing disproportionate harm`,
+        mainContent: {
+          cards: [
+            {
+              type: 'infogrid',
+              title: 'Four Areas to Embed Vulnerability',
+              items: [
+                { icon: '🏛️', label: 'Culture & Governance', description: 'Leadership commitment' },
+                { icon: '📊', label: 'Understanding Needs', description: 'Data and insight' },
+                { icon: '📦', label: 'Product Design', description: 'Built-in flexibility' },
+                { icon: '🤝', label: 'Comms & Support', description: 'Accessible channels' }
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '📊',
+              title: 'What to Understand',
+              points: [
+                'How many customers show vulnerability indicators',
+                'Which drivers are most common',
+                'Where vulnerability surfaces in journeys',
+                'Whether outcomes differ for vulnerable vs non-vulnerable'
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'Key Vulnerability Touchpoints',
+              items: [
+                'Onboarding and affordability checks',
+                'Collections and arrears management',
+                'Claims processing',
+                'Bereavement and third-party notifications',
+                'Complaints and exits'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '📦',
+              title: 'Product Design Good Practice',
+              points: [
+                'Build flexibility into processes',
+                'Test journeys with different vulnerability characteristics',
+                'Ensure assisted alternatives for digital journeys',
+                'Don\'t trap customers in unsuitable products'
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'warning',
+              title: 'AI & Automation Warning',
+              message: 'Chatbots, automated decisions, and digital-only processes may exclude or harm vulnerable customers if not carefully designed.'
+            },
+            {
+              type: 'checklist',
+              title: 'Communication Principles',
+              items: [
+                'Plain language - avoid jargon',
+                'Layered communications - key points first',
+                'Multiple channels available',
+                'Allow channel switching',
+                'Test with different capability levels'
+              ]
+            }
+          ]
+        },
 
         keyConcepts: [
           {
@@ -414,110 +386,70 @@ The 2025 FCA review highlights particular weaknesses in bereavement handling, po
       duration: 18,
       content: {
         learningPoint: 'Implement effective governance, outcome-focused MI, and capability building for vulnerable customers',
-        mainContent: `**Governance and Accountability**
-
-FG21/1 expects senior leaders to create a culture that prioritises reducing harm to vulnerable customers and empowers staff to act.
-
-**Board and Senior Management Responsibilities:**
-• Approve and oversee the firm's vulnerability strategy
-• Regularly review MI on vulnerable customer outcomes
-• Challenge where outcomes are poor or where vulnerable customers are under-represented in MI
-• Ensure adequate resources for vulnerability support
-• Set the tone from the top – vulnerability is a priority, not a box-ticking exercise
-
-**SM&CR Considerations:**
-• Consumer Duty Champion (where appointed) should have visibility of vulnerability outcomes
-• SMF16 (Compliance Oversight) should ensure vulnerability is embedded in compliance monitoring
-• Relevant SMFs should be able to evidence how their areas support vulnerable customers
-
-**Culture and Empowerment:**
-• Staff must feel empowered to deviate from standard processes where needed
-• There should be no punishment for taking time to support vulnerable customers
-• Escalation routes should be clear and accessible
-• Good practice should be recognised and shared
-
----
-
-**Data and Outcome-Focused MI**
-
-The FCA's 2025 review emphasises that firms must move beyond policy statements to measurable outcomes.
-
-**What to Measure:**
-
-**Process Metrics:**
-• Volumes of vulnerability flags and referrals
-• Types of vulnerabilities identified
-• Support options offered and taken up
-• Forbearance arrangements in place
-• Training completion rates
-
-**Outcome Metrics (Critical):**
-• Outcomes for vulnerable customers vs non-vulnerable customers:
-  - Complaint volumes and resolution times
-  - Arrears and default rates
-  - Claims acceptance and processing times
-  - Customer satisfaction scores
-  - Time to resolve issues
-  - Financial detriment suffered
-
-**Complaints Analysis:**
-• Complaints involving vulnerable customers (explicitly tracked)
-• Root cause analysis – are processes causing harm?
-• Remediation effectiveness
-
-**Board MI Should Include:**
-• Summary of vulnerable customer outcomes vs targets
-• Comparison with non-vulnerable customer outcomes
-• Key issues and remediation plans
-• Resource adequacy assessment
-• Emerging risks and themes
-
----
-
-**Training and Capability**
-
-The FCA expects role-specific training that goes beyond awareness to practical application.
-
-**Frontline Staff Training:**
-• Recognising cues and disclosures of vulnerability
-• Handling sensitive conversations with empathy
-• Adapting communication style (pace, language, checking understanding)
-• Using available tools and support options
-• Escalation routes and when to use them
-• Recording vulnerability appropriately
-• Avoiding tipping into harmful territory (over-promising, dependency)
-
-**Product and Journey Owners:**
-• Designing with vulnerability in mind
-• Building appropriate flexibility into processes
-• Using MI to identify harm points
-• Testing with diverse customer groups
-
-**Senior Management:**
-• Reading and interpreting vulnerability MI
-• Challenging culture and resource levels
-• Understanding regulatory expectations
-• Responding when outcomes are poor
-
-**Training Approach:**
-• Use real case studies and scenarios
-• Include customer voice and lived experience
-• Regular refreshers, not one-off modules
-• Feedback loops from QA, complaints, and customer research
-• Assessment to confirm understanding, not just completion
-
----
-
-**Continuous Improvement**
-
-Vulnerability support should not be static. Firms should:
-
-• Regularly review outcomes data and identify improvement opportunities
-• Learn from complaints and near-misses
-• Stay current with FCA communications and enforcement trends
-• Benchmark against good practice in the industry
-• Seek customer feedback on support effectiveness
-• Update training and processes as understanding evolves`,
+        mainContent: {
+          cards: [
+            {
+              type: 'keypoint',
+              icon: '👔',
+              title: 'Board & Senior Management',
+              points: [
+                'Approve and oversee vulnerability strategy',
+                'Regularly review MI on outcomes',
+                'Challenge poor outcomes',
+                'Ensure adequate resources',
+                'Set tone from the top'
+              ]
+            },
+            {
+              type: 'infogrid',
+              title: 'SM&CR Considerations',
+              items: [
+                { icon: '🏆', label: 'Duty Champion', description: 'Visibility of outcomes' },
+                { icon: '📋', label: 'SMF16', description: 'Compliance monitoring' },
+                { icon: '👤', label: 'All SMFs', description: 'Evidence support' }
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'Outcome Metrics (Critical)',
+              items: [
+                'Complaint volumes and resolution times',
+                'Arrears and default rates',
+                'Claims acceptance and processing',
+                'Customer satisfaction scores',
+                'Financial detriment suffered'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '📊',
+              title: 'Board MI Should Include',
+              points: [
+                'Vulnerable outcomes vs targets',
+                'Comparison with non-vulnerable outcomes',
+                'Key issues and remediation plans',
+                'Resource adequacy assessment'
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'Frontline Training Topics',
+              items: [
+                'Recognising cues and disclosures',
+                'Handling sensitive conversations',
+                'Adapting communication style',
+                'Escalation routes',
+                'Recording appropriately'
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'info',
+              title: 'Continuous Improvement',
+              message: 'Vulnerability support should not be static. Review outcomes, learn from complaints, benchmark against industry, and update training as understanding evolves.'
+            }
+          ]
+        },
 
         keyConcepts: [
           {

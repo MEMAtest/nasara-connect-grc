@@ -47,52 +47,86 @@ export const clientCategorisationModule: TrainingModule = {
     {
       id: 'cobs3-framework',
       title: 'COBS 3 – Framework and Core Categories',
+      type: 'content',
       duration: 20,
-      content: `COBS 3 "Client categorisation" determines who is your client and what category they fall into. Many other rules (e.g. parts of COBS 4, 6, 9A, 10A, Consumer Duty scope) depend on this classification.
-
-COBS 3.2 broadly provides that a "client" is anyone to whom a firm provides, intends to provide, or has provided a regulated service (including potential clients for MiFID business).
-
-**The Three Main Categories**
-
-Under the FCA rules, a client can be:
-
-**1. Retail Client**
-- Default category for all clients
-- Receives the highest level of regulatory protection
-- Full COBS and Consumer Duty scope applies
-- Includes most individuals and SMEs
-
-**2. Professional Client**
-- Either a per se professional client (meets defined criteria automatically) or an elective professional client (opts up and meets tests)
-- Receives a lower level of protection than retail clients
-- Some rules (e.g. certain disclosure or suitability requirements) may be modified
-
-**3. Eligible Counterparty (ECP)**
-- Highest sophistication, lowest protection
-- Limited to specific eligible counterparty business (e.g. dealing on own account, execution, reception & transmission)
-- Also split into per se ECP and elective ECP
-
-**Protection Hierarchy:**
-Retail clients = MOST protection → Professional clients → Eligible counterparties = LEAST protection`,
-      keyConcepts: [
-        'COBS 3 determines client category and applicable conduct rules',
-        'Three categories: Retail (default), Professional, Eligible Counterparty',
-        'Retail receives highest protection, ECP receives lowest',
-        'Many COBS rules depend on client categorisation',
-        'MiFID business includes potential clients in scope'
-      ],
-      realExamples: [
-        {
-          title: 'Per Se Professional Client',
-          description: 'A large investment firm automatically qualifies as a per se professional client under COBS 3.5.2R because it is a regulated entity. No opt-up process is required.',
-          outcome: 'The firm receives professional client protections by default'
+      content: {
+        learningPoint: 'COBS 3 determines who is your client and what category they fall into.',
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'info',
+              title: 'Why This Matters',
+              message: 'Many COBS rules (4, 6, 9A, 10A, Consumer Duty scope) depend on client classification. Get it wrong and cascade errors follow.'
+            },
+            {
+              type: 'infogrid',
+              title: 'Three Client Categories',
+              items: [
+                { icon: '👤', label: 'Retail Client', description: 'Default, highest protection' },
+                { icon: '💼', label: 'Professional Client', description: 'Per se or elective, lower protection' },
+                { icon: '🏦', label: 'Eligible Counterparty', description: 'Highest sophistication, lowest protection' }
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '👤',
+              title: 'Retail Client (Default)',
+              points: [
+                'Default category for all clients',
+                'Highest level of regulatory protection',
+                'Full COBS and Consumer Duty scope',
+                'Most individuals and SMEs'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '💼',
+              title: 'Professional Client',
+              points: [
+                'Per se (automatic) or elective (opts up)',
+                'Lower protection than retail',
+                'Some disclosure/suitability modified',
+                'Must meet defined criteria'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '🏦',
+              title: 'Eligible Counterparty (ECP)',
+              points: [
+                'Highest sophistication assumed',
+                'Limited to specific ECP business',
+                'Per se or elective ECP',
+                'Lowest protection level'
+              ]
+            },
+            {
+              type: 'process',
+              steps: [
+                { number: 1, title: 'Retail', description: 'Most protection (default)' },
+                { number: 2, title: 'Professional', description: 'Reduced protection' },
+                { number: 3, title: 'ECP', description: 'Least protection' }
+              ]
+            }
+          ]
         },
-        {
-          title: 'Retail Client Default',
-          description: 'A high-net-worth individual approaches a wealth manager for investment advice. Despite their wealth, they are classified as retail by default unless they meet and complete the elective professional process.',
-          outcome: 'Full retail protections apply including suitability assessments and Consumer Duty'
-        }
-      ]
+        keyConcepts: [
+          { term: 'COBS 3', definition: 'Determines client category and applicable conduct rules' },
+          { term: 'Retail', definition: 'Default category with highest protection' },
+          { term: 'Professional', definition: 'Per se or elective, reduced protection' },
+          { term: 'ECP', definition: 'Eligible counterparty, lowest protection' }
+        ],
+        realExamples: [
+          'Large investment firm = per se professional automatically',
+          'High-net-worth individual = retail by default unless elective process completed'
+        ],
+        regulatoryRequirements: [
+          'COBS 3.2 - Client definition',
+          'COBS 3.4 - Default to retail',
+          'COBS 3.5 - Professional client criteria'
+        ]
+      }
     },
     {
       id: 'retail-professional-ecp',
