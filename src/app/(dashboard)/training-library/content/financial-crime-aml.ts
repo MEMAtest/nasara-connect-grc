@@ -43,61 +43,76 @@ The consequences of getting this wrong are severe – for the firm, and for the 
       duration: 18,
       content: {
         learningPoint: 'Understand the core legal and regulatory pillars of UK financial crime prevention',
-        mainContent: `The UK has one of the most comprehensive financial crime frameworks in the world. Understanding its components is essential for anyone working in a regulated firm.
-
-**1. Proceeds of Crime Act 2002 (POCA)**
-
-POCA contains the primary UK money laundering offences in sections 327-329:
-
-**Section 327 – Concealing Criminal Property**
-It is an offence to conceal, disguise, convert, transfer, or remove criminal property from the jurisdiction. This covers activities like moving money through accounts to hide its origin, or converting cash into assets.
-
-**Section 328 – Arrangements**
-It is an offence to enter into or become concerned in an arrangement which you know or suspect facilitates the acquisition, retention, use or control of criminal property by or on behalf of another person.
-
-**Section 329 – Acquisition, Use and Possession**
-It is an offence to acquire, use or have possession of criminal property. This can catch firms that receive funds they know or suspect are criminal proceeds.
-
-**Key Points on POCA Offences:**
-• "Criminal property" is widely defined – it includes any benefit from any criminal conduct
-• The mental element is "knows or suspects" – a low threshold
-• Maximum penalty is 14 years' imprisonment
-• POCA also creates reporting offences (failure to report) and tipping-off offences
-
-**2. Money Laundering Regulations 2017 (MLR 2017)**
-
-MLR 2017 sets out detailed AML/CTF system and control requirements:
-
-• **Business-wide risk assessment** – firms must assess and document their ML/TF risks
-• **Internal controls and policies** – written policies, controls and procedures
-• **Customer Due Diligence (CDD)** – identification, verification, understanding purpose
-• **Ongoing monitoring** – scrutiny of transactions and keeping information up to date
-• **Simplified Due Diligence (Reg 37)** – reduced measures for genuinely low-risk relationships
-• **Enhanced Due Diligence (Reg 33)** – additional measures for high-risk situations
-• **Record-keeping** – retention of CDD and transaction records
-
-**3. FCA Handbook – SYSC and FCG**
-
-SYSC 3.2.6R requires firms to have effective systems and controls for compliance with applicable requirements and standards under the regulatory system and for countering the risk that the firm might be used to further financial crime.
-
-SYSC 6.1.1R requires firms to establish, implement and maintain adequate policies and procedures to ensure compliance with obligations under the regulatory system and to counter the risk that the firm might be used for financial crime.
-
-The FCA's **Financial Crime Guide (FCG)** provides consolidated guidance on what "good" looks like, covering:
-• Governance and senior management oversight
-• Risk assessment methodology
-• Customer due diligence and ongoing monitoring
-• Transaction monitoring and suspicious activity reporting
-• Training and awareness
-
-**4. JMLSG Guidance**
-
-The Joint Money Laundering Steering Group (JMLSG) publishes authoritative industry guidance explaining how to apply the AML/CTF regime using a risk-based approach. Courts and regulators give significant weight to JMLSG guidance.
-
-**5. Sanctions and PEP Framework**
-
-• UK sanctions framework under the Sanctions and Anti-Money Laundering Act 2018
-• OFSI (Office of Financial Sanctions Implementation) guidance and licensing
-• FCA's PEP guidance (FG25/3) emphasising proportionate, risk-based treatment`,
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'critical',
+              title: 'Criminal Liability Under POCA',
+              message: '"Knows or suspects" is a LOW threshold. Maximum penalty: 14 years imprisonment. This applies to YOU personally.'
+            },
+            {
+              type: 'keypoint',
+              icon: '⚖️',
+              title: 'POCA Money Laundering Offences',
+              points: [
+                'S.327: Concealing, disguising, converting, transferring criminal property',
+                'S.328: Arrangements facilitating acquisition/use of criminal property',
+                'S.329: Acquiring, using, possessing criminal property',
+                'Plus: Failure to report and tipping-off offences'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '📋',
+              title: 'MLR 2017 Requirements',
+              points: [
+                'Business-wide risk assessment - documented',
+                'Customer Due Diligence (CDD) - identify, verify, understand',
+                'Ongoing monitoring - transactions and info updates',
+                'Record-keeping - CDD and transaction records'
+              ]
+            },
+            {
+              type: 'infogrid',
+              title: 'UK Regulatory Framework',
+              items: [
+                { icon: '⚖️', label: 'POCA 2002', description: 'Criminal offences' },
+                { icon: '📋', label: 'MLR 2017', description: 'Systems & controls' },
+                { icon: '📘', label: 'FCA SYSC/FCG', description: 'Rules & guidance' },
+                { icon: '📖', label: 'JMLSG', description: 'Industry guidance' }
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '📘',
+              title: 'FCA Handbook Requirements',
+              points: [
+                'SYSC 3.2.6R: Effective systems to counter financial crime',
+                'SYSC 6.1.1R: Adequate policies and procedures',
+                'FCG: What "good" looks like for controls',
+                'Covers: governance, risk assessment, CDD, monitoring, training'
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'MLR 2017 Due Diligence Tiers',
+              items: [
+                'Simplified DD (Reg 37): Low-risk relationships',
+                'Standard CDD: All business relationships',
+                'Enhanced DD (Reg 33): High-risk situations'
+              ]
+            },
+            {
+              type: 'stat',
+              icon: '⚠️',
+              value: '14 Years',
+              label: 'Max imprisonment for POCA offences',
+              description: '"Knows or suspects" = low threshold',
+              color: 'red'
+            }
+          ]
+        },
 
         keyConcepts: [
           {
@@ -141,110 +156,83 @@ The Joint Money Laundering Steering Group (JMLSG) publishes authoritative indust
       duration: 20,
       content: {
         learningPoint: 'Apply risk-based controls and understand when different levels of due diligence are required',
-        mainContent: `**The Risk-Based Approach (RBA)**
-
-Under MLR 2017 and JMLSG guidance, firms must adopt a risk-based approach to AML/CTF. This means applying resources and controls proportionately to the level of risk.
-
-**Business-Wide Risk Assessment**
-
-Every firm must conduct and document a business-wide risk assessment covering:
-
-**Customer Risk Factors:**
-• Customer types (individuals, corporates, trusts, charities)
-• Beneficial ownership complexity
-• PEP status and connections
-• Cash-intensive businesses
-• Customers from high-risk jurisdictions
-
-**Product and Service Risk:**
-• Cross-border transactions
-• Correspondent banking
-• Private banking and wealth management
-• Trade finance
-• Virtual assets and payments
-
-**Delivery Channel Risk:**
-• Non-face-to-face onboarding
-• Introducers and intermediaries
-• Digital-only channels
-• Third-party reliance
-
-**Geographic Risk:**
-• FATF high-risk jurisdictions
-• Countries with weak AML/CTF controls
-• Sanctions-affected regions
-• Tax havens and secrecy jurisdictions
-
-**Customer-Level Risk Assessment**
-
-For each customer, firms should assess and assign a risk rating based on:
-• Jurisdiction of customer and beneficial owners
-• Type of customer and business activity
-• Products and services used
-• Expected transaction patterns
-• Source of funds and wealth
-• Any adverse information or red flags
-
----
-
-**Customer Due Diligence (CDD) – Standard Requirements**
-
-Under MLR 2017, firms must carry out CDD before establishing a business relationship or carrying out occasional transactions above thresholds.
-
-**The Four Elements of CDD:**
-
-1. **Identify the customer** – obtain name, date of birth, address, and other identifying information
-
-2. **Verify identity** – using documents, data or information from a reliable and independent source
-
-3. **Identify beneficial owners** – for legal entities, identify any individual who owns or controls more than 25% (or exercises control through other means)
-
-4. **Understand the relationship** – establish the purpose and intended nature of the business relationship
-
-**Ongoing Monitoring:**
-• Scrutinise transactions to ensure consistency with customer profile
-• Keep CDD information up to date
-• Apply enhanced scrutiny to higher-risk relationships
-
----
-
-**Simplified Due Diligence (SDD) – Regulation 37**
-
-SDD may be applied where:
-• The business relationship or transaction presents a LOW risk of ML/TF
-• This is determined by the firm's own risk assessment
-• Relevant risk factors and guidance have been considered
-
-**SDD is NOT "no CDD"** – basic identification and verification are still required, but the extent and frequency of measures may be reduced.
-
-Examples where SDD might apply:
-• UK-regulated financial institutions
-• Listed companies on regulated markets
-• UK public authorities
-• Low-value products with built-in limits
-
----
-
-**Enhanced Due Diligence (EDD) – Regulation 33**
-
-EDD must be applied in certain higher-risk situations:
-
-**Mandatory EDD Triggers:**
-• Relationships with persons in high-risk third countries
-• Politically Exposed Persons (PEPs), family members and close associates
-• Complex or unusually large transactions with no apparent economic purpose
-• Correspondent banking relationships
-
-**EDD Measures Include:**
-• Obtaining additional information on the customer and beneficial owners
-• Obtaining information on **source of funds** (immediate origin of funds for transactions)
-• Obtaining information on **source of wealth** (how the customer accumulated their overall wealth)
-• Senior management approval to establish or continue the relationship
-• Enhanced ongoing monitoring – more frequent reviews, tighter alert thresholds
-• First payment from a verified account in customer's name
-
-**The Key Principle:**
-More risk = More scrutiny. Less risk = Proportionate (not absent) controls.`,
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'info',
+              title: 'Risk-Based Approach Principle',
+              message: 'Apply resources and controls PROPORTIONATELY to the level of risk. More risk = more scrutiny.'
+            },
+            {
+              type: 'infogrid',
+              title: 'Business-Wide Risk Factors',
+              items: [
+                { icon: '👤', label: 'Customer Risk', description: 'PEPs, complexity, jurisdiction' },
+                { icon: '📦', label: 'Product Risk', description: 'Cross-border, private banking' },
+                { icon: '🔗', label: 'Channel Risk', description: 'Non-face-to-face, digital' },
+                { icon: '🌍', label: 'Geographic Risk', description: 'FATF high-risk, sanctions' }
+              ]
+            },
+            {
+              type: 'process',
+              steps: [
+                { number: 1, title: 'Identify Customer', description: 'Name, DOB, address, ID info' },
+                { number: 2, title: 'Verify Identity', description: 'Documents from reliable source' },
+                { number: 3, title: 'Identify Beneficial Owners', description: '>25% ownership or control' },
+                { number: 4, title: 'Understand Relationship', description: 'Purpose and intended nature' }
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '📊',
+              title: 'Customer Risk Rating Factors',
+              points: [
+                'Jurisdiction of customer and beneficial owners',
+                'Type of customer and business activity',
+                'Products and services used',
+                'Source of funds and wealth',
+                'Any adverse information or red flags'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '✅',
+              title: 'Simplified DD (Reg 37)',
+              points: [
+                'Only where LOW ML/TF risk determined',
+                'NOT "no CDD" - basic checks still required',
+                'UK-regulated institutions, listed companies',
+                'Low-value products with built-in limits'
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'warning',
+              title: 'Mandatory EDD Triggers',
+              message: 'PEPs + family/associates, high-risk third countries, complex/large unexplained transactions, correspondent banking.'
+            },
+            {
+              type: 'checklist',
+              title: 'EDD Measures Required',
+              items: [
+                'Source of Funds: Where does transaction money come from?',
+                'Source of Wealth: How did customer build overall wealth?',
+                'Senior management approval',
+                'Enhanced ongoing monitoring',
+                'First payment from verified account'
+              ]
+            },
+            {
+              type: 'stat',
+              icon: '⚖️',
+              value: '25%',
+              label: 'Beneficial ownership threshold',
+              description: 'Identify anyone owning/controlling >25%',
+              color: 'blue'
+            }
+          ]
+        },
 
         keyConcepts: [
           {
@@ -296,34 +284,57 @@ More risk = More scrutiny. Less risk = Proportionate (not absent) controls.`,
       duration: 14,
       content: {
         learningPoint: 'Monitoring is about identifying patterns, documenting decisions, and escalating consistently.',
-        mainContent: `Transaction monitoring is the operational heart of AML. It turns the risk-based approach into daily controls by detecting patterns that cannot be seen in isolated transactions.
-
-**Monitoring Principles**
-- Use customer profiles to define "expected" activity
-- Calibrate thresholds by risk level, not a single firm-wide setting
-- Focus on patterns across time, channels and related parties
-
-**Alert Triage and Review**
-Effective alert handling includes:
-- Initial screening: check for obvious false positives or data quality errors
-- Pattern review: compare activity to expected behavior and peer groups
-- Documentation: record rationale for closing or escalating alerts
-- Escalation: route to compliance or MLRO when suspicion persists
-
-**Case Management**
-- Group related alerts into a single case to see end-to-end context
-- Attach supporting evidence (account notes, KYC, adverse media, transaction trails)
-- Track decisions and actions with clear ownership and timestamps
-
-**Model Tuning and Quality**
-- Monitor false positive rates and missed suspicious activity
-- Adjust scenarios and thresholds based on typologies and intelligence
-- Regularly review coverage for high-risk products, jurisdictions and customer types
-
-**What Good Looks Like**
-- A clear audit trail for why alerts were closed or escalated
-- Escalations tied to documented red flags
-- Consistent decisions across teams and channels`,
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'info',
+              title: 'Purpose of Transaction Monitoring',
+              message: 'Detect patterns across time, channels and parties that cannot be seen in isolated transactions.'
+            },
+            {
+              type: 'keypoint',
+              icon: '📊',
+              title: 'Monitoring Principles',
+              points: [
+                'Use customer profiles to define "expected" activity',
+                'Calibrate thresholds by risk level, not one-size-fits-all',
+                'Focus on patterns across time and channels',
+                'Consider related parties and counterparties'
+              ]
+            },
+            {
+              type: 'process',
+              steps: [
+                { number: 1, title: 'Initial Screen', description: 'Check for false positives, data quality' },
+                { number: 2, title: 'Pattern Review', description: 'Compare to expected behavior, peer groups' },
+                { number: 3, title: 'Document', description: 'Record rationale for close/escalate' },
+                { number: 4, title: 'Escalate', description: 'Route to compliance/MLRO if suspicion persists' }
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '📁',
+              title: 'Case Management',
+              points: [
+                'Group related alerts into single case',
+                'Attach KYC, adverse media, transaction trails',
+                'Track decisions with ownership and timestamps',
+                'See end-to-end context'
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'What Good Looks Like',
+              items: [
+                'Clear audit trail for alert decisions',
+                'Escalations tied to documented red flags',
+                'Consistent decisions across teams',
+                'Regular model tuning based on intelligence'
+              ]
+            }
+          ]
+        },
         keyConcepts: [
           { term: 'Transaction Monitoring', definition: 'Systematic detection of unusual activity using scenarios, rules and analytics.' },
           { term: 'Alert Triage', definition: 'Initial review to determine if an alert requires investigation or escalation.' },
@@ -348,29 +359,57 @@ Effective alert handling includes:
       duration: 14,
       content: {
         learningPoint: 'High-risk relationships require enhanced scrutiny, documented approvals, and clear escalation paths.',
-        mainContent: `High-risk customers require deeper due diligence and more frequent monitoring. These risks are often concentrated around PEPs, high-risk third countries, complex ownership structures, and sanctions exposure.
-
-**High-Risk Customer Categories**
-- Politically exposed persons (PEPs) and close associates
-- Customers linked to high-risk third countries or weak AML regimes
-- Complex ownership chains with trusts, nominees or shell companies
-- Cash-intensive or high-risk business models
-
-**Sanctions Overlap**
-- Sanctions compliance is absolute: a sanctions hit is not a risk assessment issue, it is a prohibition issue
-- Screening must cover customers, beneficial owners, counterparties and payments
-- Escalate and freeze where required by policy and law
-
-**Enhanced Due Diligence Controls**
-- Source of wealth and funds verification
-- Senior management approval before onboarding
-- More frequent reviews and lower alert thresholds
-- Clear documentation of risk acceptance rationale
-
-**Escalation and Exit**
-- Define triggers for escalation and potential exit decisions
-- Avoid tipping off, but protect the firm from ongoing exposure
-- Record decisions with evidence and approvals`,
+        mainContent: {
+          cards: [
+            {
+              type: 'infogrid',
+              title: 'High-Risk Customer Categories',
+              items: [
+                { icon: '👔', label: 'PEPs', description: 'Politicians, family, associates' },
+                { icon: '🌍', label: 'High-Risk Countries', description: 'Weak AML regimes' },
+                { icon: '🏢', label: 'Complex Structures', description: 'Trusts, nominees, shells' },
+                { icon: '💵', label: 'Cash-Intensive', description: 'High-risk business models' }
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'critical',
+              title: 'Sanctions = Absolute Prohibition',
+              message: 'Sanctions compliance is not a risk assessment - it is a prohibition. A hit = escalate and freeze immediately.'
+            },
+            {
+              type: 'checklist',
+              title: 'EDD Controls for High-Risk',
+              items: [
+                'Source of wealth and funds verification',
+                'Senior management approval before onboarding',
+                'More frequent reviews',
+                'Lower alert thresholds',
+                'Clear risk acceptance documentation'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '🔍',
+              title: 'Sanctions Screening Coverage',
+              points: [
+                'Customers and beneficial owners',
+                'Counterparties to transactions',
+                'Payment details and beneficiaries',
+                'Ongoing monitoring, not just onboarding'
+              ]
+            },
+            {
+              type: 'process',
+              steps: [
+                { number: 1, title: 'Identify Risk', description: 'PEP, jurisdiction, structure, sanctions' },
+                { number: 2, title: 'Apply EDD', description: 'Source of wealth, senior approval' },
+                { number: 3, title: 'Document', description: 'Record rationale and approvals' },
+                { number: 4, title: 'Monitor/Exit', description: 'Escalate or exit if risk unacceptable' }
+              ]
+            }
+          ]
+        },
         keyConcepts: [
           { term: 'High-Risk Third Country', definition: 'Jurisdictions identified by FATF or regulators as having weak AML controls.' },
           { term: 'PEP', definition: 'Individuals with prominent public functions and their close associates or family members.' },
@@ -397,109 +436,92 @@ Effective alert handling includes:
       duration: 18,
       content: {
         learningPoint: 'Recognise suspicious activity indicators, understand reporting obligations, and implement effective governance',
-        mainContent: `**Common Red Flags**
-
-Red flags are indicators that may suggest money laundering, terrorist financing or other financial crime. Staff must be trained to recognise them and escalate appropriately.
-
-**Customer Behaviour Red Flags:**
-• Reluctance to provide information or documentation
-• Providing information that is inconsistent, incomplete or false
-• Unusual concern about confidentiality or reporting thresholds
-• Changing details frequently without clear reason
-• Using intermediaries unnecessarily to obscure identity
-
-**Transaction Red Flags:**
-• Transactions inconsistent with customer profile or stated business
-• Unusually large or complex transactions with no clear purpose
-• Rapid movement of funds (in-out, same-day, back-to-back)
-• Structured transactions just below reporting thresholds
-• Payments to/from high-risk jurisdictions
-• Round-sum transactions with no commercial logic
-
-**Corporate Structure Red Flags:**
-• Complex ownership with multiple layers of holding companies
-• Use of shell companies with no clear business purpose
-• Nominee shareholders and directors
-• Frequent changes to corporate structure
-• Registered in secrecy jurisdictions
-
-**What Staff Should Do:**
-1. Recognise the red flag
-2. Do NOT tip off the customer
-3. Escalate internally to line manager or MLRO
-4. Document concerns contemporaneously
-
----
-
-**Suspicious Activity Reports (SARs) and the MLRO**
-
-**The Reporting Obligation:**
-
-Under POCA, where a person in the regulated sector:
-• Knows or suspects that another person is engaged in money laundering, AND
-• The information came to them in the course of business
-
-They must report to the nominated officer (MLRO) or directly to the NCA.
-
-**The MLRO's Role:**
-• Receives internal suspicious activity reports from staff
-• Evaluates whether they meet the threshold for external reporting
-• Submits SARs to the NCA via the SAR Online system
-• Maintains records of all internal and external SARs
-• Liaises with law enforcement where required
-• Seeks consent (defence against money laundering) where the firm needs to proceed with a transaction
-
-**Consent SARs:**
-Where proceeding with a transaction would constitute a money laundering offence, the firm may seek consent from the NCA. The NCA has 7 working days to respond (extendable by 31 days with a court order).
-
-**Staff Training on SARs:**
-• How to complete internal SAR forms
-• Escalation routes and timelines
-• Importance of contemporaneous documentation
-• Never tip off the customer
-• When consent SARs are needed
-
----
-
-**Governance, Systems, Controls and MI**
-
-**Clear Governance and Accountability:**
-
-The FCA expects:
-• Board-level oversight of financial crime risk
-• Clear allocation of responsibilities under SM&CR
-• SMF16 (Compliance Oversight) and SMF17 (MLRO) with defined accountabilities
-• Regular reporting to the board on financial crime matters
-
-**Robust Systems and Controls:**
-
-• Written policies and procedures reflecting the firm's risk profile
-• Sanctions screening tools appropriate to business scale
-• PEP screening at onboarding and on an ongoing basis
-• Transaction monitoring systems with appropriate rules and thresholds
-• Case management for investigations
-• Quality assurance of CDD and investigations
-• Record-keeping to evidence compliance
-
-**Outcome-Focused MI:**
-
-Boards and senior management should receive regular MI including:
-• Number and quality of internal SARs
-• Outcomes of investigations (confirmed, closed, escalated)
-• CDD/EDD completion metrics and overdue reviews
-• Sanctions and PEP alerts – volumes, false positive rates, time to resolve
-• Training completion rates
-• Thematic analysis of control failures or incidents
-• Regulatory correspondence and enforcement trends
-
-**Training:**
-
-MLR 2017 requires firms to take measures to ensure employees are:
-• Made aware of the law relating to money laundering and terrorist financing
-• Trained in how to recognise and deal with suspicious activity
-• Regularly given refresher training
-
-Training should be role-specific and reflect the firm's risk profile.`,
+        mainContent: {
+          cards: [
+            {
+              type: 'keypoint',
+              icon: '🚨',
+              title: 'Customer Behaviour Red Flags',
+              points: [
+                'Reluctance to provide information or docs',
+                'Inconsistent, incomplete or false information',
+                'Unusual concern about thresholds/confidentiality',
+                'Using intermediaries to obscure identity'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '💰',
+              title: 'Transaction Red Flags',
+              points: [
+                'Inconsistent with customer profile',
+                'Rapid in-out, same-day fund movements',
+                'Structured just below thresholds',
+                'Payments to/from high-risk jurisdictions'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '🏢',
+              title: 'Corporate Structure Red Flags',
+              points: [
+                'Multiple layers of holding companies',
+                'Shell companies with no clear purpose',
+                'Nominee shareholders/directors',
+                'Registered in secrecy jurisdictions'
+              ]
+            },
+            {
+              type: 'process',
+              steps: [
+                { number: 1, title: 'Recognise', description: 'Identify the red flag indicator' },
+                { number: 2, title: 'Don\'t Tip Off', description: 'Never alert the customer' },
+                { number: 3, title: 'Escalate', description: 'Report to line manager or MLRO' },
+                { number: 4, title: 'Document', description: 'Record concerns immediately' }
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '📋',
+              title: 'MLRO Role',
+              points: [
+                'Receives internal suspicious activity reports',
+                'Evaluates if threshold met for external SAR',
+                'Submits SARs to NCA via SAR Online',
+                'Seeks consent where firm needs to proceed',
+                'Liaises with law enforcement'
+              ]
+            },
+            {
+              type: 'stat',
+              icon: '⏱️',
+              value: '7 Days',
+              label: 'NCA consent response period',
+              description: 'Extendable by 31 days with court order',
+              color: 'amber'
+            },
+            {
+              type: 'infogrid',
+              title: 'FCA Governance Expectations',
+              items: [
+                { icon: '👔', label: 'SMF16', description: 'Compliance Oversight' },
+                { icon: '📋', label: 'SMF17', description: 'MLRO accountability' },
+                { icon: '📊', label: 'Board MI', description: 'Regular reporting' }
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'Board MI Should Include',
+              items: [
+                'Internal SAR volumes and quality',
+                'Investigation outcomes',
+                'CDD/EDD completion metrics',
+                'Sanctions/PEP alert resolution rates',
+                'Training completion rates'
+              ]
+            }
+          ]
+        },
 
         keyConcepts: [
           {

@@ -659,7 +659,47 @@ export const moneyLaunderingRedFlagsModule: TrainingModule = {
       duration: 12,
       content: {
         learningPoint: "Red flags cluster around customer behavior, transactions, geography, and business activity.",
-        mainContent: "Red flags are not proof of laundering on their own. They are signals that warrant scrutiny, proportional investigation, and documentation. The most reliable indicators appear as patterns across time, channels, or related parties.\n\nA good red flag framework helps front-line staff recognize risk without over-escalating. Focus on the intersection between unusual behavior and inconsistency with the customer profile, declared purpose, and expected activity.",
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'info',
+              title: 'Red Flags Are Signals, Not Proof',
+              message: 'Red flags warrant scrutiny and documentation - they are not proof of laundering on their own.'
+            },
+            {
+              type: 'infogrid',
+              title: 'Four Categories of Red Flags',
+              items: [
+                { icon: '👤', label: 'Customer Behavior', description: 'Evasiveness, urgency, reluctance' },
+                { icon: '💳', label: 'Transaction Patterns', description: 'Structuring, rapid movement' },
+                { icon: '🌍', label: 'Geographic Risk', description: 'High-risk jurisdictions' },
+                { icon: '🏢', label: 'Business Activity', description: 'Inconsistent with purpose' }
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '🔍',
+              title: 'Pattern Recognition',
+              points: [
+                'Most reliable indicators appear as patterns',
+                'Look across time, channels, and related parties',
+                'Focus on inconsistency with customer profile',
+                'Compare to declared purpose and expected activity'
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'Good Red Flag Framework',
+              items: [
+                'Helps front-line staff recognize risk',
+                'Avoids over-escalation of normal activity',
+                'Focuses on unusual + inconsistent together',
+                'Documents patterns for investigation'
+              ]
+            }
+          ]
+        },
         keyConcepts: [
           { term: "Behavioral Red Flag", definition: "Unusual customer conduct such as urgency, evasiveness, or reluctance to provide details." },
           { term: "Transaction Red Flag", definition: "Patterns like structuring, rapid movement, or round-number activity that avoids thresholds." },
@@ -712,7 +752,46 @@ export const moneyLaunderingRedFlagsModule: TrainingModule = {
       duration: 12,
       content: {
         learningPoint: "Look for structuring, rapid movement, and inconsistent activity versus the customer profile.",
-        mainContent: "Patterns matter more than single anomalies. Transactions just below thresholds, rapid movement between related accounts, or repeated round-number transfers suggest intent to avoid scrutiny. Use customer profiles and risk ratings to compare expected versus observed behavior.\n\nEnsure alerts are documented with time, channel, amount, and rationale for escalation. This makes internal reviews faster and supports any SAR decision.",
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'warning',
+              title: 'Patterns Over Single Events',
+              message: 'Patterns matter more than single anomalies. Look for intent to avoid scrutiny across multiple transactions.'
+            },
+            {
+              type: 'keypoint',
+              icon: '📊',
+              title: 'Key Transaction Patterns',
+              points: [
+                'Structuring: Just below reporting thresholds',
+                'Rapid movement: Quick transfers between accounts',
+                'Round numbers: Repeated uniform amounts',
+                'Inconsistent with profile: Activity vs declared purpose'
+              ]
+            },
+            {
+              type: 'process',
+              steps: [
+                { number: 1, title: 'Detect Pattern', description: 'Spot recurring amounts, timing, counterparties' },
+                { number: 2, title: 'Compare to Profile', description: 'Check stated purpose vs activity' },
+                { number: 3, title: 'Document Alert', description: 'Time, channel, amount, rationale' },
+                { number: 4, title: 'Escalate', description: 'Route to MLRO if suspicion persists' }
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'Alert Documentation',
+              items: [
+                'Time and date of transactions',
+                'Channel used (branch, online, mobile)',
+                'Amount and currency',
+                'Rationale for escalation'
+              ]
+            }
+          ]
+        },
         keyConcepts: [
           { term: "Structuring", definition: "Breaking transactions into smaller amounts to avoid reporting thresholds." },
           { term: "Rapid Movement", definition: "Funds moved quickly across accounts with no clear purpose." },
@@ -760,7 +839,46 @@ export const moneyLaunderingRedFlagsModule: TrainingModule = {
       duration: 10,
       content: {
         learningPoint: "Behavioral cues matter when combined with transaction facts and documentation gaps.",
-        mainContent: "Customers who are evasive, unusually urgent, or inconsistent in their explanations should trigger enhanced questioning. Be professional and neutral, focusing on factual clarifications.\n\nDocumentation is critical. Record what was asked, what was provided, and any inconsistencies. Clear documentation supports escalation decisions and protects staff.",
+        mainContent: {
+          cards: [
+            {
+              type: 'keypoint',
+              icon: '👤',
+              title: 'Behavioral Trigger Indicators',
+              points: [
+                'Evasive or deflecting answers',
+                'Unusual urgency without explanation',
+                'Inconsistent explanations over time',
+                'Reluctance to provide standard documentation'
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'info',
+              title: 'Professional Approach',
+              message: 'Be professional and neutral. Focus on factual clarifications, not accusations.'
+            },
+            {
+              type: 'checklist',
+              title: 'Documentation Requirements',
+              items: [
+                'Record what was asked',
+                'Record what was provided',
+                'Note any inconsistencies',
+                'Document customer responses'
+              ]
+            },
+            {
+              type: 'infogrid',
+              title: 'When to Enhance Questioning',
+              items: [
+                { icon: '⚠️', label: 'Evasive Answers', description: 'Avoids source of funds questions' },
+                { icon: '📄', label: 'Doc Gaps', description: 'Missing evidence of funds' },
+                { icon: '🔄', label: 'Inconsistency', description: 'Story changes over time' }
+              ]
+            }
+          ]
+        },
         keyConcepts: [
           { term: "Enhanced Due Diligence", definition: "Additional checks required for higher-risk customers or transactions." },
           { term: "Source of Funds", definition: "Where the money for a transaction comes from." },
@@ -787,7 +905,46 @@ export const moneyLaunderingRedFlagsModule: TrainingModule = {
       duration: 10,
       content: {
         learningPoint: "Cross-border patterns and channel shifts can reveal hidden risk.",
-        mainContent: "Geographic and channel red flags are often overlooked because they look like operational quirks. They are not. Sudden shifts in country exposure, counterparties in high-risk jurisdictions, or unusual channel usage can signal layering and concealment.\n\nPay close attention to destination countries, corridor changes, and the use of intermediaries or payment service providers. These patterns are rarely random and should be assessed against the customer's stated business model and expected activity.",
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'warning',
+              title: 'Often Overlooked Red Flags',
+              message: 'Geographic and channel red flags look like operational quirks but can signal layering and concealment.'
+            },
+            {
+              type: 'keypoint',
+              icon: '🌍',
+              title: 'Geographic Risk Indicators',
+              points: [
+                'Sudden shifts in country exposure',
+                'Counterparties in high-risk jurisdictions',
+                'New corridors without business rationale',
+                'Payments through multiple intermediaries'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '🔀',
+              title: 'Channel Shift Indicators',
+              points: [
+                'Unexpected change in how funds move',
+                'Move from card to cash to wire',
+                'Use of payment service providers',
+                'Avoiding normal channels'
+              ]
+            },
+            {
+              type: 'process',
+              steps: [
+                { number: 1, title: 'Identify Shift', description: 'Spot new destinations or channels' },
+                { number: 2, title: 'Validate Rationale', description: 'Check trade docs, contracts' },
+                { number: 3, title: 'Document & Escalate', description: 'Record facts if unexplained' }
+              ]
+            }
+          ]
+        },
         keyConcepts: [
           { term: "High-Risk Jurisdiction", definition: "Countries with weak AML controls or higher corruption risk." },
           { term: "Channel Shift", definition: "Unexpected change in the way a customer moves funds or accesses services." },
@@ -836,7 +993,52 @@ export const moneyLaunderingRedFlagsModule: TrainingModule = {
       duration: 11,
       content: {
         learningPoint: "Escalation is about evidence, not accusation.",
-        mainContent: "Escalate when red flags persist or when documentation does not support the transaction. Use internal SAR processes, provide factual narratives, and avoid tipping off customers.\n\nGood escalation includes what you observed, why it is inconsistent, and what evidence was reviewed. This helps MLROs make timely, defensible decisions.",
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'critical',
+              title: 'Evidence, Not Accusation',
+              message: 'Escalation is about presenting facts and evidence - NOT accusing the customer of wrongdoing.'
+            },
+            {
+              type: 'keypoint',
+              icon: '📋',
+              title: 'When to Escalate',
+              points: [
+                'Red flags persist after initial review',
+                'Documentation does not support transaction',
+                'Customer explanations are inconsistent',
+                'Activity contradicts stated business purpose'
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'Good Escalation Includes',
+              items: [
+                'What you observed (facts)',
+                'Why it is inconsistent (rationale)',
+                'What evidence was reviewed',
+                'Timeline of events'
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'warning',
+              title: 'Never Tip Off',
+              message: 'Never warn the customer about a suspicion or SAR. This is a criminal offense.'
+            },
+            {
+              type: 'process',
+              steps: [
+                { number: 1, title: 'Document', description: 'Record facts and evidence' },
+                { number: 2, title: 'Escalate to MLRO', description: 'Use internal SAR process' },
+                { number: 3, title: 'MLRO Reviews', description: 'Decides on external SAR' },
+                { number: 4, title: 'Maintain Confidentiality', description: 'No disclosure to customer' }
+              ]
+            }
+          ]
+        },
         keyConcepts: [
           { term: "Internal SAR", definition: "Report to MLRO describing suspicious activity and rationale." },
           { term: "Tipping Off", definition: "Warning a customer about a suspicion or SAR, which is prohibited." }

@@ -43,89 +43,65 @@ The gap between policy and practice is where harm happens. Your firm may have a 
       duration: 18,
       content: {
         learningPoint: 'Understand how the FCA defines vulnerability and its objectives for vulnerable customer outcomes',
-        mainContent: `**The FCA Definition**
-
-The FCA defines a vulnerable customer as:
-
-"Someone who, due to their personal circumstances, is especially susceptible to harm, particularly when a firm is not acting with appropriate levels of care."
-
-**Key Points About This Definition:**
-
-• Vulnerability is a **spectrum of risk**, not a fixed label
-• **Any customer** can become vulnerable at any time
-• Vulnerability is often **temporary** (life events) but can be long-term (chronic health)
-• It is the firm's **responsibility** to act with appropriate care – vulnerability increases harm when firms fail to adapt
-• The definition focuses on **susceptibility to harm**, not characteristics of customers
-
-**FCA Objectives for Vulnerable Customers:**
-
-1. Vulnerable customers should experience **outcomes as good as** those for other customers
-2. Vulnerable customers should receive **consistently fair treatment** across all firms and sectors
-3. Firms should take **proactive steps** to identify and support vulnerable customers
-4. Vulnerability considerations should be **embedded** throughout the business, not siloed
-
----
-
-**The Four Key Drivers of Vulnerability**
-
-The FCA groups vulnerability into four categories of drivers. Most vulnerable customers experience multiple drivers simultaneously.
-
-**1. Health**
-• Physical health conditions (mobility issues, chronic pain, sensory impairments)
-• Mental health conditions (depression, anxiety, PTSD, bipolar disorder)
-• Cognitive impairments (dementia, learning disabilities, brain injury)
-• Addictions (gambling, alcohol, drugs)
-• Long-term or terminal illness
-
-Impact: May affect ability to understand information, communicate effectively, manage tasks, or make complex decisions.
-
-**2. Life Events**
-• Bereavement (loss of spouse, parent, child)
-• Relationship breakdown (divorce, separation)
-• Job loss or redundancy
-• Caring responsibilities (for children, elderly parents, disabled family members)
-• Serious accident or injury
-• Domestic abuse or coercive control
-• Migration or displacement
-• Involvement in the criminal justice system
-
-Impact: Often time-limited but can significantly increase stress, reduce capacity, and create urgent financial pressures.
-
-**3. Resilience**
-• Low or volatile income
-• Lack of savings or financial cushion
-• High debt levels relative to income
-• Over-indebtedness
-• Limited emotional resilience or support networks
-• Precarious housing or employment
-
-Impact: Reduces ability to withstand financial or emotional shocks; small problems can quickly escalate.
-
-**4. Capability**
-• Low financial literacy or confidence
-• Poor numeracy or literacy skills
-• Limited digital skills or access
-• Limited English language skills
-• Learning disabilities
-• Lack of experience with financial products
-
-Impact: Makes it harder to understand products, navigate processes, or advocate for themselves.
-
----
-
-**Interaction with Consumer Duty**
-
-The Consumer Duty (Principle 12 and PRIN 2A) raises standards for all customers and explicitly requires firms to consider characteristics of vulnerability:
-
-**Cross-Cutting Rules Applied to Vulnerability:**
-
-• **Act in good faith** – don't exploit vulnerability or lack of understanding
-• **Avoid causing foreseeable harm** – harm is more foreseeable for vulnerable customers
-• **Enable and support customers** – account for limitations in capability or resilience
-
-The FCA's 2025 vulnerable customer review frames this as: "Consumer Duty + FG21/1 = higher, outcomes-focused expectations for vulnerable customers."
-
-FG21/1 is not a separate regime – it explains how existing obligations apply in the context of vulnerability. The Consumer Duty amplifies these expectations.`,
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'critical',
+              title: 'FCA Definition',
+              message: '"Someone who, due to their personal circumstances, is especially susceptible to harm, particularly when a firm is not acting with appropriate levels of care."'
+            },
+            {
+              type: 'keypoint',
+              icon: '📋',
+              title: 'Key Definition Points',
+              points: [
+                'Vulnerability is a spectrum, not a label',
+                'ANY customer can become vulnerable at any time',
+                'Often temporary (life events) but can be long-term',
+                'Firm\'s responsibility to act with appropriate care'
+              ]
+            },
+            {
+              type: 'infogrid',
+              title: 'Four Drivers of Vulnerability',
+              items: [
+                { icon: '❤️', label: 'Health', description: 'Physical, mental, cognitive' },
+                { icon: '⚡', label: 'Life Events', description: 'Bereavement, divorce, job loss' },
+                { icon: '💪', label: 'Resilience', description: 'Low income, high debt, shocks' },
+                { icon: '🧠', label: 'Capability', description: 'Literacy, digital skills, knowledge' }
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'FCA Objectives for Vulnerable Customers',
+              items: [
+                'Outcomes as good as other customers',
+                'Consistently fair treatment across all firms',
+                'Proactive identification and support',
+                'Embedded throughout business, not siloed'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '📋',
+              title: 'Consumer Duty Applied to Vulnerability',
+              points: [
+                'Act in good faith - don\'t exploit lack of understanding',
+                'Avoid foreseeable harm - more foreseeable for vulnerable',
+                'Enable and support - account for limitations'
+              ]
+            },
+            {
+              type: 'stat',
+              icon: '📘',
+              value: 'FG21/1',
+              label: 'Key guidance document',
+              description: 'Works with Consumer Duty for higher expectations',
+              color: 'blue'
+            }
+          ]
+        },
 
         keyConcepts: [
           {
@@ -168,28 +144,54 @@ FG21/1 is not a separate regime – it explains how existing obligations apply i
       duration: 14,
       content: {
         learningPoint: 'Recognise vulnerability indicators and record them lawfully with customer consent and care.',
-        mainContent: `Identifying vulnerability is a practical skill. It is not about labels, but about recognising signals and adapting support. Firms should allow both **self-disclosure** and **observed indicators** to be recorded sensitively.
-
-**Where Indicators Appear**
-- Calls or chats where customers express distress, confusion, or urgency
-- Missed payments, sudden arrears, or repeated contact attempts
-- Requests for unusual help (third-party support, large-print documents, extended deadlines)
-
-**How to Ask**
-- Use respectful, neutral language
-- Explain why the information helps provide better support
-- Give customers control over what they disclose
-
-**Recording and Data Privacy**
-- Record only what is necessary to support the customer
-- Use clear vulnerability flags with categories, not intrusive medical details
-- Ensure consent and explain how the data will be used
-- Provide opt-out and review options where appropriate
-
-**Escalation Triggers**
-- Indicators of financial abuse or coercion
-- Signs of significant mental health distress
-- Repeated misunderstandings that could cause foreseeable harm`,
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'info',
+              title: 'Practical Skill',
+              message: 'Identification is about recognising signals and adapting support - not labeling customers.'
+            },
+            {
+              type: 'keypoint',
+              icon: '👀',
+              title: 'Where Indicators Appear',
+              points: [
+                'Calls/chats expressing distress, confusion, urgency',
+                'Missed payments, sudden arrears',
+                'Repeated contact attempts',
+                'Requests for unusual help'
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'How to Ask',
+              items: [
+                'Use respectful, neutral language',
+                'Explain why info helps provide better support',
+                'Give customers control over disclosure',
+                'Never pressure for medical details'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '📋',
+              title: 'Recording & Data Privacy',
+              points: [
+                'Record only what is necessary',
+                'Use category flags, not intrusive details',
+                'Ensure consent and explain data use',
+                'Provide opt-out options'
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'warning',
+              title: 'Escalation Triggers',
+              message: 'Financial abuse/coercion, significant mental health distress, repeated misunderstandings causing foreseeable harm.'
+            }
+          ]
+        },
         keyConcepts: [
           { term: 'Self-Disclosure', definition: 'When a customer voluntarily tells the firm about a vulnerability.' },
           { term: 'Observed Indicator', definition: 'Behavior or circumstances suggesting vulnerability without explicit disclosure.' },
@@ -213,29 +215,47 @@ FG21/1 is not a separate regime – it explains how existing obligations apply i
       duration: 16,
       content: {
         learningPoint: 'Adapt processes to reduce harm and provide equitable outcomes.',
-        mainContent: `Once vulnerability is identified, the firm must adapt. Adjustments should be practical, consistent, and proportionate to the customer's needs.
-
-**Common Adjustments**
-- Alternative channels (phone or paper instead of digital-only)
-- Slower pacing and confirmation of understanding
-- Extended timeframes for documentation or decisions
-- Third-party involvement where consent is provided
-- Tailored communications (large print, simplified language, translations)
-
-**Forbearance and Financial Support**
-- Payment plans or temporary concessions for customers in distress
-- Referrals to debt advice or support organisations
-- Clear explanation of consequences and options
-
-**Escalation and Specialist Support**
-- Build a clear referral pathway to trained specialists
-- Document decisions and reasons for adjustments
-- Ensure vulnerable outcomes are tracked and reviewed
-
-**Avoiding Harm**
-- Do not apply rigid scripts that block reasonable adjustments
-- Do not penalise customers for disclosure
-- Ensure support is consistent across channels`,
+        mainContent: {
+          cards: [
+            {
+              type: 'checklist',
+              title: 'Common Adjustments',
+              items: [
+                'Alternative channels (phone/paper vs digital)',
+                'Slower pacing, confirm understanding',
+                'Extended timeframes for decisions',
+                'Third-party involvement with consent',
+                'Tailored comms (large print, simplified)'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '💰',
+              title: 'Forbearance & Financial Support',
+              points: [
+                'Payment plans or temporary concessions',
+                'Referrals to debt advice organisations',
+                'Clear explanation of consequences',
+                'Options clearly communicated'
+              ]
+            },
+            {
+              type: 'process',
+              steps: [
+                { number: 1, title: 'Identify', description: 'Recognise vulnerability signals' },
+                { number: 2, title: 'Adjust', description: 'Adapt process proportionately' },
+                { number: 3, title: 'Document', description: 'Record decisions and reasons' },
+                { number: 4, title: 'Review', description: 'Track outcomes' }
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'warning',
+              title: 'Avoiding Harm',
+              message: 'Don\'t apply rigid scripts blocking adjustments. Don\'t penalise disclosure. Ensure consistent support across channels.'
+            }
+          ]
+        },
         keyConcepts: [
           { term: 'Reasonable Adjustment', definition: 'A change to process or communication to support vulnerable customers.' },
           { term: 'Support Pathway', definition: 'Defined escalation route to specialist help.' },

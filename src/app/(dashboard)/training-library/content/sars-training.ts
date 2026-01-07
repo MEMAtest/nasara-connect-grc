@@ -95,10 +95,10 @@ export const sarsTrainingModule: TrainingModule = {
             {
               type: 'infogrid',
               items: [
-                { icon: '📖', term: 'Knowledge', definition: 'Actual awareness of facts' },
-                { icon: '🤔', term: 'Suspicion', definition: 'Reasonable belief something may be true' },
-                { icon: '⚡', term: 'ASAP', definition: 'Within hours, not days' },
-                { icon: '🛡️', term: 'Defense', definition: 'Report made or genuine excuse' }
+                { icon: '📖', label: 'Knowledge', description: 'Actual awareness of facts' },
+                { icon: '🤔', label: 'Suspicion', description: 'Reasonable belief something may be true' },
+                { icon: '⚡', label: 'ASAP', description: 'Within hours, not days' },
+                { icon: '🛡️', label: 'Defense', description: 'Report made or genuine excuse' }
               ]
             },
             {
@@ -188,210 +188,92 @@ export const sarsTrainingModule: TrainingModule = {
       duration: 5,
       content: {
         learningPoint: 'Master systematic approaches to identifying suspicious activity and conducting appropriate investigations',
-        mainContent: `Identifying suspicious activity requires a combination of systematic monitoring, pattern recognition, and professional intuition. The investigation process must be thorough but swift to meet legal reporting obligations.
-
-**Categories of Suspicious Activity:**
-
-**1. Transaction-Based Suspicions**
-
-*Structuring and Smurfing:*
-- Multiple transactions just below reporting thresholds
-- Coordinated deposits across multiple accounts or branches
-- Breaking large amounts into smaller, seemingly unrelated transactions
-- Use of multiple individuals to conduct related transactions
-
-*Unusual Payment Patterns:*
-- Round-number transactions without clear business rationale
-- Rapid movement of funds between accounts (layering)
-- Transactions at unusual times or locations
-- Inconsistent with known customer profile or business model
-
-*Cash-Related Suspicions:*
-- Large cash deposits inconsistent with business type
-- Frequent cash transactions in predominantly non-cash businesses
-- Cash deposits followed immediately by wire transfers
-- Reluctance to provide source of cash documentation
-
-**2. Customer Behavior Suspicions**
-
-*Documentation and Information Issues:*
-- Reluctance to provide standard identification documentation
-- Provision of suspicious or potentially falsified documents
-- Evasive responses to routine questions about business purpose
-- Inconsistent information provided over time
-
-*Relationship Behavior:*
-- Unusual nervousness or anxiety during routine interactions
-- Requests for unusual secrecy or confidentiality measures
-- Instructions to expedite transactions without clear justification
-- Avoidance of personal contact or face-to-face meetings
-
-*Knowledge Indicators:*
-- Unusual familiarity with money laundering detection methods
-- Sophisticated understanding of reporting thresholds and requirements
-- Requests specifically designed to avoid monitoring or reporting
-- Knowledge of bank procedures beyond normal customer understanding
-
-**3. Business and Commercial Suspicions**
-
-*Business Model Inconsistencies:*
-- Transaction volumes inconsistent with declared business size
-- Activity inconsistent with stated business purpose
-- Rapid changes in business model or customer base
-- Lack of legitimate business documentation or contracts
-
-*Geographic and Sectoral Risks:*
-- Transactions involving high-risk jurisdictions
-- Business connections to cash-intensive industries
-- Export/import activity inconsistent with business registration
-- Involvement in sectors prone to money laundering (MSBs, casinos, real estate)
-
-**Investigation Methodology:**
-
-**1. Initial Assessment Phase**
-
-*Information Gathering:*
-- Review complete customer file and relationship history
-- Analyze transaction patterns over extended periods
-- Check all related accounts and beneficial owners
-- Review any previous internal reports or investigations
-
-*Risk Factor Analysis:*
-- Customer risk rating and any recent changes
-- Geographic risks associated with transactions
-- Product and service risks involved
-- Delivery channel risks and controls
-
-*Pattern Recognition:*
-- Compare current activity to established baseline
-- Identify deviations from expected behavior
-- Look for correlation with known typologies
-- Consider seasonal or business cycle factors
-
-**2. Enhanced Investigation Procedures**
-
-*Documentation Review:*
-- Verify authenticity of provided documentation
-- Cross-reference information across multiple sources
-- Check for consistency in customer statements over time
-- Review any adverse media or intelligence reports
-
-*Transaction Analysis:*
-- Map fund flows and transaction chains
-- Identify ultimate sources and destinations
-- Analyze timing patterns and frequencies
-- Review counterparty information and relationships
-
-*External Information Sources:*
-- Corporate registry searches for business entities
-- Property records for real estate transactions
-- Court records for litigation or criminal history
-- Media searches for adverse information
-
-**3. Senior Review and Decision Making**
-
-*Escalation Criteria:*
-- Complex investigations requiring specialist expertise
-- High-value or high-profile customers
-- Potential sanctions or terrorist financing links
-- Novel typologies or unknown risk factors
-
-*Decision Framework:*
-- Clear criteria for filing vs. not filing SARs
-- Documentation requirements for all decisions
-- Senior management approval for certain determinations
-- Legal review for complex or uncertain cases
-
-**Red Flag Indicators by Sector:**
-
-**Retail Banking Red Flags:**
-- Multiple accounts with similar names or addresses
-- Frequent deposits just under £10,000 (or €15,000)
-- Cash deposits followed by immediate international transfers
-- Accounts receiving multiple third-party deposits
-- Frequent account closures and new openings
-
-**Trade Finance Red Flags:**
-- Over or under-invoicing of goods and services
-- Multiple invoices for the same shipment
-- Transactions involving high-risk commodities (precious metals, gems)
-- Shipments to/from countries not matching business profile
-- Use of multiple correspondent banks for single transactions
-
-**Private Banking Red Flags:**
-- Source of wealth inconsistent with known background
-- Complex ownership structures involving secrecy jurisdictions
-- Frequent changes in beneficial ownership
-- Reluctance to meet face-to-face or provide references
-- Requests for anonymous or bearer instruments
-
-**Investment and Securities Red Flags:**
-- Investments inconsistent with customer's knowledge or experience
-- Unusual trading patterns or market timing
-- Purchases using cash or cash equivalents
-- Requests for physical delivery of securities
-- Frequent transfers between unrelated accounts
-
-**Investigation Quality Standards:**
-
-**Documentation Requirements:**
-- Clear timeline of suspicious activity
-- Supporting evidence and analysis
-- Customer explanations and responses (if obtained)
-- Decision rationale and senior management input
-- Legal and regulatory considerations
-
-**Timeliness Standards:**
-- Initial assessment: Within 24 hours of identification
-- Enhanced investigation: Additional 24-48 hours maximum
-- Senior review: Same day if possible, next business day maximum
-- SAR submission: Within required timeframes regardless of investigation status
-
-**Quality Control Measures:**
-- Peer review of investigation conclusions
-- Supervisory oversight of decision making
-- Regular training on investigation techniques
-- Feedback incorporation from NCA and law enforcement
-
-**Common Investigation Pitfalls:**
-
-**Over-Investigation:**
-- Delaying SAR filing to gather more evidence
-- Seeking absolute proof rather than reasonable suspicion
-- Conducting investigations that should be left to law enforcement
-- Allowing commercial considerations to influence timing
-
-**Under-Investigation:**
-- Filing SARs without sufficient analysis or context
-- Failing to identify related accounts or transactions
-- Missing obvious explanations for apparently suspicious activity
-- Inadequate documentation of investigation process
-
-**Procedural Errors:**
-- Inappropriate customer contact during investigation
-- Sharing investigation details with unauthorized staff
-- Failing to maintain confidentiality requirements
-- Inadequate escalation to senior management
-
-**Technology and Tools:**
-
-**Transaction Monitoring Systems:**
-- Automated alert generation based on rules and scenarios
-- Pattern recognition and machine learning capabilities
-- Integration with external databases and watchlists
-- Audit trails and case management functionality
-
-**Investigation Software:**
-- Link analysis and relationship mapping tools
-- Document management and evidence collection systems
-- Workflow management for case progression
-- Reporting templates and submission systems
-
-**Information Sources:**
-- Internal customer databases and transaction histories
-- External commercial databases and registries
-- Government and regulatory databases
-- Open source intelligence and media monitoring`,
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'info',
+              title: 'Dual Skill Required',
+              message: 'Identifying suspicious activity requires systematic monitoring AND professional intuition. Investigation must be thorough but swift.'
+            },
+            {
+              type: 'keypoint',
+              icon: '💰',
+              title: 'Transaction-Based Suspicions',
+              points: [
+                'Structuring: Multiple transactions just below reporting thresholds',
+                'Layering: Rapid movement of funds between accounts',
+                'Cash anomalies: Large cash inconsistent with business type',
+                'Round numbers without clear business rationale'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '👤',
+              title: 'Customer Behavior Suspicions',
+              points: [
+                'Reluctance to provide standard ID documentation',
+                'Unusual nervousness during routine interactions',
+                'Sophisticated knowledge of reporting thresholds',
+                'Requests specifically designed to avoid monitoring'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '🏢',
+              title: 'Business & Commercial Suspicions',
+              points: [
+                'Transaction volumes inconsistent with business size',
+                'Activity inconsistent with stated business purpose',
+                'Connections to high-risk jurisdictions or sectors',
+                'Lack of legitimate documentation or contracts'
+              ]
+            },
+            {
+              type: 'process',
+              steps: [
+                { number: 1, title: 'Initial Assessment', description: 'Review customer file, analyze transaction patterns, check related accounts' },
+                { number: 2, title: 'Risk Analysis', description: 'Assess customer, geographic, product, and channel risks' },
+                { number: 3, title: 'Enhanced Investigation', description: 'Verify docs, map fund flows, check external sources' },
+                { number: 4, title: 'Senior Review', description: 'Escalate complex cases, apply decision framework' }
+              ]
+            },
+            {
+              type: 'infogrid',
+              title: 'Red Flags by Sector',
+              items: [
+                { icon: '🏦', label: 'Retail Banking', description: 'Multiple accounts, threshold avoidance' },
+                { icon: '🚢', label: 'Trade Finance', description: 'Over/under-invoicing, multiple invoices' },
+                { icon: '💎', label: 'Private Banking', description: 'Opaque wealth, secrecy structures' },
+                { icon: '📈', label: 'Investments', description: 'Unusual trading, cash purchases' }
+              ]
+            },
+            {
+              type: 'stat',
+              icon: '⏱️',
+              value: '24-48 Hours',
+              label: 'Max investigation timeframe',
+              description: 'Initial assessment within 24h, enhanced review within 48h',
+              color: 'amber'
+            },
+            {
+              type: 'alert',
+              alertType: 'warning',
+              title: 'Common Pitfalls to Avoid',
+              message: 'Over-investigation (delaying SARs for more evidence) and under-investigation (filing without context) both undermine effectiveness.'
+            },
+            {
+              type: 'checklist',
+              title: 'Investigation Documentation',
+              items: [
+                'Clear timeline of suspicious activity',
+                'Supporting evidence and analysis',
+                'Customer explanations (if obtained)',
+                'Decision rationale and management input'
+              ]
+            }
+          ]
+        },
 
         keyConcepts: [
           {
@@ -434,192 +316,100 @@ export const sarsTrainingModule: TrainingModule = {
       duration: 3,
       content: {
         learningPoint: 'Master the technical and procedural requirements for submitting high-quality SARs to the NCA',
-        mainContent: `The SAR submission process requires technical accuracy, comprehensive information, and adherence to strict procedural requirements. Quality SARs provide law enforcement with actionable intelligence for investigations.
-
-**SAR Submission System and Process:**
-
-**1. NCA Online SAR System**
-- Secure web-based portal for all SAR submissions
-- 24/7 availability with technical support
-- Automated validation and error checking
-- Electronic acknowledgment and reference numbers
-- Integration with law enforcement databases
-
-**2. Access and Authentication**
-- MLROs must register and maintain system access
-- Two-factor authentication required for security
-- Regular password updates and security protocols
-- Designated backup users for continuity
-- Audit logs of all system access and activity
-
-**3. System Navigation and Functionality**
-- User-friendly interface with guided submission process
-- Save and resume capability for complex SARs
-- Template options for common scenarios
-- Attachment functionality for supporting documents
-- Search and tracking capabilities for submitted SARs
-
-**Essential SAR Information Requirements:**
-
-**Subject Information (Mandatory):**
-- Full name including any aliases or variations
-- Date and place of birth (if known)
-- Current and previous addresses
-- Nationality and identification documents
-- Occupation and employer details
-- Role in the suspicious activity
-
-**Account and Transaction Details:**
-- Account numbers and types
-- Transaction dates, amounts, and currencies
-- Payment methods and instruments used
-- Counterparty information (sender/receiver)
-- Geographic locations involved
-- Supporting transaction references
-
-**Suspicious Activity Description:**
-- Clear, chronological narrative of events
-- Specific reasons for suspicion
-- Timeline of suspicious behavior
-- Amounts and frequency of transactions
-- Any customer explanations received
-- Relevant background context
-
-**Supporting Documentation:**
-- Transaction records and bank statements
-- Customer identification and verification documents
-- Business registration and ownership information
-- Contracts, invoices, or commercial documentation
-- Correspondence with customer
-- Internal investigation notes
-
-**SAR Quality Standards:**
-
-**Narrative Quality Requirements:**
-- Clear, concise, and factual reporting
-- Logical flow and chronological order
-- Specific details rather than general statements
-- Professional language and terminology
-- Objective reporting without speculation
-- Sufficient detail for law enforcement action
-
-**Common Quality Issues to Avoid:**
-- Vague or generic descriptions of suspicion
-- Missing key dates, amounts, or transaction details
-- Speculation about customer motives or intentions
-- Incomplete subject identification information
-- Poor supporting documentation
-- Late submission without justification
-
-**Urgent and Priority SARs:**
-
-**Criteria for Urgent Submission:**
-- Ongoing criminal activity requiring immediate intervention
-- Imminent risk to public safety or national security
-- Live terrorist financing investigations
-- Time-sensitive intelligence requirements
-- Request from law enforcement agencies
-
-**Priority SAR Procedures:**
-- Telephone notification to NCA before submission
-- Expedited submission within hours of identification
-- Enhanced detail and supporting documentation
-- Coordination with relevant law enforcement
-- Follow-up communication as required
-
-**Special SAR Categories:**
-
-**Terrorist Financing SARs:**
-- Lower threshold for suspicion ("reasonable grounds")
-- Enhanced urgency and priority handling
-- Additional security and confidentiality measures
-- Coordination with national security agencies
-- Specific reporting formats and requirements
-
-**Sanctions-Related SARs:**
-- Dual reporting to HM Treasury and NCA
-- Immediate notification requirements
-- Enhanced documentation of sanctions analysis
-- Coordination with relevant enforcement agencies
-- Ongoing monitoring and update obligations
-
-**Cash Transaction Reports:**
-- Specific format for large cash transactions
-- Enhanced verification of customer identity
-- Business rationale and source documentation
-- Risk assessment and monitoring implications
-- Integration with SAR submission process
-
-**Post-Submission Procedures:**
-
-**NCA Acknowledgment and Reference:**
-- Automatic acknowledgment within minutes
-- Unique SAR reference number assignment
-- Confirmation of receipt and initial validation
-- Any immediate queries or requests for clarification
-- Technical support contact information
-
-**Ongoing Obligations:**
-- Maintain confidentiality indefinitely
-- Respond to NCA requests for additional information
-- Monitor account for continued suspicious activity
-- Report significant developments or changes
-- Coordinate with law enforcement as required
-
-**Internal Process Management:**
-
-**SAR Register and Tracking:**
-- Comprehensive register of all SARs submitted
-- Status tracking and follow-up procedures
-- Statistical reporting and analysis
-- Quality review and improvement processes
-- Management reporting and oversight
-
-**Staff Training and Competency:**
-- Regular training on SAR submission procedures
-- System access and technical training
-- Quality standards and best practice guidance
-- Legal updates and regulatory changes
-- Practical exercises and case studies
-
-**Quality Assurance Program:**
-- Peer review of SARs before submission
-- Supervisory oversight and approval processes
-- Regular quality audits and assessments
-- Feedback incorporation and improvement
-- Benchmarking against industry standards
-
-**Record Keeping and Retention:**
-
-**SAR Documentation:**
-- Complete investigation files and supporting evidence
-- Copy of submitted SAR and all attachments
-- NCA correspondence and feedback
-- Internal approvals and decision records
-- Related customer files and transaction records
-
-**Retention Requirements:**
-- SAR records: Minimum 5 years from submission
-- Investigation files: 5 years from closure
-- Customer files: 5 years after relationship ends
-- Training records: 3 years minimum
-- System audit logs: As per regulatory requirements
-
-**Management Information and Reporting:**
-
-**Statistical Analysis:**
-- SAR volume and trends analysis
-- Subject matter and typology classification
-- Quality metrics and improvement tracking
-- Timeliness and procedural compliance
-- Resource allocation and efficiency measures
-
-**Senior Management Reporting:**
-- Regular SAR activity summaries
-- Quality and effectiveness assessments
-- Regulatory compliance status
-- Training and competency updates
-- Strategic planning and resource needs`,
+        mainContent: {
+          cards: [
+            {
+              type: 'keypoint',
+              icon: '🖥️',
+              title: 'NCA Online SAR System',
+              points: [
+                'Secure web-based portal, 24/7 availability',
+                'Two-factor authentication required',
+                'Automated validation and error checking',
+                'Save/resume capability for complex SARs'
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'Mandatory Subject Information',
+              items: [
+                'Full name including aliases',
+                'Date and place of birth',
+                'Current and previous addresses',
+                'Nationality and ID documents',
+                'Occupation and employer details'
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'Transaction Details Required',
+              items: [
+                'Account numbers and types',
+                'Transaction dates, amounts, currencies',
+                'Counterparty information (sender/receiver)',
+                'Geographic locations involved'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '📝',
+              title: 'Narrative Quality Standards',
+              points: [
+                'Clear, concise, factual reporting',
+                'Chronological order with specific details',
+                'Professional language, no speculation',
+                'Sufficient detail for law enforcement action'
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'critical',
+              title: 'Urgent SAR Criteria',
+              message: 'Ongoing criminal activity, imminent public safety risk, live terrorist financing, or law enforcement request = phone NCA FIRST then file immediately.'
+            },
+            {
+              type: 'infogrid',
+              title: 'Special SAR Categories',
+              items: [
+                { icon: '💣', label: 'Terrorist Financing', description: 'Lower threshold, enhanced urgency' },
+                { icon: '🚫', label: 'Sanctions-Related', description: 'Dual report to HMT and NCA' },
+                { icon: '💵', label: 'Large Cash', description: 'Enhanced ID verification' }
+              ]
+            },
+            {
+              type: 'stat',
+              icon: '📨',
+              value: 'Minutes',
+              label: 'NCA acknowledgment time',
+              description: 'Automatic receipt with unique reference number',
+              color: 'emerald'
+            },
+            {
+              type: 'process',
+              steps: [
+                { number: 1, title: 'Submit SAR', description: 'Complete online form with all required information' },
+                { number: 2, title: 'Receive Reference', description: 'NCA provides unique SAR reference number' },
+                { number: 3, title: 'Maintain Confidentiality', description: 'Never disclose SAR existence to anyone' },
+                { number: 4, title: 'Monitor & Respond', description: 'Watch for NCA requests, report developments' }
+              ]
+            },
+            {
+              type: 'infogrid',
+              title: 'Record Retention',
+              items: [
+                { icon: '📁', label: 'SAR Records', description: '5 years from submission' },
+                { icon: '🔍', label: 'Investigation Files', description: '5 years from closure' },
+                { icon: '👤', label: 'Customer Files', description: '5 years post-relationship' }
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'warning',
+              title: 'Quality Issues to Avoid',
+              message: 'Vague descriptions, missing dates/amounts, speculation about motives, incomplete subject ID, late submission without justification.'
+            }
+          ]
+        },
 
         keyConcepts: [
           {
@@ -662,35 +452,77 @@ export const sarsTrainingModule: TrainingModule = {
       duration: 4,
       content: {
         learningPoint: 'High-quality SARs and clear MLRO decisioning are essential for lawful action and defensible outcomes.',
-        mainContent: `A SAR is only useful if it gives law enforcement enough to act. The MLRO must also make clear, documented decisions on whether to report, whether to seek consent (DAML), and how to proceed with transactions.
-
-**What Makes a High-Quality SAR**
-- Clear subject details: full name, DOB, addresses, identifiers, account numbers
-- Factual narrative: what happened, when, amounts, channels, counterparties
-- Why it is suspicious: inconsistencies, red flags, changes in behavior
-- Supporting evidence: references to documents, alerts, conversations, and logs
-- Avoids speculation: focus on facts and risk rationale
-
-**MLRO Decisioning**
-MLROs should maintain a decision log that records:
-- The suspicion threshold and basis
-- Information reviewed and any gaps
-- Whether additional information was requested
-- The final decision and rationale
-- Any post-decision controls (account monitoring, restrictions, exit)
-
-**Consent and DAML Requests**
-Where a firm needs to proceed with a transaction that may involve criminal property, the MLRO can seek a Defence Against Money Laundering (DAML) by filing a SAR and requesting consent from the NCA.
-
-Key points:
-- The NCA has a statutory response period before consent is deemed refused or granted
-- If consent is refused, a moratorium period applies and the firm must not proceed
-- All timelines and decisions must be documented
-
-**Quality Assurance**
-- Regular sampling of SARs for clarity and completeness
-- Feedback loops to improve staff submissions
-- Training on writing fact-based narratives`,
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'info',
+              title: 'Quality = Actionability',
+              message: 'A SAR is only useful if it gives law enforcement enough to act. Clear MLRO decisions protect both the firm and enable effective investigation.'
+            },
+            {
+              type: 'checklist',
+              title: 'High-Quality SAR Components',
+              items: [
+                'Clear subject details: name, DOB, addresses, accounts',
+                'Factual narrative: what, when, amounts, counterparties',
+                'Why suspicious: inconsistencies, red flags, behavior changes',
+                'Supporting evidence: docs, alerts, conversations, logs',
+                'No speculation: facts and risk rationale only'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '📋',
+              title: 'MLRO Decision Log Must Record',
+              points: [
+                'Suspicion threshold and basis',
+                'Information reviewed and any gaps',
+                'Whether additional info was requested',
+                'Final decision and rationale',
+                'Post-decision controls (monitoring, restrictions, exit)'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '🔐',
+              title: 'Defence Against Money Laundering (DAML)',
+              points: [
+                'Used when firm needs to proceed with transaction involving suspected criminal property',
+                'MLRO files SAR and requests NCA consent',
+                'NCA has statutory response period',
+                'If refused: moratorium period applies - cannot proceed'
+              ]
+            },
+            {
+              type: 'process',
+              steps: [
+                { number: 1, title: 'Identify Suspicion', description: 'Transaction may involve criminal property' },
+                { number: 2, title: 'File SAR + DAML Request', description: 'Request consent from NCA to proceed' },
+                { number: 3, title: 'Await Response', description: 'NCA has statutory period to respond' },
+                { number: 4, title: 'Act on Decision', description: 'Proceed if consented, halt if refused' }
+              ]
+            },
+            {
+              type: 'stat',
+              icon: '⚖️',
+              value: '7 Days',
+              label: 'NCA notice period',
+              description: 'Then 31 days moratorium if consent refused',
+              color: 'amber'
+            },
+            {
+              type: 'checklist',
+              title: 'Quality Assurance Practices',
+              items: [
+                'Regular sampling of SARs for clarity',
+                'Feedback loops to improve submissions',
+                'Training on fact-based narratives',
+                'Peer review before submission'
+              ]
+            }
+          ]
+        },
         keyConcepts: [
           {
             term: 'Defence Against Money Laundering (DAML)',
@@ -729,191 +561,106 @@ Key points:
       duration: 3,
       content: {
         learningPoint: 'Implement robust confidentiality procedures and prevent tipping-off violations while maintaining business relationships',
-        mainContent: `Maintaining SAR confidentiality while continuing normal business operations requires sophisticated procedures and careful staff training. Tipping-off violations can result in criminal prosecution and compromise investigations.
-
-**Legal Framework for Confidentiality:**
-
-**Absolute Confidentiality Requirement:**
-- SAR existence must never be disclosed to unauthorized persons
-- Confidentiality applies indefinitely with no time limit
-- Covers all aspects: investigation, submission, police contact
-- Includes speculation or hints about possible investigations
-- Applies to all staff regardless of seniority or role
-
-**Who May Know About SARs:**
-- Money Laundering Reporting Officer (MLRO)
-- Designated deputies and backup MLROs
-- Staff directly involved in investigation
-- Senior management on need-to-know basis
-- Legal counsel providing advice on SAR matters
-- External auditors reviewing SAR procedures (general, not specific)
-
-**What Constitutes Tipping-Off:**
-
-**Direct Disclosure:**
-- Telling customer that SAR has been filed
-- Mentioning investigation or police involvement
-- Referring to suspicious activity concerns
-- Discussing money laundering allegations
-- Sharing SAR reference numbers or details
-
-**Indirect Disclosure:**
-- Changes in service quality or responsiveness
-- Unusual delays without acceptable explanation
-- Evasive behavior or reluctance to process transactions
-- Inappropriate questions about transaction purposes
-- Body language or behavior suggesting investigation
-
-**Subtle Tipping-Off:**
-- Asking unusual questions about transaction sources
-- Requesting documentation not normally required
-- Processing transactions differently than usual
-- Involving additional staff without clear justification
-- Creating atmosphere of suspicion or concern
-
-**Safe Communication Strategies:**
-
-**Acceptable Holding Responses:**
-- "We are completing our routine compliance checks"
-- "This transaction requires standard verification procedures"
-- "We need to complete our internal authorization process"
-- "There is a temporary processing delay due to system requirements"
-- "We are verifying some documentation as part of our normal procedures"
-
-**Communication Principles:**
-- Always provide business justification for delays
-- Reference routine compliance or verification procedures
-- Avoid mentioning specific investigations or concerns
-- Maintain normal tone and professional demeanor
-- Document all customer communications and responses
-
-**Managing Customer Relationships During Investigations:**
-
-**Continuing Normal Service:**
-- Process legitimate transactions without unusual delay
-- Maintain standard service levels and responsiveness
-- Avoid creating artificial barriers or complications
-- Ensure staff behavior remains consistent and professional
-- Continue routine account management and contact
-
-**Transaction Processing Guidelines:**
-- Allow routine transactions to proceed normally
-- Only block transactions with clear legal basis
-- Provide standard explanations for any delays
-- Avoid creating patterns that might suggest investigation
-- Ensure consistent treatment across similar customers
-
-**Staff Training and Awareness:**
-
-**Confidentiality Training Components:**
-- Legal obligations and criminal penalties
-- What constitutes tipping-off in various scenarios
-- Safe communication techniques and scripts
-- Escalation procedures for difficult situations
-- Role-playing exercises with customer scenarios
-
-**Ongoing Reinforcement:**
-- Regular refresher training and updates
-- Case studies of tipping-off violations
-- Best practice sharing and discussion
-- Management oversight and quality monitoring
-- Clear disciplinary procedures for violations
-
-**Internal Communication Protocols:**
-
-**SAR Team Communications:**
-- Secure communication channels for SAR discussions
-- Physical and electronic security measures
-- Clear authorization for SAR-related discussions
-- Documentation of who has been informed and when
-- Regular review of access and need-to-know
-
-**Management Reporting:**
-- Sanitized reports that don't identify specific customers
-- Statistical summaries without customer details
-- General trends and typology discussions
-- Training needs and procedural improvements
-- Resource allocation and strategic planning
-
-**Technology and Security Measures:**
-
-**Electronic Security:**
-- Secure systems for SAR documentation and tracking
-- Access controls and audit trails
-- Encryption of sensitive communications
-- Secure email and messaging systems
-- Regular security audits and updates
-
-**Physical Security:**
-- Secure storage for SAR documentation
-- Limited access to investigation areas
-- Confidential meeting spaces for SAR discussions
-- Secure disposal of confidential documents
-- Physical security for computer systems and files
-
-**Customer Due Diligence During Investigations:**
-
-**Enhanced Monitoring Procedures:**
-- Increased transaction monitoring without customer awareness
-- Additional verification of transaction purposes
-- Enhanced review of documentation and explanations
-- Coordination with other departments for intelligence
-- Regular reassessment of customer risk profile
-
-**Avoiding Investigative Behavior:**
-- Don't conduct interrogations or intensive questioning
-- Avoid requests for unusual documentation
-- Don't change established relationship patterns
-- Maintain normal frequency of customer contact
-- Ensure any additional diligence appears routine
-
-**Incident Management:**
-
-**Potential Tipping-Off Incidents:**
-- Immediate assessment of disclosure risk
-- Senior management notification and review
-- Legal counsel consultation for significant risks
-- Documentation of incident and response measures
-- Staff retraining and procedural improvements
-
-**Damage Limitation:**
-- Cannot undo tipping-off but can minimize further risk
-- Assess impact on ongoing investigations
-- Consider notification to law enforcement if required
-- Review procedures to prevent recurrence
-- Disciplinary action if appropriate
-
-**International Considerations:**
-
-**Cross-Border Confidentiality:**
-- Different jurisdictions may have varying requirements
-- Coordination with foreign Financial Intelligence Units
-- Maintaining confidentiality across multiple jurisdictions
-- Understanding local tipping-off laws and penalties
-- Ensuring consistent global procedures
-
-**Regulatory Coordination:**
-- Multiple regulators may be involved in investigations
-- Sharing information between authorized agencies
-- Maintaining confidentiality during regulatory examinations
-- Coordinating responses to multiple information requests
-- Understanding regulatory vs. law enforcement roles
-
-**Quality Assurance and Monitoring:**
-
-**Confidentiality Audits:**
-- Regular review of staff understanding and compliance
-- Testing of customer communication procedures
-- Assessment of technology and security measures
-- Review of incident management and response
-- Benchmarking against industry best practices
-
-**Performance Metrics:**
-- Customer complaint analysis for potential indicators
-- Staff adherence to communication protocols
-- Training effectiveness and knowledge retention
-- Incident frequency and severity trending
-- Management oversight and review effectiveness`,
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'critical',
+              title: 'Tipping-Off = Criminal Offense',
+              message: 'Any disclosure that alerts someone to SAR existence or investigation can result in criminal prosecution and compromise investigations.'
+            },
+            {
+              type: 'keypoint',
+              icon: '🔒',
+              title: 'Absolute Confidentiality Rules',
+              points: [
+                'SAR existence must NEVER be disclosed',
+                'Confidentiality applies indefinitely - no time limit',
+                'Covers investigation, submission, and police contact',
+                'Includes even hints or speculation',
+                'Applies to ALL staff regardless of seniority'
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'Who May Know About SARs',
+              items: [
+                'MLRO and designated deputies',
+                'Staff directly involved in investigation',
+                'Senior management on need-to-know basis',
+                'Legal counsel providing SAR advice',
+                'External auditors (general procedures only)'
+              ]
+            },
+            {
+              type: 'infogrid',
+              title: 'What Constitutes Tipping-Off',
+              items: [
+                { icon: '🗣️', label: 'Direct', description: 'Telling customer SAR filed' },
+                { icon: '🔄', label: 'Behavioral', description: 'Service quality changes' },
+                { icon: '❓', label: 'Questioning', description: 'Unusual transaction queries' },
+                { icon: '😰', label: 'Subtle', description: 'Creating suspicion atmosphere' }
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '💬',
+              title: 'Safe Holding Responses',
+              points: [
+                '"We are completing routine compliance checks"',
+                '"This requires standard verification procedures"',
+                '"We need to complete internal authorization"',
+                '"Temporary delay due to system requirements"'
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'Communication Principles',
+              items: [
+                'Always provide business justification for delays',
+                'Reference routine compliance procedures',
+                'Never mention specific investigations',
+                'Maintain normal tone and professional demeanor',
+                'Document all customer communications'
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'warning',
+              title: 'Maintain Normal Service',
+              message: 'Process legitimate transactions normally. Avoid creating barriers, unusual delays, or behavioral changes that might suggest investigation.'
+            },
+            {
+              type: 'keypoint',
+              icon: '🔐',
+              title: 'Security Measures Required',
+              points: [
+                'Secure systems for SAR documentation',
+                'Access controls and audit trails',
+                'Encrypted communications',
+                'Secure storage and disposal',
+                'Limited access to investigation areas'
+              ]
+            },
+            {
+              type: 'process',
+              steps: [
+                { number: 1, title: 'If Incident Occurs', description: 'Immediate assessment of disclosure risk' },
+                { number: 2, title: 'Escalate', description: 'Notify senior management and legal counsel' },
+                { number: 3, title: 'Document', description: 'Record incident and response measures' },
+                { number: 4, title: 'Prevent Recurrence', description: 'Review procedures, retrain staff' }
+              ]
+            },
+            {
+              type: 'stat',
+              icon: '⚖️',
+              value: '2 Years',
+              label: 'Max imprisonment for tipping-off',
+              description: 'Plus unlimited fine - strict liability offense',
+              color: 'red'
+            }
+          ]
+        },
 
         keyConcepts: [
           {

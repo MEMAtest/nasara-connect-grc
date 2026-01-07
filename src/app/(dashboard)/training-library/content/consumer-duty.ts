@@ -44,38 +44,55 @@ This is exactly what the Consumer Duty is designed to prevent. It shifts the foc
       duration: 12,
       content: {
         learningPoint: 'Understand the building blocks of the Consumer Duty framework',
-        mainContent: `The Consumer Duty represents a fundamental shift in FCA expectations. Rather than focusing on process compliance, firms must now demonstrate they are delivering good outcomes for retail customers.
-
-**Principle 12 – The Consumer Principle**
-"A firm must act to deliver good outcomes for retail customers."
-
-This is the overarching obligation. It applies to all activities relating to retail customers and sits alongside (not replacing) other Principles.
-
-**PRIN 2A – The Detailed Rules**
-PRIN 2A translates Principle 12 into specific, actionable requirements:
-
-**Cross-Cutting Rules (PRIN 2A.2) – Behavioural Standards:**
-These three rules apply throughout the customer relationship:
-1. Act in good faith towards retail customers
-2. Avoid causing foreseeable harm to retail customers
-3. Enable and support retail customers to pursue their financial objectives
-
-**Four Outcomes (PRIN 2A.3-2A.7):**
-1. Products & Services – designed to meet target market needs
-2. Price & Value – fair value for customers
-3. Consumer Understanding – clear, timely communications
-4. Consumer Support – easy access to support and exit
-
-**FG22/5 – Finalised Guidance**
-This guidance explains what "good looks like" with sector-specific examples of good and poor practice.
-
-**Scope of Application**
-The Duty applies to:
-• All firms in retail markets where the Principles apply
-• The entire product life-cycle: design, approval, distribution, sales, servicing, exit
-• All parts of the distribution chain: manufacturers, co-manufacturers, distributors, intermediaries
-
-Every firm must understand its role in the chain and how it contributes to good outcomes.`,
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'critical',
+              title: 'Principle 12 - The Consumer Principle',
+              message: '"A firm must act to deliver good outcomes for retail customers." - The overarching obligation.'
+            },
+            {
+              type: 'keypoint',
+              icon: '📋',
+              title: 'Three Cross-Cutting Rules',
+              points: [
+                'Act in good faith towards retail customers',
+                'Avoid causing foreseeable harm',
+                'Enable and support customers to pursue their objectives'
+              ]
+            },
+            {
+              type: 'infogrid',
+              title: 'Four Outcomes',
+              items: [
+                { icon: '📦', label: 'Products & Services', description: 'Meet target market needs' },
+                { icon: '💰', label: 'Price & Value', description: 'Fair value for customers' },
+                { icon: '📝', label: 'Understanding', description: 'Clear communications' },
+                { icon: '🤝', label: 'Support', description: 'Easy access to help' }
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '🎯',
+              title: 'Scope of Application',
+              points: [
+                'All firms in retail markets',
+                'Entire product lifecycle: design to exit',
+                'All distribution chain participants',
+                'Manufacturers, distributors, intermediaries'
+              ]
+            },
+            {
+              type: 'stat',
+              icon: '📘',
+              value: 'FG22/5',
+              label: 'Finalised Guidance',
+              description: 'Explains what "good" looks like with examples',
+              color: 'blue'
+            }
+          ]
+        },
 
         keyConcepts: [
           {
@@ -117,62 +134,79 @@ Every firm must understand its role in the chain and how it contributes to good 
       duration: 15,
       content: {
         learningPoint: 'Apply the cross-cutting rules and understand what each outcome requires',
-        mainContent: `**The Cross-Cutting Rules (PRIN 2A.2)**
-
-These three rules set the standard for how firms must behave towards customers:
-
-**1. Act in Good Faith**
-• Be honest, fair, and open in all dealings
-• Avoid manipulative practices and "dark patterns" designed to push customers into choices not in their interests
-• Don't exploit customer trust, lack of knowledge, or behavioural biases
-• Ensure sales practices, communications, and processes are genuinely in customers' interests
-
-**2. Avoid Causing Foreseeable Harm**
-• Proactively identify realistic ways customers could be harmed by products, pricing, communications, or processes
-• Take steps to prevent or reduce that harm before it occurs
-• This includes eligibility checks, clearer warnings, caps on charges, better signposting
-• Harm can be financial, non-financial (stress, confusion), or relate to customer circumstances
-
-**3. Enable and Support Customers**
-• Provide tools, information, and support to help customers make informed decisions
-• Ensure products can be used in practice to meet customers' likely objectives
-• Don't create barriers to customers acting in their own interests (switching, exiting, claiming)
-
----
-
-**The Four Outcomes**
-
-**Outcome 1: Products & Services (PRIN 2A.3)**
-Products must be designed to meet the needs, characteristics, and objectives of a defined target market.
-
-Key requirements:
-• Clear product governance process (design, approval, review)
-• Defined target market – who is this for, and who is it NOT for?
-• Distribution strategies aligned to target market
-• Regular review in light of outcomes data
-
-**Outcome 2: Price & Value (PRIN 2A.4)**
-Firms must assess and document fair value, considering:
-• Total price – fees, charges, interest, spreads, penalties, commissions
-• Benefits – product features, quality, service levels, flexibility
-• Whether particular groups pay disproportionately high charges relative to benefits
-
-Key questions:
-• Is the overall price/benefit package reasonable for the target market?
-• Are any groups cross-subsidising others unfairly?
-• Do we revisit value as markets, costs, or behaviour change?
-
-**Outcome 3: Consumer Understanding (PRIN 2A.5)**
-Give customers the right information, at the right time, in a way they can understand:
-• Clear, plain language – avoid jargon and complexity
-• Layered communications – key messages with links to detail
-• Test whether customers actually understand key features and risks
-
-**Outcome 4: Consumer Support (PRIN 2A.6)**
-Provide easy-to-use, responsive support so customers can act in their interests:
-• Accessible support channels appropriate for the target market
-• No unreasonable barriers to switching, cancelling, claiming, or complaining
-• Monitor support performance and act on issues`,
+        mainContent: {
+          cards: [
+            {
+              type: 'keypoint',
+              icon: '1️⃣',
+              title: 'Rule 1: Act in Good Faith',
+              points: [
+                'Be honest, fair, and open',
+                'Avoid "dark patterns" and manipulative practices',
+                'Don\'t exploit trust or behavioural biases',
+                'Sales practices genuinely in customers\' interests'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '2️⃣',
+              title: 'Rule 2: Avoid Foreseeable Harm',
+              points: [
+                'Proactively identify ways customers could be harmed',
+                'Take steps BEFORE harm occurs',
+                'Includes eligibility checks, warnings, charge caps',
+                'Harm can be financial or non-financial (stress)'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '3️⃣',
+              title: 'Rule 3: Enable & Support Customers',
+              points: [
+                'Provide tools for informed decisions',
+                'Ensure products work in practice',
+                'No barriers to switching, exiting, claiming'
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'Outcome 1: Products & Services',
+              items: [
+                'Clear product governance process',
+                'Defined target market (who it IS and ISN\'T for)',
+                'Distribution aligned to target market',
+                'Regular review based on outcomes data'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '💰',
+              title: 'Outcome 2: Price & Value',
+              points: [
+                'Total price: fees, charges, spreads, penalties',
+                'Benefits: features, quality, service, flexibility',
+                'Check if groups pay disproportionate charges',
+                'Revisit value as markets change'
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'Outcome 3: Consumer Understanding',
+              items: [
+                'Clear, plain language - no jargon',
+                'Layered communications with key messages',
+                'Test if customers actually understand',
+                'Right information at the right time'
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'warning',
+              title: 'Outcome 4: Consumer Support',
+              message: 'No unreasonable barriers to switching, cancelling, claiming, or complaining. Exit should be as easy as entry.'
+            }
+          ]
+        },
 
         keyConcepts: [
           {
@@ -216,24 +250,50 @@ Provide easy-to-use, responsive support so customers can act in their interests:
       duration: 12,
       content: {
         learningPoint: 'The Duty applies end-to-end across design, distribution, servicing and exit.',
-        mainContent: `The Duty is not a marketing standard or a point-of-sale requirement. It applies across the entire product lifecycle and distribution chain, from design to exit. Firms must understand their role as a manufacturer, distributor, or both.
-
-**Lifecycle Responsibilities**
-1. **Design and Approval** – define target market and product purpose, assess foreseeable harm, and document fair value assumptions.
-2. **Distribution** – ensure channels, scripts, and intermediaries align to target market and outcomes.
-3. **Servicing** – monitor outcomes, support customers, and adapt journeys based on evidence.
-4. **Exit and Switching** – remove unreasonable friction and ensure customers can act in their interests.
-
-**Distribution Chain Expectations**
-- Manufacturers must provide clear product information and target market data to distributors.
-- Distributors must use the information to sell and service the product appropriately.
-- Both must share outcomes data, complaints, and emerging risks.
-
-**PROD and Consumer Duty**
-PROD product governance already requires target market definition, product testing, and reviews. The Duty strengthens this by making good outcomes a regulatory standard, not a best practice.
-
-**Third Parties and Appointed Representatives**
-Where products are sold or serviced via partners, the firm still owns the outcome. Contracts, SLAs and oversight need to embed Duty expectations.`,
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'info',
+              title: 'Not Just Point-of-Sale',
+              message: 'The Duty applies across the ENTIRE product lifecycle and distribution chain, from design to exit.'
+            },
+            {
+              type: 'process',
+              steps: [
+                { number: 1, title: 'Design & Approval', description: 'Define target market, assess harm, document value' },
+                { number: 2, title: 'Distribution', description: 'Align channels to target market and outcomes' },
+                { number: 3, title: 'Servicing', description: 'Monitor outcomes, adapt based on evidence' },
+                { number: 4, title: 'Exit & Switching', description: 'Remove friction, enable customer action' }
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '🔗',
+              title: 'Distribution Chain Expectations',
+              points: [
+                'Manufacturers provide product info and target market data',
+                'Distributors use info to sell and service appropriately',
+                'Both share outcomes data, complaints, emerging risks',
+                'Closed loop between design, distribution, outcomes'
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'warning',
+              title: 'Third Parties & Appointed Reps',
+              message: 'Where products sold via partners, YOU still own the outcome. Contracts and oversight must embed Duty expectations.'
+            },
+            {
+              type: 'stat',
+              icon: '📋',
+              value: 'PROD',
+              label: 'Product Governance Rules',
+              description: 'Duty makes good outcomes regulatory standard, not best practice',
+              color: 'blue'
+            }
+          ]
+        },
         keyConcepts: [
           {
             term: 'Distribution Chain',
@@ -270,28 +330,57 @@ Where products are sold or serviced via partners, the firm still owns the outcom
       duration: 12,
       content: {
         learningPoint: 'Boards must evidence outcomes with meaningful MI, not just policies.',
-        mainContent: `The Duty requires governance that is outcomes-led. Senior management must be able to demonstrate how they assess and improve outcomes, not just confirm that policies exist.
-
-**Governance Expectations**
-- Board approval of the Duty implementation plan and ongoing oversight
-- Named accountable owners for each outcome
-- Clear escalation routes when outcomes fall below expectations
-
-**Outcome-Focused MI**
-Good MI is specific, forward-looking and segmented by customer groups:
-- Price and value: cost vs benefit metrics by segment
-- Understanding: comprehension testing results and error rates
-- Support: time to resolve, drop-off points, channel access
-- Vulnerable outcomes: comparison of outcomes for customers with vulnerability indicators
-
-**Evidence and Remediation**
-- Document why outcomes are good or poor
-- Track remediation actions and re-test
-- Maintain audit-ready packs for FCA review
-
-**Consumer Duty Champion**
-- Senior leader who challenges and promotes Duty outcomes
-- Ensures visibility in board discussions and decision-making`,
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'critical',
+              title: 'Outcomes-Led Governance',
+              message: 'Senior management must demonstrate how they assess and IMPROVE outcomes - not just confirm policies exist.'
+            },
+            {
+              type: 'checklist',
+              title: 'Governance Expectations',
+              items: [
+                'Board approval of Duty implementation plan',
+                'Named accountable owners for each outcome',
+                'Clear escalation when outcomes fall short',
+                'Ongoing oversight not just initial approval'
+              ]
+            },
+            {
+              type: 'infogrid',
+              title: 'Outcome-Focused MI',
+              items: [
+                { icon: '💰', label: 'Price & Value', description: 'Cost vs benefit by segment' },
+                { icon: '📝', label: 'Understanding', description: 'Comprehension test results' },
+                { icon: '🤝', label: 'Support', description: 'Resolution time, drop-offs' },
+                { icon: '❤️', label: 'Vulnerable', description: 'Outcomes comparison' }
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '🏆',
+              title: 'Consumer Duty Champion',
+              points: [
+                'Senior leader who challenges and promotes outcomes',
+                'Ensures visibility in board discussions',
+                'Accountable for Duty implementation',
+                'Champions customer interests at senior level'
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'Evidence & Remediation',
+              items: [
+                'Document why outcomes are good or poor',
+                'Track remediation actions',
+                'Re-test after changes',
+                'Maintain audit-ready packs for FCA'
+              ]
+            }
+          ]
+        },
         keyConcepts: [
           {
             term: 'Outcome-Led MI',
@@ -328,55 +417,68 @@ Good MI is specific, forward-looking and segmented by customer groups:
       duration: 15,
       content: {
         learningPoint: 'Apply the Duty to vulnerable customers and understand governance expectations',
-        mainContent: `**Vulnerable Customers and the Duty**
-
-A vulnerable customer is someone who, due to their personal circumstances, is especially susceptible to harm, particularly where firms do not act with appropriate levels of care.
-
-**The FCA's Four Drivers of Vulnerability:**
-1. Health – physical or mental health conditions affecting ability to carry out day-to-day tasks
-2. Life Events – major changes such as bereavement, job loss, divorce, caring responsibilities
-3. Resilience – low ability to withstand financial or emotional shocks
-4. Capability – low knowledge or confidence in managing financial matters, or low digital skills
-
-**What Firms Must Do:**
-• Understand what vulnerability looks like in their target market
-• Train staff to recognise signs of vulnerability and respond appropriately
-• Adapt communications, processes, and support (slower pace, alternative channels, more checks)
-• Monitor outcomes for vulnerable customers – these should be at least as good as for others
-
-Poor outcomes for vulnerable customers will be a key red flag for the FCA.
-
----
-
-**Governance and SMCR**
-
-The FCA expects robust governance:
-• **Board and senior management oversight** of Consumer Duty implementation and performance
-• Clear **accountability** for outcomes – often a named "Consumer Duty Champion" at board level
-• Integration into:
-  - Product approval and review processes
-  - Risk and compliance frameworks
-  - Remuneration and incentives
-  - Outsourcing and third-party arrangements
-
-Senior Managers must demonstrate how their decisions contribute to good outcomes and how they respond when outcomes fall short.
-
----
-
-**Management Information (MI)**
-
-Outcome-focused MI is essential. Firms should monitor:
-• Complaints data and root causes
-• Persistency, lapses, arrears, and claims experience
-• Outcomes for different segments, including vulnerable customers
-• Results of fair value assessments
-• Evidence on customer understanding (testing, feedback)
-• Support performance (response times, resolution, ease of exit)
-
-**Distribution Chain Information Sharing:**
-• Manufacturers share product information to help distributors play their role
-• Distributors feed back data and insight to support product reviews
-• The objective is a closed loop between design, distribution, and outcomes`,
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'warning',
+              title: 'Key FCA Focus Area',
+              message: 'Poor outcomes for vulnerable customers will be a key red flag for the FCA. Their outcomes must be at least as good as others.'
+            },
+            {
+              type: 'infogrid',
+              title: 'Four Drivers of Vulnerability',
+              items: [
+                { icon: '❤️', label: 'Health', description: 'Physical/mental conditions' },
+                { icon: '⚡', label: 'Life Events', description: 'Bereavement, job loss, divorce' },
+                { icon: '💪', label: 'Resilience', description: 'Low shock absorption' },
+                { icon: '🧠', label: 'Capability', description: 'Low knowledge or digital skills' }
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'What Firms Must Do',
+              items: [
+                'Understand vulnerability in your target market',
+                'Train staff to recognise and respond',
+                'Adapt communications and support',
+                'Monitor outcomes for vulnerable customers'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '👔',
+              title: 'Governance & SMCR Integration',
+              points: [
+                'Board oversight of Duty implementation',
+                'Named Consumer Duty Champion',
+                'Integration into product approval process',
+                'Remuneration and incentive alignment'
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'MI to Monitor',
+              items: [
+                'Complaints data and root causes',
+                'Outcomes by segment (including vulnerable)',
+                'Fair value assessment results',
+                'Customer understanding evidence',
+                'Support performance metrics'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '🔄',
+              title: 'Distribution Chain Sharing',
+              points: [
+                'Manufacturers share product info to distributors',
+                'Distributors feed back data and insights',
+                'Closed loop between design and outcomes'
+              ]
+            }
+          ]
+        },
 
         keyConcepts: [
           {

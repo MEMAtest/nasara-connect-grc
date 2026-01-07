@@ -345,7 +345,45 @@ export const consumerDutyImplementationModule: TrainingModule = {
       duration: 10,
       content: {
         learningPoint: "Principle 12 and the cross-cutting rules drive every outcome test.",
-        mainContent: "Consumer Duty shifts compliance from process adherence to outcomes evidence. The cross-cutting rules (good faith, avoid foreseeable harm, enable customers) apply across the customer lifecycle, and the four outcomes provide the structure for measurement.\n\nImplementation starts with clarity: map products and journeys to the four outcomes, then design evidence and monitoring for each.",
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'critical',
+              title: 'Shift from Process to Outcomes',
+              message: 'Consumer Duty shifts compliance from process adherence to OUTCOMES EVIDENCE. You must prove good outcomes, not just document policies.'
+            },
+            {
+              type: 'keypoint',
+              icon: '📋',
+              title: 'Cross-Cutting Rules',
+              points: [
+                'Good faith in all customer dealings',
+                'Avoid foreseeable harm proactively',
+                'Enable customers to pursue financial objectives'
+              ]
+            },
+            {
+              type: 'infogrid',
+              title: 'The Four Outcomes',
+              items: [
+                { icon: '📦', label: 'Products', description: 'Meet target market needs' },
+                { icon: '💰', label: 'Price & Value', description: 'Fair value evidence' },
+                { icon: '📝', label: 'Understanding', description: 'Clear communications' },
+                { icon: '🤝', label: 'Support', description: 'Accessible help' }
+              ]
+            },
+            {
+              type: 'process',
+              steps: [
+                { number: 1, title: 'Map', description: 'Link products/journeys to outcomes' },
+                { number: 2, title: 'Design', description: 'Create evidence and monitoring' },
+                { number: 3, title: 'Test', description: 'Verify outcomes are achieved' },
+                { number: 4, title: 'Report', description: 'Board-ready MI' }
+              ]
+            }
+          ]
+        },
         keyConcepts: [
           { term: "Principle 12", definition: "Act to deliver good outcomes for retail customers." },
           { term: "Cross-Cutting Rules", definition: "Good faith, avoid foreseeable harm, and enable customers to pursue their financial objectives." },
@@ -372,7 +410,43 @@ export const consumerDutyImplementationModule: TrainingModule = {
       duration: 10,
       content: {
         learningPoint: "Fair value requires evidence of benefit vs cost for each target market segment.",
-        mainContent: "Fair value is not a pricing exercise; it is a holistic assessment of the total price paid relative to the expected benefits. Build a repeatable assessment method, include distribution channels, and test outcomes for different customer segments.\n\nGood evidence combines quantitative analysis (fees, returns, complaints, retention) with qualitative insights (customer feedback, vulnerabilities, service performance).",
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'info',
+              title: 'Not Just Pricing',
+              message: 'Fair value is a holistic assessment of total price vs expected benefits - not a pricing exercise.'
+            },
+            {
+              type: 'keypoint',
+              icon: '💰',
+              title: 'Fair Value Assessment',
+              points: [
+                'Total price paid vs expected benefits',
+                'Include distribution channels in analysis',
+                'Test outcomes for different segments',
+                'Build repeatable assessment method'
+              ]
+            },
+            {
+              type: 'infogrid',
+              title: 'Evidence Types',
+              items: [
+                { icon: '📊', label: 'Quantitative', description: 'Fees, returns, complaints, retention' },
+                { icon: '💬', label: 'Qualitative', description: 'Feedback, vulnerabilities, service' }
+              ]
+            },
+            {
+              type: 'process',
+              steps: [
+                { number: 1, title: 'Define Target Market', description: 'Who is product for (and not for)' },
+                { number: 2, title: 'Assess Price vs Benefit', description: 'Compare costs with outcomes' },
+                { number: 3, title: 'Monitor & Adjust', description: 'Track and revise if needed' }
+              ]
+            }
+          ]
+        },
         keyConcepts: [
           { term: "Target Market", definition: "The customer segment the product is designed for and tested against." },
           { term: "Fair Value Assessment", definition: "Evidence that price aligns with benefits, quality, and outcomes." },
@@ -420,7 +494,42 @@ export const consumerDutyImplementationModule: TrainingModule = {
       duration: 8,
       content: {
         learningPoint: "Outcomes depend on communications clarity and friction-free support.",
-        mainContent: "Customer understanding requires communications that are clear, timely, and tested. Support requires accessible channels, trained staff, and adaptations for vulnerable customers. Track key moments where understanding or support fails (onboarding, changes, complaints, cancellations).\n\nEvidence includes readability testing, customer feedback, and interaction outcomes.",
+        mainContent: {
+          cards: [
+            {
+              type: 'keypoint',
+              icon: '📝',
+              title: 'Consumer Understanding',
+              points: [
+                'Communications must be clear, timely, tested',
+                'Track failure points: onboarding, changes, complaints',
+                'Readability testing with real customers',
+                'Customer feedback as evidence'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '🤝',
+              title: 'Consumer Support',
+              points: [
+                'Accessible channels for all customers',
+                'Trained staff who can help',
+                'Adaptations for vulnerable customers',
+                'Friction-free cancellation and complaints'
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'Evidence Requirements',
+              items: [
+                'Readability testing results',
+                'Customer feedback analysis',
+                'Interaction outcome metrics',
+                'Drop-off and failure point tracking'
+              ]
+            }
+          ]
+        },
         keyConcepts: [
           { term: "Communications Testing", definition: "Structured testing of clarity and comprehension before release." },
           { term: "Support Accessibility", definition: "Availability of channels that meet customer needs, including vulnerabilities." }
@@ -438,7 +547,35 @@ export const consumerDutyImplementationModule: TrainingModule = {
       duration: 7,
       content: {
         learningPoint: "Evidence good outcomes with testing, then fix what fails.",
-        mainContent: "Implementation is not complete until outcomes are tested and improvements are tracked. The Duty expects firms to proactively identify where customers do not understand, where value is weak, or where support barriers cause harm.\n\nTesting methods include customer surveys, comprehension testing, mystery shopping, complaints analysis, and journey analytics. Remediation must be documented, assigned to owners, and re-tested for impact.",
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'warning',
+              title: 'Implementation Not Complete Until Tested',
+              message: 'Proactively identify where customers don\'t understand, where value is weak, or where support barriers cause harm.'
+            },
+            {
+              type: 'infogrid',
+              title: 'Testing Methods',
+              items: [
+                { icon: '📋', label: 'Surveys', description: 'Customer feedback' },
+                { icon: '📝', label: 'Comprehension', description: 'Understanding tests' },
+                { icon: '🔍', label: 'Mystery Shopping', description: 'Secret testing' },
+                { icon: '📊', label: 'Journey Analytics', description: 'Drop-off tracking' }
+              ]
+            },
+            {
+              type: 'process',
+              steps: [
+                { number: 1, title: 'Test', description: 'Identify outcome weaknesses' },
+                { number: 2, title: 'Document', description: 'Record findings and owners' },
+                { number: 3, title: 'Remediate', description: 'Fix the issues' },
+                { number: 4, title: 'Re-Test', description: 'Verify improvement' }
+              ]
+            }
+          ]
+        },
         keyConcepts: [
           { term: "Outcome Testing", definition: "Structured testing of customer understanding, value, and support outcomes." },
           { term: "Remediation", definition: "Actions taken to improve outcomes once weaknesses are identified." },
@@ -457,7 +594,40 @@ export const consumerDutyImplementationModule: TrainingModule = {
       duration: 7,
       content: {
         learningPoint: "Boards need outcome-led MI and clear accountability.",
-        mainContent: "Governance should assign accountable owners for each outcome, set review cadences, and require evidence packs. MI should track outcomes, not just volumes. Example metrics include fair value deltas, complaint root causes, and vulnerable customer outcomes.\n\nEvidence packs should be easy to audit and link directly to product decisions and customer impact.",
+        mainContent: {
+          cards: [
+            {
+              type: 'keypoint',
+              icon: '📊',
+              title: 'Outcome-Led Governance',
+              points: [
+                'Assign accountable owners for each outcome',
+                'Set review cadences',
+                'Require evidence packs',
+                'Track outcomes, not just volumes'
+              ]
+            },
+            {
+              type: 'infogrid',
+              title: 'Example MI Metrics',
+              items: [
+                { icon: '💰', label: 'Fair Value Deltas', description: 'Benefit vs cost gaps' },
+                { icon: '📋', label: 'Complaint Root Causes', description: 'Why customers complain' },
+                { icon: '❤️', label: 'Vulnerable Outcomes', description: 'Segment comparison' }
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'Evidence Pack Requirements',
+              items: [
+                'Easy to audit',
+                'Links to product decisions',
+                'Shows customer impact',
+                'Board-ready presentation'
+              ]
+            }
+          ]
+        },
         keyConcepts: [
           { term: "Outcome MI", definition: "Measures of customer impact, not just operational throughput." },
           { term: "Accountable Owner", definition: "Senior role responsible for outcome delivery and evidence." }
