@@ -1100,144 +1100,68 @@ These fundamental rules apply to everyone in scope:
   practiceScenarios: [
     {
       id: 'reasonable-steps-scenario',
-      title: 'Demonstrating Reasonable Steps for Risk Management Failure',
-      context: 'You are a Chief Risk Officer (SMF4) facing regulatory investigation following a significant operational risk failure',
-      situation: `As CRO of MidTier Bank, you are being investigated by the FCA following a major operational failure that resulted in:
+      title: 'The System Outage Investigation',
+      image: '/images/training/smcr-investigation-scenario.png',
+      imagePrompt: 'Photorealistic corporate photograph, serious male executive in his 50s (CRO) sitting in FCA interview room across from two regulators, documents and laptops on table. Tense professional atmosphere, modern regulatory office setting. High stakes corporate meeting aesthetic, 16:9 aspect ratio, no text.',
+      situation: `**You are:** CRO (SMF4) being investigated by FCA after major system outage
 
-The Incident:
-- System outage affecting 500,000 customers for 3 days
-- £15 million in direct costs and customer compensation
-- Significant customer detriment and regulatory criticism
-- Media coverage and reputational damage
-- Board and shareholder concern about risk management
+**The Incident:**
+• 500,000 customers affected for 3 days
+• £15M in costs and compensation
+• Media coverage, reputational damage
 
-Your Background and Actions:
-- Appointed as CRO 18 months ago from a smaller institution
-- Inherited legacy systems and limited technology investment
-- Identified IT resilience as a key risk in your first risk assessment
-- Presented multiple papers to the board highlighting infrastructure risks
-- Requested additional budget for system upgrades and resilience
-
-Timeline of Your Actions:
-Month 1-3: Comprehensive risk assessment identifying critical IT vulnerabilities
-Month 4-6: Detailed business case to board for £25M technology investment
-Month 7-9: Board approved £10M reduced budget, delayed implementation
-Month 10-12: Interim risk mitigation measures implemented (monitoring, backup procedures)
-Month 13-15: Gradual progress on system improvements within budget constraints
-Month 16: System failure occurs during planned maintenance
-
-Evidence You Can Provide:
-- Board papers clearly identifying risks and requesting resources
-- Risk register showing IT resilience as "Red" status throughout period
-- Minutes showing repeated escalation to board and exec committee
-- Evidence of interim risk mitigation measures implemented
-- Documentation of regular monitoring and stress testing
-- Records of engagement with third-party experts and consultants
-
-Regulatory Concerns:
-- FCA questions whether you took "reasonable steps" under Senior Manager Conduct Rule 1
-- Investigation into your risk management of IT systems
-- Review of board escalation and communication
-- Assessment of interim controls and mitigation measures
-- Evaluation of your overall risk management approach
-
-Complicating Factors:
-- Board initially rejected your full investment request as "excessive"
-- CEO publicly stated the risk was "manageable" despite your warnings
-- The specific system failure was triggered by a vendor error during maintenance
-- Similar failures occurred at other banks using the same technology
-- Your predecessor had not identified these risks in previous assessments`,
-      challenge: 'The FCA is investigating whether you took reasonable steps to manage IT risks. How would you demonstrate that you fulfilled your Senior Manager obligations?',
+**Your Evidence:**
+• Board papers showing you identified IT as "Red" risk from Day 1
+• Requested £25M budget (board only approved £10M)
+• Implemented interim controls within constraints
+• Regular escalation documented in minutes`,
+      challenge: 'How do you demonstrate you took "reasonable steps"?',
       options: [
-        'Argue that the failure was due to external vendor error and beyond your control',
-        'Demonstrate comprehensive risk identification, escalation, and mitigation within available resources',
-        'Blame the board for not providing sufficient budget despite your clear recommendations',
-        'Show that industry-wide similar failures prove this was an unforeseeable event'
+        'Blame the vendor error that triggered the failure',
+        'Show comprehensive risk identification, escalation, and mitigation documentation',
+        'Blame the board for insufficient budget',
+        'Argue industry-wide failures prove it was unforeseeable'
       ],
       correctAnswer: 1,
-      explanation: 'Under SM&CR, you must demonstrate you took reasonable steps given your circumstances and available resources. Key evidence includes: (1) Proactive identification and assessment of risks, (2) Clear escalation to appropriate decision-makers with detailed recommendations, (3) Implementation of interim controls and mitigation measures, (4) Ongoing monitoring and management within constraints, (5) Documentation of all actions and decisions. The "reasonable steps" test considers what a competent person in your position would do with available resources, not whether the outcome was successful.',
+      explanation: 'Reasonable steps = what you DID, not the outcome. Document: risk identification, escalation to board, interim controls, ongoing monitoring. FCA judges actions, not results.',
       learningPoints: [
-        'Reasonable steps are judged based on actions taken, not outcomes achieved',
-        'Comprehensive documentation of risk identification and escalation is crucial',
-        'Interim risk mitigation measures demonstrate proactive management',
-        'Board-level escalation with clear recommendations shows appropriate governance'
+        'Reasonable steps judged on ACTIONS, not outcomes',
+        'Documentation of escalation is crucial evidence',
+        'Interim controls show proactive management'
       ]
     },
 
     {
       id: 'certification-withdrawal-scenario',
-      title: 'Managing Certification Withdrawal for Performance Issues',
-      context: 'You are an HR Director managing a situation where an investment advisor\'s certification may need to be withdrawn',
-      situation: `Sarah Mitchell has been a certified investment advisor at your wealth management firm for 3 years. Recent developments have raised concerns about her continued fitness and propriety:
+      title: 'The Failing Advisor',
+      image: '/images/training/smcr-certification-scenario.png',
+      imagePrompt: 'Photorealistic corporate photograph, HR meeting scene with female HR director in her 40s reviewing documents with concerned expression, opposite her sits a stressed female investment advisor in her 30s looking anxious. Modern office meeting room, serious tone. Professional corporate photography, 16:9 aspect ratio, no text.',
+      situation: `**The Situation:** Sarah Mitchell, certified investment advisor, certification renewal in 6 weeks
 
-Performance Issues:
-- Customer satisfaction scores declined from 85% to 60% over 6 months
-- Three formal complaints filed about unsuitable investment advice
-- Failure to complete required regulatory training within prescribed timeframes
-- Missed performance targets for 2 consecutive quarters
-- Increased error rates in client documentation and reporting
+**Performance Issues:**
+• Customer satisfaction dropped: 85% → 60%
+• 3 formal complaints about unsuitable advice
+• Failed to complete required training
+• Arguments with colleagues in front of clients
 
-Conduct Concerns:
-- Two incidents of heated arguments with colleagues in front of clients
-- Failure to follow firm's investment process and documentation requirements
-- Reports from team members about unprofessional behavior
-- Client feedback about feeling "pressured" into investment decisions
-- Concerns raised about potential conflicts of interest not being disclosed
-
-Personal Circumstances:
-- Sarah disclosed recent divorce proceedings and financial difficulties
-- Increased absence from work citing stress and health issues
-- Request for salary advance due to personal financial pressures
-- Visible signs of stress and emotional volatility
-- Reports from colleagues about concerning behavior changes
-
-Previous Actions Taken:
-- Formal performance improvement plan implemented 4 months ago
-- Additional training and supervision provided
-- Regular coaching sessions with senior advisor
-- Occupational health referral and support offered
-- Clear targets and milestones established with regular review
-
-Current Assessment:
-- Performance improvement plan objectives not being met
-- Continued customer complaints despite additional supervision
-- No improvement in conduct and behavior issues
-- Training requirements remain incomplete
-- Team disruption affecting other staff and clients
-
-Regulatory Considerations:
-- Annual certification renewal due in 6 weeks
-- FCA guidance on fitness and propriety standards
-- Requirement to consider competence, financial soundness, and integrity
-- Potential regulatory notification requirements
-- Impact on customer protection and firm reputation
-
-Your Options:
-1. Withdraw certification immediately due to fitness concerns
-2. Extend performance improvement period with additional support
-3. Move to non-certified role with different responsibilities
-4. Negotiate voluntary resignation to avoid formal withdrawal
-
-Stakeholder Considerations:
-- Sarah's clients need continued service and advice
-- Team morale and confidence in management decisions
-- Regulatory expectations and compliance obligations
-- Firm's duty of care to employee and customers
-- Legal and employment law considerations`,
-      challenge: 'What approach should you take regarding Sarah\'s certification renewal given the performance and conduct concerns?',
+**Actions Already Taken:**
+• Performance improvement plan (4 months ago)
+• Additional training and supervision
+• Occupational health support offered
+• Clear targets set - NOT being met`,
+      challenge: 'What do you do about her certification?',
       options: [
-        'Automatically renew certification with enhanced monitoring and support',
-        'Withdraw certification based on failure to meet fitness and propriety standards',
-        'Offer voluntary move to non-certified role with appropriate support',
-        'Extend the performance improvement plan and defer certification decision'
+        'Renew with enhanced monitoring',
+        'WITHDRAW certification - fitness & propriety standards not met',
+        'Move to non-certified role voluntarily',
+        'Extend improvement plan, defer decision'
       ],
       correctAnswer: 1,
-      explanation: 'Based on the evidence, Sarah no longer meets the fitness and propriety standards required for certification. The combination of poor performance, conduct issues, incomplete training, and customer complaints indicates she is not fit and proper for a customer-facing advisory role. However, the firm should: (1) Follow fair process with clear documentation, (2) Offer support including potential move to non-certified role, (3) Ensure proper client transition, (4) Make regulatory notifications as required, (5) Consider employment law obligations alongside regulatory requirements.',
+      explanation: 'She no longer meets fitness & propriety standards. Customer protection comes first. But: follow fair process, document everything, offer alternative role, make regulatory notifications.',
       learningPoints: [
-        'Fitness and propriety includes competence, financial soundness, and integrity considerations',
-        'Customer protection must be the primary concern in certification decisions',
-        'Fair process and documentation are essential for certification withdrawal',
-        'Alternative roles may be appropriate for individuals who don\'t meet certification standards'
+        'Customer protection = primary concern',
+        'Fitness includes competence + integrity + financial soundness',
+        'Fair process and documentation essential'
       ]
     }
   ],

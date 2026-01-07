@@ -45,59 +45,46 @@ export const sanctionsTrainingModule: TrainingModule = {
       duration: 4,
       content: {
         learningPoint: 'Master the different types of sanctions and their legal frameworks',
-        mainContent: `Sanctions are restrictive measures imposed by governments and international bodies to achieve foreign policy and national security objectives. Understanding the different types and their applications is crucial for effective compliance.
-
-**Types of Sanctions:**
-
-**1. Comprehensive Sanctions**
-These apply to entire countries or territories, prohibiting virtually all economic activity:
-- Currently: North Korea, Iran (with limited exceptions), Syria, Crimea region of Ukraine
-- These are the most restrictive, covering trade, financial services, and most commercial activities
-- Very limited exceptions exist (typically humanitarian goods with specific licenses)
-
-**2. Targeted/Smart Sanctions**
-These focus on specific individuals, entities, or sectors rather than entire countries:
-- Asset freezes: Preventing access to funds and economic resources
-- Travel restrictions: Prohibiting entry or transit through jurisdictions
-- Arms embargoes: Restricting weapons and military equipment sales
-- Sectoral sanctions: Limiting activities in specific industries (e.g., energy, defense)
-
-**3. Secondary Sanctions**
-These can affect non-US entities that engage with sanctioned parties:
-- US can impose sanctions on foreign entities for dealings with sanctioned countries
-- Creates extraterritorial reach of US sanctions globally
-- Particularly relevant for Iran, North Korea, and Russia sanctions
-
-**Key Sanctions Authorities:**
-
-**United Nations (UN)**
-- Binding on all UN member states
-- Typically consensus-based, making them politically significant
-- Examples: North Korea weapons programs, terrorism financing
-
-**United States (OFAC)**
-- Office of Foreign Assets Control administers US sanctions
-- Broad extraterritorial reach, especially for USD transactions
-- Most comprehensive and frequently updated sanctions regime
-- Primary lists: SDN (Specially Designated Nationals), SSI (Sectoral Sanctions Identifications)
-
-**European Union (EU)**
-- Harmonized across all EU member states
-- Often aligned with UN sanctions but can be more restrictive
-- Regular updates through EU regulations and decisions
-
-**United Kingdom (HM Treasury)**
-- Post-Brexit independent sanctions regime
-- UK Sanctions List replaces EU lists for UK entities
-- Often mirrors EU and US sanctions but with UK-specific elements
-
-**Legal Basis and Obligations:**
-The legal requirement to comply with sanctions is absolute:
-- Criminal liability for individuals and corporations
-- Strict liability in many jurisdictions (intent not required)
-- Penalties can include unlimited fines and imprisonment
-- Reputational damage and regulatory action
-- Loss of banking licenses and market access`,
+        mainContent: {
+          cards: [
+            {
+              type: 'keypoint',
+              icon: '🚫',
+              title: 'What Are Sanctions?',
+              points: [
+                'Restrictive measures imposed by governments',
+                'Achieve foreign policy & national security objectives',
+                'Legal requirement to comply is ABSOLUTE',
+                'Criminal liability for violations'
+              ]
+            },
+            {
+              type: 'infogrid',
+              title: 'Types of Sanctions',
+              items: [
+                { icon: '🌐', label: 'Comprehensive', description: 'Apply to entire countries (N. Korea, Iran, Syria, Crimea). Prohibit virtually all economic activity.' },
+                { icon: '🎯', label: 'Targeted/Smart', description: 'Focus on specific individuals/entities. Includes asset freezes, travel bans, arms embargoes, sectoral restrictions.' },
+                { icon: '🔗', label: 'Secondary', description: 'US can sanction non-US entities dealing with sanctioned parties. Creates global extraterritorial reach.' }
+              ]
+            },
+            {
+              type: 'infogrid',
+              title: 'Key Sanctions Authorities',
+              items: [
+                { icon: '🇺🇳', label: 'United Nations', description: 'Binding on all member states. Consensus-based, politically significant.' },
+                { icon: '🇺🇸', label: 'US OFAC', description: 'Broadest extraterritorial reach. SDN & SSI lists. Most frequently updated.' },
+                { icon: '🇪🇺', label: 'European Union', description: 'Harmonized across EU. Often aligned with UN but can be more restrictive.' },
+                { icon: '🇬🇧', label: 'UK HM Treasury', description: 'Post-Brexit independent regime. UK Sanctions List for UK entities.' }
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'critical',
+              title: 'Legal Consequences',
+              message: 'Violations carry CRIMINAL liability. Strict liability (intent not required). Unlimited fines, imprisonment, loss of banking licenses, reputational damage.'
+            }
+          ]
+        },
 
         keyConcepts: [
           {
@@ -492,83 +479,68 @@ Strong MI highlights control weaknesses early and supports board oversight.`,
   practiceScenarios: [
     {
       id: 'screening-alert-scenario',
-      title: 'Complex Sanctions Screening Alert',
-      context: 'You receive a high-priority alert from the sanctions screening system during payment processing',
-      situation: `A payment instruction has been flagged by your sanctions screening system with the following details:
+      title: 'The Friday Afternoon Alert',
+      image: '/images/training/sanctions-alert-scenario.png',
+      imagePrompt: 'Photorealistic corporate photograph, compliance officer in late 20s staring at computer screen showing red alert notification, clock on wall showing 4:30 PM, Friday visible on calendar. Urgent atmosphere, modern financial services office, dramatic lighting on screen. Corporate thriller aesthetic, 16:9 aspect ratio, no text.',
+      situation: `**The Alert:** Payment flagged - 4:30 PM Friday
 
-Payment Details:
-- Amount: $75,000 USD
-- Originator: TechSolutions Europe Ltd, London, UK
-- Beneficiary: Al-Noor Trading Company, Dubai, UAE
-- Purpose: Payment for consulting services
-- Correspondent Bank: Emirates NBD, Dubai
+**Payment:** $75,000 to "Al-Noor Trading Company" (Dubai)
 
-Screening Alert:
-- 89% name match to "Al-Noor Trading Establishment" on the OFAC SDN list
-- Address shows partial match to sanctioned entity
-- Beneficial owner listed as "Ahmed Hassan Al-Rashid"
-- The sanctioned entity is designated for Iran sanctions evasion
+**Screening Hit:**
+• 89% match to OFAC SDN list entity
+• Designated for: Iran sanctions evasion
+• Address partially matches sanctioned entity
+• Beneficial owner name matches designated person
 
-Additional Information:
-- Customer has been with bank for 2 years with regular transaction history
-- Previous payments to Middle East but never flagged before
-- Customer contact attempted but phone goes to voicemail
-- It's currently 4:30 PM on Friday afternoon`,
-      challenge: 'What immediate actions should you take to handle this sanctions alert?',
+**Context:**
+• Customer with you 2 years
+• Phone going to voicemail`,
+      challenge: 'What do you do?',
       options: [
-        'Release the payment as the 89% match is not 100% certain',
-        'Block the payment immediately and begin investigation while notifying senior management',
-        'Contact the customer first to get clarification before taking any action',
-        'Hold the payment until Monday to conduct a thorough investigation during business hours'
+        'Release - 89% isn\'t 100%',
+        'BLOCK immediately + notify senior management + investigate',
+        'Call customer for clarification first',
+        'Hold until Monday for proper investigation'
       ],
       correctAnswer: 1,
-      explanation: 'An 89% match with additional contextual flags (address match, sanctions evasion designation) requires immediate blocking action. The payment must be stopped immediately, senior management/MLRO notified, and investigation begun without delay. Customer contact should only occur after proper procedures are established to avoid tipping off. Weekend timing does not excuse delays in sanctions compliance.',
+      explanation: '89% match + address match + sanctions evasion designation = BLOCK NOW. Friday afternoon is no excuse. No customer contact before proper procedures (tipping off risk).',
       learningPoints: [
-        'High-confidence screening matches require immediate blocking regardless of timing',
-        'Sanctions evasion-related designations heighten the risk profile significantly',
-        'Customer contact must be carefully managed to avoid tipping off violations',
-        'Senior management notification is required immediately for potential sanctions violations'
+        'High-confidence matches = immediate block regardless of timing',
+        'Sanctions evasion designation = highest risk',
+        'No customer contact to avoid tipping off'
       ]
     },
 
     {
       id: 'evasion-detection-scenario',
-      title: 'Sanctions Evasion Pattern Recognition',
-      context: 'You are reviewing customer activity and notice some unusual patterns that may indicate sanctions evasion',
-      situation: `Global Industries Ltd has been a corporate customer for 18 months. Recent review of their activity reveals:
+      title: 'The Shifting Business',
+      image: '/images/training/sanctions-evasion-scenario.png',
+      imagePrompt: 'Photorealistic corporate photograph, financial investigator in early 40s reviewing multiple transaction documents spread across desk, pointing at suspicious pattern on papers. World map on wall with Dubai highlighted. Detective/investigation atmosphere in modern compliance office. Serious analytical mood, 16:9 aspect ratio, no text.',
+      situation: `**Customer:** Global Industries Ltd (18-month relationship)
 
-Business Profile Changes:
-- Originally described business as "UK-based manufacturing"
-- Recently updated to "international trade facilitation"
-- Beneficial ownership changed 3 times in 6 months
-- Now shows 75% ownership by "International Holdings PLC" (Jersey registered)
+**Profile Changes:**
+• Business changed from "UK manufacturing" → "international trade facilitation"
+• Ownership changed 3 times in 6 months
+• Now 75% owned by Jersey-registered holding company
 
-Transaction Patterns:
-- Historical transactions: £10K-50K monthly to EU suppliers
-- Last 3 months: Regular $200K+ payments to Dubai-based companies
-- Recipients include: "Middle East Trading LLC", "Dubai Commerce House", "Gulf Enterprises Ltd"
-- All payments marked as "business consultancy fees"
-- Payments consistently just below enhanced due diligence thresholds
-
-Additional Red Flags:
-- Customer reluctant to provide updated business documentation
-- Dubai recipients have very similar addresses
-- Some recipient companies incorporated within weeks of payments
-- Customer has requested higher transaction limits multiple times`,
-      challenge: 'What sanctions compliance concerns should you have about this customer activity?',
+**New Transaction Patterns:**
+• Was: £10-50K monthly to EU
+• Now: Regular $200K+ to Dubai companies
+• Recipients: All recently incorporated, similar addresses
+• All marked "consultancy fees" - just under EDD thresholds`,
+      challenge: 'What are your concerns?',
       options: [
-        'No concerns - the customer is legitimate and based in the UK',
-        'Minor concerns but continue monitoring - the activity could be legitimate business expansion',
-        'Significant sanctions evasion concerns requiring immediate enhanced due diligence and investigation',
-        'Close the account immediately without investigation to avoid risk'
+        'No concerns - UK customer is legitimate',
+        'Minor concerns - could be business expansion',
+        'SIGNIFICANT evasion concerns - immediate investigation required',
+        'Close account immediately without investigation'
       ],
       correctAnswer: 2,
-      explanation: 'This pattern shows multiple red flags for sanctions evasion: sudden business model change, complex beneficial ownership changes, payments to multiple recently-formed entities in the same jurisdiction, structuring below thresholds, and customer reluctance to provide documentation. This requires immediate enhanced due diligence, investigation of recipients against sanctions lists, and potential suspicious activity reporting.',
+      explanation: 'Classic evasion pattern: business model pivot, ownership shell game, payments to newly-formed entities in same jurisdiction, structuring below thresholds. Requires immediate EDD + SAR consideration.',
       learningPoints: [
-        'Rapid changes in business model and ownership can indicate evasion setup',
-        'Multiple payments to recently-formed entities in the same jurisdiction is a classic evasion pattern',
-        'Structuring payments below reporting thresholds suggests awareness of compliance controls',
-        'Customer reluctance to provide documentation when business changes significantly is a major red flag'
+        'Business model + ownership changes = evasion setup flags',
+        'Multiple new entities in same jurisdiction = shell company network',
+        'Structuring below thresholds = awareness of controls'
       ]
     }
   ],

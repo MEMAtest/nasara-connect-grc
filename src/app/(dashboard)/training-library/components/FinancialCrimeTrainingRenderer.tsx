@@ -10,6 +10,7 @@ import {
   ArrowRight,
   BookOpen,
   CheckCircle2,
+  ChevronDown,
   Clock,
   FileText,
   Lightbulb,
@@ -18,7 +19,13 @@ import {
   Trophy,
   Award,
 } from "lucide-react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { MarkdownContent, formatListItem, renderVisual } from "./training-renderer-helpers";
+import { ContentCard, ContentCardGrid } from "./ContentCards";
 
 type StageKey = "hook" | "content" | "practice" | "assessment" | "summary";
 const STAGE_ORDER: StageKey[] = ["hook", "content", "practice", "assessment", "summary"];
@@ -43,7 +50,7 @@ interface TrainingModuleData {
     duration?: number;
     content: string | {
       learningPoint?: string;
-      mainContent?: string;
+      mainContent?: string | { cards: ContentCard[] }; // Support both markdown and cards
       keyConcepts?: (string | { term: string; definition: string })[];
       realExamples?: Array<string | { title: string; description?: string; outcome?: string }>;
       regulatoryRequirements?: string[];
@@ -116,6 +123,59 @@ export function FinancialCrimeTrainingRenderer({
   });
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
   const [assessmentAnswers, setAssessmentAnswers] = useState<Record<string, string>>({});
+  const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set([0])); // First section open by default
+
+  // Helper function to parse markdown into collapsible sections
+  const parseContentSections = (markdown: string): Array<{ title: string; content: string }> => {
+    if (!markdown) return [];
+
+    // Split by ## headings
+    const parts = markdown.split(/^## /gm);
+    const sections: Array<{ title: string; content: string }> = [];
+
+    // First part might be intro content before first ##
+    if (parts[0] && !parts[0].startsWith('#')) {
+      const introContent = parts[0].trim();
+      if (introContent) {
+        sections.push({ title: 'Overview', content: introContent });
+      }
+    }
+
+    // Process remaining sections
+    for (let i = 1; i < parts.length; i++) {
+      const section = parts[i];
+      const firstNewline = section.indexOf('\n');
+      if (firstNewline === -1) {
+        sections.push({ title: section.trim(), content: '' });
+      } else {
+        const title = section.substring(0, firstNewline).trim();
+        const content = section.substring(firstNewline + 1).trim();
+        sections.push({ title, content });
+      }
+    }
+
+    return sections;
+  };
+
+  const toggleSection = (index: number) => {
+    setExpandedSections(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
+  };
+
+  const expandAllSections = (sectionCount: number) => {
+    setExpandedSections(new Set(Array.from({ length: sectionCount }, (_, i) => i)));
+  };
+
+  const collapseAllSections = () => {
+    setExpandedSections(new Set());
+  };
 
   const content = {
     title: module.title,
@@ -176,7 +236,21 @@ export function FinancialCrimeTrainingRenderer({
     if (typeof lessonContent === "string") {
       return lessonContent;
     }
-    return lessonContent.mainContent || lessonContent.learningPoint || "";
+    // If mainContent is cards, return empty string (will be handled separately)
+    if (typeof lessonContent.mainContent === "object" && lessonContent.mainContent?.cards) {
+      return "";
+    }
+    return (lessonContent.mainContent as string) || lessonContent.learningPoint || "";
+  };
+
+  const getLessonCards = (lessonContent: TrainingModuleData["lessons"][0]["content"]): ContentCard[] | null => {
+    if (typeof lessonContent === "string") {
+      return null;
+    }
+    if (typeof lessonContent.mainContent === "object" && lessonContent.mainContent?.cards) {
+      return lessonContent.mainContent.cards;
+    }
+    return null;
   };
 
   const getLessonKeyConcepts = (lesson: TrainingModuleData["lessons"][0]) => {
@@ -388,13 +462,14 @@ export function FinancialCrimeTrainingRenderer({
     }
 
     const lessonContent = getLessonContent(currentLesson.content);
+    const lessonCards = getLessonCards(currentLesson.content);
     const keyConcepts = getLessonKeyConcepts(currentLesson);
     const examples = getLessonExamples(currentLesson);
     const visual = getLessonVisual(currentLesson);
 
     return (
       <div className="space-y-6">
-        <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
           <Card className="border border-red-100 bg-red-50">
             <CardHeader>
               <CardTitle className="text-sm uppercase tracking-[0.2em] text-red-600">Case Index</CardTitle>
@@ -404,13 +479,14 @@ export function FinancialCrimeTrainingRenderer({
                 <Button
                   key={lesson.id || index}
                   variant={index === currentLessonIndex ? "default" : "outline"}
-                  className={`w-full justify-start ${
+                  className={`w-full justify-start overflow-hidden ${
                     index === currentLessonIndex ? "bg-red-600 hover:bg-red-700 text-white" : "border-red-200"
                   }`}
                   onClick={() => handleLessonSelect(index)}
+                  title={lesson.title}
                 >
-                  <span className="mr-2 text-xs">0{index + 1}</span>
-                  {lesson.title}
+                  <span className="mr-2 text-xs flex-shrink-0">{String(index + 1).padStart(2, '0')}</span>
+                  <span className="truncate">{lesson.title}</span>
                 </Button>
               ))}
             </CardContent>
@@ -426,7 +502,66 @@ export function FinancialCrimeTrainingRenderer({
                 <CardDescription>Session {currentLessonIndex + 1} of {content.lessons.length}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <MarkdownContent content={lessonContent} />
+                {/* Render card-based content if available, otherwise markdown */}
+                {lessonCards ? (
+                  <ContentCardGrid cards={lessonCards} />
+                ) : (
+                  (() => {
+                    const sections = parseContentSections(lessonContent);
+                    if (sections.length <= 1) {
+                      // If no sections or just one, render normally
+                      return <MarkdownContent content={lessonContent} />;
+                    }
+                    return (
+                      <>
+                        {/* Expand/Collapse controls */}
+                        <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                          <span className="text-sm text-slate-500">
+                            {expandedSections.size} of {sections.length} sections expanded
+                          </span>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => expandAllSections(sections.length)}
+                              className="text-xs"
+                            >
+                              Expand All
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={collapseAllSections}
+                              className="text-xs"
+                            >
+                              Collapse All
+                            </Button>
+                          </div>
+                        </div>
+                        {/* Collapsible sections */}
+                        <div className="space-y-2">
+                          {sections.map((section, index) => (
+                            <Collapsible
+                              key={index}
+                              open={expandedSections.has(index)}
+                              onOpenChange={() => toggleSection(index)}
+                            >
+                              <CollapsibleTrigger className="flex items-center justify-between w-full p-3 bg-slate-50 hover:bg-slate-100 rounded-lg border border-slate-200 transition-colors">
+                                <span className="font-medium text-sm text-slate-800 text-left">{section.title}</span>
+                                <ChevronDown className={`h-4 w-4 text-slate-500 transition-transform duration-200 ${expandedSections.has(index) ? 'rotate-180' : ''}`} />
+                              </CollapsibleTrigger>
+                              <CollapsibleContent className="pt-3 pb-1 px-1">
+                                <div className="pl-3 border-l-2 border-slate-200">
+                                  <MarkdownContent content={section.content} />
+                                </div>
+                              </CollapsibleContent>
+                            </Collapsible>
+                          ))}
+                        </div>
+                      </>
+                    );
+                  })()
+                )}
 
                 {keyConcepts.length > 0 && (
                   <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
@@ -497,11 +632,11 @@ export function FinancialCrimeTrainingRenderer({
             <Target className="h-5 w-5 text-red-600" />
             Investigation Exercises
           </CardTitle>
-          <CardDescription>Apply judgement to real-world scenarios.</CardDescription>
+          <CardDescription>Apply judgement to real-world scenarios. Answer all questions to continue.</CardDescription>
         </CardHeader>
       </Card>
 
-      {content.practiceScenarios.map((scenario) => {
+      {content.practiceScenarios.map((scenario, scenarioIndex) => {
         const selectedId = selectedAnswers[scenario.id];
         const selectedIndex = scenario.options.findIndex((opt, idx) => {
           if (typeof opt === "string") return `opt-${idx}` === selectedId;
@@ -510,16 +645,48 @@ export function FinancialCrimeTrainingRenderer({
         const isCorrect = typeof scenario.correctAnswer === "number"
           ? selectedIndex === scenario.correctAnswer
           : typeof scenario.options[selectedIndex] === "object" && Boolean((scenario.options[selectedIndex] as { isCorrect?: boolean }).isCorrect);
+        const scenarioImage = (scenario as { image?: string }).image;
 
         return (
-          <Card key={scenario.id} className="border border-slate-200">
-            <CardHeader>
+          <Card key={scenario.id} className="border border-slate-200 overflow-hidden">
+            {scenarioImage && (
+              <div className="h-40 bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center border-b border-slate-200 relative">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={scenarioImage}
+                  alt={scenario.title}
+                  className="h-full w-full object-cover"
+                  onError={(e) => {
+                    // Hide image and show fallback placeholder
+                    const img = e.target as HTMLImageElement;
+                    img.style.display = 'none';
+                    const placeholder = img.nextElementSibling;
+                    if (placeholder) (placeholder as HTMLElement).style.display = 'flex';
+                  }}
+                />
+                {/* Fallback placeholder - hidden by default */}
+                <div
+                  className="absolute inset-0 flex-col items-center justify-center gap-2 text-slate-400 bg-gradient-to-br from-slate-100 to-slate-200"
+                  style={{ display: 'none' }}
+                >
+                  <Target className="h-8 w-8" />
+                  <span className="text-xs font-medium">Scenario Image</span>
+                </div>
+              </div>
+            )}
+            <CardHeader className="pb-2">
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-xs">Scenario {scenarioIndex + 1}</Badge>
+              </div>
               <CardTitle className="text-base">{scenario.title}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="rounded-lg border border-slate-200 bg-white p-4 text-sm text-slate-700">
-                {getScenarioText(scenario)}
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                <MarkdownContent content={getScenarioText(scenario)} className="text-sm" />
               </div>
+              {scenario.challenge && (
+                <p className="text-sm font-medium text-slate-900">{scenario.challenge}</p>
+              )}
               <div className="space-y-2">
                 {scenario.options.map((option, index) => {
                   const optionId = typeof option === "string" ? `opt-${index}` : option.id || `opt-${index}`;
@@ -528,8 +695,8 @@ export function FinancialCrimeTrainingRenderer({
                   return (
                     <label
                       key={optionId}
-                      className={`flex items-start gap-3 p-3 border rounded-lg cursor-pointer ${
-                        isSelected ? "border-red-500 bg-red-50" : "border-slate-200 hover:border-slate-300"
+                      className={`flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${
+                        isSelected ? "border-red-500 bg-red-50" : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
                       }`}
                     >
                       <input
@@ -657,8 +824,52 @@ export function FinancialCrimeTrainingRenderer({
     </div>
   );
 
+  // Check if all required answers are provided for current stage
+  const canProceed = () => {
+    if (currentStage === "practice") {
+      // Require all practice scenarios to be answered
+      return content.practiceScenarios.every((scenario) => selectedAnswers[scenario.id]);
+    }
+    if (currentStage === "assessment") {
+      // Require all assessment questions to be answered
+      return content.assessmentQuestions.every((question) => assessmentAnswers[question.id]);
+    }
+    return true;
+  };
+
+  const getUnansweredCount = () => {
+    if (currentStage === "practice") {
+      return content.practiceScenarios.filter((s) => !selectedAnswers[s.id]).length;
+    }
+    if (currentStage === "assessment") {
+      return content.assessmentQuestions.filter((q) => !assessmentAnswers[q.id]).length;
+    }
+    return 0;
+  };
+
+  const stageLabels: Record<StageKey, string> = {
+    hook: "Brief",
+    content: "Sessions",
+    practice: "Practice",
+    assessment: "Assessment",
+    summary: "Summary",
+  };
+
   return (
     <div className="max-w-5xl mx-auto space-y-6">
+      {/* Breadcrumbs */}
+      <nav className="flex items-center gap-2 text-sm text-slate-500">
+        <a href="/training-library" className="hover:text-red-600 transition-colors">
+          Training Library
+        </a>
+        <span>/</span>
+        <span className="text-slate-700 font-medium truncate max-w-[200px]" title={content.title}>
+          {content.title}
+        </span>
+        <span>/</span>
+        <span className="text-red-600 font-medium">{stageLabels[currentStage]}</span>
+      </nav>
+
       <div className="rounded-2xl border border-red-200 bg-white p-6 shadow-sm">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
@@ -699,8 +910,17 @@ export function FinancialCrimeTrainingRenderer({
       {currentStage === "assessment" && renderAssessmentStage()}
       {currentStage === "summary" && renderSummaryStage()}
 
-      <div className="flex justify-center">
-        <Button onClick={nextStage} className="bg-red-600 hover:bg-red-700">
+      <div className="flex flex-col items-center gap-2">
+        {!canProceed() && (
+          <p className="text-sm text-amber-600">
+            Answer {getUnansweredCount()} more question{getUnansweredCount() > 1 ? "s" : ""} to continue
+          </p>
+        )}
+        <Button
+          onClick={nextStage}
+          disabled={!canProceed()}
+          className={canProceed() ? "bg-red-600 hover:bg-red-700" : "bg-slate-300 cursor-not-allowed"}
+        >
           {currentStage === "summary" ? "Complete" : "Continue"}
           <ArrowRight className="ml-2 h-4 w-4" />
         </Button>

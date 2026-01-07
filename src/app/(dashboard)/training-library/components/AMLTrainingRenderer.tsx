@@ -1126,8 +1126,28 @@ export function AMLTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
     }
   };
 
+  const stageLabels: Record<string, string> = {
+    hook: "Introduction",
+    content: "Content",
+    practice: "Practice",
+    summary: "Summary",
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
+      {/* Breadcrumbs */}
+      <nav className="flex items-center gap-2 text-sm text-slate-500">
+        <a href="/training-library" className="hover:text-teal-600 transition-colors">
+          Training Library
+        </a>
+        <span>/</span>
+        <span className="text-slate-700 font-medium truncate max-w-[200px]">
+          AML Fundamentals
+        </span>
+        <span>/</span>
+        <span className="text-teal-600 font-medium">{stageLabels[currentStage]}</span>
+      </nav>
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

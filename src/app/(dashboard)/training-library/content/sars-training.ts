@@ -48,157 +48,104 @@ export const sarsTrainingModule: TrainingModule = {
       duration: 4,
       content: {
         learningPoint: 'Understand the comprehensive legal obligations and framework governing suspicious activity reporting',
-        mainContent: `Suspicious Activity Reporting is not just a regulatory requirement - it's a legal obligation backed by criminal law. Understanding the framework is essential for proper implementation and personal protection.
-
-**Primary Legal Obligations:**
-
-**1. The Proceeds of Crime Act 2002 (POCA)**
-Creates the fundamental legal duties:
-
-*Section 330 - Failure to Disclose (Regulated Sector):*
-- Criminal offense for failing to report knowledge or suspicion of money laundering
-- Applies to all staff in the regulated sector
-- Maximum penalty: 5 years imprisonment + unlimited fine
-- Defense only if report made or reasonable excuse exists
-
-*Section 331 - Failure to Disclose (Nominated Officers):*
-- Specific offense for MLROs and nominated officers
-- Heightened duty to report suspicions received from staff
-- No defense for failure to report valid internal disclosures
-
-*Section 333A - Tipping Off:*
-- Criminal offense to disclose SAR existence or investigation
-- Includes hints, suggestions, or behavior that might alert suspects
-- Maximum penalty: 2 years imprisonment + unlimited fine
-- Strict liability - intent not required for conviction
-
-**2. The Terrorism Act 2000**
-Parallel obligations for terrorist financing:
-- Section 21A: Failure to disclose terrorist financing suspicions
-- Similar penalties and structure to POCA
-- Lower threshold: "reasonable grounds for suspicion"
-- Applies to all sectors, not just regulated financial services
-
-**3. Money Laundering Regulations 2017**
-Operational requirements for SARs procedures:
-- Internal reporting systems and procedures
-- Training requirements for all relevant staff
-- Record keeping and evidence retention
-- Senior management oversight and accountability
-
-**The Legal Test for Reporting:**
-
-**Knowledge or Suspicion Standard:**
-The legal test is deliberately broad:
-- Knowledge: Actual awareness of facts
-- Suspicion: Feeling or thought that something might be true
-- Must be objectively reasonable, not just subjective feeling
-- No requirement for proof or certainty
-- "Gut feeling" can be sufficient if based on experience
-
-**Objective vs. Subjective Test:**
-- Subjective: What did the individual actually know or suspect?
-- Objective: What would a reasonable person in their position suspect?
-- Both tests must be met for legal obligation to arise
-- Training and experience raise the objective standard
-
-**Defenses and Protections:**
-
-**Statutory Defenses (POCA S330):**
-1. Disclosure made to appropriate authority (NCA)
-2. Reasonable excuse for non-disclosure
-3. Privileged circumstances (legal professional privilege)
-
-**What Constitutes "Reasonable Excuse":**
-- Genuine belief that disclosure already made by others
-- Physical impossibility of making report
-- Imminent danger to personal safety
-- NOT: commercial considerations, customer relationships, or convenience
-
-**Confidentiality and Legal Protection:**
-
-**SAR Confidentiality:**
-- Absolute prohibition on disclosure of SAR existence
-- Applies indefinitely - no time limit
-- Covers all aspects: investigation, submission, response
-- Includes internal discussions outside authorized personnel
-
-**Legal Protections for Reporters:**
-- Protection from civil liability for good faith reports
-- Employment protection against retaliation
-- Anonymity protection in legal proceedings
-- Immunity from breach of confidentiality claims
-
-**Who Must Report:**
-
-**All Staff in Regulated Sector:**
-- Front-line customer service staff
-- Operations and transaction processing staff
-- Relationship managers and sales staff
-- Support functions with customer access
-- Management and supervisory staff
-
-**Enhanced Duties for Certain Roles:**
-- MLROs have absolute duty to report valid internal disclosures
-- Senior managers have oversight responsibilities
-- Compliance staff have enhanced identification duties
-- Risk and audit functions have monitoring obligations
-
-**Timing Requirements:**
-
-**Internal Reporting:**
-- "As soon as practicable" after suspicion arises
-- Generally interpreted as within hours or same business day
-- Cannot be delayed for convenience or investigation
-- Weekend/holiday reporting procedures must exist
-
-**External Reporting (MLRO to NCA):**
-- "As soon as practicable" after receiving internal report
-- Generally within 24-48 hours maximum
-- Cannot be delayed for additional investigation
-- Priority reporting available for urgent cases
-
-**International Considerations:**
-
-**Cross-Border Implications:**
-- UK reporting obligations apply regardless of where activity occurred
-- Foreign suspicious activity must be reported if identified in UK
-- Coordination with foreign Financial Intelligence Units
-- EU/international information sharing arrangements
-
-**Sanctions and AML Overlap:**
-- Suspicious activity may also breach sanctions
-- Dual reporting obligations may apply
-- Coordination between different regulatory frameworks
-- Enhanced urgency for sanctions-related suspicions
-
-**Record Keeping Obligations:**
-
-**Internal Documentation:**
-- All suspicions must be documented even if not reported externally
-- Investigation notes and decision rationale
-- Evidence supporting suspicion or lack thereof
-- Management review and approval records
-
-**Retention Requirements:**
-- SAR records: 5 years minimum from submission
-- Internal reports: 5 years from creation
-- Investigation files: Until all proceedings concluded
-- Training records: 3 years minimum
-
-**Regulatory Oversight:**
-
-**FCA Supervision:**
-- Regular assessment of SAR procedures and effectiveness
-- Review of SAR statistics and quality
-- Testing of staff knowledge and implementation
-- Enforcement action for systematic failures
-
-**NCA Feedback:**
-- Statistical feedback on SAR quality and outcomes
-- Sector-specific typologies and trends
-- Training materials and best practice guidance
-- Law enforcement priorities and focus areas`,
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'critical',
+              title: 'This is Criminal Law',
+              message: 'SAR reporting is not just regulatory - it\'s backed by criminal law. Failure to report can result in imprisonment.'
+            },
+            {
+              type: 'keypoint',
+              icon: '⚖️',
+              title: 'POCA Section 330 - Failure to Disclose',
+              points: [
+                'Criminal offense for failing to report ML suspicions',
+                'Applies to ALL regulated sector staff',
+                'Max penalty: 5 years imprisonment + unlimited fine',
+                'Defense: report made OR reasonable excuse'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '🚨',
+              title: 'POCA Section 333A - Tipping Off',
+              points: [
+                'Criminal offense to disclose SAR existence',
+                'Includes hints, suggestions, or behavior changes',
+                'Max penalty: 2 years + unlimited fine',
+                'Strict liability - intent NOT required'
+              ]
+            },
+            {
+              type: 'stat',
+              icon: '⏱️',
+              value: '5 Years',
+              label: 'Max imprisonment for failure to disclose',
+              color: 'red'
+            },
+            {
+              type: 'stat',
+              icon: '🔒',
+              value: 'Indefinite',
+              label: 'SAR confidentiality period - no time limit',
+              color: 'amber'
+            },
+            {
+              type: 'infogrid',
+              items: [
+                { icon: '📖', term: 'Knowledge', definition: 'Actual awareness of facts' },
+                { icon: '🤔', term: 'Suspicion', definition: 'Reasonable belief something may be true' },
+                { icon: '⚡', term: 'ASAP', definition: 'Within hours, not days' },
+                { icon: '🛡️', term: 'Defense', definition: 'Report made or genuine excuse' }
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'Who Must Report (All Regulated Sector)',
+              items: [
+                'Front-line customer service staff',
+                'Operations & transaction processing',
+                'Relationship managers & sales',
+                'Management & supervisory staff'
+              ]
+            },
+            {
+              type: 'process',
+              steps: [
+                { number: 1, title: 'Suspicion Arises', description: 'You notice something unusual or concerning' },
+                { number: 2, title: 'Report Internally', description: 'Notify MLRO "as soon as practicable" (within hours)' },
+                { number: 3, title: 'MLRO Reviews', description: 'Decision made within 24-48 hours max' },
+                { number: 4, title: 'Submit to NCA', description: 'File SAR via secure online system' }
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'warning',
+              title: 'NOT a Reasonable Excuse',
+              message: 'Commercial considerations, customer relationships, or inconvenience are NEVER acceptable excuses for not reporting.'
+            },
+            {
+              type: 'keypoint',
+              icon: '🛡️',
+              title: 'Legal Protections for Reporters',
+              points: [
+                'Civil liability protection for good faith reports',
+                'Employment protection against retaliation',
+                'Anonymity in legal proceedings',
+                'Immunity from breach of confidentiality claims'
+              ]
+            },
+            {
+              type: 'stat',
+              icon: '📁',
+              value: '5 Years',
+              label: 'Minimum record retention for SARs',
+              color: 'blue'
+            }
+          ]
+        },
 
         keyConcepts: [
           {
@@ -236,7 +183,7 @@ The legal test is deliberately broad:
 
     {
       id: 'identification-investigation',
-      title: 'Identifying and Investigating Suspicious Activity',
+      title: 'Identifying Suspicious Activity',
       type: 'content',
       duration: 5,
       content: {
@@ -482,7 +429,7 @@ The legal test is deliberately broad:
 
     {
       id: 'sar-process',
-      title: 'SAR Submission Process and Requirements',
+      title: 'SAR Submission & Requirements',
       type: 'content',
       duration: 3,
       content: {
@@ -710,7 +657,7 @@ The legal test is deliberately broad:
 
     {
       id: 'sar-quality-consent',
-      title: 'SAR Quality, MLRO Decisioning and Consent',
+      title: 'MLRO Decisioning & Consent',
       type: 'content',
       duration: 4,
       content: {
@@ -777,7 +724,7 @@ Key points:
 
     {
       id: 'confidentiality-management',
-      title: 'Confidentiality and Tipping-Off Prevention',
+      title: 'Confidentiality & Tipping-Off',
       type: 'content',
       duration: 3,
       content: {
@@ -1007,106 +954,60 @@ Key points:
   practiceScenarios: [
     {
       id: 'cash-structuring-scenario',
-      title: 'Complex Cash Structuring Investigation',
-      context: 'Multiple alerts have been generated by your transaction monitoring system for unusual cash deposit patterns',
-      situation: `Your monitoring system has flagged the following activity across several accounts:
+      title: 'Cash Structuring Network',
+      image: '/images/training/sar-structuring-scenario.png',
+      imagePrompt: 'Professional compliance illustration, bird\'s eye view of a city map with 15 glowing account dots connected by red dotted lines to a central hub labeled "Metro Trading". Cash bundles flowing between dots. Clean corporate infographic style, navy blue and red, modern flat design, no text.',
+      situation: `**The Alert:** 15 linked accounts flagged for suspicious patterns.
 
-Account Pattern Analysis:
-- 15 different personal accounts opened over 3 months
-- All accounts opened with similar documentation packages
-- Account holders have addresses within 2-mile radius in Birmingham
-- Each account shows minimal legitimate activity except for cash deposits
-
-Cash Deposit Patterns:
-- Daily cash deposits ranging from £8,000-£9,500 per account
-- Deposits made at multiple branches across West Midlands region
-- All deposits made during business hours, different times each day
-- Total cash deposits across all accounts: £1.2 million in 3 months
-
-Withdrawal Patterns:
-- Within 24-48 hours of deposits, electronic transfers to "Metro Trading Ltd"
-- Metro Trading Ltd account also shows minimal legitimate business activity
-- From Metro Trading Ltd, large international wire transfers to Dubai entities
-- Dubai recipients: "Gulf Commercial LLC", "Middle East Holdings Ltd", "Emirates Trading Co"
-
-Customer Behavior:
-- Account holders rarely respond to routine communication
-- When contacted, provide vague explanations about "cash business income"
-- Some claim to work for same employment agency "FlexWork Solutions"
-- FlexWork Solutions address matches one of the account holder addresses
-- Several customers became nervous when asked for employment documentation
-
-Additional Investigation Reveals:
-- HMRC has no record of FlexWork Solutions as registered employer
-- Companies House shows Metro Trading Ltd incorporated 4 months ago
-- Metro Trading Ltd director is also director of FlexWork Solutions
-- Dubai recipients were incorporated within 6 months of first transfers
-- Local branch staff report some depositors appeared to be following scripts`,
-      challenge: 'Based on this investigation, what is your assessment and what immediate actions should you take?',
+**Key Red Flags:**
+• Daily cash deposits £8,000-£9,500 (just under threshold)
+• £1.2M total in 3 months across all accounts
+• All transfers route to "Metro Trading Ltd" → Dubai entities
+• Account holders all claim to work for unregistered "FlexWork Solutions"
+• Same director controls both Metro Trading and FlexWork`,
+      challenge: 'What action should you take?',
       options: [
-        'Require additional documentation from customers before determining if SAR filing is necessary',
-        'File individual SARs for each suspicious account to ensure comprehensive reporting',
-        'File a comprehensive SAR covering the entire operation and immediately escalate to senior management',
-        'Continue monitoring for additional evidence before making reporting decisions'
+        'Request more documentation before deciding',
+        'File individual SARs for each account',
+        'File ONE comprehensive SAR covering the entire network + escalate immediately',
+        'Continue monitoring for more evidence'
       ],
       correctAnswer: 2,
-      explanation: 'This appears to be a sophisticated cash structuring operation involving multiple accounts, nominee account holders, and layered transactions to obscure fund origins. The coordinated nature, similar documentation, employment agency front, and rapid international transfers indicate organized money laundering. A comprehensive SAR covering the entire operation provides law enforcement with the complete picture. Immediate escalation is required due to the scale and ongoing nature of the activity.',
+      explanation: 'This is organized money laundering. File ONE comprehensive SAR covering the entire operation - it gives law enforcement the complete picture. Individual SARs would fragment the intelligence.',
       learningPoints: [
-        'Coordinated activity across multiple accounts often indicates organized money laundering schemes',
-        'Employment agencies and cash-intensive businesses are commonly used as fronts for structuring operations',
-        'Rapid international transfers following domestic cash deposits are classic layering techniques',
-        'Comprehensive SARs covering entire operations are more valuable than multiple individual reports'
+        'Coordinated accounts = organized crime - report the whole network together',
+        'Don\'t wait for "perfect evidence" - suspicion is enough',
+        'Comprehensive SARs are more valuable than fragmented reports'
       ]
     },
 
     {
       id: 'customer-questioning-scenario',
-      title: 'Managing Customer Inquiries During Investigation',
-      context: 'You are investigating suspicious activity while the customer is asking questions about delays',
-      situation: `You are the relationship manager for Prestige Consulting Ltd, a business customer you have been investigating for potential suspicious activity over the past week. The investigation started when:
+      title: 'The Angry Customer Call',
+      image: '/images/training/sar-tipping-off-scenario.png',
+      imagePrompt: 'Professional compliance illustration, split scene: Left side shows frustrated business person on phone call in modern office. Right side shows calm compliance officer at desk with computer alerts. Subtle wall/divide between them representing confidentiality. Clean corporate style, warm professional colors, modern flat design, no text.',
+      situation: `**The Situation:** You're investigating Prestige Consulting Ltd. A SAR is being filed today.
 
-Initial Suspicions:
-- Monthly transaction volume increased from £50K to £500K without explanation
-- New international wire transfers to countries not matching business profile
-- Customer became evasive when asked for updated business information
-- Beneficial ownership structure changed twice in 6 months
+**The Call:** David Morrison (MD) is frustrated:
+*"Three payments delayed this week. My clients are asking questions. I've banked here 8 years! Is there an investigation going on?"*
 
-Current Investigation Status:
-- Enhanced due diligence in progress
-- Multiple high-value transactions on hold pending investigation
-- MLRO reviewing case for potential SAR filing
-- Legal counsel consulted due to complexity
-- Senior management aware and monitoring situation
-
-Today's Customer Contact:
-The customer, David Morrison (Managing Director), calls you directly with increasing frustration:
-
-"I need to understand what's happening with our account. Three important payments have been delayed this week, and my clients are asking questions. This is damaging our business reputation. I've been with this bank for 8 years and never had problems before.
-
-I need those payments processed today, or I'll have to consider moving our business elsewhere. Can you please explain exactly what verification you need? I'm happy to provide whatever documentation you require, but I need to understand what's causing these delays.
-
-Also, one of my clients mentioned that their bank called asking questions about payments from us. Is there some kind of investigation going on? I run a legitimate business and need transparency about what's happening."
-
-You know that:
-- Two of the delayed payments are to newly-formed companies in high-risk jurisdictions
-- The customer's explanation for increased activity was vague and inconsistent
-- The MLRO is planning to file a SAR later today
-- Legal counsel advised maintaining normal customer service without disclosure
-- Any tipping-off could constitute a criminal offense`,
-      challenge: 'How should you respond to David Morrison\'s questions and concerns while maintaining legal compliance?',
+**What you know:**
+• Payments are to high-risk jurisdiction companies
+• MLRO filing SAR today
+• Tipping-off = criminal offense`,
+      challenge: 'How do you respond?',
       options: [
-        'Explain that compliance requirements have increased and you need additional business documentation',
-        'Provide a generic response about routine verification procedures while maintaining normal customer service',
-        'Be transparent about the investigation to maintain the business relationship and trust',
-        'Transfer the call to the compliance department to handle the customer concerns'
+        'Say compliance requirements have increased, ask for documentation',
+        'Give generic response about "routine verification procedures"',
+        'Be transparent to maintain the relationship',
+        'Transfer to compliance department'
       ],
       correctAnswer: 1,
-      explanation: 'You must provide a generic response that references routine compliance procedures without suggesting investigation or suspicious activity concerns. Key elements: acknowledge the delays, explain they are due to standard verification procedures, avoid mentioning compliance concerns or investigations, maintain professional tone, offer to expedite once checks are complete. Transparency about the investigation would constitute tipping-off, a criminal offense.',
+      explanation: 'Use ONLY generic language: "routine verification procedures." Never mention compliance concerns, investigations, or SAR. Transparency here = criminal tipping-off offense.',
       learningPoints: [
-        'Customer communication during SAR investigations requires careful scripting to avoid tipping-off',
-        'Generic references to "routine verification" or "standard procedures" are acceptable explanations',
-        'Maintaining normal customer service levels is important to avoid behavioral changes that suggest investigation',
-        'Never confirm or deny the existence of investigations, compliance concerns, or regulatory matters'
+        '"Routine verification" is a safe phrase - use it',
+        'Never confirm OR deny an investigation exists',
+        'Maintain normal service to avoid behavioral red flags'
       ]
     }
   ],

@@ -732,6 +732,23 @@ export function KYCTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
 
   return (
     <div className="max-w-4xl mx-auto p-6">
+      {/* Breadcrumbs */}
+      <nav className="flex items-center gap-2 text-sm text-slate-500 mb-6">
+        <a href="/training-library" className="hover:text-red-600 transition-colors">
+          Training Library
+        </a>
+        <span>/</span>
+        <span className="text-slate-700 font-medium truncate max-w-[200px]" title={kycModule.title}>
+          {kycModule.title}
+        </span>
+        <span>/</span>
+        <span className="text-red-600 font-medium">
+          {currentSection === 0 ? "Hook" :
+           currentSection === sections.length - 1 ? "Summary" :
+           sections[currentSection]?.id.startsWith('scenario-') ? "Practice" : "Content"}
+        </span>
+      </nav>
+
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <div>

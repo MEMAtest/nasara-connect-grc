@@ -387,14 +387,18 @@ export function TrainingLibraryClient() {
           </Card>
 
           {/* Featured Training Content */}
-          <div className="mb-6 p-6 bg-gradient-to-r from-teal-50 via-emerald-50 to-cyan-50 rounded-2xl border border-emerald-200">
-            <div className="flex items-center gap-2 mb-2">
-              <Star className="h-5 w-5 text-emerald-600" />
-              <h2 className="text-xl font-bold text-emerald-900">Featured Training</h2>
-              <span className="text-xl">🌟</span>
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-lg font-semibold text-slate-900">Featured Training</h2>
+                <p className="text-sm text-slate-500">Start with our most popular modules</p>
+              </div>
+              <Badge variant="outline" className="text-emerald-600 border-emerald-200">
+                <Star className="w-3 h-3 mr-1" />
+                Recommended
+              </Badge>
             </div>
-            <p className="text-sm text-emerald-700 mb-4">Start with our most popular interactive modules</p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {featuredModules.slice(0, 3).map((module) => (
                 <PlayfulModuleCard
                   key={module.id}
@@ -411,18 +415,15 @@ export function TrainingLibraryClient() {
             </div>
           </div>
 
-          {/* Module Library - Playful Cards */}
+          {/* Module Library */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                  <BookOpen className="h-5 w-5 text-teal-600" />
-                  Module Library
-                </h2>
-                <p className="text-sm text-slate-500">Browse all training modules and start where you need.</p>
+                <h2 className="text-lg font-semibold text-slate-900">All Modules</h2>
+                <p className="text-sm text-slate-500">{filteredModules.length} training modules available</p>
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               {filteredModules.map((module) => (
                 <PlayfulModuleCard
                   key={module.id}

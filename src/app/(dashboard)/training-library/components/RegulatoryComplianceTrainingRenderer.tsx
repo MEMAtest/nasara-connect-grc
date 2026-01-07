@@ -610,8 +610,50 @@ export function RegulatoryComplianceTrainingRenderer({
     </div>
   );
 
+  // Check if all required answers are provided for current stage
+  const canProceed = () => {
+    if (currentStage === "practice" && content.practiceScenarios) {
+      return content.practiceScenarios.every((scenario) => selectedAnswers[scenario.id]);
+    }
+    if (currentStage === "assessment" && content.assessmentQuestions) {
+      return content.assessmentQuestions.every((question) => assessmentAnswers[question.id]);
+    }
+    return true;
+  };
+
+  const getUnansweredCount = () => {
+    if (currentStage === "practice" && content.practiceScenarios) {
+      return content.practiceScenarios.filter((s) => !selectedAnswers[s.id]).length;
+    }
+    if (currentStage === "assessment" && content.assessmentQuestions) {
+      return content.assessmentQuestions.filter((q) => !assessmentAnswers[q.id]).length;
+    }
+    return 0;
+  };
+
+  const stageLabels: Record<string, string> = {
+    hook: "Brief",
+    content: "Sessions",
+    practice: "Practice",
+    assessment: "Assessment",
+    summary: "Summary",
+  };
+
   return (
     <div className="max-w-5xl mx-auto space-y-6">
+      {/* Breadcrumbs */}
+      <nav className="flex items-center gap-2 text-sm text-slate-500">
+        <a href="/training-library" className="hover:text-blue-600 transition-colors">
+          Training Library
+        </a>
+        <span>/</span>
+        <span className="text-slate-700 font-medium truncate max-w-[200px]" title={content.title}>
+          {content.title}
+        </span>
+        <span>/</span>
+        <span className="text-blue-600 font-medium">{stageLabels[currentStage]}</span>
+      </nav>
+
       <div className="rounded-2xl border border-blue-200 bg-white p-6 shadow-sm">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
@@ -652,8 +694,17 @@ export function RegulatoryComplianceTrainingRenderer({
       {currentStage === "assessment" && renderAssessmentStage()}
       {currentStage === "summary" && renderSummaryStage()}
 
-      <div className="flex justify-center">
-        <Button onClick={nextStage} className="bg-blue-600 hover:bg-blue-700">
+      <div className="flex flex-col items-center gap-2">
+        {!canProceed() && (
+          <p className="text-sm text-amber-600">
+            Answer {getUnansweredCount()} more question{getUnansweredCount() > 1 ? "s" : ""} to continue
+          </p>
+        )}
+        <Button
+          onClick={nextStage}
+          disabled={!canProceed()}
+          className={canProceed() ? "bg-blue-600 hover:bg-blue-700" : "bg-slate-300 cursor-not-allowed"}
+        >
           {currentStage === "summary" ? "Complete" : "Continue"}
           <ArrowRight className="ml-2 h-4 w-4" />
         </Button>

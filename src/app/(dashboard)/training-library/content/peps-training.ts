@@ -43,97 +43,64 @@ export const pepsTrainingModule: TrainingModule = {
       duration: 3,
       content: {
         learningPoint: 'Master the comprehensive definition and categorization of Politically Exposed Persons',
-        mainContent: `Understanding who qualifies as a Politically Exposed Person (PEP) is fundamental to effective compliance. The definition is broader than many realize and requires careful consideration of various categories and relationships.
-
-**Primary PEP Categories:**
-
-**1. Domestic PEPs**
-Individuals who are or have been entrusted with prominent public functions in the UK:
-- Members of Parliament (MPs), Lords, and Assembly Members
-- Government ministers and senior civil servants (Senior Civil Service)
-- Senior judicial figures (High Court judges and above)
-- Senior officers in the armed forces (Brigadier/Commodore and above)
-- Senior executives of state-owned corporations
-- Local government leaders (council leaders, mayors of major cities)
-
-**2. Foreign PEPs**
-Individuals entrusted with prominent public functions in other countries:
-- Heads of state, government, and deputy ministers
-- Members of parliament, supreme courts, and constitutional courts
-- Board members of central banks and audit institutions
-- Ambassadors and high-ranking diplomatic officials
-- Senior military officers (Colonel/equivalent and above)
-- Senior executives of state-owned enterprises
-
-**3. International Organisation PEPs**
-Senior officials in international and supranational organisations:
-- UN, World Bank, IMF senior management
-- EU Commission, Council, and Parliament senior officials
-- NATO, WHO, WTO senior executives
-- International Court of Justice judges
-- Central bank governors in international forums
-- Regional development bank executives
-
-**PEP Associates and Family Members:**
-
-**Family Members** (immediate and extended):
-- Spouses and civil partners
-- Children and their spouses/partners
-- Parents and siblings
-- Grandparents and grandchildren
-- In-laws and step-relations
-- Adopted children and their families
-
-**Close Associates:**
-- Business partners in joint ventures or companies
-- Individuals with close social relationships
-- Professional advisors with ongoing relationships
-- Nominees acting on behalf of the PEP
-- Persons known to be beneficial owners with the PEP
-- Close friends with financial relationships
-
-**Time-Based Considerations:**
-
-**Current vs. Former PEPs:**
-- Current PEPs: Active in political positions (highest risk)
-- Former PEPs: Left office within 12 months (continued EDD required)
-- Historical PEPs: Left office more than 12 months ago (risk-based approach)
-
-**The 12-Month Rule:**
-After leaving office, former PEPs may be treated with reduced due diligence based on risk assessment considering:
-- Nature of the previous role and associated risks
-- Country risk and corruption levels
-- Time elapsed since leaving office
-- Current activities and ongoing influence
-- Any adverse media or intelligence
-
-**Complexity Factors:**
-
-**Multiple Jurisdictions:**
-- Individuals may be PEPs in multiple countries
-- Family members may be PEPs independently
-- Associates may have PEP status in different jurisdictions
-- Consider all relevant jurisdictions for comprehensive assessment
-
-**Changing Status:**
-- Monitor for appointments to new positions
-- Track when individuals leave PEP positions
-- Regular rescreening of existing relationships
-- Alert systems for status changes
-
-**Common Misconceptions:**
-
-**"PEPs are automatically high-risk"**
-Reality: PEP status requires Enhanced Due Diligence, but individual risk assessment determines the specific measures needed.
-
-**"Former PEPs are no longer risky"**
-Reality: Former PEPs may retain influence and networks that create ongoing risk, requiring continued monitoring.
-
-**"Only senior PEPs matter"**
-Reality: Family members and associates can be equally risky, often with less scrutiny from other institutions.
-
-**"PEP databases are comprehensive"**
-Reality: Commercial databases may miss local PEPs, family relationships, and recent appointments - human review is essential.`,
+        mainContent: {
+          cards: [
+            {
+              type: 'keypoint',
+              icon: '🏛️',
+              title: 'What is a PEP?',
+              points: [
+                'Individuals entrusted with prominent public functions',
+                'Definition is broader than most realize',
+                'Includes family members and close associates',
+                'Requires Enhanced Due Diligence (EDD)'
+              ]
+            },
+            {
+              type: 'infogrid',
+              title: 'Three Categories of PEPs',
+              items: [
+                { icon: '🇬🇧', label: 'Domestic PEPs', description: 'MPs, ministers, senior civil servants, judges, military officers, state-owned enterprise executives' },
+                { icon: '🌍', label: 'Foreign PEPs', description: 'Heads of state, ministers, ambassadors, central bank board members, senior military (Colonel+)' },
+                { icon: '🌐', label: 'International Org PEPs', description: 'UN/World Bank/IMF leadership, EU Commission officials, NATO/WHO/WTO executives' }
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'PEP Family Members (Require EDD)',
+              items: [
+                'Spouses and civil partners',
+                'Children and their spouses/partners',
+                'Parents and siblings',
+                'Grandparents and grandchildren',
+                'In-laws and step-relations'
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'Close Associates (Require EDD)',
+              items: [
+                'Business partners in joint ventures',
+                'Professional advisors with ongoing relationships',
+                'Nominees acting on behalf of the PEP',
+                'Beneficial owners linked to the PEP',
+                'Close friends with financial relationships'
+              ]
+            },
+            {
+              type: 'stat',
+              value: '12 months',
+              label: 'The Former PEP Rule',
+              description: 'After leaving office, former PEPs may have reduced measures - but risk assessment must consider ongoing influence, country risk, and adverse media'
+            },
+            {
+              type: 'alert',
+              alertType: 'warning',
+              title: 'Common Misconceptions',
+              message: 'PEPs are NOT automatically high-risk (individual assessment required). Former PEPs may retain influence. Family/associates can be equally risky. Databases miss local PEPs - human review essential.'
+            }
+          ]
+        },
 
         keyConcepts: [
           {
@@ -560,7 +527,7 @@ Structured questioning during onboarding to identify PEP status:
     },
     {
       id: 'ongoing-monitoring-exit',
-      title: 'Ongoing Monitoring, Reviews and Exit Decisions',
+      title: 'Ongoing Monitoring & Reviews',
       type: 'content',
       duration: 4,
       content: {
@@ -629,7 +596,7 @@ Ending a PEP relationship is sometimes the right risk decision, but it must be:
     },
     {
       id: 'pep-governance-approvals',
-      title: 'Governance, Approvals and Documentation Standards',
+      title: 'Governance & Documentation',
       type: 'content',
       duration: 4,
       content: {
@@ -699,106 +666,66 @@ Minimum evidence set for each PEP relationship:
   practiceScenarios: [
     {
       id: 'complex-pep-scenario',
-      title: 'Complex Family Structure PEP Identification',
-      context: 'A wealthy family applies for private banking services with a complex international structure',
-      situation: `The Harrison-Williams family approach your private bank for comprehensive wealth management services. The family structure includes:
+      title: 'The Connected Family',
+      image: '/images/training/pep-family-scenario.png',
+      imagePrompt: 'Photorealistic corporate photograph, affluent multi-generational family of 5-6 people in elegant business attire, standing in luxurious private bank lobby with marble floors. Mix of ages from 30s to 70s, confident poses, international appearance. Warm professional lighting, high-end wealth management aesthetic, 16:9 aspect ratio, no text.',
+      situation: `**The Client:** Elizabeth Harrison-Williams seeking private banking services (£15M net worth)
 
-Primary Applicant:
-- Elizabeth Harrison-Williams, UK citizen, successful property developer
-- Estimated net worth: £15 million
-- Claims wealth from London property development over 20 years
-- Married to James Williams (US citizen)
+**Family Discoveries:**
+• Husband James: Former "Senior Advisor, US Treasury Secretary"
+• Mother Lady Margaret: Widow of Sir Henry Harrison (UK Ambassador to France 1985-89)
+• Daughter Sarah: Board member of foundation receiving government grants
 
-Family Structure:
-- Son: Michael Williams (28), tech entrepreneur in Silicon Valley
-- Daughter: Sarah Williams-Chen (32), married to Dr. David Chen
-- Mother: Lady Margaret Harrison (78), widow
-
-Business Interests:
-- Harrison Property Development Ltd (100% owned by Elizabeth)
-- Williams Investment Holdings (Delaware, USA) - owned by James
-- Multiple UK property investments through various LLPs
-
-Additional Information:
-- Family maintains homes in London, New York, and Monaco
-- Son Michael recently appeared in Forbes "30 Under 30" list
-- Daughter Sarah sits on boards of several charities
-- The family has requested enhanced privacy measures
-- They were introduced by a prominent law firm
-
-During enhanced due diligence, you discover:
-- Lady Margaret Harrison was married to Sir Henry Harrison
-- Sir Henry Harrison served as UK Ambassador to France (1985-1989)
-- James Williams' LinkedIn shows previous role as "Senior Advisor, Office of the US Treasury Secretary"
-- Sarah Williams-Chen is listed as "Board Member, Chen Foundation" which has significant government grants`,
-      challenge: 'Based on this information, who in this family structure requires PEP classification and Enhanced Due Diligence?',
+**Red Flags:**
+• Multiple homes: London, New York, Monaco
+• Complex offshore structures
+• Requested "enhanced privacy measures"`,
+      challenge: 'Who requires PEP classification?',
       options: [
-        'Only James Williams due to his Treasury role',
-        'Lady Margaret Harrison (widow of former ambassador) and James Williams',
-        'Elizabeth, James, Lady Margaret, and Sarah all require PEP classification',
-        'No one qualifies as PEPs since all positions were historical'
+        'Only James Williams (Treasury role)',
+        'James and Lady Margaret only',
+        'Elizabeth, James, Lady Margaret, AND Sarah all require PEP classification',
+        'No one - positions are historical'
       ],
       correctAnswer: 2,
-      explanation: 'Multiple family members qualify as PEPs: Lady Margaret (widow of former ambassador - family member of foreign PEP), James Williams (former senior US Treasury advisor - foreign PEP), and Sarah Williams-Chen (if the Chen Foundation role involves prominent public functions). Elizabeth would require Enhanced Due Diligence as spouse of PEP James Williams. The entire family structure requires enhanced scrutiny due to multiple PEP connections.',
+      explanation: 'Multiple PEPs: James (foreign PEP - Treasury), Lady Margaret (PEP family member - ambassador\'s widow), Sarah (public function through foundation). Elizabeth needs EDD as spouse of a PEP.',
       learningPoints: [
-        'Widows/widowers of former PEPs maintain PEP family member status',
-        'Senior advisory roles in government departments often qualify as PEP positions',
-        'Foundation board roles may qualify as PEP positions if they involve prominent public functions',
-        'Family members of PEPs require Enhanced Due Diligence regardless of their individual status'
+        'Widows/widowers of former PEPs maintain family member status',
+        'Foundation roles with government connections may qualify as PEP',
+        'Entire family structures need scrutiny when PEP connections exist'
       ]
     },
 
     {
       id: 'hidden-pep-scenario',
-      title: 'Concealed PEP Identity Detection',
-      context: 'A customer appears to be concealing their true political connections during account opening',
-      situation: `Maria Santos, a Portuguese national, applies for a business account for her UK consulting company "Global Advisory Solutions Ltd." Her application shows:
+      title: 'The Hidden Diplomat',
+      image: '/images/training/pep-concealment-scenario.png',
+      imagePrompt: 'Photorealistic corporate photograph, professional woman in her 40s in designer business suit, sitting across desk from compliance officer in modern Mayfair office. She appears slightly guarded, partially turned away. Documents and laptop on desk. Tension in body language. Cinematic corporate photography, 16:9 aspect ratio, no text.',
+      situation: `**The Applicant:** Maria Santos, Portuguese national, "international business consultant"
 
-Declared Information:
-- Age: 45, single, no children
-- Education: MBA from INSEAD, BA from University of Lisbon
-- Business: International business consulting, clients in EU and Africa
-- Expected turnover: £500,000 annually
-- Source of wealth: 15 years of successful consulting
+**What She Declared:**
+• 15 years of consulting experience
+• £500K expected turnover
+• Company incorporated 6 months ago
 
-Initial Screening Results:
-- No matches in PEP databases
-- Clean adverse media search
-- Company incorporated 6 months ago with £1,000 share capital
-- UK address is a serviced office in Mayfair
-
-Red Flags Identified:
-- Wealth appears high relative to company's recent incorporation
-- Evasive about specific client names "due to confidentiality"
-- Requests enhanced privacy measures beyond standard offering
-- Pays first year's fees in advance via international wire transfer
-- Provides Portuguese driving license but requests UK correspondence address only
-
-Enhanced Investigation Reveals:
-- Portuguese electoral records show "Maria Santos" voted in Lisbon until 2 years ago
-- LinkedIn profile shows former role as "Senior Policy Advisor, Portuguese Ministry of Foreign Affairs" (2018-2022)
-- EU transparency register shows lobbying registration for "M Santos Consulting" representing African government interests
-- UK Companies House shows two other UK companies with same registered address
-- Recent news articles in Portuguese media mention "former diplomat Maria Santos" launching London-based consultancy
-
-Additional Discovery:
-- Wire transfer originated from "Santos Family Holdings SA" (Swiss entity)
-- Reference field mentions "capital injection from MFS trust"
-- Swiss entity beneficial owner listed as "M.C. Santos"`,
-      challenge: 'What is your assessment of Maria Santos\' PEP status and what immediate actions should you take?',
+**What Investigation Found:**
+• LinkedIn: "Senior Policy Advisor, Portuguese Foreign Ministry" (2018-2022)
+• EU Register: Lobbying for African government interests
+• Funding from Swiss entity "Santos Family Holdings SA"
+• Evasive about client names, requested extra privacy`,
+      challenge: 'What is your assessment?',
       options: [
-        'No PEP status confirmed - proceed with standard due diligence',
-        'Possible former foreign PEP - conduct enhanced verification before proceeding',
-        'Clear attempt to conceal former PEP status - immediate escalation and enhanced investigation required',
-        'Insufficient information - request additional documentation before making determination'
+        'No PEP - proceed with standard due diligence',
+        'Possible former PEP - enhanced verification needed',
+        'CLEAR CONCEALMENT of former PEP status - escalate immediately',
+        'Need more documentation first'
       ],
       correctAnswer: 2,
-      explanation: 'Maria Santos appears to be a former foreign PEP (Portuguese Ministry of Foreign Affairs Senior Policy Advisor) attempting to conceal her status. The combination of evasive responses, inconsistent information, complex offshore structures, and evidence of former diplomatic role indicates deliberate concealment. This requires immediate escalation, enhanced investigation, and senior management approval before any relationship establishment.',
+      explanation: 'Clear attempt to hide former foreign PEP status. The combination of evasive responses, offshore funding, and evidence of diplomatic role = immediate escalation required.',
       learningPoints: [
-        'Former diplomatic and policy roles in foreign ministries typically qualify as foreign PEP positions',
-        'Attempts to conceal PEP status significantly increase risk assessment',
-        'Complex offshore funding structures may indicate PEP wealth concealment',
-        'Enhanced investigation is required when customer information appears deliberately misleading'
+        'Concealment attempts dramatically increase risk',
+        'Former diplomatic roles qualify as foreign PEP',
+        'Offshore structures may indicate wealth concealment'
       ]
     }
   ],

@@ -388,91 +388,94 @@ export function OperationalRiskTrainingRenderer({
 
     return (
       <div className="space-y-6">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6">
-          <Card className="border border-slate-200 bg-white">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-slate-800">
-                <BookOpen className="h-5 w-5 text-slate-600" />
-                Session {currentLessonIndex + 1}: {currentLesson.title}
-              </CardTitle>
-              <CardDescription>Operational playbook session</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <MarkdownContent content={lessonContent} />
-
-              {keyConcepts.length > 0 && (
-                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-                  <h4 className="text-sm font-semibold text-slate-900 mb-2 flex items-center gap-2">
-                    <Lightbulb className="h-4 w-4" />
-                    Control Highlights
-                  </h4>
-                  <ul className="space-y-2">
-                    {keyConcepts.map((concept, index) => (
-                      <li key={index} className="text-sm text-slate-700 flex items-start gap-2">
-                        <CheckCircle2 className="h-4 w-4 text-slate-600 mt-0.5 shrink-0" />
-                        {concept}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {examples.length > 0 && (
-                <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
-                  <h4 className="text-sm font-semibold text-amber-900 mb-2 flex items-center gap-2">
-                    <FileText className="h-4 w-4" />
-                    Operational Examples
-                  </h4>
-                  <ul className="space-y-3">
-                    {examples.map((example, index) => (
-                      <li key={index} className="text-sm text-amber-800">
-                        {typeof example === "string" ? (
-                          example
-                        ) : (
-                          <div>
-                            <p className="font-semibold text-amber-900">{example.title}</p>
-                            {example.description ? <p>{example.description}</p> : null}
-                            {example.outcome ? <p className="text-amber-700">Outcome: {example.outcome}</p> : null}
-                          </div>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {visual && (
-                <div className="rounded-lg border border-slate-200 bg-white p-4">
-                  <h4 className="text-sm font-semibold text-slate-900 mb-2">Visual Reference</h4>
-                  {renderVisual(visual)}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
+        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
           <Card className="border border-slate-200 bg-slate-50">
             <CardHeader>
-              <CardTitle className="text-sm uppercase tracking-[0.2em] text-slate-500">Session Selector</CardTitle>
+              <CardTitle className="text-sm uppercase tracking-[0.2em] text-slate-500">Case Index</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
               {content.lessons.map((lesson, index) => (
                 <Button
                   key={lesson.id || index}
                   variant={index === currentLessonIndex ? "default" : "outline"}
-                  className={`w-full justify-start ${
+                  className={`w-full justify-start overflow-hidden ${
                     index === currentLessonIndex ? "bg-slate-800 hover:bg-slate-900 text-white" : "border-slate-200"
                   }`}
                   onClick={() => handleLessonSelect(index)}
+                  title={lesson.title}
                 >
-                  <span className="mr-2 text-xs">0{index + 1}</span>
-                  {lesson.title}
+                  <span className="mr-2 text-xs flex-shrink-0">{String(index + 1).padStart(2, '0')}</span>
+                  <span className="truncate">{lesson.title}</span>
                 </Button>
               ))}
             </CardContent>
           </Card>
-        </div>
 
-        {renderVisualAssets()}
+          <div className="space-y-6">
+            <Card className="border border-slate-200 bg-white">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-slate-800">
+                  <BookOpen className="h-5 w-5 text-slate-600" />
+                  {currentLesson.title}
+                </CardTitle>
+                <CardDescription>Session {currentLessonIndex + 1} of {content.lessons.length}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <MarkdownContent content={lessonContent} />
+
+                {keyConcepts.length > 0 && (
+                  <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                    <h4 className="text-sm font-semibold text-slate-900 mb-2 flex items-center gap-2">
+                      <Lightbulb className="h-4 w-4" />
+                      Control Highlights
+                    </h4>
+                    <ul className="space-y-2">
+                      {keyConcepts.map((concept, index) => (
+                        <li key={index} className="text-sm text-slate-700 flex items-start gap-2">
+                          <CheckCircle2 className="h-4 w-4 text-slate-600 mt-0.5 shrink-0" />
+                          {concept}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {examples.length > 0 && (
+                  <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+                    <h4 className="text-sm font-semibold text-amber-900 mb-2 flex items-center gap-2">
+                      <FileText className="h-4 w-4" />
+                      Operational Examples
+                    </h4>
+                    <ul className="space-y-3">
+                      {examples.map((example, index) => (
+                        <li key={index} className="text-sm text-amber-800">
+                          {typeof example === "string" ? (
+                            example
+                          ) : (
+                            <div>
+                              <p className="font-semibold text-amber-900">{example.title}</p>
+                              {example.description ? <p>{example.description}</p> : null}
+                              {example.outcome ? <p className="text-amber-700">Outcome: {example.outcome}</p> : null}
+                            </div>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {visual && (
+                  <div className="rounded-lg border border-slate-200 bg-white p-4">
+                    <h4 className="text-sm font-semibold text-slate-900 mb-2">Visual Reference</h4>
+                    {renderVisual(visual)}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {renderVisualAssets()}
+          </div>
+        </div>
       </div>
     );
   };
@@ -621,8 +624,50 @@ export function OperationalRiskTrainingRenderer({
     </div>
   );
 
+  // Check if all required answers are provided for current stage
+  const canProceed = () => {
+    if (currentStage === "practice" && content.practiceScenarios) {
+      return content.practiceScenarios.every((scenario) => selectedAnswers[scenario.id]);
+    }
+    if (currentStage === "assessment" && content.assessmentQuestions) {
+      return content.assessmentQuestions.every((question) => assessmentAnswers[question.id]);
+    }
+    return true;
+  };
+
+  const getUnansweredCount = () => {
+    if (currentStage === "practice" && content.practiceScenarios) {
+      return content.practiceScenarios.filter((s) => !selectedAnswers[s.id]).length;
+    }
+    if (currentStage === "assessment" && content.assessmentQuestions) {
+      return content.assessmentQuestions.filter((q) => !assessmentAnswers[q.id]).length;
+    }
+    return 0;
+  };
+
+  const stageLabels: Record<string, string> = {
+    hook: "Brief",
+    content: "Sessions",
+    practice: "Simulations",
+    assessment: "Assessment",
+    summary: "Summary",
+  };
+
   return (
     <div className="max-w-5xl mx-auto space-y-6">
+      {/* Breadcrumbs */}
+      <nav className="flex items-center gap-2 text-sm text-slate-500">
+        <a href="/training-library" className="hover:text-slate-800 transition-colors">
+          Training Library
+        </a>
+        <span>/</span>
+        <span className="text-slate-700 font-medium truncate max-w-[200px]" title={content.title}>
+          {content.title}
+        </span>
+        <span>/</span>
+        <span className="text-slate-800 font-medium">{stageLabels[currentStage]}</span>
+      </nav>
+
       <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
@@ -663,8 +708,17 @@ export function OperationalRiskTrainingRenderer({
       {currentStage === "assessment" && renderAssessmentStage()}
       {currentStage === "summary" && renderSummaryStage()}
 
-      <div className="flex justify-center">
-        <Button onClick={nextStage} className="bg-slate-800 hover:bg-slate-900">
+      <div className="flex flex-col items-center gap-2">
+        {!canProceed() && (
+          <p className="text-sm text-amber-600">
+            Answer {getUnansweredCount()} more question{getUnansweredCount() > 1 ? "s" : ""} to continue
+          </p>
+        )}
+        <Button
+          onClick={nextStage}
+          disabled={!canProceed()}
+          className={canProceed() ? "bg-slate-800 hover:bg-slate-900" : "bg-slate-300 cursor-not-allowed"}
+        >
           {currentStage === "summary" ? "Complete" : "Continue"}
           <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
