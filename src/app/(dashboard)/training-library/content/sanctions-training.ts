@@ -127,93 +127,45 @@ export const sanctionsTrainingModule: TrainingModule = {
       duration: 4,
       content: {
         learningPoint: 'Implement robust screening procedures to detect sanctioned parties and transactions',
-        mainContent: `Effective sanctions screening is both an art and a science. It requires sophisticated technology combined with human expertise to identify sanctions risks while minimizing business disruption.
-
-**Screening Requirements:**
-
-**1. Customer Screening (KYC Phase)**
-Must screen at multiple points:
-- Initial onboarding before relationship establishment
-- Beneficial owners and related parties (25% threshold)
-- Directors, officers, and authorized signatories
-- Before approving any account opening or service provision
-- Periodic rescreening of existing customers (at least monthly)
-
-**2. Transaction Screening (Real-time)**
-Every payment must be screened for:
-- Originator and beneficiary names and addresses
-- Correspondent banks and intermediary financial institutions
-- Payment reference fields and narrative information
-- Country codes and routing information
-- Related parties mentioned in payment messages
-
-**3. Trade Finance Screening**
-Additional screening for:
-- Importers, exporters, and consignees
-- Vessels, aircraft, and transportation providers
-- Commodity types and dual-use goods
-- Letters of credit parties and guarantors
-- Documentation and certificates
-
-**Screening Technology and Methods:**
-
-**Automated Screening Systems**
-- Real-time screening against consolidated sanctions lists
-- Fuzzy logic matching to account for spelling variations
-- Phonetic matching for different name transliterations
-- Address and date of birth matching where available
-- Risk scoring based on match strength and context
-
-**List Management**
-- Daily updates from official sources (OFAC, UN, EU, UK)
-- Version control and audit trails for list changes
-- Integration with core banking and payment systems
-- Backup procedures for system failures
-
-**Quality Control Measures:**
-
-**False Positive Management**
-Most screening alerts are false positives. Effective management includes:
-- Clear escalation procedures and timeframes
-- Documented investigation standards
-- Training for alert review staff
-- Regular calibration of screening parameters
-- Whitelisting of confirmed false positives
-
-**True Match Procedures**
-When a genuine sanctions match is identified:
-1. Immediate payment blocking or account freeze
-2. Senior management notification within defined timeframes
-3. Regulatory reporting within 24-48 hours
-4. Legal review and determination of next steps
-5. Customer communication (carefully managed to avoid tipping off)
-
-**Sanctions Evasion Techniques to Watch For:**
-
-**Name Variations and Obfuscation**
-- Slight spelling changes or transliteration differences
-- Use of aliases, also-known-as names, or former names
-- Addition of titles, honorifics, or business designations
-- Omission of middle names or family name components
-
-**Entity Structure Manipulation**
-- Use of shell companies or complex ownership structures
-- Frequent changes in company names or registration details
-- Nominee directors or beneficial owners
-- Use of companies in jurisdictions with opaque ownership rules
-
-**Transaction Structuring**
-- Breaking large transactions into smaller amounts
-- Using multiple correspondent banks or payment routes
-- Employing third-party payment processors
-- Utilizing alternative payment methods (hawala, cryptocurrency)
-- Timing transactions around sanctions list updates
-
-**Geographic Evasion**
-- Use of addresses in non-sanctioned areas
-- Employing entities in multiple jurisdictions
-- Ship-to-ship transfers for commodity trades
-- Transshipment through non-sanctioned countries`,
+        mainContent: {
+          cards: [
+            {
+              type: 'keypoint',
+              icon: '🔍',
+              title: 'Screening Fundamentals',
+              points: [
+                'Combines technology + human expertise',
+                'Screen customers, transactions, and trade finance',
+                'Real-time screening against consolidated lists',
+                'Daily list updates from OFAC, UN, EU, UK'
+              ]
+            },
+            {
+              type: 'infogrid',
+              title: 'Three Screening Types',
+              items: [
+                { icon: '👤', label: 'Customer (KYC)', description: 'Onboarding, beneficial owners, directors, monthly rescreening' },
+                { icon: '💳', label: 'Transaction', description: 'Real-time: names, addresses, correspondent banks, payment references' },
+                { icon: '🚢', label: 'Trade Finance', description: 'Importers/exporters, vessels, commodities, dual-use goods' }
+              ]
+            },
+            {
+              type: 'process',
+              steps: [
+                { number: 1, title: 'Block/Freeze', description: 'Immediately stop transaction or account' },
+                { number: 2, title: 'Notify MLRO', description: 'Senior management within defined timeframes' },
+                { number: 3, title: 'Report', description: 'Regulatory notification within 24-48 hours' },
+                { number: 4, title: 'Legal Review', description: 'Determine next steps, manage customer comms' }
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'warning',
+              title: 'Evasion Red Flags',
+              message: 'Watch for: name spelling variations, shell companies, nominee directors, transaction structuring, multiple payment routes, ship-to-ship transfers, transshipment through non-sanctioned countries.'
+            }
+          ]
+        },
 
         keyConcepts: [
           {
@@ -256,118 +208,54 @@ When a genuine sanctions match is identified:
       duration: 4,
       content: {
         learningPoint: 'Execute proper compliance procedures and escalation protocols for sanctions matters',
-        mainContent: `Sanctions compliance requires swift, decisive action and clear escalation procedures. The window for regulatory reporting is narrow, and mistakes can have severe consequences.
-
-**Immediate Response Procedures:**
-
-**When a Sanctions Match is Confirmed:**
-
-*Within 1 Hour:*
-- Immediately block/freeze the transaction or account
-- Notify the Money Laundering Reporting Officer (MLRO)
-- Escalate to senior management and legal counsel
-- Begin documentation of the incident
-- Ensure no further processing of related transactions
-
-*Within 4 Hours:*
-- Conduct enhanced investigation to confirm the match
-- Review all related accounts and recent transaction history
-- Identify any connected parties or relationships
-- Prepare preliminary incident report
-- Consider broader implications for the customer relationship
-
-*Within 24 Hours:*
-- File required regulatory notifications:
-  - HM Treasury (UK sanctions violations)
-  - FCA notification (if required under PRIN 11)
-  - Law enforcement if criminal activity suspected
-- Complete comprehensive incident documentation
-- Implement enhanced monitoring for related accounts
-
-**Regulatory Reporting Requirements:**
-
-**HM Treasury Reporting**
-- Immediate notification for confirmed sanctions violations
-- Detailed written report within specified timeframes
-- Annual compliance reports on sanctions controls
-- Ad-hoc reporting for significant control failures
-
-**FCA Notifications**
-- Principle 11 requires notification of significant sanctions failures
-- Include in annual financial crime returns
-- Report as part of regulatory relationship management
-- Consider implications for SMCR accountability
-
-**Internal Escalation Framework:**
-
-**Level 1: Front-line Staff**
-- Identify potential sanctions risk or alert
-- Immediate escalation to sanctions specialist or MLRO
-- Do not make independent decisions on sanctions matters
-- Document all observations and actions taken
-
-**Level 2: Sanctions Specialist/Compliance**
-- Investigate alerts and determine true/false positive status
-- Make initial blocking decisions for clear violations
-- Escalate uncertain cases to senior management
-- Coordinate with legal counsel on complex matters
-
-**Level 3: Senior Management/MLRO**
-- Final decision authority on sanctions compliance matters
-- Responsibility for regulatory reporting and notifications
-- Strategic decisions on customer relationship continuation
-- Board and committee reporting on sanctions issues
-
-**Customer Communication Protocols:**
-
-**Permitted Communications:**
-- Generic holding messages about routine compliance checks
-- Standard processing delay notifications
-- General information about regulatory requirements
-- References to enhanced verification procedures
-
-**Prohibited Communications:**
-- Specific mention of sanctions investigations
-- Details about regulatory reporting or law enforcement contact
-- Information that could constitute "tipping off"
-- Speculation about investigation outcomes
-
-**Example Appropriate Response:**
-"We are currently completing our standard regulatory checks for this transaction. This is a routine process that all financial institutions must follow. We will process your transaction as soon as these checks are complete. Thank you for your patience."
-
-**Record Keeping and Documentation:**
-
-**Essential Documentation:**
-- Complete audit trail of screening and investigation actions
-- Evidence supporting true/false positive determinations
-- Copies of all regulatory notifications and responses
-- Management decisions and rationale
-- Customer communications (if any)
-- System logs and technical evidence
-
-**Retention Requirements:**
-- Sanctions records: Minimum 5 years after relationship ends
-- Regulatory correspondence: Indefinitely
-- Investigation files: Until all regulatory matters closed
-- Training records: 3 years minimum
-- System audit logs: As per regulatory requirements
-
-**Quality Assurance and Testing:**
-
-**Regular Testing Program:**
-- Monthly testing of screening systems functionality
-- Quarterly review of alert investigation procedures
-- Annual assessment of sanctions compliance framework
-- Independent review by internal audit
-- Management information and metrics reporting
-
-**Key Performance Indicators:**
-- Percentage of alerts resolved within timeframes
-- False positive rates and trending
-- Time to complete investigations
-- Regulatory reporting timeliness
-- Staff training completion rates
-- System availability and performance metrics`,
+        mainContent: {
+          cards: [
+            {
+              type: 'keypoint',
+              icon: '⚡',
+              title: 'Swift Action Required',
+              points: [
+                'Narrow window for regulatory reporting',
+                'Mistakes have severe consequences',
+                'Clear escalation procedures essential',
+                'Document everything immediately'
+              ]
+            },
+            {
+              type: 'process',
+              steps: [
+                { number: 1, title: 'Within 1 Hour', description: 'Block transaction, notify MLRO, escalate to senior management' },
+                { number: 2, title: 'Within 4 Hours', description: 'Enhanced investigation, review related accounts, preliminary report' },
+                { number: 3, title: 'Within 24 Hours', description: 'File HM Treasury & FCA notifications, complete documentation' }
+              ]
+            },
+            {
+              type: 'infogrid',
+              title: 'Escalation Levels',
+              items: [
+                { icon: '1️⃣', label: 'Front-line Staff', description: 'Identify risk, escalate immediately, document observations' },
+                { icon: '2️⃣', label: 'Sanctions Specialist', description: 'Investigate alerts, make blocking decisions, coordinate legal' },
+                { icon: '3️⃣', label: 'Senior/MLRO', description: 'Final authority, regulatory reporting, board reporting' }
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'critical',
+              title: 'Tipping Off is CRIMINAL',
+              message: 'NEVER mention sanctions investigation to customer. Use only generic messages: "We are completing standard regulatory checks. This is routine."'
+            },
+            {
+              type: 'checklist',
+              title: 'Record Retention',
+              items: [
+                'Sanctions records: 5+ years after relationship ends',
+                'Regulatory correspondence: Indefinitely',
+                'Investigation files: Until matters closed',
+                'Training records: 3+ years'
+              ]
+            }
+          ]
+        },
 
         keyConcepts: [
           {
@@ -409,15 +297,32 @@ When a genuine sanctions match is identified:
       duration: 4,
       content: {
         learningPoint: 'Recognize common evasion techniques and apply targeted controls',
-        mainContent: `Sanctions evasion relies on hiding identity, origin, or destination. The most common methods include:
-
-- Use of shell companies and layered ownership
-- Proxy directors or nominee shareholders
-- Trade based laundering and falsified invoices
-- Routing through low scrutiny jurisdictions
-- Use of intermediaries and correspondent banks
-
-Effective detection is pattern based. Combine name screening with ownership, transaction context, and trade documentation checks.`,
+        mainContent: {
+          cards: [
+            {
+              type: 'keypoint',
+              icon: '🎭',
+              title: 'Evasion Tactics',
+              points: [
+                'Hide identity, origin, or destination',
+                'Pattern-based detection is key',
+                'Combine screening with ownership analysis',
+                'Check transaction context + trade docs'
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'Common Evasion Methods',
+              items: [
+                'Shell companies & layered ownership',
+                'Proxy directors or nominee shareholders',
+                'Trade-based laundering & falsified invoices',
+                'Routing through low-scrutiny jurisdictions',
+                'Use of intermediaries & correspondent banks'
+              ]
+            }
+          ]
+        },
         keyConcepts: [
           {
             term: 'Evasion Typology',
@@ -445,14 +350,27 @@ Effective detection is pattern based. Combine name screening with ownership, tra
       duration: 4,
       content: {
         learningPoint: 'Embed sanctions oversight through clear roles, MI, and accountability',
-        mainContent: `Sanctions compliance is a governance issue, not just a screening issue. Regulators expect:
-
-- Named accountability (SMF ownership and MLRO oversight)
-- Clear escalation paths for high risk cases
-- Management information on alerts, true matches, and reporting
-- Regular testing and independent assurance
-
-Strong MI highlights control weaknesses early and supports board oversight.`,
+        mainContent: {
+          cards: [
+            {
+              type: 'keypoint',
+              icon: '🏛️',
+              title: 'Governance = Not Just Screening',
+              points: [
+                'Named accountability (SMF ownership)',
+                'MLRO oversight and clear escalation',
+                'MI on alerts, matches, and reporting',
+                'Regular testing + independent assurance'
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'info',
+              title: 'Strong MI Matters',
+              message: 'Management Information highlights control weaknesses early and supports board oversight. Monthly dashboards should show false positive rates, resolution times, and reporting volumes.'
+            }
+          ]
+        },
         keyConcepts: [
           {
             term: 'Accountable Owner',

@@ -143,143 +143,51 @@ export const pepsTrainingModule: TrainingModule = {
       duration: 4,
       content: {
         learningPoint: 'Implement comprehensive Enhanced Due Diligence procedures tailored for PEP relationships',
-        mainContent: `Enhanced Due Diligence (EDD) for PEPs goes far beyond standard Customer Due Diligence. It requires a comprehensive understanding of the individual's position, wealth sources, and ongoing risk factors.
-
-**Core EDD Requirements for PEPs:**
-
-**1. Senior Management Approval**
-- All new PEP relationships require senior management approval before establishment
-- Approval must be documented with rationale and risk assessment
-- Different approval levels may apply based on PEP risk categories
-- Ongoing relationship decisions require similar approval processes
-- Clear escalation procedures for relationship issues
-
-**2. Enhanced Source of Wealth and Funds Verification**
-Standard verification is insufficient for PEPs. Enhanced requirements include:
-
-*Source of Wealth (Historical):*
-- Detailed career history and progression
-- Asset accumulation timeline and legitimacy
-- Family wealth and inheritance documentation
-- Business interests and ownership stakes
-- Public declarations of assets where available
-- Independent verification through multiple sources
-
-*Source of Funds (Specific Transaction):*
-- Detailed documentation for each significant transaction
-- Supporting contracts, invoices, and business documentation
-- Bank statements showing fund flows
-- Tax records and compliance documentation
-- Independent verification where possible
-
-**3. Ongoing Enhanced Monitoring**
-- More frequent review cycles than standard customers
-- Enhanced transaction monitoring with lower thresholds
-- Regular adverse media screening and intelligence gathering
-- Monitoring of family members and associates
-- Political and business development tracking
-- Sanctions list monitoring (PEPs may become sanctioned)
-
-**Risk Assessment Framework for PEPs:**
-
-**Country Risk Factors:**
-- Transparency International Corruption Perception Index ranking
-- World Bank governance indicators
-- FATF mutual evaluation results
-- Recent political stability and democratic transitions
-- Presence of free press and civil society
-- Rule of law and judicial independence
-
-**Position Risk Factors:**
-- Level of authority and decision-making power
-- Access to public funds and procurement decisions
-- Regulatory or licensing authority
-- Military or security service roles
-- International relations and diplomatic immunity
-- State-owned enterprise management authority
-
-**Individual Risk Factors:**
-- Adverse media coverage or allegations
-- Known associates with criminal connections
-- Lifestyle inconsistent with known income sources
-- Complex business structures or offshore holdings
-- Previous regulatory or law enforcement actions
-- Reputation in international business community
-
-**Documentation Requirements:**
-
-**Enhanced Customer Information:**
-- Complete biographical information including aliases
-- Detailed career and education history
-- Current and former positions held
-- Family structure and relationships
-- Business interests and partnerships
-- Property ownership and major assets
-- Known associates and advisors
-
-**Verification Documentation:**
-- Government databases and official records
-- Independent background check reports
-- International databases and watchlists
-- Media searches and adverse information checks
-- Professional networks and business registries
-- Court records and litigation searches
-
-**Ongoing Monitoring Procedures:**
-
-**Regular Review Cycles:**
-- High-risk PEPs: Every 6-12 months
-- Medium-risk PEPs: Annually
-- Former PEPs: Risk-based (typically annually for first 2 years)
-- Trigger reviews for significant events or changes
-
-**Enhanced Transaction Monitoring:**
-- Lower alert thresholds than standard customers
-- Increased scrutiny of international transfers
-- Monitoring of round-number or structured transactions
-- Review of beneficiaries and counterparties
-- Analysis of business rationale for large transactions
-
-**Intelligence and Media Monitoring:**
-- Daily adverse media screening
-- Political development monitoring
-- Sanctions list updates and cross-referencing
-- Law enforcement and regulatory alerts
-- Social media and public appearance monitoring
-
-**Red Flags Specific to PEPs:**
-
-**Financial Red Flags:**
-- Assets disproportionate to known income sources
-- Complex ownership structures involving offshore entities
-- Rapid wealth accumulation during political tenure
-- Transactions inconsistent with declared asset levels
-- Use of multiple accounts or financial institutions
-- Frequent changes in beneficial ownership structures
-
-**Behavioral Red Flags:**
-- Reluctance to provide source of wealth documentation
-- Evasive responses about political connections
-- Requests for unusual privacy or confidentiality measures
-- Introduction through intermediaries without clear purpose
-- Pressure for expedited account opening or transaction processing
-- Resistance to Enhanced Due Diligence procedures
-
-**Relationship Management Considerations:**
-
-**Client Interaction:**
-- Senior relationship management for all PEP accounts
-- Enhanced privacy and confidentiality measures
-- Discrete handling of documentation and communications
-- Regular relationship reviews and face-to-face meetings
-- Proactive communication about regulatory requirements
-
-**Exit Strategy:**
-- Clear criteria for relationship termination
-- Regulatory notification requirements for PEP exits
-- Proper wind-down procedures for accounts and services
-- Documentation of termination rationale
-- Ongoing monitoring during transition period`,
+        mainContent: {
+          cards: [
+            {
+              type: 'keypoint',
+              icon: '🔬',
+              title: 'EDD Goes Beyond Standard CDD',
+              points: [
+                'Senior management approval required',
+                'Enhanced source of wealth/funds verification',
+                'Ongoing enhanced monitoring',
+                'More frequent review cycles'
+              ]
+            },
+            {
+              type: 'infogrid',
+              title: 'Three Core EDD Requirements',
+              items: [
+                { icon: '👔', label: 'Senior Approval', description: 'All new PEP relationships need documented approval with rationale' },
+                { icon: '💰', label: 'Source Verification', description: 'Detailed career history, asset timeline, independent verification' },
+                { icon: '👁️', label: 'Enhanced Monitoring', description: 'Lower thresholds, adverse media screening, family monitoring' }
+              ]
+            },
+            {
+              type: 'infogrid',
+              title: 'Risk Assessment Factors',
+              items: [
+                { icon: '🌍', label: 'Country Risk', description: 'Corruption index, FATF results, political stability, rule of law' },
+                { icon: '🏛️', label: 'Position Risk', description: 'Authority level, access to funds, regulatory power, diplomatic immunity' },
+                { icon: '👤', label: 'Individual Risk', description: 'Adverse media, criminal associates, lifestyle vs income, offshore holdings' }
+              ]
+            },
+            {
+              type: 'stat',
+              value: '6-12 months',
+              label: 'High-Risk PEP Review Cycle',
+              description: 'Medium-risk: annually. Former PEPs: risk-based (typically annually for 2 years)'
+            },
+            {
+              type: 'alert',
+              alertType: 'warning',
+              title: 'Red Flags to Watch',
+              message: 'Assets disproportionate to income. Rapid wealth during tenure. Reluctance to provide documentation. Evasive about political connections. Requests for unusual privacy.'
+            }
+          ]
+        },
 
         keyConcepts: [
           {
@@ -322,175 +230,47 @@ Standard verification is insufficient for PEPs. Enhanced requirements include:
       duration: 3,
       content: {
         learningPoint: 'Master practical techniques and tools for identifying PEPs and their associates effectively',
-        mainContent: `Effective PEP identification requires a combination of technology, human expertise, and systematic processes. Relying solely on automated systems will miss sophisticated PEPs using complex structures.
-
-**Multi-Layered Identification Approach:**
-
-**1. Automated Database Screening**
-Commercial PEP databases provide the foundation but have limitations:
-
-*Strengths:*
-- Comprehensive coverage of senior international PEPs
-- Regular updates for position changes
-- Integration with sanctions and watchlist screening
-- Automated alerts for status changes
-- Historical data retention
-
-*Limitations:*
-- May miss local or junior PEPs
-- Family relationships often incomplete
-- Close associates rarely included
-- Cultural name variations challenging
-- Time delays in updates for new appointments
-
-**2. Manual Research and Verification**
-Human review is essential for comprehensive identification:
-
-*Government Sources:*
-- Official government websites and directories
-- Parliamentary and legislative databases
-- Judicial appointment records
-- Military and diplomatic lists
-- State-owned enterprise leadership directories
-
-*Public Records Research:*
-- Corporate registries and beneficial ownership data
-- Property records and asset declarations
-- Court filings and litigation records
-- Professional licensing databases
-- Media archives and biographical information
-
-**3. Enhanced Customer Questioning**
-Structured questioning during onboarding to identify PEP status:
-
-*Direct Questions:*
-- Current or former political positions held
-- Government employment or advisory roles
-- Military service above certain ranks
-- Judicial appointments or legal positions
-- Board positions in state-owned entities
-
-*Indirect Questions:*
-- Family members in political positions
-- Close associates in government roles
-- Business partnerships with political figures
-- Advisory positions to political parties
-- Involvement in international organizations
-
-**Advanced Identification Techniques:**
-
-**Name Variation Analysis:**
-- Consider multiple spelling variations and transliterations
-- Account for cultural naming conventions
-- Check maiden names, married names, and aliases
-- Review professional names and titles
-- Examine historical name changes
-
-**Relationship Mapping:**
-- Create family tree diagrams for complex relationships
-- Map business partnerships and joint ventures
-- Identify common addresses and contact information
-- Track shared professional advisors
-- Analyze transaction patterns between related parties
-
-**Social Media and Public Information:**
-- LinkedIn and professional network profiles
-- News articles and media appearances
-- Academic and conference participation
-- Charitable foundation involvement
-- Social events and public engagements
-
-**Red Flag Indicators for Hidden PEPs:**
-
-**Behavioral Indicators:**
-- Reluctance to provide complete personal information
-- Evasive answers about employment history
-- Requests for unusual privacy measures
-- Introduction through high-profile intermediaries
-- Knowledge of complex financial structures
-- Familiarity with regulatory requirements
-
-**Documentation Patterns:**
-- High-quality forged or altered documents
-- Consistent addresses with other known PEPs
-- Shared professional advisors with political figures
-- Multiple passports or citizenship documents
-- Corporate structures in secrecy jurisdictions
-
-**Financial Indicators:**
-- Wealth inconsistent with declared employment
-- Complex ownership through multiple entities
-- Frequent international transactions
-- Relationships with politically connected businesses
-- Access to preferential financing or investment opportunities
-
-**Technology and Tools:**
-
-**Database Integration:**
-- World-Check, Dow Jones, LexisNexis Risk Solutions
-- Sanctions and watchlist databases
-- Adverse media monitoring systems
-- Corporate registry access tools
-- Government database subscriptions
-
-**Investigation Software:**
-- Link analysis and relationship mapping tools
-- Document verification and authentication systems
-- Social media monitoring platforms
-- News and media aggregation services
-- Translation and transliteration software
-
-**Quality Assurance Measures:**
-
-**Verification Protocols:**
-- Multi-source verification for all PEP identifications
-- Senior review of all positive identifications
-- Documentation standards for identification rationale
-- Regular database accuracy testing
-- Staff training on identification techniques
-
-**False Positive Management:**
-- Clear criteria for true vs. false PEP matches
-- Documentation of negative determination rationale
-- Regular review of rejected matches
-- Escalation procedures for uncertain cases
-- Audit trail maintenance for all decisions
-
-**Ongoing Identification:**
-
-**Monitoring for Status Changes:**
-- Regular rescreening of existing customers
-- Alert systems for political appointments
-- Media monitoring for customer mentions
-- Annual questionnaire updates
-- Relationship manager intelligence gathering
-
-**Emerging Risk Factors:**
-- New appointment notifications
-- Changes in political landscape
-- Family member appointments
-- Associate status changes
-- Business relationship developments
-
-**Common Identification Failures:**
-
-**Missing Local PEPs:**
-- Focus on international figures while missing domestic risks
-- Inadequate coverage of regional and local government
-- Insufficient attention to state-owned enterprise leadership
-- Missing judicial and military appointments
-
-**Family and Associate Gaps:**
-- Failure to identify extended family relationships
-- Missing business partner and associate connections
-- Inadequate research on beneficial ownership chains
-- Limited investigation of shared addresses and contacts
-
-**Cultural and Language Barriers:**
-- Inadequate name variation consideration
-- Limited local language research capabilities
-- Insufficient understanding of local political structures
-- Missing cultural relationship patterns`,
+        mainContent: {
+          cards: [
+            {
+              type: 'keypoint',
+              icon: '🔍',
+              title: 'Multi-Layered Approach Required',
+              points: [
+                'Technology alone will miss sophisticated PEPs',
+                'Combine automated + manual + questioning',
+                'Databases miss local PEPs & associates',
+                'Human review essential for verification'
+              ]
+            },
+            {
+              type: 'infogrid',
+              title: 'Three Identification Layers',
+              items: [
+                { icon: '🤖', label: 'Automated Screening', description: 'World-Check, Dow Jones, LexisNexis - but misses local PEPs & associates' },
+                { icon: '🔎', label: 'Manual Research', description: 'Government directories, corporate registries, court records, media archives' },
+                { icon: '💬', label: 'Customer Questioning', description: 'Direct: political positions. Indirect: family in politics, business partnerships' }
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'Hidden PEP Red Flags',
+              items: [
+                'Reluctance to provide personal information',
+                'Evasive about employment history',
+                'Introduction through high-profile intermediaries',
+                'Wealth inconsistent with declared employment',
+                'Multiple passports or offshore structures'
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'warning',
+              title: 'Common Identification Failures',
+              message: 'Missing local/regional PEPs. Incomplete family relationships. Associate gaps. Cultural name variations. Limited local language research.'
+            }
+          ]
+        },
 
         keyConcepts: [
           {
@@ -532,38 +312,40 @@ Structured questioning during onboarding to identify PEP status:
       duration: 4,
       content: {
         learningPoint: 'PEP risk changes over time and requires structured monitoring, refresh cycles and documented exit decisions.',
-        mainContent: `PEP risk does not end at onboarding. A relationship that was acceptable at day one can become high-risk quickly if the customer gains new influence, faces allegations, or becomes sanctioned. Ongoing monitoring is therefore a core control, not an optional enhancement.
-
-**Monitoring Expectations**
-
-**1. Periodic Reviews**
-- Review frequency must be risk-based (for example, quarterly for higher-risk PEPs, annually for lower-risk PEPs)
-- Refresh key data: role, influence level, country risk, source of wealth, beneficial ownership
-- Re-validate documentation used in original approval and identify any gaps
-
-**2. Transaction and Activity Monitoring**
-- Apply lower thresholds for alert generation in higher-risk PEP relationships
-- Monitor for unusual movement of funds across related accounts or nominees
-- Watch for changes in counterparties or jurisdictions
-- Capture narrative around high-value transactions and large cash or asset movements
-
-**3. Trigger Events**
-Trigger events require immediate review, not waiting for the next scheduled refresh:
-- Appointment to a new or more influential public role
-- Adverse media linking the PEP to corruption or sanctions
-- Change in ownership structure or control through trusts or family members
-- Unexplained wealth increase or asset acquisition
-
-**Risk Reduction and De-PEP Decisions**
-- The 12-month rule is not automatic de-risking. Risk can persist long after a role ends.
-- Any de-escalation must be documented with rationale, risk indicators, and approvals.
-
-**Exit Decisions**
-Ending a PEP relationship is sometimes the right risk decision, but it must be:
-- Consistent with firm policy
-- Approved at the right level
-- Documented with evidence and risk rationale
-- Managed carefully to avoid tipping off`,
+        mainContent: {
+          cards: [
+            {
+              type: 'keypoint',
+              icon: '👁️',
+              title: 'Risk Doesn\'t End at Onboarding',
+              points: [
+                'Risk can increase if customer gains influence',
+                'Allegations or sanctions change everything',
+                'Ongoing monitoring = core control, not optional',
+                '12-month rule is NOT automatic de-risking'
+              ]
+            },
+            {
+              type: 'infogrid',
+              title: 'Monitoring Requirements',
+              items: [
+                { icon: '📅', label: 'Periodic Reviews', description: 'Risk-based frequency. High-risk: quarterly. Lower-risk: annually.' },
+                { icon: '💳', label: 'Transaction Monitoring', description: 'Lower thresholds, watch fund movements, counterparty changes' },
+                { icon: '⚡', label: 'Trigger Events', description: 'New role, adverse media, ownership changes, unexplained wealth' }
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'Exit Decision Requirements',
+              items: [
+                'Consistent with firm policy',
+                'Approved at the right level',
+                'Documented with evidence and rationale',
+                'Managed carefully to avoid tipping off'
+              ]
+            }
+          ]
+        },
         keyConcepts: [
           {
             term: 'Trigger Event',
@@ -601,35 +383,41 @@ Ending a PEP relationship is sometimes the right risk decision, but it must be:
       duration: 4,
       content: {
         learningPoint: 'PEP controls must be backed by senior approval, clear ownership, and audit-ready evidence.',
-        mainContent: `PEP controls are only defensible if the governance and documentation are robust. Regulators expect to see a clear audit trail showing why a PEP was accepted, what risks were considered, and who approved the decision.
-
-**Senior Management Approval**
-- New PEP relationships require approval at a defined senior level
-- Approval must include documented risk assessment and EDD summary
-- Enhanced scrutiny where country risk or corruption indices are elevated
-
-**Ownership and Accountability**
-- MLRO or nominated officer should oversee the PEP framework execution
-- Business owners are responsible for information accuracy and escalation
-- Compliance must provide challenge and independent review
-
-**Documentation Standards**
-Minimum evidence set for each PEP relationship:
-- PEP classification rationale (domestic/foreign/international organisation)
-- Source of wealth and source of funds evidence
-- Approval record with risk summary and conditions
-- Ongoing monitoring records and review cadence
-- Escalations, decisions, and any exceptions
-
-**Quality Assurance**
-- Regular file reviews of PEP decisions and monitoring logs
-- Sample testing of false positives and missed PEPs
-- MI reporting to senior management on PEP exposure and issues
-
-**Data and Privacy**
-- PEP data is sensitive and must be processed lawfully
-- Retention periods should align to AML record-keeping requirements
-- Access controls should restrict PEP data to need-to-know roles`,
+        mainContent: {
+          cards: [
+            {
+              type: 'keypoint',
+              icon: '📋',
+              title: 'Audit Trail is Essential',
+              points: [
+                'Regulators expect clear documentation',
+                'Why was PEP accepted? What risks?',
+                'Who approved? At what level?',
+                'Controls only defensible if documented'
+              ]
+            },
+            {
+              type: 'infogrid',
+              title: 'Governance Framework',
+              items: [
+                { icon: '👔', label: 'Senior Approval', description: 'Documented risk assessment + EDD summary for each relationship' },
+                { icon: '🎯', label: 'Accountability', description: 'MLRO oversight, business owner accuracy, compliance challenge' },
+                { icon: '✅', label: 'Quality Assurance', description: 'File reviews, sample testing, MI to senior management' }
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'Minimum Documentation Per PEP',
+              items: [
+                'PEP classification rationale',
+                'Source of wealth/funds evidence',
+                'Approval record with risk summary',
+                'Ongoing monitoring records',
+                'All escalations and exceptions'
+              ]
+            }
+          ]
+        },
         keyConcepts: [
           {
             term: 'Senior Management Approval',
