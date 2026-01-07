@@ -48,283 +48,381 @@ export const suitabilityAppropriatenessModule: TrainingModule = {
     {
       id: 'framework-suitability-appropriateness',
       title: 'Framework – Suitability vs Appropriateness',
+      type: 'content',
       duration: 20,
-      content: `**Suitability (COBS 9A) – When It Applies**
-
-COBS 9A applies (broadly) where a firm:
-- Provides a personal recommendation to a client in relation to MiFID financial instruments and/or insurance-based investment products (IBIPs)
-- Or undertakes portfolio management for a client
-
-Suitability is about answering:
-> "Is this recommended transaction or portfolio suitable for this particular client, given their circumstances and objectives?"
-
-**Appropriateness (COBS 10A) – When It Applies**
-
-COBS 10A applies where a firm:
-- Provides non-advised investment services (e.g. execution-only or reception & transmission) in relation to complex products
-- Or provides certain services in relation to complex IBIPs
-
-Appropriateness is about answering:
-> "Does this client have the necessary knowledge and experience to understand the risks of this product or service?"
-
-The test is narrower than suitability – it focuses on knowledge/experience, not wider circumstances or objectives – but the Consumer Duty now expects firms to think more broadly about foreseeable harm and customer outcomes even where only appropriateness is formally required.
-
-**Execution-Only and Exemptions**
-
-COBS 10/10A allow limited exemptions from the appropriateness test in certain execution-only situations (e.g. non-complex instruments, client initiative only, clear risk warnings, certain conditions met). These have been litigated and interpreted narrowly.
-
-Mis-labelling advised or guided sales as "execution-only" is a recurrent theme in FCA enforcement and FOS decisions.
-
-**Key Distinction:**
-- Suitability = Full assessment for ADVISED business
-- Appropriateness = Knowledge/experience check for NON-ADVISED complex products
-- Execution-only = Limited exemption for non-complex instruments at client initiative`,
-      keyConcepts: [
-        'Suitability applies to personal recommendations and portfolio management',
-        'Appropriateness applies to non-advised services involving complex products',
-        'Suitability is broader (circumstances, objectives); appropriateness is narrower (knowledge/experience)',
-        'Execution-only exemptions are limited and narrowly interpreted',
-        'Mis-labelling advised sales as execution-only is a major compliance risk',
-        'Consumer Duty adds foreseeable harm considerations to both regimes'
-      ],
-      realExamples: [
-        {
-          title: 'Advised vs Non-Advised',
-          description: 'A wealth manager recommending a specific fund to a client triggers suitability requirements (COBS 9A). The same client placing their own trade on an online platform for a non-complex ETF may qualify for execution-only treatment.',
-          outcome: 'Different regimes apply based on whether advice is given and product complexity'
+      content: {
+        learningPoint: 'Understand when COBS 9A suitability vs COBS 10A appropriateness applies, and the key differences between these regimes.',
+        mainContent: {
+          cards: [
+            {
+              type: 'infogrid',
+              title: 'The Key Question Each Regime Answers',
+              items: [
+                { icon: '📋', label: 'COBS 9A Suitability', description: 'Is this suitable for THIS client?' },
+                { icon: '❓', label: 'COBS 10A Appropriateness', description: 'Does client understand the risks?' },
+                { icon: '🔓', label: 'Execution-Only', description: 'Limited exemption - narrow conditions' }
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '📋',
+              title: 'COBS 9A Suitability – When It Applies',
+              points: [
+                'Personal recommendation for MiFID instruments or IBIPs',
+                'Portfolio management services',
+                'Full assessment: knowledge, financial situation, objectives',
+                'Broadest protection level'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '❓',
+              title: 'COBS 10A Appropriateness – When It Applies',
+              points: [
+                'Non-advised services (execution-only, R&T) for complex products',
+                'Focus ONLY on knowledge and experience',
+                'Does client understand the risks?',
+                'Narrower than suitability but Consumer Duty adds foreseeable harm'
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'warning',
+              title: 'Execution-Only – Narrow Exemption',
+              message: 'COBS 10/10A allow exemptions only for: non-complex instruments, genuine client initiative, proper risk warnings. Mis-labelling advised sales as execution-only is a major compliance risk frequently challenged by FCA and FOS.'
+            },
+            {
+              type: 'process',
+              steps: [
+                { number: 1, title: 'Suitability (9A)', description: 'Full assessment for ADVISED business' },
+                { number: 2, title: 'Appropriateness (10A)', description: 'Knowledge/experience for NON-ADVISED complex' },
+                { number: 3, title: 'Execution-Only', description: 'Limited exemption - non-complex, client initiative' }
+              ]
+            }
+          ]
         },
-        {
-          title: 'Mis-labelled Execution-Only',
-          description: 'A firm\'s staff routinely suggested specific investments to clients but documented transactions as "execution-only" to avoid suitability requirements. FOS and the FCA found this was effectively advice.',
-          outcome: 'Firm was liable for unsuitable recommendations despite "execution-only" labels'
-        }
-      ]
+        keyConcepts: [
+          { term: 'Suitability', definition: 'Full assessment for personal recommendations and portfolio management' },
+          { term: 'Appropriateness', definition: 'Knowledge/experience check for non-advised complex products' },
+          { term: 'Execution-Only', definition: 'Narrow exemption - non-complex, client initiative, proper warnings' }
+        ],
+        realExamples: [
+          'Advised vs Non-Advised: Wealth manager recommending fund = suitability (9A); Client placing own trade on platform for non-complex ETF = execution-only',
+          'Mis-labelled Execution-Only: Staff suggested specific investments but documented as execution-only - FCA/FOS found it was advice, firm liable'
+        ],
+        regulatoryRequirements: [
+          'COBS 9A - Suitability (personal recommendations)',
+          'COBS 10A - Appropriateness (non-advised complex products)',
+          'Consumer Duty - Foreseeable harm considerations'
+        ]
+      }
     },
     {
       id: 'suitability-information-assessment',
       title: 'Suitability – Information, Assessment & Reports',
+      type: 'content',
       duration: 25,
-      content: `**Information That Must Be Collected**
-
-Under COBS 9A.2, a firm must obtain the necessary information to understand essential facts about the client. This includes, at a minimum:
-
-**1. Knowledge and Experience**
-- Types of service/product the client is familiar with
-- Volume and frequency of previous transactions
-- Education and profession relevant to investing
-
-**2. Financial Situation**
-- Source and level of income
-- Assets, liabilities, commitments
-- Ability to bear losses (capacity for loss)
-
-**3. Investment Objectives**
-- Time horizon and purpose of investment
-- Risk tolerance and preferences
-- Sustainability preferences where applicable
-
-Failure to gather adequate information means the firm must not give a recommendation or must treat the product as unsuitable.
-
-**Assessing Suitability**
-
-A firm must show that the recommendation:
-- Meets the client's objectives, including specific or long-term goals
-- Is financially sustainable given their financial situation and capacity for loss
-- Is consistent with the client's risk tolerance
-- Aligns with their knowledge and experience
-- Is appropriate for the product's target market (link to PROD 3/4 and Consumer Duty)
-
-Under the Consumer Duty, firms should also consider foreseeability of harm and fair value over time, not just "point-in-time" suitability.
-
-**Suitability Reports**
-
-COBS 9/9A specify when and what a suitability report must include. As a minimum:
-- Summarise the client's demands, needs and objectives
-- Explain why the recommendation is suitable (objectives, time horizon, risk tolerance, capacity for loss, knowledge/experience)
-- Highlight material disadvantages and risks, not just benefits
-
-Common FCA/FOS findings include: boilerplate wording, failure to explain alternatives considered, lack of explanation of ongoing costs and charges.
-
-**Ongoing Suitability and Periodic Reviews**
-
-Where a firm provides ongoing advice services, it must:
-- Deliver the reviews and services the client is paying for
-- Re-assess suitability where there are material changes (life events, risk appetite, objectives, market events)
-- Ensure ongoing charges remain fair value under Consumer Duty
-
-The FCA has highlighted poor practice where clients pay for ongoing advice but do not receive meaningful reviews.`,
-      keyConcepts: [
-        'Collect: knowledge/experience, financial situation, investment objectives',
-        'Capacity for loss is distinct from risk tolerance',
-        'Cannot recommend if information is inadequate',
-        'Suitability reports must explain WHY the recommendation is suitable',
-        'Must highlight disadvantages and risks, not just benefits',
-        'Ongoing advice requires actual reviews and re-assessment',
-        'Consumer Duty adds fair value requirement for ongoing charges'
-      ],
-      realExamples: [
-        {
-          title: 'Inadequate Capacity for Loss Assessment',
-          description: 'An adviser recommended high-risk investments to a client nearing retirement with limited savings. The fact-find showed the client could not afford to lose the capital, but this was not reflected in the recommendation.',
-          outcome: 'FOS upheld complaint; recommendation was unsuitable given capacity for loss'
+      content: {
+        learningPoint: 'COBS 9A.2 requires firms to collect specific information and demonstrate that recommendations meet the client\'s circumstances, objectives and risk profile.',
+        mainContent: {
+          cards: [
+            {
+              type: 'infogrid',
+              title: 'Three Pillars of Suitability Information',
+              items: [
+                { icon: '🧠', label: 'Knowledge & Experience', description: 'Products, transactions, education' },
+                { icon: '💰', label: 'Financial Situation', description: 'Income, assets, capacity for loss' },
+                { icon: '🎯', label: 'Investment Objectives', description: 'Time horizon, risk tolerance, goals' }
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '🧠',
+              title: '1. Knowledge and Experience',
+              points: [
+                'Types of service/product client is familiar with',
+                'Volume and frequency of previous transactions',
+                'Education and profession relevant to investing'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '💰',
+              title: '2. Financial Situation',
+              points: [
+                'Source and level of income',
+                'Assets, liabilities, commitments',
+                'Ability to bear losses (capacity for loss)'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '🎯',
+              title: '3. Investment Objectives',
+              points: [
+                'Time horizon and purpose of investment',
+                'Risk tolerance and preferences',
+                'Sustainability preferences where applicable'
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'critical',
+              title: 'Cannot Recommend Without Adequate Information',
+              message: 'If a firm cannot gather adequate information, it must not give a recommendation OR must treat the product as unsuitable. There is no workaround.'
+            },
+            {
+              type: 'checklist',
+              title: 'Suitability Report Must Include',
+              items: [
+                'Summary of client demands, needs and objectives',
+                'Explanation of WHY recommendation is suitable',
+                'Material disadvantages and risks (not just benefits)',
+                'Alternatives considered and why rejected',
+                'Ongoing costs and charges explanation'
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'warning',
+              title: 'Ongoing Advice Obligations',
+              message: 'Firms must deliver reviews as promised, re-assess when circumstances change, and ensure ongoing charges are fair value under Consumer Duty. FCA has found firms charging for reviews they don\'t deliver.'
+            }
+          ]
         },
-        {
-          title: 'Ongoing Advice Without Reviews',
-          description: 'A firm charged 0.5% p.a. ongoing advice fee but had no evidence of annual reviews for 40% of clients. Some clients had experienced significant life changes (retirement, divorce) with no reassessment.',
-          outcome: 'FCA required remediation and refunds for services not delivered'
-        }
-      ]
+        keyConcepts: [
+          { term: 'Capacity for Loss', definition: 'What client can afford to lose (distinct from risk tolerance)' },
+          { term: 'Risk Tolerance', definition: 'What volatility client is willing to accept' },
+          { term: 'Suitability Report', definition: 'Document explaining WHY recommendation suits client' }
+        ],
+        realExamples: [
+          'Inadequate Capacity Assessment: Adviser recommended high-risk investments to client nearing retirement who couldn\'t afford losses - FOS upheld complaint',
+          'No Reviews: Firm charged 0.5% p.a. ongoing fee but no evidence of reviews for 40% of clients - FCA required remediation and refunds'
+        ],
+        regulatoryRequirements: [
+          'COBS 9A.2 - Information requirements',
+          'COBS 9A.3 - Suitability assessment',
+          'Consumer Duty - Fair value for ongoing charges'
+        ]
+      }
     },
     {
       id: 'appropriateness-non-advised',
       title: 'Appropriateness – Non-Advised Business & Complex Products',
+      type: 'content',
       duration: 25,
-      content: `**What Appropriateness Tests Ask**
-
-COBS 10A.2 requires firms to assess whether the client has the necessary knowledge and experience to understand the risks involved in the product or service.
-
-Information to gather:
-- Types of services, transactions and financial instruments the client is familiar with
-- Nature, volume and frequency of transactions in relevant products
-- Level of education and profession relevant to investing
-
-For bundled services (e.g. product plus ancillary services), firms must assess whether the overall package is appropriate.
-
-**Products and Situations Where Appropriateness is Required**
-
-Appropriateness tests generally apply when:
-- The product is complex (e.g. derivatives such as CFDs, options, certain structured products, some non-readily realisable securities)
-- The service is provided on a non-advised basis (execution-only or RTO) to a retail (and in some cases professional) client
-
-Firms must not rely on generic website disclaimers or checkboxes alone; they need a genuine assessment.
-
-**If the Product is Not Appropriate or Information is Insufficient**
-
-Where the assessment shows the product is not appropriate, or the client fails/refuses to provide sufficient information, the firm must:
-- Warn the client clearly that the product/service may be inappropriate OR that the firm cannot determine appropriateness
-- The warning must be prominent and specific, not buried in small print
-
-The client may still proceed, but under the Consumer Duty firms should challenge whether this is consistent with avoiding foreseeable harm, especially for mass-market retail distribution of high-risk investments.
-
-**Execution-Only Exemptions – Used Carefully**
-
-COBS 10/10A allow an execution-only exemption in limited circumstances:
-- Non-complex instruments at the client's initiative
-- Certain conditions met
-- Proper risk warnings and disclosures given
-
-Courts have interpreted these strictly:
-- The initiative must genuinely come from the client
-- The product must be non-complex under the rules
-- Proper risk warnings must be given
-
-**Bad Practice:**
-- Labelling transactions as "execution-only" when staff have effectively given advice or strong steers
-- Treating complex products as non-complex to avoid appropriateness
-- Relying on generic disclaimers without genuine assessment`,
-      keyConcepts: [
-        'Appropriateness focuses on knowledge and experience only',
-        'Complex products require appropriateness assessment for non-advised sales',
-        'Warn clearly if product is inappropriate or cannot assess',
-        'Warnings must be prominent and specific',
-        'Execution-only exemption is narrow – client initiative, non-complex, proper warnings',
-        'Courts interpret execution-only conditions strictly',
-        'Consumer Duty adds foreseeable harm considerations even for non-advised'
-      ],
-      realExamples: [
-        {
-          title: 'CFD Platform Warning',
-          description: 'A retail client with no derivatives experience wants to trade CFDs. The platform\'s appropriateness test shows they lack relevant knowledge. The platform provides a clear, prominent warning that CFDs may be inappropriate.',
-          outcome: 'Client may proceed but firm has documented the warning and discharged its COBS 10A obligation'
+      content: {
+        learningPoint: 'COBS 10A.2 requires firms to assess whether the client has sufficient knowledge and experience to understand the risks of complex products in non-advised sales.',
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'info',
+              title: 'The Appropriateness Question',
+              message: 'Does this client have the necessary knowledge and experience to understand the risks involved in this product or service? Focus is ONLY on K&E - not financial situation or objectives.'
+            },
+            {
+              type: 'keypoint',
+              icon: '📋',
+              title: 'Information to Gather',
+              points: [
+                'Types of services, transactions and instruments client knows',
+                'Nature, volume and frequency of transactions in relevant products',
+                'Level of education and profession relevant to investing',
+                'For bundled services, assess the overall package'
+              ]
+            },
+            {
+              type: 'infogrid',
+              title: 'Complex Products Requiring Appropriateness',
+              items: [
+                { icon: '📈', label: 'CFDs', description: 'Leveraged derivatives' },
+                { icon: '⚡', label: 'Options', description: 'Derivative contracts' },
+                { icon: '🔗', label: 'Structured Products', description: 'Complex payoffs' },
+                { icon: '🔒', label: 'Non-Realisable Securities', description: 'Illiquid investments' }
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'warning',
+              title: 'If Not Appropriate',
+              message: 'Warn clearly that the product may be inappropriate OR that appropriateness cannot be determined. Warning must be prominent and specific - not buried in small print. Client may proceed but Consumer Duty requires avoiding foreseeable harm.'
+            },
+            {
+              type: 'checklist',
+              title: 'Execution-Only Exemption Conditions',
+              items: [
+                'Non-complex instruments only',
+                'Genuine client initiative (not prompted)',
+                'Proper risk warnings and disclosures given',
+                'Certain regulatory conditions met'
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'critical',
+              title: 'Bad Practice Examples',
+              message: 'Labelling transactions as execution-only when staff gave advice/steers; Treating complex products as non-complex; Relying on generic disclaimers without genuine assessment.'
+            }
+          ]
         },
-        {
-          title: 'Disguised Advice',
-          description: 'Platform staff regularly answered "what would you do?" questions with specific product recommendations but documented all trades as execution-only. The FCA found this was effectively advice.',
-          outcome: 'Suitability requirements applied; firm faced enforcement for systematic failures'
-        }
-      ]
+        keyConcepts: [
+          { term: 'Appropriateness', definition: 'Knowledge/experience check - narrower than suitability' },
+          { term: 'Complex Product', definition: 'Derivatives, structured products, certain illiquid securities' },
+          { term: 'Prominent Warning', definition: 'Clear, specific, not buried in small print' }
+        ],
+        realExamples: [
+          'CFD Platform: Client with no derivatives experience - platform warned CFDs may be inappropriate, documented warning, client may proceed',
+          'Disguised Advice: Staff answered "what would you do?" with recommendations but documented as execution-only - FCA found it was advice, enforcement action'
+        ],
+        regulatoryRequirements: [
+          'COBS 10A.2 - Appropriateness assessment',
+          'COBS 10A.3 - Warning requirements',
+          'Consumer Duty - Foreseeable harm considerations'
+        ]
+      }
     },
     {
       id: 'execution-only-boundaries',
       title: 'Execution-Only Boundaries and Client Initiative',
+      type: 'content',
       duration: 18,
-      content: `Execution-only is a narrow exemption, not a default. Firms must ensure the customer initiates the transaction and that the product is non-complex under COBS 10/10A.
-
-**Execution-Only Conditions**
-- Client initiates the transaction without recommendation
-- The instrument is non-complex under the FCA rules
-- Appropriate risk warnings are provided
-- The firm does not encourage or steer the decision
-
-**Red Flags for Misuse**
-- Scripted sales language that implies suitability
-- "Recommended lists" for execution-only journeys
-- Complex products presented without appropriateness testing
-- Customer confusion about what they are buying
-
-**Documentation Expectations**
-- Record how client initiative was demonstrated
-- Evidence that the product is non-complex
-- Archive the specific warning shown to the customer
-
-Misusing execution-only creates suitability liability even if the paperwork says otherwise.`,
-      keyConcepts: [
-        'Execution-only exemption is narrow and evidence-based',
-        'Client initiative must be genuine and documented',
-        'Non-complex classification must be defensible',
-        'Risk warnings must be specific and prominent'
-      ],
-      realExamples: [
-        {
-          title: 'Prompted Execution-Only',
-          description: 'A firm suggested a product and then processed the trade as execution-only.',
-          outcome: 'FOS treated the interaction as advice and applied suitability standards'
+      content: {
+        learningPoint: 'Execution-only is a narrow exemption, not a default. Firms must ensure the customer initiates the transaction and that the product is non-complex.',
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'critical',
+              title: 'Narrow Exemption - Not a Default',
+              message: 'Execution-only is NOT a way to avoid suitability obligations. Misusing it creates suitability liability even if the paperwork says "execution-only".'
+            },
+            {
+              type: 'checklist',
+              title: 'Execution-Only Conditions',
+              items: [
+                'Client initiates the transaction without recommendation',
+                'Instrument is non-complex under FCA rules',
+                'Appropriate risk warnings provided',
+                'Firm does not encourage or steer the decision'
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'warning',
+              title: 'Red Flags for Misuse',
+              message: 'Scripted sales language implying suitability; "Recommended lists" for execution-only journeys; Complex products without appropriateness testing; Customer confusion about what they are buying.'
+            },
+            {
+              type: 'keypoint',
+              icon: '📁',
+              title: 'Documentation Expectations',
+              points: [
+                'Record how client initiative was demonstrated',
+                'Evidence that product is non-complex',
+                'Archive specific warning shown to customer',
+                'Clear audit trail of the journey'
+              ]
+            },
+            {
+              type: 'infogrid',
+              title: 'Client Initiative Evidence',
+              items: [
+                { icon: '✅', label: 'Genuine Initiative', description: 'Client searched/selected product' },
+                { icon: '❌', label: 'Prompted', description: 'Staff suggested product' },
+                { icon: '📝', label: 'Documented', description: 'Journey recorded' }
+              ]
+            }
+          ]
         },
-        {
-          title: 'Defensible Execution-Only',
-          description: 'A platform recorded the client journey, warnings, and product classification for a non-complex ETF.',
-          outcome: 'Execution-only treatment upheld'
-        }
-      ]
+        keyConcepts: [
+          { term: 'Client Initiative', definition: 'Must be genuine and documented, not prompted' },
+          { term: 'Non-Complex', definition: 'Product classification must be defensible' },
+          { term: 'Audit Trail', definition: 'Document journey, warnings, and product type' }
+        ],
+        realExamples: [
+          'Prompted Execution-Only: Firm suggested a product then processed as execution-only - FOS treated as advice, applied suitability standards',
+          'Defensible Execution-Only: Platform recorded client journey, warnings, and product classification for non-complex ETF - upheld'
+        ],
+        regulatoryRequirements: [
+          'COBS 10A.4 - Execution-only exemption',
+          'COBS 10 - Non-complex instrument definitions',
+          'FOS/FCA guidance on client initiative'
+        ]
+      }
     },
     {
       id: 'governance-ongoing-suitability',
       title: 'Governance, Ongoing Suitability and File Reviews',
+      type: 'content',
       duration: 18,
-      content: `Suitability is not a one-off event. Firms providing ongoing advice or discretionary services must evidence that recommendations remain suitable and represent fair value.
-
-**Ongoing Suitability Expectations**
-- Periodic reviews aligned to client circumstances and service proposition
-- Reassessment when material changes occur (income, objectives, risk tolerance)
-- Evidence that ongoing charges match delivered services
-
-**File Review and QA**
-- Sample advice files to test completeness and rationale
-- Check that suitability reports explain WHY a recommendation was made
-- Verify capacity for loss and risk tolerance assessments
-
-**MI and Governance**
-- Track review completion rates, suitability exceptions, and client outcomes
-- Escalate recurring issues to senior management
-- Align advice charging to the Consumer Duty fair value outcome`,
-      keyConcepts: [
-        'Ongoing suitability requires periodic reviews and evidence',
-        'Advice charging must align to delivered services',
-        'File review and QA prevent systemic suitability failures',
-        'Outcome-focused MI should be reported to senior management'
-      ],
-      realExamples: [
-        {
-          title: 'Missed Review Gap',
-          description: 'A firm charged ongoing advice fees but could not evidence reviews for 30% of clients.',
-          outcome: 'Regulatory remediation and fee refunds'
+      content: {
+        learningPoint: 'Suitability is not a one-off event. Firms must evidence that recommendations remain suitable and represent fair value through ongoing reviews and governance.',
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'info',
+              title: 'Ongoing Suitability is Required',
+              message: 'Firms providing ongoing advice or discretionary services must evidence that recommendations remain suitable and charges represent fair value - not just at point of sale.'
+            },
+            {
+              type: 'checklist',
+              title: 'Ongoing Suitability Expectations',
+              items: [
+                'Periodic reviews aligned to client circumstances',
+                'Reassessment when material changes occur',
+                'Evidence that ongoing charges match delivered services',
+                'Documentation of review outcomes'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '📋',
+              title: 'File Review and QA',
+              points: [
+                'Sample advice files to test completeness and rationale',
+                'Check suitability reports explain WHY recommendation was made',
+                'Verify capacity for loss and risk tolerance assessments',
+                'Identify and fix systematic weaknesses'
+              ]
+            },
+            {
+              type: 'process',
+              steps: [
+                { number: 1, title: 'Track Completion', description: 'Monitor review completion rates' },
+                { number: 2, title: 'Identify Exceptions', description: 'Flag suitability issues' },
+                { number: 3, title: 'Escalate', description: 'Report recurring issues to senior management' },
+                { number: 4, title: 'Remediate', description: 'Fix systematic failures' }
+              ]
+            },
+            {
+              type: 'infogrid',
+              title: 'MI and Governance Metrics',
+              items: [
+                { icon: '📊', label: 'Review Rates', description: 'Completion tracking' },
+                { icon: '⚠️', label: 'Exceptions', description: 'Suitability issues flagged' },
+                { icon: '📈', label: 'Outcomes', description: 'Client results monitoring' },
+                { icon: '💰', label: 'Fair Value', description: 'Charges vs services' }
+              ]
+            }
+          ]
         },
-        {
-          title: 'Structured QA',
-          description: 'Quarterly file reviews identified weak capacity for loss analysis, leading to updated templates and training.',
-          outcome: 'Improved suitability evidence and reduced complaints'
-        }
-      ]
+        keyConcepts: [
+          { term: 'Ongoing Suitability', definition: 'Continuous obligation, not one-off' },
+          { term: 'File Review', definition: 'QA process to test completeness and rationale' },
+          { term: 'Fair Value', definition: 'Charges must match services delivered' }
+        ],
+        realExamples: [
+          'Missed Review Gap: Firm charged ongoing fees but no evidence of reviews for 30% of clients - regulatory remediation and fee refunds',
+          'Structured QA: Quarterly file reviews identified weak capacity for loss analysis - updated templates and training, reduced complaints'
+        ],
+        regulatoryRequirements: [
+          'COBS 9A - Ongoing suitability requirements',
+          'Consumer Duty - Fair value outcome',
+          'SYSC - Senior management responsibility'
+        ]
+      }
     }
   ],
   practiceScenarios: [

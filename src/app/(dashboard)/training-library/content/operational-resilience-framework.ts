@@ -391,7 +391,47 @@ export const operationalResilienceFrameworkModule: TrainingModule = {
       duration: 12,
       content: {
         learningPoint: "Important business services are defined by customer harm and market impact.",
-        mainContent: "Start with customer outcomes and market integrity, not internal functions. An important business service is one where disruption would cause intolerable harm to customers or threaten market stability. Map the service end-to-end across people, process, technology, and third parties.\n\nMapping needs to be usable in a crisis, not a static diagram. Keep it updated as vendors, systems, or channels change.",
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'info',
+              title: 'Start with Customer Outcomes',
+              message: 'An important business service is one where disruption would cause intolerable harm to customers or threaten market stability. Start with customer outcomes, not internal functions.'
+            },
+            {
+              type: 'infogrid',
+              title: 'Mapping the Four Dependencies',
+              items: [
+                { icon: '👥', label: 'People', description: 'Critical roles and decision makers' },
+                { icon: '⚙️', label: 'Process', description: 'Workflow dependencies and manual steps' },
+                { icon: '💻', label: 'Technology', description: 'Systems, data, and infrastructure' },
+                { icon: '🤝', label: 'Third Parties', description: 'Vendors and outsourced services' }
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '🗺️',
+              title: 'Effective Mapping',
+              points: [
+                'Map end-to-end across people, process, technology, third parties',
+                'Mapping must be usable in a crisis, not a static diagram',
+                'Keep updated as vendors, systems, or channels change',
+                'Identify single points of failure'
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'Example IBS Categories',
+              items: [
+                'Payments processing and settlement',
+                'Customer account access and authentication',
+                'Investment management and trading',
+                'Lending and credit decisions'
+              ]
+            }
+          ]
+        },
         keyConcepts: [
           { term: "Important Business Service", definition: "A service whose disruption could cause intolerable harm to customers or markets." },
           { term: "Dependency Mapping", definition: "Identifying critical people, processes, systems, and third parties." }
@@ -400,39 +440,10 @@ export const operationalResilienceFrameworkModule: TrainingModule = {
           "Payments processing and settlement",
           "Customer account access and authentication"
         ],
-        visual: {
-          type: "category_grid",
-          categories: [
-            {
-              icon: "user",
-              title: "People",
-              description: "Critical roles and decision makers.",
-              examples: ["Incident lead", "Operations responders", "Customer support"],
-              riskLevel: "medium"
-            },
-            {
-              icon: "briefcase",
-              title: "Process",
-              description: "Workflow dependencies and manual steps.",
-              examples: ["Settlement processes", "Manual approvals"],
-              riskLevel: "medium"
-            },
-            {
-              icon: "credit-card",
-              title: "Technology",
-              description: "Systems, data, and infrastructure.",
-              examples: ["Core banking", "Payment gateway", "Monitoring tools"],
-              riskLevel: "high"
-            },
-            {
-              icon: "map-pin",
-              title: "Third Parties",
-              description: "Vendors and outsourced services.",
-              examples: ["Cloud provider", "KYC vendor", "Card processor"],
-              riskLevel: "high"
-            }
-          ]
-        }
+        regulatoryRequirements: [
+          'SYSC 15A - IBS identification',
+          'PS21/3 - Mapping requirements'
+        ]
       }
     },
     {
@@ -442,44 +453,56 @@ export const operationalResilienceFrameworkModule: TrainingModule = {
       duration: 10,
       content: {
         learningPoint: "Impact tolerances define the maximum disruption you can allow.",
-        mainContent: "Impact tolerances must be set for each important business service based on harm, not convenience. They should reflect maximum tolerable outage duration, transaction backlog, and recovery thresholds.\n\nSet tolerances collaboratively with operations, risk, compliance, and customer teams. Document assumptions and test them against realistic scenarios.",
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'critical',
+              title: 'Based on Harm, Not Convenience',
+              message: 'Impact tolerances must be set based on customer harm potential, not operational convenience. They define the maximum disruption you can allow before intolerable harm occurs.'
+            },
+            {
+              type: 'process',
+              steps: [
+                { number: 1, title: 'Define Harm Thresholds', description: 'What does intolerable harm look like?' },
+                { number: 2, title: 'Set Tolerances', description: 'Document max outage and recovery limits' },
+                { number: 3, title: 'Test and Review', description: 'Validate with scenario testing' }
+              ]
+            },
+            {
+              type: 'infogrid',
+              title: 'Example Tolerances',
+              items: [
+                { icon: '💳', label: 'Payments', description: 'Max 2 hours disruption' },
+                { icon: '🔐', label: 'Account Access', description: 'Max 4 hours in peak' },
+                { icon: '📈', label: 'Trading', description: 'Max 30 minutes outage' }
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '👥',
+              title: 'Collaborative Setting',
+              points: [
+                'Involve operations, risk, compliance, and customer teams',
+                'Document assumptions and rationale',
+                'Test against realistic scenarios',
+                'Review annually or after material change'
+              ]
+            }
+          ]
+        },
         keyConcepts: [
           { term: "Impact Tolerance", definition: "The maximum level of disruption that can be tolerated for a service." },
           { term: "Intolerable Harm", definition: "Customer or market harm beyond acceptable thresholds." }
         ],
         realExamples: [
-          { title: "Payments", description: "Maximum 2 hours disruption before intolerable harm." },
-          { title: "Account Access", description: "Maximum 4 hours disruption during peak hours." }
+          "Payments: Maximum 2 hours disruption before intolerable harm",
+          "Account Access: Maximum 4 hours disruption during peak hours"
         ],
-        visual: {
-          type: "process_flow",
-          steps: [
-            {
-              number: 1,
-              title: "Define Harm Thresholds",
-              description: "Agree what intolerable harm looks like for customers.",
-              examples: ["Service unavailability", "Delayed payments"],
-              redFlags: ["No customer impact criteria"],
-              color: "red"
-            },
-            {
-              number: 2,
-              title: "Set Tolerances",
-              description: "Document maximum outage and recovery limits.",
-              examples: ["2 hours downtime", "4 hours backlog"],
-              redFlags: ["Unrealistic targets", "No evidence base"],
-              color: "amber"
-            },
-            {
-              number: 3,
-              title: "Test and Review",
-              description: "Validate tolerances with scenario testing.",
-              examples: ["Simulation exercises", "Post-incident reviews"],
-              redFlags: ["No testing cadence"],
-              color: "green"
-            }
-          ]
-        }
+        regulatoryRequirements: [
+          'SYSC 15A - Impact tolerance setting',
+          'PS21/3 - Evidence requirements'
+        ]
       }
     },
     {
@@ -489,23 +512,56 @@ export const operationalResilienceFrameworkModule: TrainingModule = {
       duration: 10,
       content: {
         learningPoint: "Severe but plausible scenarios prove resilience in real-world conditions.",
-        mainContent: "Scenario testing should reflect the most damaging but plausible events: cyber attacks, cloud outages, supplier failures, or compound events. Tests must involve key teams, simulate operational pressure, and produce measurable learning outcomes.\n\nCapture evidence, update plans, and ensure remediation actions are tracked to completion.",
+        mainContent: {
+          cards: [
+            {
+              type: 'infogrid',
+              title: 'Severe but Plausible Scenarios',
+              items: [
+                { icon: '💻', label: 'Cyber Attack', description: 'Core systems compromised' },
+                { icon: '☁️', label: 'Cloud Outage', description: 'Provider failure' },
+                { icon: '🤝', label: 'Supplier Failure', description: 'Third-party disruption' },
+                { icon: '⚡', label: 'Compound Event', description: 'Multiple failures at once' }
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'Effective Testing Requirements',
+              items: [
+                'Involve key teams from across the business',
+                'Simulate real operational pressure',
+                'Produce measurable learning outcomes',
+                'Capture evidence for regulators'
+              ]
+            },
+            {
+              type: 'process',
+              steps: [
+                { number: 1, title: 'Stress the System', description: 'Simulate multi-point failures and pressure' },
+                { number: 2, title: 'Measure Impact', description: 'Track tolerance breaches and recovery time' },
+                { number: 3, title: 'Remediate Fast', description: 'Assign actions and retest improvements' }
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'warning',
+              title: 'Track to Completion',
+              message: 'Remediation actions identified in testing must be tracked to completion and retested. Document all outcomes for regulatory evidence.'
+            }
+          ]
+        },
         keyConcepts: [
           { term: "Severe but Plausible", definition: "High-impact scenarios that are realistic enough to occur." },
           { term: "Lessons Learned", definition: "Documented improvements from tests or incidents." }
         ],
         realExamples: [
-          "Cloud outage with simultaneous spike in customer demand.",
-          "Third-party outage impacting both KYC and payments."
+          "Cloud outage with simultaneous spike in customer demand",
+          "Third-party outage impacting both KYC and payments"
         ],
-        visual: {
-          type: "infographic",
-          elements: [
-            { icon: "alert-triangle", text: "Stress the system", description: "Simulate multi-point failures and pressure.", color: "red" },
-            { icon: "search", text: "Measure impact", description: "Track tolerance breaches and recovery time.", color: "amber" },
-            { icon: "shield", text: "Remediate fast", description: "Assign actions and retest improvements.", color: "green" }
-          ]
-        }
+        regulatoryRequirements: [
+          'PS21/3 - Scenario testing requirements',
+          'SYSC 15A - Testing expectations'
+        ]
       }
     },
     {
@@ -515,15 +571,58 @@ export const operationalResilienceFrameworkModule: TrainingModule = {
       duration: 8,
       content: {
         learningPoint: "Response quality determines whether disruption becomes customer harm.",
-        mainContent: "Incident response must align to impact tolerances, not just technical recovery. Teams should know when to declare a major incident, how to coordinate across functions, and how to communicate clearly.\n\nEffective response includes rapid triage, harm assessment, customer communications, and regulatory notifications when thresholds are met. Evidence trails should be preserved for post-incident review and board reporting.",
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'critical',
+              title: 'Align to Impact Tolerances',
+              message: 'Incident response must align to impact tolerances, not just technical recovery. Teams should know when to declare a major incident and how to coordinate.'
+            },
+            {
+              type: 'process',
+              steps: [
+                { number: 1, title: 'Rapid Triage', description: 'Assess which IBSs affected' },
+                { number: 2, title: 'Harm Assessment', description: 'Evaluate customer and market impact' },
+                { number: 3, title: 'Communicate', description: 'Customers, partners, regulators' },
+                { number: 4, title: 'Document', description: 'Preserve evidence for review' }
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '📣',
+              title: 'Communication Requirements',
+              points: [
+                'Clear customer communications early in incident',
+                'Status page or updates reduce inbound pressure',
+                'Regulatory notification when thresholds met',
+                'Evidence trail for post-incident review'
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'Incident Log Must Capture',
+              items: [
+                'Recovery actions and decision points',
+                'Timing of key decisions',
+                'Customer impact assessment',
+                'Evidence for audit and Board review'
+              ]
+            }
+          ]
+        },
         keyConcepts: [
           { term: "Major Incident", definition: "A disruption that threatens impact tolerances or customer harm thresholds." },
           { term: "Harm Assessment", definition: "Evaluation of customer and market impact during an incident." },
           { term: "Regulatory Notification", definition: "Required communications to regulators when thresholds are breached." }
         ],
         realExamples: [
-          "A firm issued a customer status page within 30 minutes of a payments outage, reducing inbound call pressure.",
-          "An incident log captured recovery actions and decision points for audit review."
+          "Customer status page issued within 30 minutes of payments outage - reduced inbound call pressure",
+          "Incident log captured recovery actions and decision points for audit review"
+        ],
+        regulatoryRequirements: [
+          'Principle 11 - Regulatory notification',
+          'PS21/3 - Incident response expectations'
         ]
       }
     },
@@ -534,15 +633,56 @@ export const operationalResilienceFrameworkModule: TrainingModule = {
       duration: 8,
       content: {
         learningPoint: "Operational resilience requires board ownership and credible exit plans.",
-        mainContent: "Regulators expect a board-approved self-assessment that explains how the firm meets resilience requirements. This includes the rationale for impact tolerances, results of scenario testing, and remediation progress.\n\nThird-party exit planning must be practical, not theoretical. Critical services should have documented transition steps and tested contingencies.",
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'info',
+              title: 'Board-Level Ownership',
+              message: 'Regulators expect a board-approved self-assessment explaining how the firm meets resilience requirements - rationale for tolerances, test results, and remediation progress.'
+            },
+            {
+              type: 'checklist',
+              title: 'Self-Assessment Must Include',
+              items: [
+                'Rationale for impact tolerances',
+                'Results of scenario testing',
+                'Remediation progress and plans',
+                'Governance and decision-making approach'
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'warning',
+              title: 'Exit Plans Must Be Practical',
+              message: 'Third-party exit planning must be practical, not theoretical. Critical services need documented transition steps and tested contingencies.'
+            },
+            {
+              type: 'keypoint',
+              icon: '📋',
+              title: 'Governance Cadence',
+              points: [
+                'Quarterly resilience updates to Board',
+                'Tie updates to testing outcomes and remediation',
+                'Test vendor exit plans using sandbox environments',
+                'Review before contract renewals'
+              ]
+            }
+          ]
+        },
         keyConcepts: [
           { term: "Self-Assessment", definition: "Board-level document explaining resilience approach and evidence." },
           { term: "Exit Plan", definition: "Documented approach to migrate or replace critical third-party services." },
           { term: "Governance Cadence", definition: "Regular board and senior management review of resilience evidence." }
         ],
         realExamples: [
-          "A board required quarterly resilience updates tied to testing outcomes and remediation actions.",
-          "A firm tested a vendor exit plan using a sandbox environment before renewal."
+          "Board required quarterly resilience updates tied to testing outcomes and remediation actions",
+          "Firm tested vendor exit plan using sandbox environment before renewal"
+        ],
+        regulatoryRequirements: [
+          'SYSC 15A - Self-assessment requirement',
+          'PS21/3 - Board governance expectations',
+          'FG16/5 - Exit planning guidance'
         ]
       }
     }

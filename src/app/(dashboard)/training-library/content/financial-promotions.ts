@@ -48,361 +48,390 @@ export const financialPromotionsModule: TrainingModule = {
     {
       id: 'definitions-scope-standards',
       title: 'Definitions, Scope & Core Standards (COBS 4)',
+      type: 'content',
       duration: 25,
-      content: `**What is a Financial Promotion?**
-
-A financial promotion is broadly an *invitation or inducement to engage in investment activity* (or, in other contexts, credit activity, insurance, banking services, etc.).
-
-The definition captures:
-- Advertisements (print, digital, TV, radio)
-- Marketing emails and SMS
-- Website content that promotes products/services
-- Social media posts
-- Verbal communications in some contexts
-- Third-party content where the firm has involvement
-
-**Core Standard: Fair, Clear and Not Misleading**
-
-COBS 4.2.1R sets the fundamental rule:
-
-> "A firm must ensure that a communication or a financial promotion is fair, clear and not misleading."
-
-This applies to **all** communications, not just formal advertisements.
-
-**What "Fair, Clear and Not Misleading" Means:**
-
-**Fair:**
-- Balanced presentation of benefits and risks
-- Not exploiting customer vulnerabilities or lack of knowledge
-- Consistent with what the product actually delivers
-
-**Clear:**
-- Easy to understand by the target audience
-- Key information is prominent (not buried in small print)
-- Jargon-free where possible, or explained
-- Legible and accessible format
-
-**Not Misleading:**
-- Accurate and not deceptive
-- Does not omit material information
-- Does not create false impressions (including by emphasis or omission)
-- Past performance presented fairly with required warnings
-
-**Who Does COBS 4 Apply To?**
-
-COBS 4 applies to:
-- FCA-authorised firms making financial promotions
-- Communications about MiFID business, insurance, consumer credit
-- Approvals of promotions for unauthorised persons (s21 gateway)
-
-The rules also interact with the Consumer Duty, requiring firms to ensure communications support good customer understanding.
-
-**Promotion vs Factual Information**
-Not every factual statement is a promotion. The difference is intent and context:
-- Is it an invitation or inducement to act?
-- Is it targeted to encourage a product decision?
-- Would a reasonable customer view it as marketing?
-When in doubt, treat it as a promotion and apply the standard.
-
-**Channel Consistency**
-Promotions must be compliant across all channels. A compliant web page can become non-compliant if a short-form social post or email headline oversells the same product without equivalent warnings.
-
-**Consumer Duty Link**
-Fair, clear and not misleading aligns with the Duty's consumer understanding outcome. If testing shows customers misunderstand, the promotion is not clear, even if legal text is present.`,
-      keyConcepts: [
-        'Financial promotion = invitation or inducement to engage in investment/regulated activity',
-        'COBS 4.2.1R: communications must be fair, clear and not misleading',
-        'Applies to all communications, not just formal ads',
-        'Fair = balanced benefits/risks, not exploitative',
-        'Clear = understandable, prominent key info, accessible',
-        'Not misleading = accurate, no material omissions, no false impressions',
-        'Interacts with Consumer Duty understanding outcome'
-      ],
-      realExamples: [
-        {
-          title: 'Misleading Headline',
-          description: 'A firm advertised "Guaranteed 10% Returns!" for a product where capital was at risk. The "guarantee" referred only to a promotional bonus period, buried in terms.',
-          outcome: 'FCA intervention; promotion withdrawn and firm required to remediate customers who invested based on misleading claim'
+      content: {
+        learningPoint: 'A financial promotion is any invitation or inducement to engage in investment activity. COBS 4.2.1R requires all communications to be fair, clear and not misleading.',
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'critical',
+              title: 'COBS 4.2.1R - The Core Standard',
+              message: '"A firm must ensure that a communication or a financial promotion is fair, clear and not misleading." This applies to ALL communications, not just formal advertisements.'
+            },
+            {
+              type: 'infogrid',
+              title: 'What is a Financial Promotion?',
+              items: [
+                { icon: '📺', label: 'Advertisements', description: 'Print, digital, TV, radio' },
+                { icon: '📧', label: 'Marketing', description: 'Emails, SMS, website' },
+                { icon: '📱', label: 'Social Media', description: 'Posts, sponsored content' },
+                { icon: '🤝', label: 'Third-Party', description: 'Where firm has involvement' }
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '⚖️',
+              title: 'FAIR',
+              points: [
+                'Balanced presentation of benefits AND risks',
+                'Not exploiting customer vulnerabilities',
+                'Consistent with what product actually delivers'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '👁️',
+              title: 'CLEAR',
+              points: [
+                'Easy to understand by target audience',
+                'Key information is prominent (not small print)',
+                'Jargon-free or explained',
+                'Legible and accessible format'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '✅',
+              title: 'NOT MISLEADING',
+              points: [
+                'Accurate and not deceptive',
+                'No material omissions',
+                'No false impressions by emphasis or omission',
+                'Past performance with required warnings'
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'info',
+              title: 'Consumer Duty Link',
+              message: 'Fair, clear and not misleading aligns with Consumer Duty understanding outcome. If testing shows customers misunderstand, the promotion is not clear - even if legal text is present.'
+            }
+          ]
         },
-        {
-          title: 'Balanced Promotion',
-          description: 'A firm\'s investment promotion led with potential returns but gave equal prominence to capital-at-risk warnings, clearly explained fees, and included past performance disclaimers in the same font size.',
-          outcome: 'Compliant with COBS 4; supported good customer understanding'
-        }
-      ]
+        keyConcepts: [
+          { term: 'Financial Promotion', definition: 'Invitation or inducement to engage in regulated activity' },
+          { term: 'COBS 4.2.1R', definition: 'Core standard - fair, clear and not misleading' },
+          { term: 'Channel Consistency', definition: 'Compliant across all platforms' }
+        ],
+        realExamples: [
+          'Misleading Headline: "Guaranteed 10% Returns!" for capital-at-risk product - FCA intervention, promotion withdrawn, customer remediation',
+          'Balanced Promotion: Returns with equal prominence to capital-at-risk warnings, clear fees, same font size disclaimers - compliant'
+        ],
+        regulatoryRequirements: [
+          'COBS 4.2.1R - Fair, clear, not misleading',
+          'COBS 4.5-4.7 - Specific product requirements',
+          'Consumer Duty - Understanding outcome'
+        ]
+      }
     },
     {
       id: 'cobs4-requirements-gateway',
       title: 'COBS 4 Requirements & The Financial Promotions Gateway',
+      type: 'content',
       duration: 25,
-      content: `**Key COBS 4 Requirements**
-
-**Risk Warnings (COBS 4.5, 4.6, 4.7):**
-- Must be **prominent** – not hidden in small print or below the fold
-- Must be **proximate** to the claim they relate to
-- Specific warnings required for certain products (e.g. "Capital at risk", "Past performance does not guarantee future results")
-- For high-risk investments, enhanced warnings are required
-
-**Balance of Benefits and Risks:**
-- Benefits and risks should be given **comparable prominence**
-- Cannot emphasise returns while minimising/hiding risks
-- If a benefit is highlighted, the corresponding risk must also be visible
-
-**Past Performance:**
-- Must state that past performance is not a reliable indicator of future results
-- Show a representative period (typically 5 years or since inception)
-- Include all material costs and charges
-
-**Record-Keeping:**
-- Firms must keep records of financial promotions
-- Records should show approval process, sign-off, and any amendments
-- Retention typically for regulatory purposes (check specific rules)
-
-**Prominence in Practice**
-- Warnings should be in the same font size and weight as key claims
-- On mobile, warnings must be visible without extra scrolling
-- Use contrast and spacing so warnings are not visually minimized
-
-**Retention and Audit Trail**
-- Keep the approved version, evidence supporting each claim, and all revisions
-- Retain records for the regulatory minimum defined in your policy (often 5 years or more)
-
-**The Financial Promotions Gateway (PS23/13)**
-
-From February 2024, the FCA introduced the **s21 financial promotions gateway**:
-
-- Only firms with specific FCA permission can approve financial promotions for **unauthorised persons**
-- This addresses past concerns about "rubber-stamping" promotions without proper review
-- Approving firms must:
-  - Have relevant competence and expertise
-  - Conduct due diligence on the unauthorised person
-  - Ensure the promotion meets COBS 4 standards
-  - Monitor ongoing compliance
-  - Report to FCA on approvals made
-
-**Heightened Standards for Approvers:**
-
-- Must ensure promotion is compliant **before** approval
-- Cannot rely on self-certification from the unauthorised person
-- Must understand the product/service being promoted
-- Regular review of approved promotions
-- Liability for non-compliant promotions approved
-
-**Withdrawal and Intervention Powers:**
-
-The FCA can:
-- Require firms to withdraw non-compliant promotions
-- Issue public warnings
-- Take enforcement action for serious/repeated breaches`,
-      keyConcepts: [
-        'Risk warnings must be prominent and proximate to claims',
-        'Benefits and risks need comparable prominence',
-        'Past performance requires specific disclaimers and representative periods',
-        'Keep records of all promotions with approval evidence',
-        'S21 gateway: only authorised firms can approve promotions for unauthorised persons',
-        'Approvers must conduct due diligence and monitor compliance',
-        'FCA can require withdrawal and take enforcement action'
-      ],
-      realExamples: [
-        {
-          title: 'Gateway Approval Failure',
-          description: 'An authorised firm approved promotions for an unauthorised crypto firm without properly reviewing the claims. The promotions overstated returns and omitted key risks.',
-          outcome: 'FCA investigated the approving firm; requirement to withdraw approvals and enhanced supervision'
+      content: {
+        learningPoint: 'COBS 4 requires prominent risk warnings, balanced benefits/risks presentation, and the s21 gateway regulates who can approve promotions for unauthorised persons.',
+        mainContent: {
+          cards: [
+            {
+              type: 'checklist',
+              title: 'Risk Warning Requirements (COBS 4.5-4.7)',
+              items: [
+                'PROMINENT - not hidden in small print or below the fold',
+                'PROXIMATE - adjacent to the claim they relate to',
+                'Specific warnings for products (e.g. "Capital at risk")',
+                'Enhanced warnings for high-risk investments'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '⚖️',
+              title: 'Balance of Benefits and Risks',
+              points: [
+                'Benefits and risks must have comparable prominence',
+                'Cannot emphasise returns while minimising risks',
+                'If benefit highlighted, corresponding risk must be visible'
+              ]
+            },
+            {
+              type: 'infogrid',
+              title: 'Prominence in Practice',
+              items: [
+                { icon: '🔤', label: 'Same Font', description: 'Warnings = key claims size' },
+                { icon: '📱', label: 'Mobile', description: 'Visible without scrolling' },
+                { icon: '👁️', label: 'Contrast', description: 'Not visually minimized' }
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'warning',
+              title: 'S21 Financial Promotions Gateway (Feb 2024)',
+              message: 'Only firms with specific FCA permission can approve promotions for unauthorised persons. No more "rubber-stamping" - substantive review required.'
+            },
+            {
+              type: 'checklist',
+              title: 'Gateway Approver Obligations',
+              items: [
+                'Have relevant competence and expertise',
+                'Conduct due diligence on unauthorised person',
+                'Ensure promotion meets COBS 4 standards',
+                'Monitor ongoing compliance',
+                'Report to FCA on approvals made'
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'critical',
+              title: 'Cannot Rely on Self-Certification',
+              message: 'Approving firms must conduct their own substantive review. Cannot rely on the unauthorised person saying "it\'s compliant". Liable for non-compliant promotions approved.'
+            }
+          ]
         },
-        {
-          title: 'Prominent Risk Warning',
-          description: 'A firm\'s email promotion for an ISA product included "Capital at risk" in the same font size and colour as the return headline, immediately adjacent to the return claim.',
-          outcome: 'Met COBS 4 prominence requirements; clear to customers that returns were not guaranteed'
-        }
-      ]
+        keyConcepts: [
+          { term: 'Prominence', definition: 'Risk warnings clearly visible, comparably emphasised' },
+          { term: 'S21 Gateway', definition: 'FCA permission to approve promotions for unauthorised persons' },
+          { term: 'Due Diligence', definition: 'Substantive review, not rubber-stamping' }
+        ],
+        realExamples: [
+          'Gateway Failure: Firm approved crypto promotions without reviewing claims - FCA investigated, enhanced supervision',
+          'Prominent Warning: Email with "Capital at risk" same font size as return headline - met COBS 4 requirements'
+        ],
+        regulatoryRequirements: [
+          'COBS 4.5-4.7 - Risk warnings',
+          'PS23/13 - Financial promotions gateway',
+          'FCA withdrawal and intervention powers'
+        ]
+      }
     },
     {
       id: 'approval-workflow',
       title: 'Approval Workflow, Sign-Off and Record Keeping',
+      type: 'content',
       duration: 20,
-      content: `A compliant promotion is the result of a disciplined approval workflow. The FCA expects firms to evidence review, challenge, and accountability for every promotion across every channel.
-
-**Approval Workflow Essentials**
-- Define who can approve promotions and at what level
-- Use a consistent checklist aligned to COBS 4 and Consumer Duty
-- Capture versions and changes throughout review
-
-**Workflow Gates**
-1. Marketing brief and claim substantiation pack
-2. Product owner review for accuracy and target market fit
-3. Compliance and legal review against COBS 4 and Consumer Duty
-4. Final approver sign-off and publish log
-
-**Claim Substantiation**
-Every material claim should have evidence attached: data source, date, and owner. If a claim cannot be substantiated, it should be removed or rewritten.
-
-**What to Check Before Approval**
-- Balance of benefits and risks
-- Prominence and proximity of warnings
-- Clarity for the target audience
-- Alignment to product scope and target market
-
-**Record Keeping**
-- Keep the final approved version and review evidence
-- Retain supporting analysis, audience testing, and risk assessments
-- Maintain an audit trail showing who approved and when
-
-**Third-Party Promotions**
-- Approvals for unauthorised persons require enhanced due diligence
-- Ensure introducers and affiliates do not alter approved content without permission`,
-      keyConcepts: [
-        'Approval must be documented and role-based',
-        'Version control and audit trails are mandatory',
-        'Target market alignment is part of approval',
-        'Unauthorised promotions require additional oversight'
-      ],
-      realExamples: [
-        {
-          title: 'Missing Approval Evidence',
-          description: 'A promotion was live on social media without any compliance review record.',
-          outcome: 'FCA required withdrawal and remediation of approval processes'
+      content: {
+        learningPoint: 'A compliant promotion results from a disciplined approval workflow. The FCA expects firms to evidence review, challenge, and accountability for every promotion.',
+        mainContent: {
+          cards: [
+            {
+              type: 'process',
+              steps: [
+                { number: 1, title: 'Marketing Brief', description: 'Claim substantiation pack' },
+                { number: 2, title: 'Product Review', description: 'Accuracy and target market fit' },
+                { number: 3, title: 'Compliance Review', description: 'COBS 4 and Consumer Duty check' },
+                { number: 4, title: 'Final Sign-Off', description: 'Approver sign-off and publish log' }
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'What to Check Before Approval',
+              items: [
+                'Balance of benefits and risks',
+                'Prominence and proximity of warnings',
+                'Clarity for the target audience',
+                'Alignment to product scope and target market'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '📋',
+              title: 'Claim Substantiation',
+              points: [
+                'Every material claim needs evidence attached',
+                'Data source, date, and owner documented',
+                'If claim cannot be substantiated, remove or rewrite'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '📁',
+              title: 'Record Keeping Requirements',
+              points: [
+                'Keep final approved version and review evidence',
+                'Retain supporting analysis and audience testing',
+                'Audit trail showing who approved and when',
+                'Version control throughout review process'
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'warning',
+              title: 'Third-Party Promotions',
+              message: 'Approvals for unauthorised persons require enhanced due diligence. Ensure introducers and affiliates do not alter approved content without permission.'
+            }
+          ]
         },
-        {
-          title: 'Controlled Workflow',
-          description: 'A firm used a standard checklist and stored approvals alongside final assets.',
-          outcome: 'Approval evidence met regulatory expectations during review'
-        }
-      ]
+        keyConcepts: [
+          { term: 'Approval Workflow', definition: 'Documented, role-based sign-off process' },
+          { term: 'Claim Substantiation', definition: 'Evidence pack for material claims' },
+          { term: 'Audit Trail', definition: 'Record of who approved what, when' }
+        ],
+        realExamples: [
+          'Missing Approval: Promotion live on social media with no compliance review - FCA required withdrawal and process remediation',
+          'Controlled Workflow: Firm used standard checklist and stored approvals with assets - met regulatory expectations'
+        ],
+        regulatoryRequirements: [
+          'COBS 4.11 - Record keeping',
+          'SYSC - Governance and controls',
+          'Consumer Duty - Outcomes accountability'
+        ]
+      }
     },
     {
       id: 'monitoring-testing',
       title: 'Monitoring, Testing and Remediation',
+      type: 'content',
       duration: 20,
-      content: `Approval is not the end of compliance. Promotions must be monitored for ongoing accuracy, customer understanding and distribution integrity.
-
-**Ongoing Monitoring**
-- Review live promotions regularly for drift or outdated claims
-- Monitor third-party and affiliate usage
-- Check distribution against target market boundaries
-
-**Monitoring Cadence**
-- Review high-risk campaigns weekly; low-risk campaigns at least monthly
-- Trigger immediate review after regulatory updates, complaint spikes, or adverse media
-
-**Customer Understanding Testing**
-- Run comprehension testing on key messages and risks
-- Track complaint themes, drop-offs, and mis-selling indicators
-
-**Evidence Signals**
-- Call transcripts and chat logs showing misunderstanding
-- Click-through and abandonment rates at key decision points
-
-**Remediation**
-- Withdraw or amend promotions that are misleading or unclear
-- Document fixes and re-test outcomes
-- Update templates and guidance to prevent repeat issues`,
-      keyConcepts: [
-        'Promotions require ongoing monitoring, not one-time approval',
-        'Customer understanding evidence supports Consumer Duty',
-        'Remediation should be documented and systemic'
-      ],
-      realExamples: [
-        {
-          title: 'Influencer Drift',
-          description: 'An influencer altered approved wording and removed risk warnings.',
-          outcome: 'Promotion withdrawn and affiliate controls tightened'
+      content: {
+        learningPoint: 'Approval is not the end of compliance. Promotions must be monitored for ongoing accuracy, customer understanding, and distribution integrity.',
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'info',
+              title: 'Approval is Not the End',
+              message: 'Promotions must be monitored for drift, outdated claims, and customer understanding. Third-party and affiliate usage needs ongoing oversight.'
+            },
+            {
+              type: 'infogrid',
+              title: 'Monitoring Cadence',
+              items: [
+                { icon: '⚠️', label: 'High-Risk', description: 'Review weekly' },
+                { icon: '📋', label: 'Low-Risk', description: 'Review monthly' },
+                { icon: '🚨', label: 'Trigger Events', description: 'Immediate review' }
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '🔍',
+              title: 'Customer Understanding Testing',
+              points: [
+                'Run comprehension testing on key messages and risks',
+                'Track complaint themes and drop-offs',
+                'Monitor mis-selling indicators',
+                'Review call transcripts and chat logs for misunderstanding'
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'Evidence Signals to Track',
+              items: [
+                'Call transcripts showing customer misunderstanding',
+                'Click-through and abandonment rates at key decision points',
+                'Complaint themes related to promotions',
+                'Third-party content drift from approved version'
+              ]
+            },
+            {
+              type: 'process',
+              steps: [
+                { number: 1, title: 'Identify Issue', description: 'Misleading or unclear promotion' },
+                { number: 2, title: 'Withdraw/Amend', description: 'Remove or fix immediately' },
+                { number: 3, title: 'Document', description: 'Record fixes and rationale' },
+                { number: 4, title: 'Re-Test', description: 'Verify improved outcomes' }
+              ]
+            }
+          ]
         },
-        {
-          title: 'Outcome Testing',
-          description: 'Comprehension testing showed customers misread fees, prompting content redesign.',
-          outcome: 'Improved understanding and reduced complaints'
-        }
-      ]
+        keyConcepts: [
+          { term: 'Ongoing Monitoring', definition: 'Regular review of live promotions' },
+          { term: 'Comprehension Testing', definition: 'Evidence customers understand key messages' },
+          { term: 'Remediation', definition: 'Documented fixes with systemic improvements' }
+        ],
+        realExamples: [
+          'Influencer Drift: Influencer altered approved wording and removed risk warnings - promotion withdrawn, affiliate controls tightened',
+          'Outcome Testing: Comprehension testing showed customers misread fees - content redesign improved understanding'
+        ],
+        regulatoryRequirements: [
+          'COBS 4 - Ongoing compliance',
+          'Consumer Duty - Understanding outcome',
+          'SYSC - Monitoring and control'
+        ]
+      }
     },
     {
       id: 'high-risk-crypto-social',
       title: 'High-Risk Investments, Cryptoassets & Social Media',
+      type: 'content',
       duration: 20,
-      content: `**High-Risk Investments**
-
-The FCA has specific rules for promotions of **high-risk investments** (COBS 4.12A onwards):
-
-Categories include:
-- Non-readily realisable securities (e.g. unlisted shares)
-- Peer-to-peer agreements
-- Speculative illiquid securities
-- Non-mainstream pooled investments
-
-**Requirements for high-risk investment promotions:**
-- Enhanced risk warnings (prescribed wording)
-- Appropriateness assessments before investment
-- Personalised risk warnings where applicable
-- Marketing restrictions (e.g. no incentives to invest)
-- 24-hour cooling-off period for direct offer promotions
-
-**Positive Friction**
-- Require active risk acknowledgment before a customer can proceed
-- Reconfirm warnings at the final decision point, not just at entry
-
-**Cryptoasset Promotions**
-
-From October 2023, the FCA brought cryptoasset promotions into the financial promotions regime:
-
-- All crypto promotions to UK consumers must be:
-  - Made by an FCA-authorised firm, OR
-  - Approved by an authorised firm with gateway permission, OR
-  - Made by a cryptoasset business registered under MLR
-
-**Crypto-specific requirements:**
-- Clear risk warnings ("Don't invest unless you're prepared to lose all the money you invest")
-- No incentives to invest (no refer-a-friend bonuses, no "free crypto")
-- Personalised risk warnings
-- 24-hour cooling-off period
-- Appropriateness assessment
-
-**Social Media & Finfluencers**
-
-Social media promotions are in scope of COBS 4 – the format doesn't change the rules:
-
-**Key issues:**
-- Character limits don't excuse omitting risk warnings
-- Risk warnings must still be prominent (not just a link to T&Cs)
-- Firms are responsible for content they sponsor or procure
-- "Finfluencers" (financial influencers) promoting products need authorisation or approval
-
-**FCA Interventions:**
-
-The FCA has:
-- Issued warnings to finfluencers about illegal promotions
-- Taken down thousands of non-compliant social media promotions
-- Made clear that firms cannot outsource compliance to influencers
-
-**Best Practice for Social Media:**
-- Pre-approve all sponsored content
-- Include required warnings in the post itself (not just linked)
-- Monitor what influencers actually post
-- Have contracts requiring compliance and right to approve
-
-**Affiliate and Influencer Controls**
-- Pre-approve scripts and key claims
-- Monitor live posts and enforce takedown SLAs
-- Keep evidence of approvals, monitoring checks, and remediation`,
-      keyConcepts: [
-        'High-risk investments have enhanced warning and appropriateness requirements',
-        'Cryptoasset promotions now in scope of COBS 4 with specific requirements',
-        'Crypto: no incentives, cooling-off period, prescribed risk warnings',
-        'Social media format doesn\'t exempt from COBS 4 requirements',
-        'Risk warnings must be in the post, not just linked',
-        'Firms responsible for influencer/finfluencer content they procure',
-        'FCA actively intervening on non-compliant social media promotions'
-      ],
-      realExamples: [
-        {
-          title: 'Crypto Incentive Breach',
-          description: 'A crypto platform offered "£50 free Bitcoin" for referrals. This breached the prohibition on incentives for crypto promotions.',
-          outcome: 'FCA required removal of incentive scheme; platform had to amend all promotional materials'
+      content: {
+        learningPoint: 'High-risk investments, cryptoassets, and social media promotions have specific enhanced requirements including prescribed warnings, appropriateness tests, and cooling-off periods.',
+        mainContent: {
+          cards: [
+            {
+              type: 'infogrid',
+              title: 'High-Risk Investment Categories',
+              items: [
+                { icon: '📊', label: 'NRRS', description: 'Non-readily realisable securities' },
+                { icon: '🤝', label: 'P2P', description: 'Peer-to-peer agreements' },
+                { icon: '💎', label: 'Speculative', description: 'Illiquid securities' },
+                { icon: '📦', label: 'Non-Mainstream', description: 'Pooled investments' }
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'High-Risk Investment Requirements',
+              items: [
+                'Enhanced risk warnings (prescribed wording)',
+                'Appropriateness assessments before investment',
+                'Personalised risk warnings where applicable',
+                'No incentives to invest',
+                '24-hour cooling-off period for direct offers'
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'critical',
+              title: 'Cryptoasset Promotions (Oct 2023)',
+              message: 'All crypto promotions to UK consumers must be: made by FCA-authorised firm, approved by authorised firm with gateway permission, or made by MLR-registered crypto business.'
+            },
+            {
+              type: 'keypoint',
+              icon: '₿',
+              title: 'Crypto-Specific Requirements',
+              points: [
+                '"Don\'t invest unless prepared to lose all the money"',
+                'NO incentives (no refer-a-friend, no "free crypto")',
+                'Personalised risk warnings',
+                '24-hour cooling-off period',
+                'Appropriateness assessment'
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'warning',
+              title: 'Social Media & Finfluencers',
+              message: 'Character limits don\'t excuse omitting risk warnings. Risk warnings must appear in the post itself (not just linked). Firms are responsible for content they sponsor - cannot outsource compliance to influencers.'
+            },
+            {
+              type: 'checklist',
+              title: 'Best Practice for Social Media',
+              items: [
+                'Pre-approve all sponsored content',
+                'Include required warnings IN the post',
+                'Monitor what influencers actually post',
+                'Have contracts requiring compliance and right to approve',
+                'Enforce takedown SLAs for non-compliant content'
+              ]
+            }
+          ]
         },
-        {
-          title: 'Finfluencer Warning',
-          description: 'A social media influencer promoted a high-risk investment product without proper authorisation. The post had no risk warnings and emphasised "guaranteed returns".',
-          outcome: 'FCA issued public warning; influencer faced potential prosecution; firm that engaged the influencer investigated'
-        }
-      ]
+        keyConcepts: [
+          { term: 'High-Risk', definition: 'Enhanced warnings, appropriateness, cooling-off' },
+          { term: 'Crypto Promotions', definition: 'In scope of COBS 4 from Oct 2023' },
+          { term: 'Finfluencer', definition: 'Firm responsible for sponsored content compliance' }
+        ],
+        realExamples: [
+          'Crypto Incentive Breach: Platform offered "£50 free Bitcoin" for referrals - FCA required removal, all promotional materials amended',
+          'Finfluencer Warning: Influencer promoted high-risk product with "guaranteed returns", no warnings - FCA public warning, investigation'
+        ],
+        regulatoryRequirements: [
+          'COBS 4.12A - High-risk investments',
+          'PS22/10 - Cryptoasset promotions',
+          'FCA guidance on finfluencers'
+        ]
+      }
     }
   ],
   practiceScenarios: [

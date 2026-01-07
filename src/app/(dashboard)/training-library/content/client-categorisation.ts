@@ -130,206 +130,311 @@ export const clientCategorisationModule: TrainingModule = {
     },
     {
       id: 'retail-professional-ecp',
-      title: 'Retail vs Professional vs Eligible Counterparty – Getting it Right',
+      title: 'Retail vs Professional vs ECP',
+      type: 'content',
       duration: 25,
-      content: `**Retail Clients**
-
-Retail is the default classification unless the firm can clearly demonstrate that criteria for professional or ECP status are met. For individuals and SMEs, firms should be cautious about "opt-up" to professional or ECP status given interaction with Consumer Duty protections.
-
-**Professional Clients – Per Se vs Elective**
-
-**Per se professional clients (COBS 3.5.2R)** include:
-- Regulated entities (investment firms, credit institutions, insurers, etc.)
-- Large undertakings meeting specified size / balance sheet criteria
-- National / regional governments and certain public bodies
-
-**Elective professional clients** - A client that is not per se professional may be treated as professional ONLY if:
-1. The firm undertakes an adequate assessment of the client's expertise, experience and knowledge and concludes they can make their own investment decisions and understand the risks
-2. The client formally requests to be treated as professional
-3. The firm gives a clear written warning of the protections the client may lose
-4. The client confirms in writing that they are aware of the consequences
-
-The FCA and recent case law emphasise that firms must go beyond simple "tick-box" forms and actually test that the client meets the criteria.
-
-**Eligible Counterparties (ECPs)**
-
-COBS 3.6 covers eligible counterparties:
-- Per se ECPs include investment firms, credit institutions, authorised insurers and certain institutional investors
-- Elective ECPs: some per se professional clients can be opted up to ECP status for ECP business, subject to conditions and a documented process
-
-Only certain transaction types qualify as eligible counterparty business; for other services, the client must be treated as professional or retail.
-
-**Providing a Higher Level of Protection / Re-categorisation**
-
-COBS 3.7 requires firms to:
-- Allow a professional client or ECP to request a higher level of protection (e.g. be treated as retail)
-- Notify such clients of their right to request re-categorisation
-- Optionally treat a client as more protected than required on the firm's own initiative
-
-The FCA's latest COBS 3 updates make it even clearer that firms can "opt up protection" where appropriate and that clients incorrectly categorised as professional are, in law, retail clients.`,
-      keyConcepts: [
-        'Retail is the default – burden is on firm to prove otherwise',
-        'Per se professionals meet criteria automatically (regulated entities, large undertakings)',
-        'Elective professional requires: assessment, request, warning, confirmation',
-        'ECP status only applies to eligible counterparty business',
-        'Clients have right to request higher protection (re-categorisation)',
-        'Incorrectly categorised clients are retail in law regardless of paperwork'
-      ],
-      realExamples: [
-        {
-          title: 'Failed Elective Professional',
-          description: 'A corporate finance firm treated an SME as elective professional based on a simple self-certification form. The FCA found the firm had not conducted an adequate assessment of the client\'s actual expertise and experience.',
-          outcome: 'The client was deemed a retail client in law, exposing the firm to potential conduct breaches'
+      content: {
+        learningPoint: 'Understand when to apply each category and the consequences of incorrect categorisation.',
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'critical',
+              title: 'Retail is the Default',
+              message: 'Burden is on the FIRM to prove otherwise. Incorrectly categorised clients are retail in law regardless of paperwork.'
+            },
+            {
+              type: 'checklist',
+              title: 'Per Se Professional Clients (COBS 3.5.2R)',
+              items: [
+                'Regulated entities (investment firms, credit institutions)',
+                'Large undertakings meeting size criteria',
+                'National/regional governments',
+                'Certain public bodies'
+              ]
+            },
+            {
+              type: 'process',
+              steps: [
+                { number: 1, title: 'Assessment', description: 'Adequate assessment of expertise/knowledge' },
+                { number: 2, title: 'Request', description: 'Client formally requests professional status' },
+                { number: 3, title: 'Warning', description: 'Clear written warning of lost protections' },
+                { number: 4, title: 'Confirmation', description: 'Client confirms awareness of consequences' }
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'warning',
+              title: 'Beyond Tick-Box',
+              message: 'FCA and case law emphasise firms must actually TEST that client meets criteria - not just get forms signed.'
+            },
+            {
+              type: 'keypoint',
+              icon: '🏦',
+              title: 'Eligible Counterparties',
+              points: [
+                'Per se: investment firms, credit institutions, insurers',
+                'Elective: per se professionals opted up',
+                'Only for ECP business types',
+                'Other services = professional or retail'
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'Re-categorisation Rights (COBS 3.7)',
+              items: [
+                'Allow request for higher protection',
+                'Notify clients of this right',
+                'Firm can opt up protection voluntarily'
+              ]
+            }
+          ]
         },
-        {
-          title: 'Re-categorisation Request',
-          description: 'A professional client whose treasury team was disbanded requested to be treated as retail. The firm properly assessed the request and updated their categorisation.',
-          outcome: 'Full retail protections now apply including enhanced suitability requirements'
-        }
-      ]
+        keyConcepts: [
+          { term: 'Per Se', definition: 'Automatic professional status by criteria' },
+          { term: 'Elective', definition: 'Opt-up requiring assessment and process' },
+          { term: 'Re-categorisation', definition: 'Right to request higher protection' }
+        ],
+        realExamples: [
+          'SME self-certified as professional but FCA found inadequate assessment = retail in law',
+          'Professional client lost treasury team and requested retail = full protections apply'
+        ],
+        regulatoryRequirements: [
+          'COBS 3.5.2R - Per se professional criteria',
+          'COBS 3.6 - Eligible counterparty rules',
+          'COBS 3.7 - Re-categorisation rights'
+        ]
+      }
     },
     {
       id: 'elective-professional-evidence',
       title: 'Elective Professional Tests and Evidence Packs',
+      type: 'content',
       duration: 20,
-      content: `Elective professional categorisation is one of the highest-risk areas for FCA scrutiny. Firms must evidence that a client genuinely meets the COBS 3.5 test, not just sign a form.
-
-**The Three-Part Elective Test**
-The client must meet at least two of the following:
-1. **Transaction Frequency** – carried out significant transactions in relevant markets at an average frequency of 10 per quarter over the last four quarters.
-2. **Portfolio Size** – financial instrument portfolio exceeds EUR 500,000.
-3. **Professional Experience** – worked in the financial sector for at least one year in a professional position requiring knowledge of relevant transactions or services.
-
-**Evidence Standards**
-- Documented proof of transaction history or portfolio size
-- Confirmation of professional experience (role, employer, duties)
-- Clear file note of how criteria were assessed and met
-- Written warnings of protections lost and client acknowledgement
-
-**Common Failures**
-- Reliance on client self-certification alone
-- Missing evidence for transaction frequency or portfolio value
-- Generic disclosures without explicit loss-of-protection warnings
-- No review of continued eligibility as circumstances change`,
-      keyConcepts: [
-        'Elective professional status requires evidence, not just consent',
-        'Two out of three criteria must be met and documented',
-        'Warnings and acknowledgements must be explicit and recorded',
-        'Eligibility should be reviewed over time'
-      ],
-      realExamples: [
-        {
-          title: 'Weak Evidence File',
-          description: 'A firm categorised a client as elective professional based on a questionnaire with no supporting transaction data.',
-          outcome: 'FCA required recategorisation to retail and remediation of affected transactions'
+      content: {
+        learningPoint: 'Elective professional categorisation is one of the highest-risk areas for FCA scrutiny. Firms must evidence that a client genuinely meets the COBS 3.5 test.',
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'critical',
+              title: 'High Risk Area',
+              message: 'Elective professional categorisation attracts intense FCA scrutiny. Firms must evidence the client genuinely meets COBS 3.5 tests - a signed form alone is never sufficient.'
+            },
+            {
+              type: 'checklist',
+              title: 'Two of Three Criteria Required (COBS 3.5)',
+              items: [
+                'Transaction Frequency: 10+ significant transactions per quarter over 4 quarters',
+                'Portfolio Size: Financial instrument portfolio exceeds €500,000',
+                'Professional Experience: 1+ year in financial sector role requiring relevant knowledge'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '📋',
+              title: 'Evidence Standards',
+              points: [
+                'Documented proof of transaction history or portfolio size',
+                'Confirmation of professional experience (role, employer, duties)',
+                'Clear file note of how criteria were assessed and met',
+                'Written warnings of protections lost and client acknowledgement'
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'warning',
+              title: 'Common Failures',
+              message: 'Reliance on client self-certification alone, missing evidence for transaction frequency/portfolio value, generic disclosures without explicit loss-of-protection warnings, no review of continued eligibility.'
+            },
+            {
+              type: 'infogrid',
+              title: 'Evidence Pack Contents',
+              items: [
+                { icon: '📊', label: 'Transaction Data', description: 'Documented trade history' },
+                { icon: '💰', label: 'Portfolio Proof', description: 'Statements showing €500k+' },
+                { icon: '👔', label: 'Role Verification', description: 'Employment confirmation' },
+                { icon: '⚠️', label: 'Warning Letter', description: 'Explicit lost protections' },
+                { icon: '✍️', label: 'Acknowledgement', description: 'Client confirmation' },
+                { icon: '📁', label: 'File Note', description: 'Assessment rationale' }
+              ]
+            }
+          ]
         },
-        {
-          title: 'Robust Evidence Pack',
-          description: 'A firm documented portfolio statements, transaction history and role verification before approval.',
-          outcome: 'Categorisation decision withstood FCA review'
-        }
-      ]
+        keyConcepts: [
+          { term: 'Elective Professional', definition: 'Status requiring evidence, not just consent' },
+          { term: 'Two of Three', definition: 'Criteria threshold that must be documented' },
+          { term: 'Eligibility Review', definition: 'Ongoing review as circumstances change' }
+        ],
+        realExamples: [
+          'Weak Evidence File: Firm categorised client based on questionnaire alone - FCA required recategorisation to retail',
+          'Robust Evidence Pack: Firm documented portfolio statements, transaction history and role verification - withstood FCA review'
+        ],
+        regulatoryRequirements: [
+          'COBS 3.5 - Elective professional client criteria',
+          'COBS 3.5.3R - Quantitative criteria for opt-up',
+          'COBS 3.5.4R - Assessment and warning requirements'
+        ]
+      }
     },
     {
       id: 'categorisation-impacts',
       title: 'Impact on Suitability, Disclosure and Duty',
+      type: 'content',
       duration: 20,
-      content: `Client categorisation changes the entire compliance perimeter. Mis-categorisation cascades into breaches across multiple COBS requirements.
-
-**Key Impacts**
-- **Suitability (COBS 9A):** mandatory for retail clients receiving advice
-- **Appropriateness (COBS 10A):** required for non-advised complex products for retail clients
-- **Disclosure rules:** retail clients receive the highest standards of disclosure and clarity
-- **Consumer Duty scope:** retail clients are fully within the Duty; professional and ECPs may have reduced protections depending on activity
-
-**Why This Matters**
-- If a client is wrongly treated as professional, they are still retail in law
-- Firms can face FOS and FCA findings for unsuitable recommendations or poor disclosures
-- Firms may need to remediate entire cohorts if categorisation is flawed
-
-**Good Practice**
-- Link categorisation data to advice and sales workflows
-- Use automated checks so retail protections cannot be bypassed
-- Ensure compliance review for any changes in category`,
-      keyConcepts: [
-        'Mis-categorised clients are treated as retail in law',
-        'Suitability and appropriateness requirements flow from category',
-        'Consumer Duty protections are strongest for retail clients',
-        'Disclosure rules are stricter for retail clients'
-      ],
-      realExamples: [
-        {
-          title: 'Cascade Failure',
-          description: 'A firm classified SMEs as professional, skipped suitability, and later faced multiple FOS findings.',
-          outcome: 'Remediation and client re-categorisation across the portfolio'
+      content: {
+        learningPoint: 'Client categorisation changes the entire compliance perimeter. Mis-categorisation cascades into breaches across multiple COBS requirements.',
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'critical',
+              title: 'Cascade Effect',
+              message: 'Categorisation determines which COBS rules apply. Get it wrong and you trigger systematic breaches across suitability, appropriateness, disclosure, and Consumer Duty requirements.'
+            },
+            {
+              type: 'infogrid',
+              title: 'Key Regulatory Impacts by Category',
+              items: [
+                { icon: '📋', label: 'Suitability (COBS 9A)', description: 'Mandatory for retail advice' },
+                { icon: '⚖️', label: 'Appropriateness (10A)', description: 'Retail complex products' },
+                { icon: '📄', label: 'Disclosure Rules', description: 'Highest for retail' },
+                { icon: '🛡️', label: 'Consumer Duty', description: 'Full scope for retail' }
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '⚠️',
+              title: 'Why This Matters',
+              points: [
+                'Wrongly treated as professional = still retail in law',
+                'FOS and FCA findings for unsuitable recommendations',
+                'Firms may remediate entire cohorts if categorisation flawed',
+                'Legal exposure regardless of signed documentation'
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'Good Practice Controls',
+              items: [
+                'Link categorisation data to advice and sales workflows',
+                'Use automated checks so retail protections cannot be bypassed',
+                'Ensure compliance review for any changes in category',
+                'Build categorisation checks into CRM systems'
+              ]
+            },
+            {
+              type: 'process',
+              steps: [
+                { number: 1, title: 'Category Determines Rules', description: 'Retail = COBS 9A suitability required' },
+                { number: 2, title: 'Workflow Integration', description: 'System enforces correct protections' },
+                { number: 3, title: 'Audit Trail', description: 'Document compliance at each step' }
+              ]
+            }
+          ]
         },
-        {
-          title: 'Workflow Safeguards',
-          description: 'A firm integrated categorisation into CRM so retail protections were enforced at every step.',
-          outcome: 'Reduced compliance errors and clearer audit trail'
-        }
-      ]
+        keyConcepts: [
+          { term: 'Cascade Breach', definition: 'Single categorisation error triggers multiple rule breaches' },
+          { term: 'In Law = Retail', definition: 'Mis-categorised clients treated as retail regardless of paperwork' },
+          { term: 'Workflow Integration', definition: 'Automated enforcement of category-based protections' }
+        ],
+        realExamples: [
+          'Cascade Failure: Firm classified SMEs as professional, skipped suitability - faced multiple FOS findings and full remediation',
+          'Workflow Safeguards: Firm integrated categorisation into CRM - reduced errors and clear audit trail'
+        ],
+        regulatoryRequirements: [
+          'COBS 9A - Suitability (retail clients)',
+          'COBS 10A - Appropriateness (non-advised complex products)',
+          'Consumer Duty - Full scope for retail clients'
+        ]
+      }
     },
     {
       id: 'governance-records-fca-review',
       title: 'Governance, Records and FCA Expectations (2025 Review)',
+      type: 'content',
       duration: 20,
-      content: `**Policies, Procedures and Records**
-
-COBS 3.8 requires firms to have policies, procedures and records for client categorisation.
-
-Best practice (aligned to the 2025 FCA review) includes:
-
-**Clear Categorisation Policy setting out:**
-- Default categories
-- When and how clients may be treated as professional or ECP
-- Approval levels for elective categorisations
-
-**Documented Assessments:**
-For each elective professional / ECP, a file note showing:
-- How the client meets the relevant COBS 3 tests
-- Evidence considered (e.g. deal history, financial sophistication)
-- Use of standard forms is fine, but substance matters
-
-**Periodic Review** of categorisations, especially where a client's circumstances or business model may have changed.
-
-**FCA 2025 Multi-Firm Review – Key Findings**
-
-The FCA's October 2025 multi-firm review of corporate finance firms found:
-
-- **Inadequate evidence** for elective professional status (e.g. over-reliance on self-certification questionnaires)
-- Misunderstanding that clients could "sign away" rights; the FCA reiterated that if COBS 3.5 criteria are not met, the client remains a retail client regardless of terms of business wording
-- Weak governance around categorisation decisions and limited QA / file checking
-
-The FCA has signalled plans to modernise COBS 3 and simplify aspects of client categorisation, but still emphasises robust, evidenced classification and protection for less-sophisticated clients.
-
-**Interaction with Consumer Duty and Suitability**
-
-Client categorisation affects:
-- Whether and how Consumer Duty applies – many protections focus on retail customers
-- Whether the firm owes suitability obligations (COBS 9A) or appropriateness tests (COBS 10A)
-
-Mis-categorisation can cascade into systemic breaches of suitability, disclosure and Duty requirements – a key risk the FCA is now actively supervising.`,
-      keyConcepts: [
-        'COBS 3.8 requires policies, procedures and records for categorisation',
-        'Document assessments showing how client meets COBS 3 tests',
-        'FCA 2025 review found weak evidence and tick-box approaches',
-        'Clients cannot "sign away" retail rights if criteria not met',
-        'Categorisation drives suitability vs appropriateness obligations',
-        'Mis-categorisation creates systemic conduct breach risk'
-      ],
-      realExamples: [
-        {
-          title: 'Good Practice Documentation',
-          description: 'A firm maintains a defined categorisation memo template that requires relationship managers to explain: (1) how the client meets COBS 3.5 tests, (2) evidence reviewed, (3) sign-off from compliance.',
-          outcome: 'Robust audit trail that can withstand regulatory scrutiny'
+      content: {
+        learningPoint: 'COBS 3.8 requires firms to have policies, procedures and records for client categorisation. The FCA\'s 2025 multi-firm review identified common weaknesses.',
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'info',
+              title: 'COBS 3.8 Requirements',
+              message: 'Firms must maintain policies, procedures and records for client categorisation. This is not optional - it\'s a regulatory requirement subject to FCA review.'
+            },
+            {
+              type: 'checklist',
+              title: 'Clear Categorisation Policy Must Include',
+              items: [
+                'Default categories and how they are assigned',
+                'When and how clients may be treated as professional or ECP',
+                'Approval levels for elective categorisations',
+                'Re-categorisation process and notification requirements'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '📝',
+              title: 'Documented Assessments Required',
+              points: [
+                'File note showing how client meets COBS 3 tests',
+                'Evidence considered (deal history, financial sophistication)',
+                'Standard forms acceptable but substance matters',
+                'Compliance sign-off on elective categorisations'
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'critical',
+              title: 'FCA 2025 Multi-Firm Review Findings',
+              message: 'Inadequate evidence for elective professional status, over-reliance on self-certification, misunderstanding that clients can "sign away" rights, weak governance and limited QA/file checking.'
+            },
+            {
+              type: 'stat',
+              value: 'Oct 2025',
+              label: 'FCA Multi-Firm Review',
+              description: 'Corporate finance firms found with weak categorisation controls',
+              color: 'red'
+            },
+            {
+              type: 'keypoint',
+              icon: '🔄',
+              title: 'Periodic Review Requirements',
+              points: [
+                'Review categorisations as client circumstances change',
+                'Monitor for changes in business model or sophistication',
+                'Document reasons for maintaining or changing category',
+                'FCA planning COBS 3 modernisation but robust evidence still required'
+              ]
+            },
+            {
+              type: 'process',
+              steps: [
+                { number: 1, title: 'Policy', description: 'Clear categorisation policy with approval levels' },
+                { number: 2, title: 'Assessment', description: 'Documented evidence against COBS 3 criteria' },
+                { number: 3, title: 'QA Check', description: 'Compliance review and sign-off' },
+                { number: 4, title: 'Periodic Review', description: 'Ongoing monitoring of eligibility' }
+              ]
+            }
+          ]
         },
-        {
-          title: 'Cascading Breach',
-          description: 'A firm incorrectly categorised multiple clients as professional. This meant they didn\'t conduct full suitability assessments or provide required disclosures. The FCA found systematic breaches across multiple COBS requirements.',
-          outcome: 'Enforcement action for multiple conduct rule breaches'
-        }
-      ]
+        keyConcepts: [
+          { term: 'COBS 3.8', definition: 'Requirement for policies, procedures and records' },
+          { term: 'Sign Away Myth', definition: 'Clients cannot waive retail rights if criteria not met' },
+          { term: 'Systemic Breach', definition: 'Mis-categorisation cascades to suitability/disclosure failures' }
+        ],
+        realExamples: [
+          'Good Practice: Firm uses defined categorisation memo template with COBS 3.5 analysis, evidence list, and compliance sign-off - withstands regulatory scrutiny',
+          'Cascading Breach: Firm mis-categorised multiple clients as professional, skipped suitability - FCA enforcement action for multiple COBS breaches'
+        ],
+        regulatoryRequirements: [
+          'COBS 3.8 - Policies, procedures and records',
+          'FCA 2025 Multi-Firm Review expectations',
+          'Consumer Duty interaction with categorisation'
+        ]
+      }
     }
   ],
   practiceScenarios: [

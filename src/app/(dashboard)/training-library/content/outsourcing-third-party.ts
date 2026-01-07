@@ -50,302 +50,374 @@ export const outsourcingThirdPartyModule: TrainingModule = {
     {
       id: 'regulatory-framework-sysc',
       title: 'Regulatory Framework – SYSC, Outsourcing & Operational Resilience',
+      type: 'content',
       duration: 25,
-      content: `**SYSC 3 & SYSC 8 – Outsourcing Foundations**
-
-The FCA's Senior Management Arrangements, Systems and Controls (SYSC) sourcebook sets the core rules:
-
-**SYSC 3** – Firms must have systems and controls appropriate to their business and risks, including where activities are outsourced.
-
-**SYSC 8** – For many firms (common platform firms), outsourcing must be arranged so that the firm:
-- Takes reasonable steps to **avoid undue operational risk**
-- Does not outsource functions in a way that would **impair the quality of internal controls**
-- Does not impair the FCA's ability to **supervise** the firm
-
-**Critical principle: Regulatory responsibilities remain with the firm**, even where third parties perform key functions such as compliance support, IT and customer service.
-
-**Material Outsourcing**
-For critical or important outsourced functions, firms should document:
-- Why the function is material
-- How the arrangement supports important business services
-- The risk assessment and mitigation plan
-
-Regulators may expect notification or engagement for material arrangements, depending on the firm type and sector rules.
-
-**Outsourcing vs Other Third-Party Arrangements**
-
-The FCA distinguishes:
-
-- **Outsourcing** – where a service provider performs a process, service or activity that would otherwise be undertaken by the firm itself
-- **Other third-party arrangements** – services that support the firm (e.g. utilities, telecoms) but are not strictly outsourcing
-
-The operational resilience regime expects firms to consider **both**, particularly where either supports an important business service.
-
-**Operational Resilience (SYSC 15A) – Important Business Services & Impact Tolerances**
-
-PS21/3 and SYSC 15A require firms to:
-
-- Identify **important business services** – services provided by the firm or on its behalf which, if disrupted, could cause intolerable harm to clients or risk to market integrity
-- Set **impact tolerances** – the maximum tolerable level of disruption for each important service
-- Map people, processes, technology, facilities and **third parties** that support each important business service
-
-SYSC 15A explicitly notes that where a firm relies on a third party for an important business service, it should work with that third party to ensure scenario testing is realistic and credible.`,
-      keyConcepts: [
-        'SYSC 3: systems and controls must cover outsourced activities',
-        'SYSC 8: avoid undue operational risk, don\'t impair controls or FCA supervision',
-        'Regulatory responsibilities remain with the firm – cannot be outsourced',
-        'Distinguish outsourcing from other third-party arrangements',
-        'SYSC 15A: identify important business services, set impact tolerances',
-        'Map all dependencies including third parties',
-        'Work with third parties on realistic scenario testing'
-      ],
-      realExamples: [
-        {
-          title: 'Cloud Provider Outage',
-          description: 'A firm\'s customer portal was hosted entirely on one cloud provider. A regional outage took it down for four hours. The firm argued the provider was responsible.',
-          outcome: 'FCA found the firm remained accountable for operational resilience of its important business service regardless of where it was hosted'
+      content: {
+        learningPoint: 'The FCA\'s SYSC sourcebook sets outsourcing rules. Regulatory responsibilities cannot be outsourced - they remain with the firm.',
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'critical',
+              title: 'Critical Principle',
+              message: 'Regulatory responsibilities remain with the firm, even where third parties perform key functions like compliance, IT, and customer service. You can outsource activity but NOT accountability.'
+            },
+            {
+              type: 'infogrid',
+              title: 'SYSC Foundations',
+              items: [
+                { icon: '📋', label: 'SYSC 3', description: 'Systems and controls for all activities' },
+                { icon: '⚙️', label: 'SYSC 8', description: 'Outsourcing-specific rules' },
+                { icon: '🛡️', label: 'SYSC 15A', description: 'Operational resilience' }
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'SYSC 8 Requirements - Outsourcing Must',
+              items: [
+                'Avoid undue operational risk',
+                'Not impair quality of internal controls',
+                'Not impair FCA\'s ability to supervise the firm'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '📁',
+              title: 'Material Outsourcing Documentation',
+              points: [
+                'Why the function is material',
+                'How it supports important business services',
+                'Risk assessment and mitigation plan',
+                'Regulators may expect notification'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '🎯',
+              title: 'SYSC 15A - Operational Resilience',
+              points: [
+                'Identify important business services (IBS)',
+                'Set impact tolerances for each IBS',
+                'Map people, processes, technology, third parties',
+                'Work with third parties on realistic scenario testing'
+              ]
+            }
+          ]
         },
-        {
-          title: 'Compliance Function Outsourcing',
-          description: 'A firm outsourced its compliance monitoring to a third party and reduced internal oversight. When issues emerged, the firm claimed the provider was at fault.',
-          outcome: 'FCA held the firm responsible – regulatory responsibilities cannot be delegated even when compliance functions are outsourced'
-        }
-      ]
+        keyConcepts: [
+          { term: 'SYSC 8', definition: 'Core outsourcing rules - avoid risk, maintain controls' },
+          { term: 'IBS', definition: 'Important Business Service - disruption causes intolerable harm' },
+          { term: 'Impact Tolerance', definition: 'Maximum acceptable disruption level' }
+        ],
+        realExamples: [
+          'Cloud Outage: Firm argued provider was responsible for 4-hour outage - FCA found firm remained accountable for operational resilience',
+          'Compliance Outsourcing: Firm reduced internal oversight - FCA held firm responsible, regulatory duties cannot be delegated'
+        ],
+        regulatoryRequirements: [
+          'SYSC 3 - Systems and controls',
+          'SYSC 8 - Outsourcing arrangements',
+          'SYSC 15A - Operational resilience'
+        ]
+      }
     },
     {
       id: 'cloud-ctps-lifecycle',
       title: 'Cloud, CTPs and the Outsourcing Lifecycle',
+      type: 'content',
       duration: 25,
-      content: `**Cloud and IT Outsourcing – FG16/5 & EBA Guidelines**
-
-FCA Guidance FG16/5 clarifies how existing outsourcing rules apply when using cloud and other third-party IT services. Key themes:
-
-- **Risk-based, proportionate approach** – controls should reflect the criticality and risk of the outsourced service
-
-**Clear expectations for:**
-- **Data security and confidentiality** (including location and access)
-- **Business continuity and exit** – avoiding lock-in and ensuring recoverability
-- **Audit and access rights** – including regulators' access where appropriate
-
-**Shared Responsibility Model**
-- The provider secures the platform, but the firm remains accountable for data access, configuration, and monitoring
-- Misconfiguration is still a firm risk, not a provider excuse
-
-The EBA Guidelines on outsourcing arrangements remain a useful benchmark for good practice around critical functions, governance, due diligence and exit planning.
-
-**Critical Third Parties (CTPs) – Emerging UK Regime**
-
-New powers via FSMA 2023 allow regulators to designate certain providers as **critical third parties** to the UK financial sector. Policy Statement PS24/16 and Supervisory Statement SS6/24 set out oversight of systemic third-party risk.
-
-Key points:
-- Regime manages systemic risks from large technology and cloud providers supporting many firms
-- Regulators can set resilience requirements directly on designated CTPs
-- **Individual firms still remain responsible** for their own outsourcing and resilience arrangements
-
-**The Outsourcing Lifecycle – A Practical Blueprint**
-
-**1. Classification & Risk Assessment**
-- Decide whether the arrangement is outsourcing
-- Assess if function is critical/important or supports an important business service
-- Assess risks: operational, conduct, data, concentration, jurisdiction, CTP exposure
-
-**2. Due Diligence**
-- Assess provider's financial health, governance, security controls, resilience
-- For cloud/IT, consider FG16/5 factors: data location, recovery, exit options
-
-**3. Contracting**
-- Service levels aligned to impact tolerances
-- Data protection, audit/access rights (including regulators)
-- Incident notification, escalation, remediation and termination
-
-**4. Ongoing Oversight and Testing**
-- Monitor performance and incidents
-- Integrate into operational resilience scenario testing (including provider failure)
-
-**5. Exit and Substitution**
-- Maintain exit plans for critical services
-- Include data migration and alternative providers or insourced solutions
-- Test feasibility where risk profile justifies`,
-      keyConcepts: [
-        'FG16/5: risk-based approach to cloud outsourcing',
-        'Cloud contracts: data security, audit rights, exit provisions',
-        'CTP regime: regulators can oversee systemically important providers',
-        'Firms remain responsible regardless of CTP designation',
-        'Outsourcing lifecycle: classify, due diligence, contract, oversee, exit',
-        'Exit plans must be practical and tested',
-        'Concentration risk requires mapping and mitigation'
-      ],
-      realExamples: [
-        {
-          title: 'CTP Concentration Risk',
-          description: 'Multiple firms discovered they all relied on the same cloud provider for core services. A single provider outage affected a significant portion of the sector.',
-          outcome: 'Regulators accelerated CTP regime development; firms required to map concentration risk and consider diversification'
+      content: {
+        learningPoint: 'FG16/5 sets cloud outsourcing expectations. The CTP regime allows regulators to oversee systemically important providers, but firms remain responsible.',
+        mainContent: {
+          cards: [
+            {
+              type: 'checklist',
+              title: 'FG16/5 Cloud Outsourcing Expectations',
+              items: [
+                'Risk-based, proportionate controls',
+                'Data security and confidentiality (location, access)',
+                'Business continuity and exit - avoid lock-in',
+                'Audit and access rights (including regulators)'
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'warning',
+              title: 'Shared Responsibility Model',
+              message: 'Provider secures the platform, but firm remains accountable for data access, configuration, and monitoring. Misconfiguration is YOUR risk, not a provider excuse.'
+            },
+            {
+              type: 'keypoint',
+              icon: '🏛️',
+              title: 'Critical Third Parties (CTPs) - PS24/16',
+              points: [
+                'Regulators can designate systemically important providers',
+                'Direct resilience requirements on designated CTPs',
+                'Individual firms STILL remain responsible',
+                'CTP designation doesn\'t remove firm accountability'
+              ]
+            },
+            {
+              type: 'process',
+              steps: [
+                { number: 1, title: 'Classify', description: 'Is it outsourcing? Is it critical?' },
+                { number: 2, title: 'Due Diligence', description: 'Assess provider health, security, resilience' },
+                { number: 3, title: 'Contract', description: 'SLAs, audit rights, exit provisions' },
+                { number: 4, title: 'Oversee', description: 'Monitor performance, test scenarios' },
+                { number: 5, title: 'Exit', description: 'Maintain tested exit plans' }
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'critical',
+              title: 'Exit Plans Must Be Tested',
+              message: 'A theoretical exit plan is not enough. Include data migration, alternative providers, and insource options. Test feasibility - don\'t wait for a crisis to find gaps.'
+            }
+          ]
         },
-        {
-          title: 'Exit Plan Failure',
-          description: 'A firm\'s IT provider announced market exit with 12 months notice. The firm\'s exit plan was theoretical and had never been tested.',
-          outcome: 'Significant disruption during rushed migration; FCA questioned adequacy of exit planning and testing'
-        }
-      ]
+        keyConcepts: [
+          { term: 'FG16/5', definition: 'FCA cloud outsourcing guidance' },
+          { term: 'CTP', definition: 'Critical Third Party - systemically important provider' },
+          { term: 'Exit Plan', definition: 'Documented, tested transition approach' }
+        ],
+        realExamples: [
+          'CTP Concentration: Multiple firms relied on same cloud provider - single outage affected entire sector - accelerated CTP regime',
+          'Exit Plan Failure: Provider announced market exit, firm\'s untested plan caused significant disruption'
+        ],
+        regulatoryRequirements: [
+          'FG16/5 - Cloud outsourcing guidance',
+          'PS24/16 - Critical third parties regime',
+          'EBA Guidelines on outsourcing'
+        ]
+      }
     },
     {
       id: 'third-party-risk-assessment',
       title: 'Third-Party Risk Assessment and Materiality',
+      type: 'content',
       duration: 20,
-      content: `Not all third-party arrangements are equal. Firms must determine materiality and apply proportionate controls based on the service's impact on customers and market integrity.
-
-**Materiality Assessment**
-- Is the service critical to an important business service?
-- Would failure cause intolerable harm to customers?
-- Are there concentration risks with a single provider?
-- Does the provider have access to sensitive data or critical systems?
-
-**Risk Dimensions**
-- Operational risk (availability, resilience, recovery)
-- Conduct risk (customer impact, service quality, complaints)
-- Data risk (location, confidentiality, access controls)
-- Concentration risk (single points of failure across providers)
-
-**Risk Scoring**
-- Document inherent risk and residual risk after controls
-- Use consistent scoring to compare vendors and prioritize remediation
-- Re-score after material changes, incidents, or contract renewals
-
-**Due Diligence Evidence**
-- Financial stability and ownership checks
-- Security certifications, penetration tests, and audit reports
-- Resilience testing results and incident history
-
-**Subcontracting**
-- Map critical subcontractors and fourth parties
-- Ensure contracts allow visibility and audit rights
-- Avoid uncontrolled dependency chains`,
-      keyConcepts: [
-        'Materiality drives the intensity of controls',
-        'Critical services require enhanced oversight',
-        'Concentration risk must be mapped and monitored',
-        'Subcontractor transparency is essential'
-      ],
-      realExamples: [
-        {
-          title: 'Concentration Risk',
-          description: 'Multiple business services depended on the same cloud provider and region.',
-          outcome: 'Firm introduced multi-region architecture and contingency plans'
+      content: {
+        learningPoint: 'Not all third-party arrangements are equal. Determine materiality and apply proportionate controls based on impact on customers and market integrity.',
+        mainContent: {
+          cards: [
+            {
+              type: 'checklist',
+              title: 'Materiality Assessment Questions',
+              items: [
+                'Is service critical to an important business service?',
+                'Would failure cause intolerable harm to customers?',
+                'Are there concentration risks with a single provider?',
+                'Does provider have access to sensitive data or critical systems?'
+              ]
+            },
+            {
+              type: 'infogrid',
+              title: 'Risk Dimensions',
+              items: [
+                { icon: '⚙️', label: 'Operational', description: 'Availability, resilience, recovery' },
+                { icon: '👥', label: 'Conduct', description: 'Customer impact, complaints' },
+                { icon: '🔒', label: 'Data', description: 'Location, confidentiality, access' },
+                { icon: '⚠️', label: 'Concentration', description: 'Single points of failure' }
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '📊',
+              title: 'Risk Scoring',
+              points: [
+                'Document inherent risk and residual risk after controls',
+                'Use consistent scoring to compare vendors',
+                'Prioritize remediation based on scores',
+                'Re-score after material changes, incidents, or renewals'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '🔍',
+              title: 'Due Diligence Evidence',
+              points: [
+                'Financial stability and ownership checks',
+                'Security certifications, penetration tests',
+                'Resilience testing results and incident history',
+                'Audit reports and compliance status'
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'warning',
+              title: 'Subcontracting Visibility',
+              message: 'Map critical subcontractors and fourth parties. Ensure contracts allow visibility and audit rights. Avoid uncontrolled dependency chains.'
+            }
+          ]
         },
-        {
-          title: 'Hidden Subcontractor',
-          description: 'A vendor used a subcontractor for data processing without approval.',
-          outcome: 'Contract updated with approval and audit requirements'
-        }
-      ]
+        keyConcepts: [
+          { term: 'Materiality', definition: 'Drives intensity of controls' },
+          { term: 'Concentration Risk', definition: 'Single points of failure across providers' },
+          { term: 'Fourth Parties', definition: 'Subcontractors of your direct providers' }
+        ],
+        realExamples: [
+          'Concentration Risk: Multiple services depended on same cloud region - firm introduced multi-region architecture',
+          'Hidden Subcontractor: Vendor used unauthorized subcontractor for data - contract updated with approval requirements'
+        ],
+        regulatoryRequirements: [
+          'SYSC 8 - Risk assessment requirements',
+          'FG16/5 - Due diligence expectations',
+          'EBA Guidelines - Subcontracting provisions'
+        ]
+      }
     },
     {
       id: 'ongoing-oversight-exit',
       title: 'Ongoing Oversight, Incident Management and Exit',
+      type: 'content',
       duration: 20,
-      content: `Outsourcing governance does not end at contract signature. Firms must monitor performance, manage incidents, and maintain exit readiness.
-
-**Ongoing Oversight**
-- Regular performance reviews against SLAs and KPIs
-- Incident reporting thresholds aligned to impact tolerances
-- Testing of business continuity and resilience measures
-
-**Performance Management**
-- Define breach thresholds and remediation timelines
-- Record SLA breaches and follow-up actions
-- Escalate repeat issues to senior management and the board
-
-**Incident Management**
-- Clear escalation paths between firm and provider
-- Joint playbooks for severe but plausible scenarios
-- Evidence capture for regulatory reporting and board review
-
-**Exit Planning**
-- Maintain a realistic, tested exit plan for critical services
-- Include data migration, licensing, and operational transition steps
-- Review exit feasibility annually or after material change
-- Define triggers for exit, including control failures or repeated breaches`,
-      keyConcepts: [
-        'Oversight is continuous, not periodic',
-        'Incident response must be coordinated and rehearsed',
-        'Exit planning must be practical and tested',
-        'Evidence trails protect the firm in regulatory scrutiny'
-      ],
-      realExamples: [
-        {
-          title: 'Incident Escalation Gap',
-          description: 'A provider failed to notify the firm within agreed timeframes during an outage.',
-          outcome: 'SLA and escalation procedures were tightened'
+      content: {
+        learningPoint: 'Outsourcing governance does not end at contract signature. Monitor performance, manage incidents, and maintain exit readiness.',
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'info',
+              title: 'Oversight is Continuous',
+              message: 'Governance does not end at contract signature. Regular performance reviews, incident monitoring, and resilience testing are ongoing requirements.'
+            },
+            {
+              type: 'checklist',
+              title: 'Ongoing Oversight Activities',
+              items: [
+                'Regular performance reviews against SLAs and KPIs',
+                'Incident reporting thresholds aligned to impact tolerances',
+                'Testing of business continuity and resilience measures',
+                'Record SLA breaches and follow-up actions'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '🚨',
+              title: 'Incident Management',
+              points: [
+                'Clear escalation paths between firm and provider',
+                'Joint playbooks for severe but plausible scenarios',
+                'Evidence capture for regulatory reporting',
+                'Escalate repeat issues to senior management and Board'
+              ]
+            },
+            {
+              type: 'process',
+              steps: [
+                { number: 1, title: 'Monitor', description: 'Track performance vs SLAs' },
+                { number: 2, title: 'Escalate', description: 'Clear paths for incidents' },
+                { number: 3, title: 'Document', description: 'Evidence for regulators' },
+                { number: 4, title: 'Exit Ready', description: 'Tested plan for transition' }
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'Exit Planning Requirements',
+              items: [
+                'Maintain realistic, tested exit plan for critical services',
+                'Include data migration, licensing, operational transition',
+                'Review feasibility annually or after material change',
+                'Define triggers: control failures, repeated breaches'
+              ]
+            }
+          ]
         },
-        {
-          title: 'Untested Exit Plan',
-          description: 'A firm discovered its exit plan assumed capabilities it did not have.',
-          outcome: 'Exit plan reworked and tested in a controlled exercise'
-        }
-      ]
+        keyConcepts: [
+          { term: 'Continuous Oversight', definition: 'Ongoing, not one-time governance' },
+          { term: 'Joint Playbooks', definition: 'Coordinated incident response plans' },
+          { term: 'Exit Triggers', definition: 'Defined conditions for transition' }
+        ],
+        realExamples: [
+          'Escalation Gap: Provider failed to notify within agreed timeframes - SLA and escalation procedures tightened',
+          'Untested Exit Plan: Firm discovered plan assumed capabilities it didn\'t have - reworked and tested'
+        ],
+        regulatoryRequirements: [
+          'SYSC 8 - Ongoing oversight',
+          'SYSC 15A - Scenario testing',
+          'FG16/5 - Exit planning expectations'
+        ]
+      }
     },
     {
       id: 'consumer-duty-distribution-governance',
       title: 'Consumer Duty, Distribution Chains & Governance',
+      type: 'content',
       duration: 20,
-      content: `**Distribution Chains, Outsourcing and Duty**
-
-The Consumer Duty (PS22/9 and FG22/5) applies across the **distribution chain** – all firms involved in the manufacture, provision, sale and ongoing administration of a product or service to the end retail customer.
-
-Implications:
-- Outsourcing arrangements (customer service, claims handling, collections, marketing, compliance support) that influence outcomes are **in scope**
-- Firms must ensure third parties understand the target market, product design and expected outcomes
-- Information must flow both ways (sharing complaints and MI across the chain)
-
-**You can outsource activity, but you cannot outsource accountability for outcomes.**
-
-**Designing Contracts and Oversight for Duty Outcomes**
-
-Good practice for Duty-aligned outsourcing:
-
-- Embed Consumer Duty outcomes (products/services, price & value, consumer understanding, consumer support) into SLAs and KPIs
-- Require providers to:
-  - Provide MI on customer interactions, complaints, vulnerabilities and service levels
-  - Cooperate in remediation exercises and policy changes
-- Build rights to change processes and scripts to address foreseeable harm or poor outcomes identified via MI
-
-**Outcome Controls**
-- Sample call monitoring and script QA for customer-facing vendors
-- Test communications for clarity and understanding with vulnerable segments
-- Track outcome deltas between in-house and outsourced channels
-
-**Governance, MI and Board Reporting**
-
-Regulators expect third-party resilience and outsourcing to be **board-level issues**.
-
-Boards should receive MI covering:
-- Inventory of critical/important outsourcing arrangements and CTP exposure
-- Third-party incidents, near-misses and performance vs impact tolerances
-- Complaints and outcome metrics where third parties deliver customer-facing services
-- Outcomes for vulnerable customers
-
-Under Consumer Duty, this MI should feed into the **annual Duty Board report**, demonstrating how outsourced functions support or hinder good customer outcomes.`,
-      keyConcepts: [
-        'Consumer Duty applies across the distribution chain',
-        'Outsourcers influencing outcomes are in scope even without direct customer relationship',
-        'Cannot outsource accountability for customer outcomes',
-        'Embed Duty outcomes into SLAs and KPIs',
-        'Require MI on interactions, complaints, vulnerabilities from providers',
-        'Third-party resilience is a board-level issue',
-        'MI feeds Consumer Duty Board reports'
-      ],
-      realExamples: [
-        {
-          title: 'Outsourced Customer Service Failure',
-          description: 'A firm outsourced customer service to a call centre with aggressive cost KPIs. Call handling times dropped but complaint rates and repeat contacts increased.',
-          outcome: 'Consumer Duty review found consumer support outcome failures; firm had to revise SLAs to include quality metrics'
+      content: {
+        learningPoint: 'Consumer Duty applies across the distribution chain. You can outsource activity, but you cannot outsource accountability for outcomes.',
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'critical',
+              title: 'Cannot Outsource Accountability',
+              message: 'Consumer Duty applies across the distribution chain. All firms influencing outcomes are in scope - customer service, claims handling, collections, marketing, compliance support.'
+            },
+            {
+              type: 'checklist',
+              title: 'Distribution Chain Implications',
+              items: [
+                'Outsourcing arrangements influencing outcomes are IN SCOPE',
+                'Third parties must understand target market and expected outcomes',
+                'Information must flow BOTH ways (complaints, MI)',
+                'Cannot outsource accountability for customer outcomes'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '📋',
+              title: 'Duty-Aligned Contracts',
+              points: [
+                'Embed Duty outcomes into SLAs and KPIs',
+                'Require MI on interactions, complaints, vulnerabilities',
+                'Rights to change processes and scripts for harm prevention',
+                'Cooperation requirements for remediation exercises'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '🔍',
+              title: 'Outcome Controls',
+              points: [
+                'Sample call monitoring and script QA',
+                'Test communications with vulnerable segments',
+                'Track outcome deltas: in-house vs outsourced channels',
+                'Monitor consumer support metrics'
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'Board MI Requirements',
+              items: [
+                'Inventory of critical outsourcing and CTP exposure',
+                'Third-party incidents and performance vs tolerances',
+                'Complaints and outcome metrics for customer-facing services',
+                'Outcomes for vulnerable customers'
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'info',
+              title: 'Annual Duty Board Report',
+              message: 'MI on outsourced functions must feed into the annual Consumer Duty Board report, demonstrating how outsourcers support or hinder good customer outcomes.'
+            }
+          ]
         },
-        {
-          title: 'Distribution Chain MI Gap',
-          description: 'A manufacturer relied on distributors but received no MI on customer complaints or outcomes. Issues emerged only when FOS complaints spiked.',
-          outcome: 'Firm required to establish MI sharing agreements across distribution chain to monitor Duty outcomes'
-        }
-      ]
+        keyConcepts: [
+          { term: 'Distribution Chain', definition: 'All firms involved in product lifecycle to end customer' },
+          { term: 'Outcome Controls', definition: 'Monitoring to ensure Duty compliance' },
+          { term: 'Board-Level Issue', definition: 'Third-party resilience requires Board oversight' }
+        ],
+        realExamples: [
+          'Outsourced Service Failure: Call centre with cost KPIs - complaint rates increased - firm revised SLAs to include quality metrics',
+          'Distribution Chain Gap: Manufacturer received no distributor MI - issues emerged only when FOS complaints spiked'
+        ],
+        regulatoryRequirements: [
+          'PS22/9 - Consumer Duty',
+          'FG22/5 - Distribution chain guidance',
+          'SYSC - Board reporting requirements'
+        ]
+      }
     }
   ],
   practiceScenarios: [

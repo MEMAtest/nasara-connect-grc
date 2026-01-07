@@ -50,291 +50,371 @@ export const operationalResilienceModule: TrainingModule = {
     {
       id: 'framework-core-concepts',
       title: 'Framework & Core Concepts – PS21/3, SYSC 15A & SS1/21',
+      type: 'content',
       duration: 25,
-      content: `**What is Operational Resilience?**
-
-The FCA's operational resilience rules aim to ensure firms and the sector can **prevent, adapt and respond to, recover and learn from operational disruption**, so that disruptions do not cause intolerable harm to customers or risk to market integrity.
-
-Key components:
-- Focus is on **outcomes** (continuity of important services), not just internal processes
-- Operational resilience is complementary to, but distinct from, business continuity and IT disaster recovery
-- It is a broader, firm-wide conduct and prudential concept
-
-**Important Business Services (IBS)**
-
-Under SYSC 15A and PS21/3, firms must identify their important business services:
-
-> A service provided by the firm (or by another person on its behalf) to an external end user which, if disrupted, could cause **intolerable levels of harm** to one or more of the firm's clients, or risk to the soundness, stability or resilience of the UK financial system.
-
-Practical implications:
-- Focus on **external customer-facing** services, not every internal process
-- Harm assessed across: number of customers, their characteristics (including vulnerability), duration and nature of disruption, and substitutability
-
-**Examples of IBS:**
-- Access to transaction/payment accounts
-- Initiation and processing of payments or FX
-- Onboarding and authentication for key digital services
-
-**Impact Tolerances**
-
-For each important business service, firms must set at least one **impact tolerance** – the maximum tolerable level of disruption.
-
-Impact tolerances typically include:
-- **Maximum tolerable duration** of disruption (e.g. 2 hours, 1 day)
-- Qualitative/quantitative criteria around:
-  - Volume of customers affected
-  - Type of harm (financial loss, distress, safety)
-  - Critical times (e.g. market cut-offs, payroll dates)
-
-**Key deadline: By 31 March 2025**, firms must be able to operate services within their impact tolerances under severe but plausible scenarios.
-
-**Governance & Review**
-
-SYSC 15A requires firms to keep compliance under review and re-assess IBSs and impact tolerances at least annually and when there is a material change.
-
-Boards must:
-- Approve IBSs, impact tolerances and self-assessment
-- Oversee scenario testing, remediation and investment decisions
-- Integrate operational resilience into risk appetite, strategy and change programmes`,
-      keyConcepts: [
-        'Operational resilience: prevent, adapt, respond, recover and learn from disruption',
-        'Focus on outcomes and continuity of important services',
-        'IBS: services whose disruption could cause intolerable harm',
-        'Impact tolerance: maximum acceptable level of disruption',
-        'March 2025 deadline: operate within tolerances under severe scenarios',
-        'Annual review of IBS and impact tolerances required',
-        'Board approval and oversight mandatory'
-      ],
-      realExamples: [
-        {
-          title: 'IBS Identification',
-          description: 'A firm initially identified 50+ business services. After focusing on external customer impact and harm potential, they refined to 8 true important business services.',
-          outcome: 'More focused resilience investment and meaningful impact tolerances'
+      content: {
+        learningPoint: 'Operational resilience is the ability to prevent, adapt, respond to, recover and learn from operational disruption. Focus is on outcomes - continuity of important services.',
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'info',
+              title: 'What is Operational Resilience?',
+              message: 'The ability to prevent, adapt, respond to, recover and learn from operational disruption so that disruptions do not cause intolerable harm to customers or market integrity.'
+            },
+            {
+              type: 'infogrid',
+              title: 'Key Distinctions',
+              items: [
+                { icon: '🎯', label: 'Focus', description: 'Outcomes, not processes' },
+                { icon: '📋', label: 'vs BCP', description: 'Broader, firm-wide concept' },
+                { icon: '👥', label: 'Scope', description: 'External customer services' }
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '⭐',
+              title: 'Important Business Services (IBS)',
+              points: [
+                'Services whose disruption could cause intolerable harm',
+                'Focus on external customer-facing services',
+                'Examples: account access, payments, onboarding, authentication'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '📊',
+              title: 'Impact Tolerances',
+              points: [
+                'Maximum tolerable level of disruption for each IBS',
+                'Maximum duration (e.g. 2 hours, 1 day)',
+                'Volume of customers affected',
+                'Critical times (market cut-offs, payroll)'
+              ]
+            },
+            {
+              type: 'stat',
+              value: '31 Mar 2025',
+              label: 'Compliance Deadline',
+              description: 'Must operate within tolerances under severe scenarios',
+              color: 'red'
+            },
+            {
+              type: 'checklist',
+              title: 'Board Responsibilities',
+              items: [
+                'Approve IBSs, impact tolerances and self-assessment',
+                'Oversee scenario testing, remediation, investment',
+                'Integrate into risk appetite and strategy',
+                'Annual review required'
+              ]
+            }
+          ]
         },
-        {
-          title: 'Impact Tolerance Setting',
-          description: 'A payments firm set impact tolerance for payment processing at "no more than 4 hours total disruption in any 24-hour period" based on analysis of customer harm, regulatory expectations and operational capabilities.',
-          outcome: 'Clear, measurable tolerance that drove investment in redundancy and monitoring'
-        }
-      ]
+        keyConcepts: [
+          { term: 'Operational Resilience', definition: 'Prevent, adapt, respond, recover, learn' },
+          { term: 'IBS', definition: 'Important Business Service - intolerable harm if disrupted' },
+          { term: 'Impact Tolerance', definition: 'Maximum acceptable disruption level' }
+        ],
+        realExamples: [
+          'IBS Identification: Firm refined 50+ services to 8 true IBS after focusing on customer harm potential',
+          'Impact Tolerance: Payments firm set "no more than 4 hours in any 24-hour period" based on harm analysis'
+        ],
+        regulatoryRequirements: [
+          'PS21/3 - Building Operational Resilience',
+          'SYSC 15A - Operational resilience requirements',
+          'PRA SS1/21 - Operational resilience'
+        ]
+      }
     },
     {
       id: 'impact-tolerances-evidence',
       title: 'Setting Impact Tolerances and Evidence',
+      type: 'content',
       duration: 20,
-      content: `Impact tolerances define the maximum level of disruption you can tolerate for each important business service. They are not aspirational targets; they must be evidence-based and linked to customer harm.
-
-**Setting Impact Tolerances**
-- Define what "intolerable harm" means for your customer base
-- Use quantitative and qualitative measures (time, volume, customer type)
-- Consider critical periods (payroll, market cut-offs, holidays)
-
-**Evidence Expectations**
-- Document the rationale and assumptions behind each tolerance
-- Link tolerances to mapping outputs and scenario testing
-- Show how tolerances were approved and reviewed by the board
-
-**Monitoring for Breaches**
-- Track elapsed downtime and customer impact in real time
-- Record when tolerances are exceeded and why
-- Use breach events to drive remediation and investment decisions`,
-      keyConcepts: [
-        'Impact tolerance is the maximum disruption allowed for a service',
-        'Tolerances must be linked to harm, not convenience',
-        'Board approval and evidence are mandatory',
-        'Breaches require documented remediation'
-      ],
-      realExamples: [
-        {
-          title: 'Evidence-Based Tolerance',
-          description: 'A payments firm set a 2-hour tolerance based on customer harm analysis and settlement cut-offs.',
-          outcome: 'Tolerance was accepted in FCA review due to clear evidence'
+      content: {
+        learningPoint: 'Impact tolerances are not aspirational targets - they must be evidence-based and linked to customer harm.',
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'critical',
+              title: 'Not Aspirational Targets',
+              message: 'Impact tolerances must be evidence-based and linked to actual customer harm potential. They are the maximum disruption you can tolerate, not goals to aim for.'
+            },
+            {
+              type: 'checklist',
+              title: 'Setting Impact Tolerances',
+              items: [
+                'Define what "intolerable harm" means for YOUR customers',
+                'Use quantitative and qualitative measures (time, volume, type)',
+                'Consider critical periods (payroll, market cut-offs, holidays)',
+                'Factor in vulnerable customer impact'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '📋',
+              title: 'Evidence Expectations',
+              points: [
+                'Document rationale and assumptions behind each tolerance',
+                'Link tolerances to mapping outputs and scenario testing',
+                'Show Board approval and review process',
+                'Evidence how tolerances reflect customer harm analysis'
+              ]
+            },
+            {
+              type: 'process',
+              steps: [
+                { number: 1, title: 'Track', description: 'Real-time downtime and customer impact' },
+                { number: 2, title: 'Record', description: 'When tolerances exceeded and why' },
+                { number: 3, title: 'Remediate', description: 'Drive investment decisions from breaches' }
+              ]
+            }
+          ]
         },
-        {
-          title: 'Tolerance Breach Response',
-          description: 'A firm exceeded tolerance during a cyber incident and documented the root cause and remediation plan.',
-          outcome: 'Board approved resilience investment and re-tested controls'
-        }
-      ]
+        keyConcepts: [
+          { term: 'Impact Tolerance', definition: 'Maximum disruption allowed - linked to harm' },
+          { term: 'Evidence-Based', definition: 'Documented rationale and Board approval' },
+          { term: 'Breach Response', definition: 'Documented root cause and remediation' }
+        ],
+        realExamples: [
+          'Evidence-Based Tolerance: Payments firm set 2-hour tolerance based on harm analysis and settlement cut-offs - accepted by FCA',
+          'Tolerance Breach: Firm exceeded tolerance during cyber incident - documented root cause, Board approved investment'
+        ],
+        regulatoryRequirements: [
+          'SYSC 15A - Impact tolerance setting',
+          'PS21/3 - Evidence expectations',
+          'Board approval requirements'
+        ]
+      }
     },
     {
       id: 'mapping-testing-self-assessment',
       title: 'Mapping, Scenario Testing & Self-Assessment',
+      type: 'content',
       duration: 25,
-      content: `**Mapping – Understanding Dependencies**
-
-Firms must identify and map the people, processes, technology, facilities and **third parties** that support each important business service.
-
-Effective mapping should:
-- Show **end-to-end service chains** (front-end channels, middleware, core systems, data stores, third-party services)
-- Highlight **single points of failure** and concentration risks, including cloud and critical providers
-- Support scenario design, impact analysis and remediation planning
-
-The FCA emphasised in 2024 that many firms' mapping was still too shallow, missing key third-party and data dependencies.
-
-**Scenario Testing – Severe but Plausible**
-
-Firms must carry out scenario testing to assess their ability to remain within impact tolerances in the face of severe but plausible disruptions.
-
-**Example scenarios:**
-- Loss of a key data centre or cloud region
-- Prolonged telecommunications outage
-- Cyberattack crippling a core application
-- Payment system or card scheme failure
-- Multi-service disruption (e.g. cyber incident during peak trading)
-
-**FCA expectations:**
-- Increasing sophistication and realism over time (not just paper-based tests)
-- Integration with incident management exercises (simulations, war-games)
-- Clear records of test assumptions, outcomes, breaches of tolerances and remediation actions
-
-**Identifying Vulnerabilities & Remediation**
-
-Scenario testing and mapping should lead to a structured vulnerability remediation plan:
-- Improving resilience engineering (redundancy, failover, data replication)
-- Reducing manual work-arounds that are not scalable under stress
-- Strengthening third-party contracts, exit strategies and monitoring
-- Enhancing monitoring, alerting and incident response runbooks
-
-The FCA's 2024 observations highlighted that many firms had identified vulnerabilities but not yet remediated them or could not evidence progress convincingly.
-
-**Self-Assessment**
-
-Firms in scope must produce and maintain a self-assessment document explaining how they meet the operational resilience requirements.
-
-A good self-assessment:
-- Summarises IBSs, impact tolerances, mapping, scenarios and vulnerabilities
-- Explains governance, decision-making and investment trade-offs
-- Is updated at least annually and after material changes or major incidents
-- Can be presented to regulators on request and used for Board education`,
-      keyConcepts: [
-        'Map people, processes, technology, facilities and third parties',
-        'Show end-to-end service chains and single points of failure',
-        'Scenario testing: severe but plausible disruptions',
-        'Tests should be increasingly realistic, not just paper exercises',
-        'Document test assumptions, outcomes and remediation',
-        'Vulnerability remediation: redundancy, failover, third-party strengthening',
-        'Self-assessment: annual document showing compliance approach'
-      ],
-      realExamples: [
-        {
-          title: 'Mapping Gap Discovery',
-          description: 'During mapping, a firm discovered that multiple IBSs depended on a single internal team that was also a single point of failure for key processes.',
-          outcome: 'Cross-training programme and documented backup procedures implemented'
+      content: {
+        learningPoint: 'Map all dependencies, test severe but plausible scenarios, and maintain a self-assessment document showing compliance approach.',
+        mainContent: {
+          cards: [
+            {
+              type: 'checklist',
+              title: 'Mapping - What to Include',
+              items: [
+                'People, processes, technology, facilities, third parties',
+                'End-to-end service chains (front-end to back-end)',
+                'Single points of failure and concentration risks',
+                'Cloud and critical provider dependencies'
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'warning',
+              title: 'FCA 2024 Finding',
+              message: 'Many firms\' mapping is still too shallow, missing key third-party and data dependencies. Mapping must be comprehensive.'
+            },
+            {
+              type: 'infogrid',
+              title: 'Example Severe but Plausible Scenarios',
+              items: [
+                { icon: '🏢', label: 'Data Centre', description: 'Loss of key DC or cloud region' },
+                { icon: '📡', label: 'Telecoms', description: 'Prolonged outage' },
+                { icon: '💻', label: 'Cyber', description: 'Attack on core application' },
+                { icon: '💳', label: 'Payment', description: 'System or scheme failure' }
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '🧪',
+              title: 'Scenario Testing Expectations',
+              points: [
+                'Increasing sophistication and realism over time',
+                'Not just paper-based tests - simulations and war-games',
+                'Clear records of assumptions, outcomes, breaches',
+                'Integrate with incident management exercises'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '🔧',
+              title: 'Vulnerability Remediation',
+              points: [
+                'Improve resilience engineering (redundancy, failover)',
+                'Reduce manual work-arounds that don\'t scale',
+                'Strengthen third-party contracts and monitoring',
+                'Enhance alerting and incident response runbooks'
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'Self-Assessment Document',
+              items: [
+                'Summarise IBSs, tolerances, mapping, scenarios, vulnerabilities',
+                'Explain governance and investment decisions',
+                'Update at least annually and after major incidents',
+                'Ready to present to regulators on request'
+              ]
+            }
+          ]
         },
-        {
-          title: 'Scenario Test Failure',
-          description: 'A firm\'s scenario test for data centre loss revealed recovery time would exceed impact tolerance by 6 hours due to untested backup restoration.',
-          outcome: 'Investment in improved backup infrastructure and regular restoration testing'
-        }
-      ]
+        keyConcepts: [
+          { term: 'Mapping', definition: 'End-to-end dependencies including third parties' },
+          { term: 'Scenario Testing', definition: 'Severe but plausible disruption simulation' },
+          { term: 'Self-Assessment', definition: 'Annual compliance documentation' }
+        ],
+        realExamples: [
+          'Mapping Gap: Firm found multiple IBSs depended on single team - implemented cross-training and backup procedures',
+          'Scenario Test Failure: Data centre loss test exceeded tolerance by 6 hours - investment in improved backup'
+        ],
+        regulatoryRequirements: [
+          'SYSC 15A - Mapping requirements',
+          'PS21/3 - Scenario testing expectations',
+          'Annual self-assessment requirement'
+        ]
+      }
     },
     {
       id: 'third-party-cyber-integration',
       title: 'Third-Party and Cyber Integration',
+      type: 'content',
       duration: 20,
-      content: `Operational resilience depends on third parties and cyber controls. Firms must integrate vendor dependencies and cyber risk into resilience mapping and testing.
-
-**Third-Party Integration**
-- Map critical suppliers, cloud providers and data processors
-- Include subcontractor dependencies where material
-- Align SLAs to impact tolerances and testing outcomes
-
-**Cyber Resilience**
-- Treat cyber incidents as operational resilience scenarios
-- Test ransomware, data integrity loss and DDoS scenarios
-- Ensure incident response playbooks align with impact tolerances
-
-**Coordination**
-- Run joint exercises with key vendors
-- Share resilience metrics and incident learnings
-- Document responsibilities and escalation routes`,
-      keyConcepts: [
-        'Third-party dependencies must be included in IBS mapping',
-        'Cyber scenarios are mandatory for severe but plausible testing',
-        'Joint exercises improve response realism',
-        'Clear ownership reduces response delays'
-      ],
-      realExamples: [
-        {
-          title: 'Cloud Outage Exercise',
-          description: 'A firm ran a joint test with its cloud provider to simulate a region outage.',
-          outcome: 'Identified recovery gaps and revised failover plans'
+      content: {
+        learningPoint: 'Operational resilience depends on third parties and cyber controls. Integrate vendor dependencies and cyber risk into mapping and testing.',
+        mainContent: {
+          cards: [
+            {
+              type: 'checklist',
+              title: 'Third-Party Integration',
+              items: [
+                'Map critical suppliers, cloud providers, data processors',
+                'Include material subcontractor dependencies',
+                'Align SLAs to impact tolerances',
+                'Test provider failure scenarios'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '🔒',
+              title: 'Cyber Resilience',
+              points: [
+                'Treat cyber incidents as operational resilience scenarios',
+                'Test ransomware, data integrity loss, DDoS scenarios',
+                'Ensure playbooks align with impact tolerances',
+                'Include cyber in severe but plausible testing'
+              ]
+            },
+            {
+              type: 'infogrid',
+              title: 'Cyber Scenarios to Test',
+              items: [
+                { icon: '🔐', label: 'Ransomware', description: 'Core systems encrypted' },
+                { icon: '📊', label: 'Data Integrity', description: 'Corruption or loss' },
+                { icon: '🌐', label: 'DDoS', description: 'Service overwhelmed' }
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '🤝',
+              title: 'Coordination with Vendors',
+              points: [
+                'Run joint exercises with key vendors',
+                'Share resilience metrics and incident learnings',
+                'Document responsibilities and escalation routes',
+                'Include vendors in scenario testing'
+              ]
+            }
+          ]
         },
-        {
-          title: 'Ransomware Scenario',
-          description: 'A simulated ransomware event exceeded tolerance due to manual reconciliation delays.',
-          outcome: 'Automation investment and updated playbooks'
-        }
-      ]
+        keyConcepts: [
+          { term: 'Third-Party Integration', definition: 'Include all vendor dependencies in mapping' },
+          { term: 'Cyber Scenarios', definition: 'Mandatory for severe but plausible testing' },
+          { term: 'Joint Exercises', definition: 'Coordinated testing with key vendors' }
+        ],
+        realExamples: [
+          'Cloud Outage Exercise: Joint test with cloud provider to simulate region outage - identified recovery gaps',
+          'Ransomware Scenario: Simulated event exceeded tolerance due to manual delays - automation investment'
+        ],
+        regulatoryRequirements: [
+          'SYSC 15A - Third-party in mapping',
+          'PS21/3 - Cyber scenario testing',
+          'FG16/5 - Cloud provider requirements'
+        ]
+      }
     },
     {
       id: 'incident-management-learning',
       title: 'Incident Management, Third-Party Failures & Learning',
+      type: 'content',
       duration: 20,
-      content: `**Incident Management Lifecycle**
-
-Operational resilience depends on a robust incident management framework. Sector guidance typically follows:
-
-**1. Detect & Triage**
-- Monitoring, alerts and frontline escalation
-- Clear criteria for declaring an incident and major incident linked to IBSs and impact tolerances
-
-**2. Assess & Mobilise**
-- Rapid assessment of which IBSs are affected, expected duration and customer impact
-- Activation of incident management team and playbooks
-
-**3. Contain & Recover**
-- Technical recovery actions (failover, work-arounds)
-- Operational measures (manual processing, capacity reallocation)
-
-**4. Communicate**
-- Timely, honest communication to customers, partners and staff
-- Regulatory notifications where thresholds are met (Principle 11, major incident reporting)
-
-**5. Learn & Improve**
-- Structured post-incident review feeding into mapping, scenario design, impact tolerances and investment decisions
-
-**Third-Party and CTP Incidents**
-
-Under PS21/3, outsourcing does not remove responsibility: if a third-party provider failure disrupts an important business service, the firm remains accountable for staying within impact tolerances.
-
-Implications:
-- Incident playbooks must explicitly cover third-party failures (e.g. cloud outage, PSP failure)
-- Contracts should include incident notification, cooperation, access to logs and participation in post-incident reviews
-
-**Operational Resilience, Consumer Duty & Customer Communications**
-
-Operational disruption is a key lens for Consumer Duty – particularly consumer support and consumer understanding outcomes.
-
-Good practice:
-- Treat major incidents as **conduct events** as well as technical failures
-- Consider whether vulnerable customers are more severely impacted and require tailored support
-- Use MI from incidents (duration, customers affected, complaints, compensation) in:
-  - Operational resilience governance
-  - Consumer Duty Board reports
-  - Product and journey design changes`,
-      keyConcepts: [
-        'Incident lifecycle: detect, assess, contain, communicate, learn',
-        'Link incident severity to IBS and impact tolerances',
-        'Third-party failures don\'t remove firm responsibility',
-        'Playbooks must cover third-party failure scenarios',
-        'Post-incident review feeds continuous improvement',
-        'Treat major incidents as conduct events',
-        'Consider vulnerable customer impact during incidents'
-      ],
-      realExamples: [
-        {
-          title: 'Effective Incident Response',
-          description: 'A firm\'s payment system failed for 2 hours. Pre-defined playbook was activated within 15 minutes, customer communications went out within 30 minutes, and recovery was completed within tolerance.',
-          outcome: 'Impact tolerance met; post-incident review identified further monitoring improvements'
+      content: {
+        learningPoint: 'Robust incident management is critical to operational resilience. Third-party failures don\'t remove firm responsibility. Treat major incidents as conduct events.',
+        mainContent: {
+          cards: [
+            {
+              type: 'process',
+              steps: [
+                { number: 1, title: 'Detect & Triage', description: 'Monitoring, alerts, escalation criteria' },
+                { number: 2, title: 'Assess & Mobilise', description: 'Which IBSs affected? Activate playbooks' },
+                { number: 3, title: 'Contain & Recover', description: 'Technical recovery, work-arounds' },
+                { number: 4, title: 'Communicate', description: 'Customers, partners, regulators' },
+                { number: 5, title: 'Learn & Improve', description: 'Post-incident review, update mapping' }
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'critical',
+              title: 'Third-Party Failures',
+              message: 'Outsourcing does NOT remove responsibility. If a third-party failure disrupts an IBS, the firm remains accountable for staying within impact tolerances.'
+            },
+            {
+              type: 'checklist',
+              title: 'Third-Party Incident Provisions',
+              items: [
+                'Playbooks must cover third-party failure scenarios',
+                'Contracts include incident notification requirements',
+                'Cooperation and access to logs clauses',
+                'Participation in post-incident reviews'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '👥',
+              title: 'Consumer Duty & Incidents',
+              points: [
+                'Treat major incidents as CONDUCT events, not just technical',
+                'Consider vulnerable customer impact and tailored support',
+                'Use incident MI in Consumer Duty Board reports',
+                'Feed learnings into product and journey design'
+              ]
+            },
+            {
+              type: 'infogrid',
+              title: 'Incident MI for Governance',
+              items: [
+                { icon: '⏱️', label: 'Duration', description: 'How long was service down?' },
+                { icon: '👥', label: 'Customers', description: 'How many affected?' },
+                { icon: '📝', label: 'Complaints', description: 'What issues raised?' },
+                { icon: '💰', label: 'Compensation', description: 'What was paid out?' }
+              ]
+            }
+          ]
         },
-        {
-          title: 'Third-Party Incident Learning',
-          description: 'A cloud provider outage affected customer access. Post-incident review revealed the firm had no independent monitoring of the provider\'s status.',
-          outcome: 'Implemented direct monitoring and contractual requirement for proactive notification'
-        }
-      ]
+        keyConcepts: [
+          { term: 'Incident Lifecycle', definition: 'Detect, assess, contain, communicate, learn' },
+          { term: 'Third-Party Accountability', definition: 'Firm responsible regardless of provider failure' },
+          { term: 'Conduct Event', definition: 'Major incidents have conduct implications' }
+        ],
+        realExamples: [
+          'Effective Response: Payment system failed 2 hours - playbook activated in 15 mins, comms in 30 mins, tolerance met',
+          'Third-Party Learning: Cloud outage revealed no independent monitoring - implemented direct monitoring and notification requirements'
+        ],
+        regulatoryRequirements: [
+          'PS21/3 - Incident management requirements',
+          'Principle 11 - Regulatory notifications',
+          'Consumer Duty - Conduct event treatment'
+        ]
+      }
     }
   ],
   practiceScenarios: [
