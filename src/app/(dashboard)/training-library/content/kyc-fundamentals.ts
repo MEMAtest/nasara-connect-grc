@@ -39,45 +39,64 @@ export const kycFundamentalsModule: TrainingModule = {
       duration: 4,
       content: {
         learningPoint: 'Master the fundamental components of effective Customer Due Diligence',
-        mainContent: `Customer Due Diligence (CDD) is not just about ticking boxes - it's about truly knowing your customer to assess and manage risk. The regulatory framework requires us to implement three interconnected pillars:
-
-**Pillar 1: Customer Identification**
-This goes beyond simply collecting a name and address. We must establish:
-- Legal identity using reliable, independent source documents
-- Residential address through current utility bills or bank statements
-- Date and place of birth for natural persons
-- Legal status and proof of incorporation for legal entities
-
-The key principle: We must be satisfied that we know who our customer really is.
-
-**Pillar 2: Customer Verification**
-Identification tells us who they claim to be; verification proves it's true. This involves:
-- Document authentication using appropriate verification methods
-- Biometric verification where technology permits
-- Electronic verification through trusted databases
-- Face-to-face verification for high-risk customers
-
-Critical requirement: We must verify identity using documents, data, or information obtained from a reliable and independent source.
-
-**Pillar 3: Understanding the Purpose and Nature of the Business Relationship**
-This is where many firms fall short. We must understand:
-- Why the customer needs our services
-- What they intend to use the account/services for
-- Expected transaction patterns and volumes
-- Source of funds and wealth
-- Business model and revenue streams for corporate customers
-
-This understanding forms the baseline for ongoing monitoring and suspicious activity detection.
-
-**CDD Completion and Onboarding Decision**
-- CDD should be completed before a relationship is established or transactions are processed
-- If CDD cannot be completed, the relationship must not proceed and activity should be reviewed for suspicion
-
-**Verification Methods**
-- Documentary checks (passport, national ID, driving license)
-- Electronic verification against trusted data sources
-- Biometric checks where appropriate (liveness, face match)
-- Additional verification for higher-risk customers`,
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'info',
+              title: 'CDD is About Knowing Your Customer',
+              message: 'Customer Due Diligence is not about ticking boxes - it\'s about truly knowing your customer to assess and manage risk. Three interconnected pillars form the regulatory framework.'
+            },
+            {
+              type: 'keypoint',
+              icon: '🆔',
+              title: 'Pillar 1: Customer Identification',
+              points: [
+                'Legal identity using reliable, independent source documents',
+                'Residential address through utility bills or bank statements',
+                'Date and place of birth for natural persons',
+                'Legal status and proof of incorporation for legal entities'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '✅',
+              title: 'Pillar 2: Customer Verification',
+              points: [
+                'Document authentication using appropriate methods',
+                'Biometric verification where technology permits',
+                'Electronic verification through trusted databases',
+                'Face-to-face verification for high-risk customers'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '🎯',
+              title: 'Pillar 3: Understanding Purpose & Nature',
+              points: [
+                'Why the customer needs your services',
+                'Expected transaction patterns and volumes',
+                'Source of funds and wealth',
+                'Business model and revenue streams for corporates'
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'critical',
+              title: 'CDD Must Complete Before Onboarding',
+              message: 'CDD should be completed before a relationship is established. If CDD cannot be completed, the relationship must not proceed and activity should be reviewed for suspicion.'
+            },
+            {
+              type: 'infogrid',
+              title: 'Verification Methods',
+              items: [
+                { icon: '📄', label: 'Documentary', description: 'Passport, ID, driving license' },
+                { icon: '💻', label: 'Electronic', description: 'Trusted data sources' },
+                { icon: '👤', label: 'Biometric', description: 'Liveness and face match' }
+              ]
+            }
+          ]
+        },
 
         keyConcepts: [
           {
@@ -119,56 +138,76 @@ This understanding forms the baseline for ongoing monitoring and suspicious acti
       duration: 4,
       content: {
         learningPoint: 'Apply systematic risk assessment to determine appropriate CDD measures',
-        mainContent: `The risk-based approach is not about avoiding risk - it's about understanding, assessing, and managing it proportionately. Every customer presents a unique risk profile that must be evaluated across multiple dimensions.
-
-**Geographic Risk Assessment**
-Not all jurisdictions are equal. We must consider:
-- FATF high-risk and non-cooperative jurisdictions
-- Countries under international sanctions
-- Jurisdictions with weak AML/CFT controls
-- Tax havens and secrecy jurisdictions
-- Countries experiencing political instability or high levels of corruption
-
-**Customer Type Risk Assessment**
-Different customer types present different inherent risks:
-
-*High Risk:* Cash-intensive businesses, money service businesses, PEPs, shell companies, trusts, customers from high-risk jurisdictions
-
-*Medium Risk:* Standard corporate customers, regulated professionals, established businesses with transparent ownership
-
-*Low Risk:* Regulated financial institutions, government entities, listed companies, long-standing personal customers with straightforward profiles
-
-**Product and Service Risk Assessment**
-The nature of products and services affects risk:
-- Private banking and wealth management (higher risk)
-- International wire transfers (higher risk)
-- Basic current accounts (lower risk)
-- Pension and investment products (variable risk)
-
-**Delivery Channel Risk Assessment**
-How we deliver services impacts risk:
-- Non-face-to-face onboarding (higher risk)
-- Digital-only customer journeys (higher risk)
-- Branch-based relationships (lower risk)
-- Introducer arrangements (variable risk)
-
-**Dynamic Risk Scoring**
-Risk is not static. Our assessment must consider:
-- Changes in customer behavior or circumstances
-- Regulatory updates and new typologies
-- Intelligence from law enforcement
-- Internal suspicious activity reports
-- External adverse media
-
-**Risk Scoring and Documentation**
-- Use a consistent scoring model so risk decisions are comparable across teams
-- Record the key drivers of the score (geography, product, customer type, channel)
-- Align the score to required controls (SDD, CDD, or EDD)
-
-**Trigger Events for Re-Scoring**
-- Ownership changes or new UBOs
-- Sudden changes in transaction behavior
-- New adverse media or sanctions exposure`,
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'info',
+              title: 'Risk-Based Approach Defined',
+              message: 'The risk-based approach is not about avoiding risk - it\'s about understanding, assessing, and managing it proportionately. Every customer presents a unique risk profile evaluated across multiple dimensions.'
+            },
+            {
+              type: 'keypoint',
+              icon: '🌍',
+              title: 'Geographic Risk Assessment',
+              points: [
+                'FATF high-risk and non-cooperative jurisdictions',
+                'Countries under international sanctions',
+                'Jurisdictions with weak AML/CFT controls',
+                'Tax havens and secrecy jurisdictions',
+                'Countries with political instability or high corruption'
+              ]
+            },
+            {
+              type: 'infogrid',
+              title: 'Customer Type Risk Levels',
+              items: [
+                { icon: '🔴', label: 'High Risk', description: 'Cash businesses, MSBs, PEPs, shell companies' },
+                { icon: '🟡', label: 'Medium Risk', description: 'Standard corporates, regulated professionals' },
+                { icon: '🟢', label: 'Low Risk', description: 'Regulated FIs, government, listed companies' }
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '📦',
+              title: 'Product & Service Risk',
+              points: [
+                'Private banking and wealth management (higher risk)',
+                'International wire transfers (higher risk)',
+                'Basic current accounts (lower risk)',
+                'Pension and investment products (variable risk)'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '📱',
+              title: 'Delivery Channel Risk',
+              points: [
+                'Non-face-to-face onboarding (higher risk)',
+                'Digital-only customer journeys (higher risk)',
+                'Branch-based relationships (lower risk)',
+                'Introducer arrangements (variable risk)'
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'Dynamic Risk Scoring Factors',
+              items: [
+                'Changes in customer behavior or circumstances',
+                'Regulatory updates and new typologies',
+                'Intelligence from law enforcement',
+                'Internal suspicious activity reports',
+                'External adverse media'
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'warning',
+              title: 'Trigger Events for Re-Scoring',
+              message: 'Re-score when: ownership changes or new UBOs identified, sudden changes in transaction behavior, or new adverse media/sanctions exposure detected.'
+            }
+          ]
+        },
 
         keyConcepts: [
           {
@@ -210,62 +249,80 @@ Risk is not static. Our assessment must consider:
       duration: 4,
       content: {
         learningPoint: 'Implement effective ongoing monitoring to detect suspicious activity and maintain current customer information',
-        mainContent: `Customer Due Diligence is not a one-time event - it's an ongoing process that continues throughout the entire customer relationship. Effective ongoing monitoring is where most money laundering attempts are detected and prevented.
-
-**Transaction Monitoring Systems**
-Automated systems must be calibrated to detect:
-- Unusual transaction patterns compared to expected activity
-- Rapid movement of funds (potential layering)
-- Transactions involving high-risk jurisdictions
-- Structuring patterns (breaking large amounts into smaller transactions)
-- Round-number transactions or unusual timing
-- Activity inconsistent with the customer's profile
-
-**Periodic Review Requirements**
-The frequency of reviews depends on risk rating:
-- High Risk: At least annually, often more frequently
-- Medium Risk: Every 2-3 years or when triggered by events
-- Low Risk: Every 3-5 years or when circumstances change
-
-Reviews must assess:
-- Whether customer information remains current and accurate
-- If the risk rating remains appropriate
-- Whether the pattern of activity matches expectations
-- Any adverse media or regulatory actions
-- Changes in beneficial ownership or control
-
-**Trigger Events for Enhanced Monitoring**
-Certain events should automatically trigger additional scrutiny:
-- Significant changes in transaction patterns
-- Customer requests for higher transaction limits
-- Changes in beneficial ownership above threshold
-- Adverse media coverage or regulatory action
-- Customer becomes a PEP or is linked to a PEP
-- Introduction of new products or services
-- Requests to change account details or documentation
-
-**Red Flags in Ongoing Monitoring**
-Common suspicious patterns include:
-- Large cash deposits followed by immediate wire transfers
-- Multiple accounts with similar names or addresses
-- Transactions that occur in round numbers or just below reporting thresholds
-- Frequent deposits and withdrawals with no clear business purpose
-- Activity that suddenly increases without explanation
-- Customers who are reluctant to provide information for reviews
-
-**Documentation and Record Keeping**
-All monitoring activities must be documented:
-- Risk assessments and ratings
-- Review decisions and rationale
-- Suspicious activity identified
-- Management decisions on account continuation
-- Enhanced measures applied
-- Training records for staff involved
-
-**Escalation and Refresh**
-- Refresh CDD when key identity or ownership details change
-- Record customer contact attempts and non-responses
-- Escalate to the MLRO when suspicion remains after review`,
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'info',
+              title: 'CDD is Continuous',
+              message: 'Customer Due Diligence is not a one-time event - it\'s an ongoing process that continues throughout the entire customer relationship. Effective ongoing monitoring is where most money laundering attempts are detected.'
+            },
+            {
+              type: 'keypoint',
+              icon: '📊',
+              title: 'Transaction Monitoring Systems',
+              points: [
+                'Unusual transaction patterns vs expected activity',
+                'Rapid movement of funds (potential layering)',
+                'Transactions involving high-risk jurisdictions',
+                'Structuring patterns (breaking large into smaller amounts)',
+                'Round-number transactions or unusual timing',
+                'Activity inconsistent with customer profile'
+              ]
+            },
+            {
+              type: 'infogrid',
+              title: 'Periodic Review Frequency',
+              items: [
+                { icon: '🔴', label: 'High Risk', description: 'At least annually, often more' },
+                { icon: '🟡', label: 'Medium Risk', description: 'Every 2-3 years or triggered' },
+                { icon: '🟢', label: 'Low Risk', description: 'Every 3-5 years or changed' }
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'Periodic Review Must Assess',
+              items: [
+                'Customer information remains current and accurate',
+                'Risk rating remains appropriate',
+                'Pattern of activity matches expectations',
+                'Any adverse media or regulatory actions',
+                'Changes in beneficial ownership or control'
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'warning',
+              title: 'Trigger Events for Enhanced Monitoring',
+              message: 'Triggers include: significant transaction pattern changes, requests for higher limits, BO changes above threshold, adverse media, customer becomes/linked to PEP, new products requested, account detail changes.'
+            },
+            {
+              type: 'keypoint',
+              icon: '🚩',
+              title: 'Red Flags in Ongoing Monitoring',
+              points: [
+                'Large cash deposits followed by immediate wire transfers',
+                'Multiple accounts with similar names/addresses',
+                'Transactions in round numbers or just below thresholds',
+                'Frequent deposits/withdrawals with no clear purpose',
+                'Sudden unexplained increase in activity',
+                'Customer reluctance to provide information for reviews'
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'Documentation Requirements',
+              items: [
+                'Risk assessments and ratings recorded',
+                'Review decisions and rationale documented',
+                'Suspicious activity identified and logged',
+                'Management decisions on account continuation',
+                'Enhanced measures applied noted',
+                'Training records for staff maintained'
+              ]
+            }
+          ]
+        },
 
         keyConcepts: [
           {
@@ -306,34 +363,61 @@ All monitoring activities must be documented:
       duration: 4,
       content: {
         learningPoint: 'Apply robust KYB checks and verify beneficial ownership for corporate customers',
-        mainContent: `KYB is about understanding who ultimately owns and controls a business customer. The default threshold is 25 percent ownership or control, but lower thresholds may apply based on risk.
-
-**Ownership and Control Tests**
-- Ownership: identify any individual with 25 percent or more of shares or voting rights
-- Control: identify individuals with the power to appoint or remove directors or exercise dominant influence
-- Consider layered ownership across multiple entities, not just the immediate shareholder
-
-**When No UBO Is Identified**
-- Identify the senior managing official
-- Document the steps taken to establish ownership and why no UBO could be confirmed
-
-**Evidence to Collect**
-- Company registry extract and shareholder register
-- Corporate structure chart with ownership percentages
-- Director and controller identification documents
-
-**Core KYB steps**
-- Verify company registration and directors
-- Identify and verify UBOs
-- Understand business model, expected activity, and source of funds
-- Review ownership layers and offshore entities for risk
-
-**High risk triggers**
-- Trust structures or nominee shareholders
-- Complex multi jurisdiction ownership
-- Rapidly changing directors or shareholders
-
-When ownership is complex, request additional documentation and verify independently.`,
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'info',
+              title: 'KYB Core Purpose',
+              message: 'KYB is about understanding who ultimately owns and controls a business customer. The default threshold is 25% ownership or control, but lower thresholds may apply based on risk.'
+            },
+            {
+              type: 'keypoint',
+              icon: '🔍',
+              title: 'Ownership and Control Tests',
+              points: [
+                'Ownership: identify any individual with 25%+ shares or voting rights',
+                'Control: identify those who appoint/remove directors or exercise dominant influence',
+                'Consider layered ownership across multiple entities',
+                'Look beyond immediate shareholder to ultimate owners'
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'warning',
+              title: 'When No UBO Is Identified',
+              message: 'Identify the senior managing official and document the steps taken to establish ownership and why no UBO could be confirmed.'
+            },
+            {
+              type: 'checklist',
+              title: 'Evidence to Collect',
+              items: [
+                'Company registry extract and shareholder register',
+                'Corporate structure chart with ownership percentages',
+                'Director and controller identification documents'
+              ]
+            },
+            {
+              type: 'process',
+              steps: [
+                { number: 1, title: 'Verify Company', description: 'Confirm company registration and directors via registry' },
+                { number: 2, title: 'Identify UBOs', description: 'Map ownership to identify all 25%+ beneficial owners' },
+                { number: 3, title: 'Verify UBOs', description: 'Verify identity of each beneficial owner' },
+                { number: 4, title: 'Understand Business', description: 'Document business model, expected activity, source of funds' },
+                { number: 5, title: 'Assess Risk', description: 'Review ownership layers and offshore entities for risk' }
+              ]
+            },
+            {
+              type: 'infogrid',
+              title: 'High Risk Triggers',
+              items: [
+                { icon: '🏛️', label: 'Trust Structures', description: 'Nominee shareholders obscuring ownership' },
+                { icon: '🌐', label: 'Multi-Jurisdiction', description: 'Complex cross-border ownership chains' },
+                { icon: '🔄', label: 'Rapid Changes', description: 'Frequently changing directors/shareholders' }
+              ]
+            }
+          ]
+        },
         keyConcepts: [
           {
             term: 'UBO',
@@ -365,22 +449,63 @@ When ownership is complex, request additional documentation and verify independe
       duration: 4,
       content: {
         learningPoint: 'Evidence every decision with clear documentation and QA checks',
-        mainContent: `KYC evidence must be clear, retrievable, and timely. Regulators expect you to show:
-
-- What documents were obtained and verified
-- How risk was assessed and why the rating was set
-- When reviews were completed and by whom
-- Why any exceptions or overrides were approved
-
-**Quality assurance** is essential. Sample checks ensure files meet standards and expose gaps early. If evidence is weak, remediation should be documented and tracked.
-
-**Retention and Access**
-- Retain KYC records for the regulatory minimum defined in policy (often at least 5 years after the relationship ends)
-- Control access to sensitive documents and track who viewed or changed files
-
-**QA Program**
-- Use risk-based sampling so higher-risk files get more scrutiny
-- Track error rates and root causes, then retrain or update templates as needed`,
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'info',
+              title: 'Evidence Standards',
+              message: 'KYC evidence must be clear, retrievable, and timely. Regulators expect you to demonstrate compliance at any point during an examination.'
+            },
+            {
+              type: 'checklist',
+              title: 'What Regulators Expect to See',
+              items: [
+                'What documents were obtained and verified',
+                'How risk was assessed and why the rating was set',
+                'When reviews were completed and by whom',
+                'Why any exceptions or overrides were approved'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '✅',
+              title: 'Quality Assurance Essentials',
+              points: [
+                'Sample checks ensure files meet standards',
+                'Expose gaps early before regulatory examination',
+                'Document and track remediation for weak evidence',
+                'Use QA findings to improve templates and training'
+              ]
+            },
+            {
+              type: 'infogrid',
+              title: 'Record Management',
+              items: [
+                { icon: '📁', label: 'Retention', description: 'At least 5 years post-relationship' },
+                { icon: '🔒', label: 'Access Control', description: 'Track who views/changes files' },
+                { icon: '🔍', label: 'Audit Trail', description: 'Log all document activity' }
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '📋',
+              title: 'QA Program Best Practice',
+              points: [
+                'Use risk-based sampling - higher-risk files get more scrutiny',
+                'Track error rates and identify root causes',
+                'Retrain staff or update templates based on findings',
+                'Document QA results and remediation actions'
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'warning',
+              title: 'Audit Readiness',
+              message: 'Maintain files so any regulator inquiry can be answered quickly with structured, searchable documentation and clear risk rationale.'
+            }
+          ]
+        },
         keyConcepts: [
           {
             term: 'Record Retention',

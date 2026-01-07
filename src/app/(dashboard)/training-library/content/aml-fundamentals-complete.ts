@@ -684,15 +684,39 @@ export const amlFundamentalsModule = {
       duration: 6,
       content: {
         learningPoint: "Understand placement, layering, and integration and why each stage matters.",
-        mainContent: `Money laundering turns criminal proceeds into usable funds. The process is usually split into three stages that leave different signals in your systems.
-
-**Placement** is the entry point. Criminals introduce illicit funds into the financial system, often through cash deposits, money services, or structured transfers.
-
-**Layering** obscures the trail using complex transfers, multiple accounts, and cross-border activity. The goal is to confuse the audit trail.
-
-**Integration** makes funds appear legitimate through assets, business revenue, or investment returns.
-
-Each stage has distinct red flags. Your job is to spot the pattern across time, not just a single event.`,
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'info',
+              title: 'What is Money Laundering?',
+              message: 'Money laundering turns criminal proceeds into usable funds. The process is split into three stages that leave different signals in your systems.'
+            },
+            {
+              type: 'process',
+              steps: [
+                { number: 1, title: 'Placement', description: 'Entry point where criminals introduce illicit funds into the financial system via cash deposits, money services, or structured transfers' },
+                { number: 2, title: 'Layering', description: 'Obscures the trail using complex transfers, multiple accounts, and cross-border activity to confuse the audit trail' },
+                { number: 3, title: 'Integration', description: 'Funds appear legitimate through assets, business revenue, or investment returns' }
+              ]
+            },
+            {
+              type: 'infogrid',
+              title: 'Red Flags by Stage',
+              items: [
+                { icon: '💵', label: 'Placement', description: 'Large cash deposits, structured amounts' },
+                { icon: '🔄', label: 'Layering', description: 'Rapid transfers, multiple accounts' },
+                { icon: '🏢', label: 'Integration', description: 'Property purchases, business revenue' }
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'warning',
+              title: 'Your Job',
+              message: 'Spot the pattern across time, not just a single event. Each stage has distinct red flags you can detect.'
+            }
+          ]
+        },
         keyConcepts: [
           { term: "Placement", definition: "Introducing illicit funds into the financial system." },
           { term: "Layering", definition: "Complex movement of funds to obscure origin." },
@@ -714,13 +738,59 @@ Each stage has distinct red flags. Your job is to spot the pattern across time, 
       duration: 6,
       content: {
         learningPoint: "Know the core laws and what regulators expect in daily operations.",
-        mainContent: `AML compliance in the UK is rooted in three pillars:
-
-- **POCA 2002**: Defines money laundering offences and the duty to report suspicious activity.
-- **MLR 2017**: Requires risk-based CDD, monitoring, record keeping, and governance.
-- **FCA expectations**: Controls must be effective, evidenced, and embedded in the business.
-
-Regulators focus on outcomes. You must show how decisions were made, why controls were applied, and what evidence supports the decision.`,
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'info',
+              title: 'UK AML Framework',
+              message: 'AML compliance in the UK is rooted in three legislative pillars. Regulators focus on outcomes - you must show how decisions were made and what evidence supports them.'
+            },
+            {
+              type: 'keypoint',
+              icon: '⚖️',
+              title: 'POCA 2002 - Primary Criminal Law',
+              points: [
+                'Defines money laundering offences',
+                'Creates duty to report suspicious activity',
+                'Up to 14 years imprisonment for breaches',
+                'Applies to individuals and firms'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '📋',
+              title: 'MLR 2017 - Detailed Requirements',
+              points: [
+                'Risk-based Customer Due Diligence',
+                'Ongoing monitoring requirements',
+                'Record keeping obligations',
+                'Governance and training standards'
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '🏛️',
+              title: 'FCA Expectations',
+              points: [
+                'Controls must be effective in practice',
+                'Decisions must be evidenced',
+                'AML embedded in business operations',
+                'Senior management accountability'
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'What Regulators Expect to See',
+              items: [
+                'How decisions were made',
+                'Why controls were applied',
+                'What evidence supports each decision',
+                'How outcomes are monitored and improved'
+              ]
+            }
+          ]
+        },
         keyConcepts: [
           { term: "POCA 2002", definition: "Criminalises money laundering and defines reporting duties." },
           { term: "MLR 2017", definition: "Sets requirements for CDD, EDD, monitoring, and governance." },
@@ -743,14 +813,47 @@ Regulators focus on outcomes. You must show how decisions were made, why control
       duration: 6,
       content: {
         learningPoint: "Apply risk factors consistently and adjust controls based on risk.",
-        mainContent: `Risk based AML means focusing resources where harm is most likely. You evaluate risk across:
-
-- Customer profile (occupation, ownership structure, PEP status)
-- Geography (high risk jurisdictions, sanctions exposure)
-- Products and channels (cash, cross border, online)
-- Transaction behavior (volume, frequency, counterparties)
-
-When risk is higher, apply enhanced due diligence and tighter monitoring. The goal is consistent decisions backed by evidence, not intuition.`,
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'info',
+              title: 'Risk-Based AML',
+              message: 'Risk-based AML means focusing resources where harm is most likely. The goal is consistent decisions backed by evidence, not intuition.'
+            },
+            {
+              type: 'infogrid',
+              title: 'Risk Factor Categories',
+              items: [
+                { icon: '👤', label: 'Customer Profile', description: 'Occupation, ownership, PEP status' },
+                { icon: '🌍', label: 'Geography', description: 'High-risk jurisdictions, sanctions' },
+                { icon: '📦', label: 'Products/Channels', description: 'Cash, cross-border, online' },
+                { icon: '📊', label: 'Transaction Behavior', description: 'Volume, frequency, counterparties' }
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '⬆️',
+              title: 'Higher Risk = Enhanced Controls',
+              points: [
+                'Apply Enhanced Due Diligence (EDD) for high-risk customers',
+                'Implement tighter monitoring thresholds',
+                'More frequent periodic reviews',
+                'Senior approval for relationship decisions'
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'Consistent Risk Assessment',
+              items: [
+                'Use standardized risk scoring methodology',
+                'Document rationale for risk rating',
+                'Review and update ratings when circumstances change',
+                'Evidence decisions with supporting documentation'
+              ]
+            }
+          ]
+        },
         keyConcepts: [
           { term: "Risk Appetite", definition: "The level of AML risk the firm is willing to accept." },
           { term: "EDD", definition: "Enhanced controls for higher risk customers or activity." },
@@ -772,13 +875,52 @@ When risk is higher, apply enhanced due diligence and tighter monitoring. The go
       duration: 6,
       content: {
         learningPoint: "Detect patterns early and escalate with clear evidence.",
-        mainContent: `Monitoring is where most suspicious activity is detected. Alerts are signals, not proof. Good escalation relies on evidence:
-
-- Document the pattern and timeline
-- Compare activity to expected profile
-- Record customer explanations and gaps
-
-Escalate when the evidence does not reconcile. Do not tip off the customer. Your escalation must be factual, timely, and complete.`,
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'info',
+              title: 'Monitoring is Key',
+              message: 'Monitoring is where most suspicious activity is detected. Alerts are signals, not proof - good escalation relies on evidence.'
+            },
+            {
+              type: 'checklist',
+              title: 'Evidence-Based Escalation',
+              items: [
+                'Document the pattern and timeline',
+                'Compare activity to expected customer profile',
+                'Record customer explanations and gaps',
+                'Note inconsistencies between stated and actual activity'
+              ]
+            },
+            {
+              type: 'process',
+              steps: [
+                { number: 1, title: 'Detect', description: 'Alert generated by monitoring system or manual observation' },
+                { number: 2, title: 'Investigate', description: 'Gather evidence and compare to customer profile' },
+                { number: 3, title: 'Document', description: 'Record findings, timeline, and any explanations' },
+                { number: 4, title: 'Escalate', description: 'Report to MLRO when evidence does not reconcile' }
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'critical',
+              title: 'Never Tip Off',
+              message: 'Do not tip off the customer about suspicions or investigations. This is a criminal offence. Use generic responses if asked about delays.'
+            },
+            {
+              type: 'keypoint',
+              icon: '📝',
+              title: 'Escalation Standards',
+              points: [
+                'Factual - stick to observed facts',
+                'Timely - escalate without delay',
+                'Complete - include all relevant evidence',
+                'Clear - state why activity is suspicious'
+              ]
+            }
+          ]
+        },
         keyConcepts: [
           { term: "SAR", definition: "Suspicious Activity Report submitted through internal MLRO process." },
           { term: "Tipping Off", definition: "Warning a customer about suspicion or reporting, which is prohibited." }
@@ -800,13 +942,52 @@ Escalate when the evidence does not reconcile. Do not tip off the customer. Your
       duration: 6,
       content: {
         learningPoint: "AML effectiveness depends on clear ownership and consistent training.",
-        mainContent: `AML governance is not just policies. It is accountability and culture:
-
-- The MLRO owns reporting decisions and regulatory engagement.
-- First line teams identify and escalate risk.
-- Second line monitors controls and provides oversight.
-
-Training, quality assurance, and MI keep the program effective. Regulators expect you to show evidence of governance, not just policy documents.`,
+        mainContent: {
+          cards: [
+            {
+              type: 'alert',
+              alertType: 'info',
+              title: 'Governance is Culture',
+              message: 'AML governance is not just policies - it is accountability and culture. Regulators expect evidence of governance, not just policy documents.'
+            },
+            {
+              type: 'infogrid',
+              title: 'Three Lines of Defence',
+              items: [
+                { icon: '1️⃣', label: 'First Line', description: 'Business teams identify & escalate risk' },
+                { icon: '2️⃣', label: 'Second Line', description: 'Compliance monitors and oversees' },
+                { icon: '3️⃣', label: 'Third Line', description: 'Internal audit provides assurance' }
+              ]
+            },
+            {
+              type: 'keypoint',
+              icon: '👤',
+              title: 'MLRO Role',
+              points: [
+                'Owns reporting decisions to NCA',
+                'Manages regulatory engagement',
+                'Provides guidance and training',
+                'Oversees AML systems and controls'
+              ]
+            },
+            {
+              type: 'checklist',
+              title: 'Program Effectiveness',
+              items: [
+                'Training completed and tracked',
+                'Quality assurance reviews conducted',
+                'Management information reported',
+                'Remediation actions followed through'
+              ]
+            },
+            {
+              type: 'alert',
+              alertType: 'warning',
+              title: 'Evidence is Essential',
+              message: 'Regulators expect you to show evidence of governance through MI, training records, QA reports, and documented decisions - not just policy documents.'
+            }
+          ]
+        },
         keyConcepts: [
           { term: "MLRO", definition: "Designated officer responsible for AML reporting and oversight." },
           { term: "Three Lines of Defense", definition: "Business, oversight, and audit roles in risk management." },
