@@ -1,7 +1,6 @@
 import type { Session } from "next-auth";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
-import crypto from "crypto";
 
 export function isAuthDisabled() {
   return process.env.AUTH_DISABLED === "true" || process.env.AUTH_DISABLED === "1";
@@ -22,8 +21,13 @@ export function getSessionIdentity(session?: Session | null) {
 }
 
 // Generate a deterministic UUID from a string (for organization ID)
-function generateDeterministicUUID(input: string): string {
-  const hash = crypto.createHash('sha256').update(input).digest('hex');
+// Uses Web Crypto API for Edge Runtime compatibility
+async function generateDeterministicUUID(input: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(input);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
   // Format as UUID v4
   return [
     hash.slice(0, 8),
@@ -85,11 +89,11 @@ export async function authenticateApiRequest(): Promise<ApiAuthResult> {
   // Generate deterministic organization ID from user email domain
   // In production, this should come from a user/organization database lookup
   const emailDomain = session.user.email.split('@')[1] || 'default';
-  const organizationId = generateDeterministicUUID(`org:${emailDomain}`);
+  const organizationId = await generateDeterministicUUID(`org:${emailDomain}`);
 
   return {
     authenticated: true,
-    userId: session.user.id || generateDeterministicUUID(`user:${session.user.email}`),
+    userId: session.user.id || await generateDeterministicUUID(`user:${session.user.email}`),
     userEmail: session.user.email,
     userName: session.user.name || session.user.email,
     organizationId,
