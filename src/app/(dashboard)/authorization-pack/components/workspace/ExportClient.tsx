@@ -56,6 +56,7 @@ export function ExportClient() {
   const [isValidating, setIsValidating] = useState(false);
   const [validation, setValidation] = useState<ValidationResult | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [isBatchExporting, setIsBatchExporting] = useState(false);
 
   const downloadFile = async (endpoint: string, filename: string) => {
     const response = await fetch(endpoint);
@@ -96,6 +97,20 @@ export function ExportClient() {
   };
 
   const safeName = pack?.name ? pack.name.replace(/[^a-z0-9-_]+/gi, "-").replace(/-+/g, "-") : "pack";
+
+  const downloadBatchExport = async () => {
+    if (!pack) return;
+    setIsBatchExporting(true);
+    try {
+      const timestamp = new Date().toISOString().split("T")[0];
+      await downloadFile(
+        `/api/authorization-pack/packs/${pack.id}/export/batch`,
+        `${safeName}-complete-${timestamp}.zip`
+      );
+    } finally {
+      setIsBatchExporting(false);
+    }
+  };
 
   useEffect(() => {
     const load = async () => {
@@ -180,9 +195,30 @@ export function ExportClient() {
     <div className="space-y-6">
       <WorkspaceHeader pack={pack} readiness={readiness} />
       <Card className="border border-slate-200">
-        <CardHeader>
-          <CardTitle>Export Center</CardTitle>
-          <CardDescription>Generate business plan outputs and annex packs.</CardDescription>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <div>
+            <CardTitle>Export Center</CardTitle>
+            <CardDescription>Generate business plan outputs and annex packs.</CardDescription>
+          </div>
+          <Button
+            onClick={downloadBatchExport}
+            disabled={isBatchExporting}
+            className="gap-2 bg-teal-600 hover:bg-teal-700"
+          >
+            {isBatchExporting ? (
+              <>
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Download All
+              </>
+            )}
+          </Button>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-3">
           <div className="rounded-xl border border-slate-100 p-4">
