@@ -192,7 +192,7 @@ export function ProjectDashboardClient() {
       <Card className="border border-slate-200">
         <CardHeader>
           <CardTitle>Connected ecosystem</CardTitle>
-          <CardDescription>Everything linked to policies, training, and SMCR requirements.</CardDescription>
+          <CardDescription>Everything linked to policies, training, and Key Persons requirements.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-3">
           <div className="rounded-lg border border-slate-100 bg-slate-50 p-4">
@@ -210,10 +210,10 @@ export function ProjectDashboardClient() {
             </Button>
           </div>
           <div className="rounded-lg border border-slate-100 bg-slate-50 p-4">
-            <p className="text-xs uppercase tracking-[0.2em] text-slate-400">SMCR roles</p>
+            <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Key Persons</p>
             <p className="mt-2 text-2xl font-semibold text-slate-900">{project.smcrRoles?.length || 0}</p>
             <Button asChild variant="link" className="px-0 text-teal-600">
-              <Link href="/smcr">Open SMCR module</Link>
+              <Link href="/smcr">Open Key Persons module</Link>
             </Button>
           </div>
         </CardContent>

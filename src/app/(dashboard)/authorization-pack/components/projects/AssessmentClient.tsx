@@ -165,6 +165,8 @@ export function AssessmentClient() {
   const [isSaving, setIsSaving] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isLookingUp, setIsLookingUp] = useState(false);
+  const [lookupError, setLookupError] = useState<string | null>(null);
   const [analysisResult, setAnalysisResult] = useState<{
     readiness: Record<string, { suggested: string; reason: string; priority: string }>;
     priorities: string[];
@@ -327,6 +329,45 @@ export function AssessmentClient() {
     });
   };
 
+  // Companies House lookup
+  const lookupCompany = async () => {
+    const companyNumber = assessment.basics?.companyNumber;
+    if (!companyNumber || typeof companyNumber !== "string") return;
+
+    setIsLookingUp(true);
+    setLookupError(null);
+    try {
+      const response = await fetch(`/api/companies-house/lookup?number=${encodeURIComponent(companyNumber)}`);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        setLookupError(errorData.error || "Company not found");
+        return;
+      }
+      const data = await response.json();
+      const company = data.company;
+
+      // Auto-fill the form with company data
+      setAssessment((prev) => ({
+        ...prev,
+        basics: {
+          ...(prev.basics ?? {}),
+          legalName: company.name || prev.basics?.legalName,
+          incorporationDate: company.incorporationDate || prev.basics?.incorporationDate,
+          sicCode: company.sicCodes?.[0] || prev.basics?.sicCode,
+          addressLine1: company.address?.line1 || prev.basics?.addressLine1,
+          addressLine2: company.address?.line2 || prev.basics?.addressLine2,
+          city: company.address?.city || prev.basics?.city,
+          postcode: company.address?.postcode || prev.basics?.postcode,
+          country: company.address?.country || prev.basics?.country,
+        },
+      }));
+    } catch (error) {
+      setLookupError(error instanceof Error ? error.message : "Lookup failed");
+    } finally {
+      setIsLookingUp(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <Card className="border border-slate-200">
@@ -399,11 +440,26 @@ export function AssessmentClient() {
           </div>
           <div className="space-y-2">
             <Label>Company number</Label>
-            <Input
-              value={String(assessment.basics?.companyNumber ?? "")}
-              onChange={(event) => updateBasics("companyNumber", event.target.value)}
-              placeholder="e.g., 12345678"
-            />
+            <div className="flex gap-2">
+              <Input
+                value={String(assessment.basics?.companyNumber ?? "")}
+                onChange={(event) => updateBasics("companyNumber", event.target.value)}
+                placeholder="e.g., 12345678"
+                className="flex-1"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={lookupCompany}
+                disabled={isLookingUp || !assessment.basics?.companyNumber}
+                className="shrink-0"
+              >
+                {isLookingUp ? "Looking up..." : "Lookup"}
+              </Button>
+            </div>
+            {lookupError && (
+              <p className="text-xs text-red-500 mt-1">{lookupError}</p>
+            )}
           </div>
           <div className="space-y-2">
             <Label>SIC code</Label>
@@ -732,8 +788,8 @@ export function AssessmentClient() {
 
         <Card className="border border-slate-200">
           <CardHeader>
-            <CardTitle>SMCR roles</CardTitle>
-            <CardDescription>{project.smcrRoles?.length || 0} roles</CardDescription>
+            <CardTitle>Key Persons / PSD Roles</CardTitle>
+            <CardDescription>{project.smcrRoles?.length || 0} responsible persons</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {(project.smcrRoles ?? []).map((role) => (

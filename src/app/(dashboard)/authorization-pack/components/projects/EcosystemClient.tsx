@@ -93,7 +93,7 @@ export function EcosystemClient() {
           <CardTitle>Permission ecosystem</CardTitle>
           <CardDescription>
             {project.permissionName || project.permissionCode} requires the following spine, policies, training, and
-            SMCR coverage.
+            Key Persons coverage.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 lg:grid-cols-[2fr_1fr]">
@@ -133,7 +133,7 @@ export function EcosystemClient() {
                   <Link href="/training-library">Training modules</Link>
                 </Button>
                 <Button asChild variant="link" className="px-0 text-teal-600">
-                  <Link href="/smcr">SMCR role setup</Link>
+                  <Link href="/smcr">Key Persons setup</Link>
                 </Button>
               </div>
             </div>
@@ -170,8 +170,8 @@ export function EcosystemClient() {
         </Card>
         <Card className="border border-slate-200">
           <CardHeader>
-            <CardTitle>SMCR roles</CardTitle>
-            <CardDescription>{smcr.length} roles</CardDescription>
+            <CardTitle>Key Persons / PSD Roles</CardTitle>
+            <CardDescription>{smcr.length} responsible persons</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2 text-sm text-slate-600">
             {smcr.map((item) => (
