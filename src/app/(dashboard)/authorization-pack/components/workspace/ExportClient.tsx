@@ -57,21 +57,38 @@ export function ExportClient() {
   const [validation, setValidation] = useState<ValidationResult | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [isBatchExporting, setIsBatchExporting] = useState(false);
+  const [downloadingFormat, setDownloadingFormat] = useState<string | null>(null);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
+  const [downloadSuccess, setDownloadSuccess] = useState<string | null>(null);
 
-  const downloadFile = async (endpoint: string, filename: string) => {
-    const response = await fetch(endpoint);
-    if (!response.ok) {
-      return;
+  const downloadFile = async (endpoint: string, filename: string, formatLabel?: string) => {
+    const format = formatLabel || filename.split(".").pop()?.toUpperCase() || "file";
+    setDownloadingFormat(format);
+    setDownloadError(null);
+    setDownloadSuccess(null);
+    try {
+      const response = await fetch(endpoint);
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => "Download failed");
+        setDownloadError(`Failed to download ${format}: ${errorText}`);
+        return;
+      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      setDownloadSuccess(`${format} downloaded successfully`);
+      setTimeout(() => setDownloadSuccess(null), 3000);
+    } catch (error) {
+      setDownloadError(`Failed to download ${format}: ${error instanceof Error ? error.message : "Unknown error"}`);
+    } finally {
+      setDownloadingFormat(null);
     }
-    const blob = await response.blob();
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    window.URL.revokeObjectURL(url);
   };
 
   const validatePack = async () => {
@@ -101,11 +118,14 @@ export function ExportClient() {
   const downloadBatchExport = async () => {
     if (!pack) return;
     setIsBatchExporting(true);
+    setDownloadError(null);
+    setDownloadSuccess(null);
     try {
       const timestamp = new Date().toISOString().split("T")[0];
       await downloadFile(
         `/api/authorization-pack/packs/${pack.id}/export/batch`,
-        `${safeName}-complete-${timestamp}.zip`
+        `${safeName}-complete-${timestamp}.zip`,
+        "Complete Pack"
       );
     } finally {
       setIsBatchExporting(false);
@@ -194,6 +214,29 @@ export function ExportClient() {
   return (
     <div className="space-y-6">
       <WorkspaceHeader pack={pack} readiness={readiness} />
+      {/* Status notifications */}
+      {downloadError && (
+        <div className="flex items-center justify-between rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+          <span>{downloadError}</span>
+          <button onClick={() => setDownloadError(null)} className="ml-4 text-red-600 hover:text-red-800">
+            &times;
+          </button>
+        </div>
+      )}
+      {downloadSuccess && (
+        <div className="flex items-center justify-between rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+          <span>{downloadSuccess}</span>
+          <button onClick={() => setDownloadSuccess(null)} className="ml-4 text-green-600 hover:text-green-800">
+            &times;
+          </button>
+        </div>
+      )}
+      {downloadingFormat && (
+        <div className="flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+          <span className="h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+          Downloading {downloadingFormat}...
+        </div>
+      )}
       <Card className="border border-slate-200">
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <div>
