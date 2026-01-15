@@ -90,6 +90,7 @@ export async function GET(
         id: s.id,
         code: s.template.code,
         name: s.template.name,
+        title: s.template.name,
         status: s.status,
         progress: s.progress_percentage,
         orderIndex: s.template.order_index,

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { initDatabase, getAuthorizationPack, getPackSections } from "@/lib/database";
+import { initDatabase, getAuthorizationPack, getPackSections, deleteAuthorizationPack } from "@/lib/database";
 import { requireAuth, isValidUUID } from "@/lib/auth-utils";
+import { logError } from "@/lib/logger";
 
 // Calculate readiness from sections
 function calculateReadiness(sections: { status: string; progress_percentage: number }[]) {
@@ -59,6 +60,45 @@ export async function GET(
   } catch (error) {
     return NextResponse.json(
       { error: "Failed to load pack", details: error instanceof Error ? error.message : "Unknown error" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
+
+    await initDatabase();
+    const { id } = await params;
+
+    if (!isValidUUID(id)) {
+      return NextResponse.json({ error: "Invalid pack ID format" }, { status: 400 });
+    }
+
+    const pack = await getAuthorizationPack(id);
+    if (!pack) {
+      return NextResponse.json({ error: "Pack not found" }, { status: 404 });
+    }
+
+    if (pack.organization_id !== auth.organizationId) {
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
+    }
+
+    const deleted = await deleteAuthorizationPack(id);
+    if (!deleted) {
+      return NextResponse.json({ error: "Failed to delete pack" }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true, message: "Pack deleted successfully" });
+  } catch (error) {
+    logError(error, "Failed to delete authorization pack");
+    return NextResponse.json(
+      { error: "Failed to delete pack" },
       { status: 500 }
     );
   }

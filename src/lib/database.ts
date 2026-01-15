@@ -1805,6 +1805,31 @@ export async function updateAuthorizationPack(
   }
 }
 
+export async function deleteAuthorizationPack(packId: string): Promise<boolean> {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    // Delete related data in order (respecting foreign key constraints)
+    await client.query('DELETE FROM pack_review_comments WHERE section_instance_id IN (SELECT id FROM pack_section_instances WHERE pack_id = $1)', [packId]);
+    await client.query('DELETE FROM pack_tasks WHERE pack_id = $1', [packId]);
+    await client.query('DELETE FROM project_documents WHERE pack_id = $1', [packId]);
+    await client.query('DELETE FROM project_milestones WHERE pack_id = $1', [packId]);
+    await client.query('DELETE FROM pack_section_instances WHERE pack_id = $1', [packId]);
+
+    // Delete the pack itself
+    const result = await client.query('DELETE FROM authorization_packs WHERE id = $1 RETURNING id', [packId]);
+
+    await client.query('COMMIT');
+    return result.rowCount !== null && result.rowCount > 0;
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
 // Pack Sections CRUD
 export async function getPackSections(packId: string): Promise<(PackSection & { template: SectionTemplate })[]> {
   const client = await pool.connect();

@@ -89,6 +89,13 @@ const buildDefaultAssessment = (project: ProjectDetail | null, existing?: Assess
   const basicsDefaults: Record<string, string | number | null> = {
     legalName: existing?.basics?.legalName ?? "",
     incorporationDate: existing?.basics?.incorporationDate ?? "",
+    companyNumber: existing?.basics?.companyNumber ?? "",
+    sicCode: existing?.basics?.sicCode ?? "",
+    addressLine1: existing?.basics?.addressLine1 ?? "",
+    addressLine2: existing?.basics?.addressLine2 ?? "",
+    city: existing?.basics?.city ?? "",
+    postcode: existing?.basics?.postcode ?? "",
+    country: existing?.basics?.country ?? "United Kingdom",
     primaryJurisdiction: existing?.basics?.primaryJurisdiction ?? "",
     primaryContact: existing?.basics?.primaryContact ?? "",
     contactEmail: existing?.basics?.contactEmail ?? "",
@@ -113,6 +120,10 @@ const calculateCompletion = (assessment: AssessmentData) => {
   const basicKeys = [
     "legalName",
     "incorporationDate",
+    "companyNumber",
+    "addressLine1",
+    "city",
+    "postcode",
     "primaryJurisdiction",
     "primaryContact",
     "contactEmail",
@@ -387,11 +398,84 @@ export function AssessmentClient() {
             />
           </div>
           <div className="space-y-2">
-            <Label>Primary jurisdiction</Label>
+            <Label>Company number</Label>
             <Input
-              value={String(assessment.basics?.primaryJurisdiction ?? "")}
-              onChange={(event) => updateBasics("primaryJurisdiction", event.target.value)}
+              value={String(assessment.basics?.companyNumber ?? "")}
+              onChange={(event) => updateBasics("companyNumber", event.target.value)}
+              placeholder="e.g., 12345678"
             />
+          </div>
+          <div className="space-y-2">
+            <Label>SIC code</Label>
+            <Input
+              value={String(assessment.basics?.sicCode ?? "")}
+              onChange={(event) => updateBasics("sicCode", event.target.value)}
+              placeholder="e.g., 64999"
+            />
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <Label>Registered address - Street</Label>
+            <Input
+              value={String(assessment.basics?.addressLine1 ?? "")}
+              onChange={(event) => updateBasics("addressLine1", event.target.value)}
+              placeholder="Street address line 1"
+            />
+            <Input
+              value={String(assessment.basics?.addressLine2 ?? "")}
+              onChange={(event) => updateBasics("addressLine2", event.target.value)}
+              placeholder="Street address line 2 (optional)"
+              className="mt-2"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>City</Label>
+            <Input
+              value={String(assessment.basics?.city ?? "")}
+              onChange={(event) => updateBasics("city", event.target.value)}
+              placeholder="e.g., London"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Postcode</Label>
+            <Input
+              value={String(assessment.basics?.postcode ?? "")}
+              onChange={(event) => updateBasics("postcode", event.target.value)}
+              placeholder="e.g., EC1A 1BB"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Country</Label>
+            <Select
+              value={String(assessment.basics?.country ?? "United Kingdom")}
+              onValueChange={(value) => updateBasics("country", value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select country" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="United Kingdom">United Kingdom</SelectItem>
+                <SelectItem value="Ireland">Ireland</SelectItem>
+                <SelectItem value="Germany">Germany</SelectItem>
+                <SelectItem value="France">France</SelectItem>
+                <SelectItem value="Netherlands">Netherlands</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Primary jurisdiction</Label>
+            <Select
+              value={String(assessment.basics?.primaryJurisdiction ?? "")}
+              onValueChange={(value) => updateBasics("primaryJurisdiction", value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select jurisdiction" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="UK">United Kingdom</SelectItem>
+                <SelectItem value="UK and EEA">UK and EEA</SelectItem>
+                <SelectItem value="EEA only">EEA only</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label>Primary contact</Label>
