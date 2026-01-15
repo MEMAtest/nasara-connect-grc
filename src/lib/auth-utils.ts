@@ -1,4 +1,7 @@
 import type { Session } from "next-auth";
+import { auth } from "@/auth";
+import { NextResponse } from "next/server";
+import crypto from "crypto";
 
 export function isAuthDisabled() {
   return process.env.AUTH_DISABLED === "true" || process.env.AUTH_DISABLED === "1";
@@ -16,4 +19,99 @@ export function getSessionIdentity(session?: Session | null) {
     email: process.env.AUTH_DISABLED_USER_EMAIL || "demo@nasara.local",
     name: process.env.AUTH_DISABLED_USER_NAME || "Demo User",
   };
+}
+
+// Generate a deterministic UUID from a string (for organization ID)
+function generateDeterministicUUID(input: string): string {
+  const hash = crypto.createHash('sha256').update(input).digest('hex');
+  // Format as UUID v4
+  return [
+    hash.slice(0, 8),
+    hash.slice(8, 12),
+    '4' + hash.slice(13, 16), // Version 4
+    ((parseInt(hash.slice(16, 18), 16) & 0x3f) | 0x80).toString(16) + hash.slice(18, 20), // Variant
+    hash.slice(20, 32)
+  ].join('-');
+}
+
+// UUID validation helper
+export function isValidUUID(uuid: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(uuid);
+}
+
+// API authentication result type
+export interface ApiAuthResult {
+  authenticated: boolean;
+  userId: string | null;
+  userEmail: string | null;
+  userName: string | null;
+  organizationId: string;
+}
+
+// Default organization for development/demo mode
+const DEFAULT_ORG_ID = "00000000-0000-0000-0000-000000000001";
+const DEFAULT_USER_ID = "00000000-0000-0000-0000-000000000002";
+
+/**
+ * Authenticate an API request and return user info
+ * Returns organization ID for multi-tenancy support
+ */
+export async function authenticateApiRequest(): Promise<ApiAuthResult> {
+  // If auth is disabled, return demo user
+  if (isAuthDisabled()) {
+    const demoEmail = process.env.AUTH_DISABLED_USER_EMAIL || "demo@nasara.local";
+    return {
+      authenticated: true,
+      userId: DEFAULT_USER_ID,
+      userEmail: demoEmail,
+      userName: process.env.AUTH_DISABLED_USER_NAME || "Demo User",
+      organizationId: DEFAULT_ORG_ID,
+    };
+  }
+
+  // Get the session
+  const session = await auth();
+
+  if (!session?.user?.email) {
+    return {
+      authenticated: false,
+      userId: null,
+      userEmail: null,
+      userName: null,
+      organizationId: DEFAULT_ORG_ID,
+    };
+  }
+
+  // Generate deterministic organization ID from user email domain
+  // In production, this should come from a user/organization database lookup
+  const emailDomain = session.user.email.split('@')[1] || 'default';
+  const organizationId = generateDeterministicUUID(`org:${emailDomain}`);
+
+  return {
+    authenticated: true,
+    userId: session.user.id || generateDeterministicUUID(`user:${session.user.email}`),
+    userEmail: session.user.email,
+    userName: session.user.name || session.user.email,
+    organizationId,
+  };
+}
+
+/**
+ * Require authentication for an API route
+ * Returns NextResponse with 401 error if not authenticated
+ */
+export async function requireAuth(): Promise<{ auth: ApiAuthResult; error?: NextResponse }> {
+  const authResult = await authenticateApiRequest();
+
+  if (!authResult.authenticated) {
+    return {
+      auth: authResult,
+      error: NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 }
+      ),
+    };
+  }
+
+  return { auth: authResult };
 }

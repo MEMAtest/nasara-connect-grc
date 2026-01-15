@@ -1,13 +1,20 @@
 import { Pool } from 'pg';
 import { logger, logError, logDbOperation } from '@/lib/logger';
 
-const connectionString = process.env.DATABASE_URL || "postgresql://neondb_owner:npg_Vtu9NK8ThRbB@ep-royal-queen-abitcphb-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require";
+const connectionString = process.env.DATABASE_URL;
+
+if (!connectionString) {
+  throw new Error('DATABASE_URL environment variable is required');
+}
 
 const pool = new Pool({
   connectionString,
   ssl: {
-    rejectUnauthorized: false
-  }
+    rejectUnauthorized: process.env.NODE_ENV === 'production'
+  },
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 5000,
 });
 
 export { pool };
@@ -228,6 +235,215 @@ export async function initDatabase() {
 
     await client.query(`
       CREATE INDEX IF NOT EXISTS idx_case_studies_industry ON case_studies (industry)
+    `);
+
+    // Authorization Pack Module - Vanta-style tables
+
+    // Pack Templates (Gold Standard Definition)
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS pack_templates (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        code VARCHAR(50) NOT NULL UNIQUE,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        pack_type VARCHAR(100) NOT NULL,
+        typical_timeline_weeks INTEGER DEFAULT 12,
+        policy_templates JSONB DEFAULT '[]'::jsonb,
+        training_requirements JSONB DEFAULT '[]'::jsonb,
+        smcr_roles JSONB DEFAULT '[]'::jsonb,
+        is_active BOOLEAN DEFAULT TRUE,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    // Add missing columns for existing tables (schema migration)
+    await client.query(`
+      ALTER TABLE pack_templates ADD COLUMN IF NOT EXISTS code VARCHAR(50);
+      ALTER TABLE pack_templates ADD COLUMN IF NOT EXISTS pack_type VARCHAR(100);
+      ALTER TABLE pack_templates ADD COLUMN IF NOT EXISTS typical_timeline_weeks INTEGER DEFAULT 12;
+      ALTER TABLE pack_templates ADD COLUMN IF NOT EXISTS policy_templates JSONB DEFAULT '[]'::jsonb;
+      ALTER TABLE pack_templates ADD COLUMN IF NOT EXISTS training_requirements JSONB DEFAULT '[]'::jsonb;
+      ALTER TABLE pack_templates ADD COLUMN IF NOT EXISTS smcr_roles JSONB DEFAULT '[]'::jsonb;
+      ALTER TABLE pack_templates ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE;
+    `);
+
+    // Section Templates (27 Gold Standard Sections)
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS section_templates (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        pack_template_id UUID REFERENCES pack_templates(id) ON DELETE CASCADE,
+        code VARCHAR(100) NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        guidance_text TEXT,
+        order_index INTEGER NOT NULL,
+        regulatory_reference VARCHAR(500),
+        definition_of_done JSONB DEFAULT '[]'::jsonb,
+        evidence_requirements JSONB DEFAULT '[]'::jsonb,
+        UNIQUE(pack_template_id, code)
+      )
+    `);
+
+    // Authorization Packs (User Instances)
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS authorization_packs (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        organization_id UUID NOT NULL,
+        pack_template_id UUID REFERENCES pack_templates(id),
+        name VARCHAR(255) NOT NULL,
+        status VARCHAR(50) DEFAULT 'draft',
+        progress_percentage INTEGER DEFAULT 0,
+        readiness_score INTEGER DEFAULT 0,
+        assessment_data JSONB DEFAULT '{}'::jsonb,
+        project_plan JSONB DEFAULT '{}'::jsonb,
+        created_by UUID,
+        assigned_consultant UUID,
+        target_submission_date DATE,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_auth_packs_org ON authorization_packs (organization_id)
+    `);
+
+    // Pack Section Instances
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS pack_sections (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        pack_id UUID REFERENCES authorization_packs(id) ON DELETE CASCADE,
+        section_template_id UUID REFERENCES section_templates(id),
+        status VARCHAR(50) DEFAULT 'not_started',
+        progress_percentage INTEGER DEFAULT 0,
+        narrative_content JSONB DEFAULT '{}'::jsonb,
+        definition_of_done_status JSONB DEFAULT '{}'::jsonb,
+        submitted_at TIMESTAMP,
+        reviewed_by UUID,
+        approved_by UUID,
+        approved_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(pack_id, section_template_id)
+      )
+    `);
+
+    // Pack Evidence Items
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS pack_evidence (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        pack_section_id UUID REFERENCES pack_sections(id) ON DELETE CASCADE,
+        requirement_code VARCHAR(100) NOT NULL,
+        title VARCHAR(255) NOT NULL,
+        evidence_type VARCHAR(50) NOT NULL,
+        reference_url TEXT,
+        reference_metadata JSONB DEFAULT '{}'::jsonb,
+        status VARCHAR(50) DEFAULT 'required',
+        provided_by UUID,
+        verified_by UUID,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    // Pack Review Comments
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS pack_review_comments (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        pack_section_id UUID REFERENCES pack_sections(id) ON DELETE CASCADE,
+        author_id UUID NOT NULL,
+        author_role VARCHAR(50) NOT NULL,
+        comment_type VARCHAR(50) NOT NULL,
+        content TEXT NOT NULL,
+        resolved BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    // Project Milestones (for Gantt chart)
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS project_milestones (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        pack_id UUID REFERENCES authorization_packs(id) ON DELETE CASCADE,
+        title VARCHAR(255) NOT NULL,
+        description TEXT,
+        status VARCHAR(50) DEFAULT 'pending',
+        due_date DATE,
+        completed_at TIMESTAMP,
+        dependencies JSONB DEFAULT '[]'::jsonb,
+        linked_module VARCHAR(50),
+        linked_item_id UUID,
+        order_index INTEGER NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    // Project Documents (Cloud Storage Document Hub)
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS project_documents (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        pack_id UUID REFERENCES authorization_packs(id) ON DELETE CASCADE,
+        milestone_id UUID REFERENCES project_milestones(id),
+        section_code VARCHAR(100),
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        storage_key TEXT,
+        file_size_bytes BIGINT,
+        mime_type VARCHAR(100),
+        checksum VARCHAR(64),
+        version INTEGER DEFAULT 1,
+        status VARCHAR(50) DEFAULT 'draft',
+        uploaded_by UUID,
+        uploaded_at TIMESTAMP,
+        reviewed_by UUID,
+        reviewed_at TIMESTAMP,
+        signed_by UUID,
+        signed_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_project_docs_pack ON project_documents (pack_id)
+    `);
+
+    // Document Comments
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS document_comments (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        document_id UUID REFERENCES project_documents(id) ON DELETE CASCADE,
+        author_id UUID NOT NULL,
+        author_name VARCHAR(255),
+        content TEXT NOT NULL,
+        resolved BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    // Pack Tasks
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS pack_tasks (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        pack_id UUID REFERENCES authorization_packs(id) ON DELETE CASCADE,
+        pack_section_id UUID REFERENCES pack_sections(id),
+        milestone_id UUID REFERENCES project_milestones(id),
+        title VARCHAR(255) NOT NULL,
+        description TEXT,
+        task_type VARCHAR(50) NOT NULL,
+        priority VARCHAR(20) DEFAULT 'medium',
+        status VARCHAR(50) DEFAULT 'pending',
+        assigned_to UUID,
+        assigned_name VARCHAR(255),
+        due_date DATE,
+        completed_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_pack_tasks_pack ON pack_tasks (pack_id)
     `);
 
     logger.info('Database tables initialized successfully');
@@ -602,6 +818,11 @@ export async function getEvidenceDocuments(assessmentId: string): Promise<Eviden
   }
 }
 
+// Allowed columns for evidence_documents updates (SQL injection prevention)
+const EVIDENCE_DOCUMENT_ALLOWED_COLUMNS = new Set([
+  'name', 'description', 'file_path', 'file_type', 'status', 'notes'
+]);
+
 export async function updateEvidenceDocument(
   documentId: string,
   updates: Partial<Omit<EvidenceDocument, 'id' | 'assessment_id' | 'created_at' | 'updated_at'>>
@@ -609,7 +830,16 @@ export async function updateEvidenceDocument(
   const client = await pool.connect();
 
   try {
-    const setClause = Object.keys(updates)
+    // Filter to only allowed columns to prevent SQL injection
+    const safeUpdates = Object.fromEntries(
+      Object.entries(updates).filter(([key]) => EVIDENCE_DOCUMENT_ALLOWED_COLUMNS.has(key))
+    );
+
+    if (Object.keys(safeUpdates).length === 0) {
+      return; // No valid updates
+    }
+
+    const setClause = Object.keys(safeUpdates)
       .map((key, index) => `${key} = $${index + 2}`)
       .join(', ');
 
@@ -617,7 +847,7 @@ export async function updateEvidenceDocument(
       UPDATE evidence_documents
       SET ${setClause}, updated_at = NOW()
       WHERE id = $1
-    `, [documentId, ...Object.values(updates)]);
+    `, [documentId, ...Object.values(safeUpdates)]);
   } finally {
     client.release();
   }
@@ -1255,6 +1485,945 @@ export async function seedCaseStudies(): Promise<void> {
         cs.isPublished,
       ]);
     }
+  } finally {
+    client.release();
+  }
+}
+
+// ============================================
+// Authorization Pack Module - Types & Functions
+// ============================================
+
+export interface PackTemplate {
+  id: string;
+  code: string;
+  name: string;
+  description?: string;
+  pack_type: string;
+  typical_timeline_weeks: number;
+  policy_templates: string[];
+  training_requirements: string[];
+  smcr_roles: string[];
+  is_active: boolean;
+  created_at: Date;
+}
+
+export interface SectionTemplate {
+  id: string;
+  pack_template_id: string;
+  code: string;
+  name: string;
+  guidance_text?: string;
+  order_index: number;
+  regulatory_reference?: string;
+  definition_of_done: string[];
+  evidence_requirements: string[];
+}
+
+export interface AuthorizationPack {
+  id: string;
+  organization_id: string;
+  pack_template_id: string;
+  name: string;
+  status: 'draft' | 'assessment' | 'in_progress' | 'review' | 'ready' | 'submitted';
+  progress_percentage: number;
+  readiness_score: number;
+  assessment_data: Record<string, unknown>;
+  project_plan: Record<string, unknown>;
+  created_by?: string;
+  assigned_consultant?: string;
+  target_submission_date?: Date;
+  created_at: Date;
+  updated_at: Date;
+  template_name?: string;
+  pack_type?: string;
+  typical_timeline_weeks?: number;
+}
+
+export interface PackSection {
+  id: string;
+  pack_id: string;
+  section_template_id: string;
+  status: 'not_started' | 'in_progress' | 'submitted' | 'review' | 'approved';
+  progress_percentage: number;
+  narrative_content: Record<string, unknown>;
+  definition_of_done_status: Record<string, boolean>;
+  submitted_at?: Date;
+  reviewed_by?: string;
+  approved_by?: string;
+  approved_at?: Date;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface PackEvidence {
+  id: string;
+  pack_section_id: string;
+  requirement_code: string;
+  title: string;
+  evidence_type: string;
+  reference_url?: string;
+  reference_metadata: Record<string, unknown>;
+  status: 'required' | 'provided' | 'verified' | 'rejected';
+  provided_by?: string;
+  verified_by?: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface PackReviewComment {
+  id: string;
+  pack_section_id: string;
+  author_id: string;
+  author_role: 'client' | 'consultant';
+  comment_type: 'feedback' | 'question' | 'approval' | 'rejection';
+  content: string;
+  resolved: boolean;
+  created_at: Date;
+}
+
+export interface ProjectMilestone {
+  id: string;
+  pack_id: string;
+  title: string;
+  description?: string;
+  status: 'pending' | 'in_progress' | 'completed' | 'blocked';
+  due_date?: Date;
+  completed_at?: Date;
+  dependencies: string[];
+  linked_module?: string;
+  linked_item_id?: string;
+  order_index: number;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface ProjectDocument {
+  id: string;
+  pack_id: string;
+  milestone_id?: string;
+  section_code?: string;
+  name: string;
+  description?: string;
+  storage_key?: string;
+  file_size_bytes?: number;
+  mime_type?: string;
+  checksum?: string;
+  version: number;
+  status: 'draft' | 'review' | 'approved' | 'signed';
+  uploaded_by?: string;
+  uploaded_at?: Date;
+  reviewed_by?: string;
+  reviewed_at?: Date;
+  signed_by?: string;
+  signed_at?: Date;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface DocumentComment {
+  id: string;
+  document_id: string;
+  author_id: string;
+  author_name?: string;
+  content: string;
+  resolved: boolean;
+  created_at: Date;
+}
+
+export interface PackTask {
+  id: string;
+  pack_id: string;
+  pack_section_id?: string;
+  milestone_id?: string;
+  title: string;
+  description?: string;
+  task_type: 'document' | 'review' | 'approval' | 'action' | 'meeting';
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  status: 'pending' | 'in_progress' | 'completed' | 'blocked';
+  assigned_to?: string;
+  assigned_name?: string;
+  due_date?: Date;
+  completed_at?: Date;
+  created_at: Date;
+  updated_at: Date;
+}
+
+// Pack Templates CRUD
+export async function getPackTemplates(): Promise<PackTemplate[]> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`
+      SELECT * FROM pack_templates WHERE is_active = true ORDER BY name
+    `);
+    return result.rows;
+  } finally {
+    client.release();
+  }
+}
+
+export async function getPackTemplate(code: string): Promise<PackTemplate | null> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`
+      SELECT * FROM pack_templates WHERE code = $1
+    `, [code]);
+    return result.rows[0] || null;
+  } finally {
+    client.release();
+  }
+}
+
+export async function getSectionTemplates(packTemplateId: string): Promise<SectionTemplate[]> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`
+      SELECT * FROM section_templates
+      WHERE pack_template_id = $1
+      ORDER BY order_index
+    `, [packTemplateId]);
+    return result.rows;
+  } finally {
+    client.release();
+  }
+}
+
+// Authorization Packs CRUD
+export async function createAuthorizationPack(data: {
+  organization_id: string;
+  pack_template_id: string;
+  name: string;
+  created_by?: string;
+  assigned_consultant?: string;
+  target_submission_date?: Date;
+}): Promise<AuthorizationPack> {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    // Create the pack
+    const result = await client.query(`
+      INSERT INTO authorization_packs
+      (organization_id, pack_template_id, name, created_by, assigned_consultant, target_submission_date)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING *
+    `, [
+      data.organization_id,
+      data.pack_template_id,
+      data.name,
+      data.created_by,
+      data.assigned_consultant,
+      data.target_submission_date
+    ]);
+
+    const pack = result.rows[0];
+
+    // Create section instances from templates
+    const sectionTemplates = await client.query(`
+      SELECT * FROM section_templates WHERE pack_template_id = $1
+    `, [data.pack_template_id]);
+
+    for (const template of sectionTemplates.rows) {
+      await client.query(`
+        INSERT INTO pack_sections (pack_id, section_template_id)
+        VALUES ($1, $2)
+      `, [pack.id, template.id]);
+    }
+
+    await client.query('COMMIT');
+    return pack;
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+export async function getAuthorizationPacks(organizationId: string): Promise<AuthorizationPack[]> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`
+      SELECT ap.*, pt.name as template_name, pt.pack_type
+      FROM authorization_packs ap
+      LEFT JOIN pack_templates pt ON ap.pack_template_id = pt.id
+      WHERE ap.organization_id = $1
+      ORDER BY ap.updated_at DESC
+    `, [organizationId]);
+    return result.rows;
+  } finally {
+    client.release();
+  }
+}
+
+export async function getAuthorizationPack(packId: string): Promise<AuthorizationPack | null> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`
+      SELECT ap.*, pt.name as template_name, pt.pack_type, pt.typical_timeline_weeks
+      FROM authorization_packs ap
+      LEFT JOIN pack_templates pt ON ap.pack_template_id = pt.id
+      WHERE ap.id = $1
+    `, [packId]);
+    return result.rows[0] || null;
+  } finally {
+    client.release();
+  }
+}
+
+export async function updateAuthorizationPack(
+  packId: string,
+  updates: Partial<Pick<AuthorizationPack, 'name' | 'status' | 'progress_percentage' | 'readiness_score' | 'assessment_data' | 'project_plan' | 'assigned_consultant' | 'target_submission_date'>>
+): Promise<AuthorizationPack | null> {
+  const client = await pool.connect();
+  try {
+    const setClauses: string[] = ['updated_at = NOW()'];
+    const values: unknown[] = [];
+    let idx = 1;
+
+    if (updates.name !== undefined) { setClauses.push(`name = $${idx++}`); values.push(updates.name); }
+    if (updates.status !== undefined) { setClauses.push(`status = $${idx++}`); values.push(updates.status); }
+    if (updates.progress_percentage !== undefined) { setClauses.push(`progress_percentage = $${idx++}`); values.push(updates.progress_percentage); }
+    if (updates.readiness_score !== undefined) { setClauses.push(`readiness_score = $${idx++}`); values.push(updates.readiness_score); }
+    if (updates.assessment_data !== undefined) { setClauses.push(`assessment_data = $${idx++}`); values.push(JSON.stringify(updates.assessment_data)); }
+    if (updates.project_plan !== undefined) { setClauses.push(`project_plan = $${idx++}`); values.push(JSON.stringify(updates.project_plan)); }
+    if (updates.assigned_consultant !== undefined) { setClauses.push(`assigned_consultant = $${idx++}`); values.push(updates.assigned_consultant); }
+    if (updates.target_submission_date !== undefined) { setClauses.push(`target_submission_date = $${idx++}`); values.push(updates.target_submission_date); }
+
+    values.push(packId);
+
+    const result = await client.query(`
+      UPDATE authorization_packs
+      SET ${setClauses.join(', ')}
+      WHERE id = $${idx}
+      RETURNING *
+    `, values);
+
+    return result.rows[0] || null;
+  } finally {
+    client.release();
+  }
+}
+
+// Pack Sections CRUD
+export async function getPackSections(packId: string): Promise<(PackSection & { template: SectionTemplate })[]> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`
+      SELECT ps.*,
+             st.code as template_code, st.name as template_name,
+             st.guidance_text, st.order_index, st.regulatory_reference,
+             st.definition_of_done, st.evidence_requirements
+      FROM pack_sections ps
+      JOIN section_templates st ON ps.section_template_id = st.id
+      WHERE ps.pack_id = $1
+      ORDER BY st.order_index
+    `, [packId]);
+
+    return result.rows.map(row => ({
+      id: row.id,
+      pack_id: row.pack_id,
+      section_template_id: row.section_template_id,
+      status: row.status,
+      progress_percentage: row.progress_percentage,
+      narrative_content: row.narrative_content,
+      definition_of_done_status: row.definition_of_done_status,
+      submitted_at: row.submitted_at,
+      reviewed_by: row.reviewed_by,
+      approved_by: row.approved_by,
+      approved_at: row.approved_at,
+      created_at: row.created_at,
+      updated_at: row.updated_at,
+      template: {
+        id: row.section_template_id,
+        pack_template_id: '',
+        code: row.template_code,
+        name: row.template_name,
+        guidance_text: row.guidance_text,
+        order_index: row.order_index,
+        regulatory_reference: row.regulatory_reference,
+        definition_of_done: row.definition_of_done || [],
+        evidence_requirements: row.evidence_requirements || []
+      }
+    }));
+  } finally {
+    client.release();
+  }
+}
+
+export async function getPackSection(sectionId: string): Promise<(PackSection & { template: SectionTemplate }) | null> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`
+      SELECT ps.*,
+             st.code as template_code, st.name as template_name,
+             st.guidance_text, st.order_index, st.regulatory_reference,
+             st.definition_of_done, st.evidence_requirements
+      FROM pack_sections ps
+      JOIN section_templates st ON ps.section_template_id = st.id
+      WHERE ps.id = $1
+    `, [sectionId]);
+
+    if (result.rows.length === 0) return null;
+
+    const row = result.rows[0];
+    return {
+      id: row.id,
+      pack_id: row.pack_id,
+      section_template_id: row.section_template_id,
+      status: row.status,
+      progress_percentage: row.progress_percentage,
+      narrative_content: row.narrative_content,
+      definition_of_done_status: row.definition_of_done_status,
+      submitted_at: row.submitted_at,
+      reviewed_by: row.reviewed_by,
+      approved_by: row.approved_by,
+      approved_at: row.approved_at,
+      created_at: row.created_at,
+      updated_at: row.updated_at,
+      template: {
+        id: row.section_template_id,
+        pack_template_id: '',
+        code: row.template_code,
+        name: row.template_name,
+        guidance_text: row.guidance_text,
+        order_index: row.order_index,
+        regulatory_reference: row.regulatory_reference,
+        definition_of_done: row.definition_of_done || [],
+        evidence_requirements: row.evidence_requirements || []
+      }
+    };
+  } finally {
+    client.release();
+  }
+}
+
+export async function updatePackSection(
+  sectionId: string,
+  updates: Partial<Pick<PackSection, 'status' | 'progress_percentage' | 'narrative_content' | 'definition_of_done_status' | 'submitted_at' | 'reviewed_by' | 'approved_by' | 'approved_at'>>
+): Promise<PackSection | null> {
+  const client = await pool.connect();
+  try {
+    const setClauses: string[] = ['updated_at = NOW()'];
+    const values: unknown[] = [];
+    let idx = 1;
+
+    if (updates.status !== undefined) { setClauses.push(`status = $${idx++}`); values.push(updates.status); }
+    if (updates.progress_percentage !== undefined) { setClauses.push(`progress_percentage = $${idx++}`); values.push(updates.progress_percentage); }
+    if (updates.narrative_content !== undefined) { setClauses.push(`narrative_content = $${idx++}`); values.push(JSON.stringify(updates.narrative_content)); }
+    if (updates.definition_of_done_status !== undefined) { setClauses.push(`definition_of_done_status = $${idx++}`); values.push(JSON.stringify(updates.definition_of_done_status)); }
+    if (updates.submitted_at !== undefined) { setClauses.push(`submitted_at = $${idx++}`); values.push(updates.submitted_at); }
+    if (updates.reviewed_by !== undefined) { setClauses.push(`reviewed_by = $${idx++}`); values.push(updates.reviewed_by); }
+    if (updates.approved_by !== undefined) { setClauses.push(`approved_by = $${idx++}`); values.push(updates.approved_by); }
+    if (updates.approved_at !== undefined) { setClauses.push(`approved_at = $${idx++}`); values.push(updates.approved_at); }
+
+    values.push(sectionId);
+
+    const result = await client.query(`
+      UPDATE pack_sections
+      SET ${setClauses.join(', ')}
+      WHERE id = $${idx}
+      RETURNING *
+    `, values);
+
+    return result.rows[0] || null;
+  } finally {
+    client.release();
+  }
+}
+
+// Project Milestones CRUD
+export async function createProjectMilestone(data: {
+  pack_id: string;
+  title: string;
+  description?: string;
+  due_date?: Date;
+  dependencies?: string[];
+  linked_module?: string;
+  linked_item_id?: string;
+  order_index: number;
+}): Promise<ProjectMilestone> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`
+      INSERT INTO project_milestones
+      (pack_id, title, description, due_date, dependencies, linked_module, linked_item_id, order_index)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING *
+    `, [
+      data.pack_id,
+      data.title,
+      data.description,
+      data.due_date,
+      JSON.stringify(data.dependencies || []),
+      data.linked_module,
+      data.linked_item_id,
+      data.order_index
+    ]);
+    return result.rows[0];
+  } finally {
+    client.release();
+  }
+}
+
+export async function getProjectMilestones(packId: string): Promise<ProjectMilestone[]> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`
+      SELECT * FROM project_milestones
+      WHERE pack_id = $1
+      ORDER BY order_index
+    `, [packId]);
+    return result.rows;
+  } finally {
+    client.release();
+  }
+}
+
+export async function updateProjectMilestone(
+  milestoneId: string,
+  updates: Partial<Pick<ProjectMilestone, 'title' | 'description' | 'status' | 'due_date' | 'completed_at' | 'dependencies'>>
+): Promise<ProjectMilestone | null> {
+  const client = await pool.connect();
+  try {
+    const setClauses: string[] = ['updated_at = NOW()'];
+    const values: unknown[] = [];
+    let idx = 1;
+
+    if (updates.title !== undefined) { setClauses.push(`title = $${idx++}`); values.push(updates.title); }
+    if (updates.description !== undefined) { setClauses.push(`description = $${idx++}`); values.push(updates.description); }
+    if (updates.status !== undefined) { setClauses.push(`status = $${idx++}`); values.push(updates.status); }
+    if (updates.due_date !== undefined) { setClauses.push(`due_date = $${idx++}`); values.push(updates.due_date); }
+    if (updates.completed_at !== undefined) { setClauses.push(`completed_at = $${idx++}`); values.push(updates.completed_at); }
+    if (updates.dependencies !== undefined) { setClauses.push(`dependencies = $${idx++}`); values.push(JSON.stringify(updates.dependencies)); }
+
+    values.push(milestoneId);
+
+    const result = await client.query(`
+      UPDATE project_milestones
+      SET ${setClauses.join(', ')}
+      WHERE id = $${idx}
+      RETURNING *
+    `, values);
+
+    return result.rows[0] || null;
+  } finally {
+    client.release();
+  }
+}
+
+// Project Documents CRUD (Cloud Storage)
+export async function createProjectDocument(data: {
+  pack_id: string;
+  milestone_id?: string;
+  section_code?: string;
+  name: string;
+  description?: string;
+  storage_key?: string;
+  file_size_bytes?: number;
+  mime_type?: string;
+  checksum?: string;
+  uploaded_by?: string;
+}): Promise<ProjectDocument> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`
+      INSERT INTO project_documents
+      (pack_id, milestone_id, section_code, name, description, storage_key, file_size_bytes, mime_type, checksum, uploaded_by, uploaded_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())
+      RETURNING *
+    `, [
+      data.pack_id,
+      data.milestone_id,
+      data.section_code,
+      data.name,
+      data.description,
+      data.storage_key,
+      data.file_size_bytes,
+      data.mime_type,
+      data.checksum,
+      data.uploaded_by
+    ]);
+    return result.rows[0];
+  } finally {
+    client.release();
+  }
+}
+
+export async function getProjectDocuments(packId: string): Promise<ProjectDocument[]> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`
+      SELECT * FROM project_documents
+      WHERE pack_id = $1
+      ORDER BY created_at DESC
+    `, [packId]);
+    return result.rows;
+  } finally {
+    client.release();
+  }
+}
+
+export async function getProjectDocument(documentId: string): Promise<ProjectDocument | null> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`
+      SELECT * FROM project_documents WHERE id = $1
+    `, [documentId]);
+    return result.rows[0] || null;
+  } finally {
+    client.release();
+  }
+}
+
+export async function updateProjectDocument(
+  documentId: string,
+  updates: Partial<Pick<ProjectDocument, 'name' | 'description' | 'status' | 'reviewed_by' | 'reviewed_at' | 'signed_by' | 'signed_at'>>
+): Promise<ProjectDocument | null> {
+  const client = await pool.connect();
+  try {
+    const setClauses: string[] = ['updated_at = NOW()'];
+    const values: unknown[] = [];
+    let idx = 1;
+
+    if (updates.name !== undefined) { setClauses.push(`name = $${idx++}`); values.push(updates.name); }
+    if (updates.description !== undefined) { setClauses.push(`description = $${idx++}`); values.push(updates.description); }
+    if (updates.status !== undefined) { setClauses.push(`status = $${idx++}`); values.push(updates.status); }
+    if (updates.reviewed_by !== undefined) { setClauses.push(`reviewed_by = $${idx++}`); values.push(updates.reviewed_by); }
+    if (updates.reviewed_at !== undefined) { setClauses.push(`reviewed_at = $${idx++}`); values.push(updates.reviewed_at); }
+    if (updates.signed_by !== undefined) { setClauses.push(`signed_by = $${idx++}`); values.push(updates.signed_by); }
+    if (updates.signed_at !== undefined) { setClauses.push(`signed_at = $${idx++}`); values.push(updates.signed_at); }
+
+    values.push(documentId);
+
+    const result = await client.query(`
+      UPDATE project_documents
+      SET ${setClauses.join(', ')}
+      WHERE id = $${idx}
+      RETURNING *
+    `, values);
+
+    return result.rows[0] || null;
+  } finally {
+    client.release();
+  }
+}
+
+export async function deleteProjectDocument(documentId: string): Promise<boolean> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`
+      DELETE FROM project_documents WHERE id = $1
+    `, [documentId]);
+    return (result.rowCount ?? 0) > 0;
+  } finally {
+    client.release();
+  }
+}
+
+// Document Comments CRUD
+export async function createDocumentComment(data: {
+  document_id: string;
+  author_id: string;
+  author_name?: string;
+  content: string;
+}): Promise<DocumentComment> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`
+      INSERT INTO document_comments (document_id, author_id, author_name, content)
+      VALUES ($1, $2, $3, $4)
+      RETURNING *
+    `, [data.document_id, data.author_id, data.author_name, data.content]);
+    return result.rows[0];
+  } finally {
+    client.release();
+  }
+}
+
+export async function getDocumentComments(documentId: string): Promise<DocumentComment[]> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`
+      SELECT * FROM document_comments
+      WHERE document_id = $1
+      ORDER BY created_at ASC
+    `, [documentId]);
+    return result.rows;
+  } finally {
+    client.release();
+  }
+}
+
+// Pack Tasks CRUD
+export async function createPackTask(data: {
+  pack_id: string;
+  pack_section_id?: string;
+  milestone_id?: string;
+  title: string;
+  description?: string;
+  task_type: string;
+  priority?: string;
+  assigned_to?: string;
+  assigned_name?: string;
+  due_date?: Date;
+}): Promise<PackTask> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`
+      INSERT INTO pack_tasks
+      (pack_id, pack_section_id, milestone_id, title, description, task_type, priority, assigned_to, assigned_name, due_date)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      RETURNING *
+    `, [
+      data.pack_id,
+      data.pack_section_id,
+      data.milestone_id,
+      data.title,
+      data.description,
+      data.task_type,
+      data.priority || 'medium',
+      data.assigned_to,
+      data.assigned_name,
+      data.due_date
+    ]);
+    return result.rows[0];
+  } finally {
+    client.release();
+  }
+}
+
+export async function getPackTasks(packId: string): Promise<PackTask[]> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`
+      SELECT * FROM pack_tasks
+      WHERE pack_id = $1
+      ORDER BY
+        CASE priority
+          WHEN 'urgent' THEN 1
+          WHEN 'high' THEN 2
+          WHEN 'medium' THEN 3
+          WHEN 'low' THEN 4
+        END,
+        due_date ASC NULLS LAST
+    `, [packId]);
+    return result.rows;
+  } finally {
+    client.release();
+  }
+}
+
+export async function updatePackTask(
+  taskId: string,
+  updates: Partial<Pick<PackTask, 'title' | 'description' | 'status' | 'priority' | 'assigned_to' | 'assigned_name' | 'due_date' | 'completed_at'>>
+): Promise<PackTask | null> {
+  const client = await pool.connect();
+  try {
+    const setClauses: string[] = ['updated_at = NOW()'];
+    const values: unknown[] = [];
+    let idx = 1;
+
+    if (updates.title !== undefined) { setClauses.push(`title = $${idx++}`); values.push(updates.title); }
+    if (updates.description !== undefined) { setClauses.push(`description = $${idx++}`); values.push(updates.description); }
+    if (updates.status !== undefined) { setClauses.push(`status = $${idx++}`); values.push(updates.status); }
+    if (updates.priority !== undefined) { setClauses.push(`priority = $${idx++}`); values.push(updates.priority); }
+    if (updates.assigned_to !== undefined) { setClauses.push(`assigned_to = $${idx++}`); values.push(updates.assigned_to); }
+    if (updates.assigned_name !== undefined) { setClauses.push(`assigned_name = $${idx++}`); values.push(updates.assigned_name); }
+    if (updates.due_date !== undefined) { setClauses.push(`due_date = $${idx++}`); values.push(updates.due_date); }
+    if (updates.completed_at !== undefined) { setClauses.push(`completed_at = $${idx++}`); values.push(updates.completed_at); }
+
+    values.push(taskId);
+
+    const result = await client.query(`
+      UPDATE pack_tasks
+      SET ${setClauses.join(', ')}
+      WHERE id = $${idx}
+      RETURNING *
+    `, values);
+
+    return result.rows[0] || null;
+  } finally {
+    client.release();
+  }
+}
+
+// Pack Review Comments CRUD
+export async function createPackReviewComment(data: {
+  pack_section_id: string;
+  author_id: string;
+  author_role: string;
+  comment_type: string;
+  content: string;
+}): Promise<PackReviewComment> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`
+      INSERT INTO pack_review_comments
+      (pack_section_id, author_id, author_role, comment_type, content)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING *
+    `, [data.pack_section_id, data.author_id, data.author_role, data.comment_type, data.content]);
+    return result.rows[0];
+  } finally {
+    client.release();
+  }
+}
+
+export async function getPackReviewComments(sectionId: string): Promise<PackReviewComment[]> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`
+      SELECT * FROM pack_review_comments
+      WHERE pack_section_id = $1
+      ORDER BY created_at ASC
+    `, [sectionId]);
+    return result.rows;
+  } finally {
+    client.release();
+  }
+}
+
+// Seed Pack Templates function
+export async function seedPackTemplates(force: boolean = false): Promise<void> {
+  const client = await pool.connect();
+  try {
+    // Check if templates already exist with valid codes
+    const existing = await client.query(`SELECT COUNT(*) FROM pack_templates WHERE code IS NOT NULL`);
+    if (!force && parseInt(existing.rows[0].count) > 0) {
+      return;
+    }
+
+    // If force or templates have null codes, clear and re-seed
+    // Drop and recreate with correct schema
+    await client.query(`DROP TABLE IF EXISTS section_templates CASCADE`);
+    await client.query(`DROP TABLE IF EXISTS pack_templates CASCADE`);
+
+    // Recreate pack_templates with correct schema
+    await client.query(`
+      CREATE TABLE pack_templates (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        code VARCHAR(50) NOT NULL UNIQUE,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        pack_type VARCHAR(100) NOT NULL,
+        typical_timeline_weeks INTEGER DEFAULT 12,
+        policy_templates JSONB DEFAULT '[]'::jsonb,
+        training_requirements JSONB DEFAULT '[]'::jsonb,
+        smcr_roles JSONB DEFAULT '[]'::jsonb,
+        is_active BOOLEAN DEFAULT TRUE,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    // Recreate section_templates
+    await client.query(`
+      CREATE TABLE section_templates (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        pack_template_id UUID REFERENCES pack_templates(id) ON DELETE CASCADE,
+        code VARCHAR(100) NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        guidance_text TEXT,
+        order_index INTEGER NOT NULL,
+        regulatory_reference VARCHAR(500),
+        definition_of_done JSONB DEFAULT '[]'::jsonb,
+        evidence_requirements JSONB DEFAULT '[]'::jsonb,
+        UNIQUE(pack_template_id, code)
+      )
+    `);
+
+    // Create the three pack types
+    const packTypes = [
+      {
+        code: 'payments-emi',
+        name: 'Payment Services / E-Money Institution',
+        description: 'FCA authorization pack for firms seeking payment services or e-money institution authorization under PSD2/EMD2.',
+        pack_type: 'payments',
+        typical_timeline_weeks: 16,
+        policy_templates: ['aml-policy', 'safeguarding-policy', 'complaints-policy', 'operational-resilience', 'consumer-duty'],
+        training_requirements: ['aml-training', 'consumer-duty-training', 'payments-regulation'],
+        smcr_roles: ['SMF16', 'SMF17', 'SMF29']
+      },
+      {
+        code: 'investment-services',
+        name: 'Investment Services Authorization',
+        description: 'FCA authorization pack for firms seeking MiFID investment permissions including dealing, advising, and managing.',
+        pack_type: 'investments',
+        typical_timeline_weeks: 20,
+        policy_templates: ['aml-policy', 'best-execution', 'conflicts-of-interest', 'suitability', 'consumer-duty', 'complaints-policy'],
+        training_requirements: ['aml-training', 'consumer-duty-training', 'mifid-training', 'investment-advice'],
+        smcr_roles: ['SMF3', 'SMF16', 'SMF17', 'SMF24']
+      },
+      {
+        code: 'consumer-credit',
+        name: 'Consumer Credit Authorization',
+        description: 'FCA authorization pack for firms seeking consumer credit permissions including lending, broking, and debt activities.',
+        pack_type: 'credit',
+        typical_timeline_weeks: 14,
+        policy_templates: ['aml-policy', 'responsible-lending', 'complaints-policy', 'consumer-duty', 'arrears-management'],
+        training_requirements: ['aml-training', 'consumer-duty-training', 'consumer-credit-training'],
+        smcr_roles: ['SMF16', 'SMF17']
+      }
+    ];
+
+    for (const pt of packTypes) {
+      const result = await client.query(`
+        INSERT INTO pack_templates (code, name, description, pack_type, typical_timeline_weeks, policy_templates, training_requirements, smcr_roles)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        RETURNING id
+      `, [
+        pt.code,
+        pt.name,
+        pt.description,
+        pt.pack_type,
+        pt.typical_timeline_weeks,
+        JSON.stringify(pt.policy_templates),
+        JSON.stringify(pt.training_requirements),
+        JSON.stringify(pt.smcr_roles)
+      ]);
+
+      const templateId = result.rows[0].id;
+
+      // Create the 27 gold-standard sections for each template
+      const sections = [
+        { code: 'executive-summary', name: 'Executive Summary', order_index: 1, regulatory_reference: 'FCA Application Form Section A' },
+        { code: 'business-model', name: 'Business Model & Market Analysis', order_index: 2, regulatory_reference: 'SUP 6.3' },
+        { code: 'regulatory-permissions', name: 'Regulatory Permissions & Operational Scope', order_index: 3, regulatory_reference: 'SUP 6.4' },
+        { code: 'corporate-structure', name: 'Corporate Structure & Governance', order_index: 4, regulatory_reference: 'SYSC 4.3' },
+        { code: 'technology-infrastructure', name: 'Technology Infrastructure & Operational Resilience', order_index: 5, regulatory_reference: 'SYSC 15A' },
+        { code: 'operational-risk', name: 'Operational Risk Framework & Controls', order_index: 6, regulatory_reference: 'SYSC 7' },
+        { code: 'customer-lifecycle', name: 'Customer Lifecycle Management', order_index: 7, regulatory_reference: 'BCOBS / CONC' },
+        { code: 'product-architecture', name: 'Product Architecture & Fund Flow Management', order_index: 8, regulatory_reference: 'Payment Services Regulations' },
+        { code: 'client-asset-protection', name: 'Client Asset Protection (Principle 10)', order_index: 9, regulatory_reference: 'CASS' },
+        { code: 'financial-projections', name: 'Financial Projections & Business Economics', order_index: 10, regulatory_reference: 'IPRU-INV / MIPRU' },
+        { code: 'wind-down-planning', name: 'Wind-Down Planning & Resolution Strategy', order_index: 11, regulatory_reference: 'WDPG' },
+        { code: 'aml-ctf', name: 'AML/CTF Framework', order_index: 12, regulatory_reference: 'MLR 2017' },
+        { code: 'regulatory-reporting', name: 'Regulatory Reporting & Supervisory Engagement', order_index: 13, regulatory_reference: 'SUP 16' },
+        { code: 'data-quality', name: 'Data Quality & Validation', order_index: 14, regulatory_reference: 'SYSC 3.2' },
+        { code: 'consumer-duty', name: 'Consumer Duty Implementation', order_index: 15, regulatory_reference: 'PRIN 2A' },
+        { code: 'compliance-monitoring', name: 'Compliance Monitoring Programme', order_index: 16, regulatory_reference: 'SYSC 6.1' },
+        { code: 'threshold-conditions', name: 'Threshold Conditions & Ongoing Compliance', order_index: 17, regulatory_reference: 'COND 2' },
+        { code: 'app-fraud', name: 'APP Fraud Prevention & Reimbursement', order_index: 18, regulatory_reference: 'PSR 2017' },
+        { code: 'management-information', name: 'Management Information & Board Reporting', order_index: 19, regulatory_reference: 'SYSC 4.1' },
+        { code: 'change-management', name: 'Change Management & Horizon Scanning', order_index: 20, regulatory_reference: 'SYSC 3.1' },
+        { code: 'third-party-risk', name: 'Third-Party Risk Management', order_index: 21, regulatory_reference: 'SYSC 8' },
+        { code: 'cyber-security', name: 'Cyber Security Incident Response', order_index: 22, regulatory_reference: 'SYSC 13' },
+        { code: 'sensitive-data', name: 'Sensitive Payment Data Management', order_index: 23, regulatory_reference: 'PCI-DSS' },
+        { code: 'security-policy', name: 'Security Policy & Risk Assessment', order_index: 24, regulatory_reference: 'SYSC 13' },
+        { code: 'vulnerability-management', name: 'Vulnerability Management Programme', order_index: 25, regulatory_reference: 'SYSC 13' },
+        { code: 'flow-of-funds', name: 'Flow of Funds', order_index: 26, regulatory_reference: 'CASS 7' },
+        { code: 'schedule-2', name: 'Schedule 2 Compliance Mapping + Supporting Documents', order_index: 27, regulatory_reference: 'EMR 2011' }
+      ];
+
+      for (const section of sections) {
+        await client.query(`
+          INSERT INTO section_templates (pack_template_id, code, name, order_index, regulatory_reference)
+          VALUES ($1, $2, $3, $4, $5)
+        `, [templateId, section.code, section.name, section.order_index, section.regulatory_reference]);
+      }
+    }
+
+    logger.info('Pack templates seeded successfully');
   } finally {
     client.release();
   }

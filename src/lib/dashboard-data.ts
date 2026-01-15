@@ -62,8 +62,8 @@ export interface UpcomingTask {
 export const dashboardModules: DashboardModule[] = [
   {
     id: "authPack",
-    title: "Authorization Ready Pack",
-    description: "Navigate FCA authorization with guided questionnaires and document management",
+    title: "Authorisation Pack Workspace",
+    description: "Track the FCA business plan spine, evidence annexes, and review gates in one workspace",
     icon: FileCheck2,
     color: "teal",
     route: "/authorization-pack",
@@ -324,4 +324,3 @@ export const quickActions = [
     icon: ClipboardList,
   },
 ];
-

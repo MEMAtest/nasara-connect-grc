@@ -15,6 +15,7 @@
 
 # local runtime
 /tmp
+/storage
 
 # next.js
 /.next/
