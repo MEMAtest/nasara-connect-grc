@@ -28,10 +28,10 @@ interface SectionSummary {
   id: string;
   section_key: string;
   title: string;
-  status: string;
+  status?: string;
   owner_id?: string | null;
   due_date?: string | null;
-  review_state: string;
+  review_state?: string;
   narrativeCompletion: number;
   evidenceCompletion: number;
   reviewCompletion: number;
@@ -154,8 +154,8 @@ export function SectionsClient() {
                 <p className="text-xs text-slate-500">{section.section_key}</p>
               </div>
               <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                <Badge variant="outline">{section.status.replace("-", " ")}</Badge>
-                <Badge variant="outline">Review {section.review_state.replace("-", " ")}</Badge>
+                <Badge variant="outline">{(section.status || "not-started").replace("-", " ")}</Badge>
+                <Badge variant="outline">Review {(section.review_state || "draft").replace("-", " ")}</Badge>
                 <Badge variant="outline">Narrative {section.narrativeCompletion}%</Badge>
                 <Badge variant="outline">Evidence {section.evidenceCompletion}%</Badge>
                 <Badge variant="outline">Review {section.reviewCompletion}%</Badge>
