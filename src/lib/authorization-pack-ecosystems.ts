@@ -17,7 +17,7 @@ export const PERMISSION_ECOSYSTEMS: PermissionEcosystemTemplate[] = [
   {
     code: "payments",
     name: "Payment Services",
-    description: "Payments/EMI authorization with safeguarding, consumer duty, and operational resilience focus.",
+    description: "Payment Institution / EMI permissions under PSR 2017 with safeguarding, consumer duty, and operational resilience.",
     packTemplateType: "payments-emi",
     policyTemplates: [
       "AML_CTF",
@@ -50,7 +50,7 @@ export const PERMISSION_ECOSYSTEMS: PermissionEcosystemTemplate[] = [
   {
     code: "investments",
     name: "Investment Services",
-    description: "Investment firm authorization covering suitability and best execution.",
+    description: "MiFID-style investment permissions covering suitability, conflicts, and best execution.",
     packTemplateType: "investment",
     policyTemplates: [
       "AML_CTF",
@@ -84,7 +84,7 @@ export const PERMISSION_ECOSYSTEMS: PermissionEcosystemTemplate[] = [
   {
     code: "consumer-credit",
     name: "Consumer Credit",
-    description: "Consumer credit permissions with affordability and vulnerability focus.",
+    description: "Consumer credit permissions with affordability, forbearance, and vulnerability controls.",
     packTemplateType: "consumer-credit",
     policyTemplates: [
       "AML_CTF",
@@ -116,7 +116,7 @@ export const PERMISSION_ECOSYSTEMS: PermissionEcosystemTemplate[] = [
   {
     code: "insurance",
     name: "Insurance Distribution",
-    description: "Insurance distribution permissions with PROD and oversight.",
+    description: "Insurance distribution permissions with PROD governance and distribution oversight.",
     packTemplateType: "insurance-distribution",
     policyTemplates: [
       "AML_CTF",
@@ -146,7 +146,7 @@ export const PERMISSION_ECOSYSTEMS: PermissionEcosystemTemplate[] = [
   {
     code: "crypto",
     name: "Cryptoasset Registration",
-    description: "Crypto registration with AML/CTF emphasis.",
+    description: "Cryptoasset registration with AML/CTF, sanctions, and financial crime controls.",
     packTemplateType: "crypto-registration",
     policyTemplates: [
       "AML_CTF",

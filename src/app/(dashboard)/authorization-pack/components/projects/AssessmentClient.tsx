@@ -479,6 +479,9 @@ export function AssessmentClient() {
               onChange={(event) => updateBasics("legalName", event.target.value)}
               placeholder="Start typing the registered company name"
             />
+            <p className="text-xs text-slate-400">
+              Select a Companies House result to auto-fill company number and registered address.
+            </p>
             {isSearching ? <p className="text-xs text-slate-500">Searching Companies House...</p> : null}
             {searchError ? <p className="text-xs text-red-500">{searchError}</p> : null}
             {companyResults.length > 0 ? (
@@ -532,7 +535,7 @@ export function AssessmentClient() {
             />
           </div>
           <div className="space-y-2 md:col-span-2">
-            <Label>Registered address - Street</Label>
+            <Label>Registered address - Street (auto-filled)</Label>
             <Input
               value={String(assessment.basics?.addressLine1 ?? "")}
               onChange={(event) => updateBasics("addressLine1", event.target.value)}

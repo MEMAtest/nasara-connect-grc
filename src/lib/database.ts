@@ -2825,6 +2825,15 @@ export async function seedPackTemplates(force: boolean = false): Promise<void> {
       const result = await client.query(`
         INSERT INTO pack_templates (code, name, description, pack_type, typical_timeline_weeks, policy_templates, training_requirements, smcr_roles)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        ON CONFLICT (code)
+        DO UPDATE SET
+          name = EXCLUDED.name,
+          description = EXCLUDED.description,
+          pack_type = EXCLUDED.pack_type,
+          typical_timeline_weeks = EXCLUDED.typical_timeline_weeks,
+          policy_templates = EXCLUDED.policy_templates,
+          training_requirements = EXCLUDED.training_requirements,
+          smcr_roles = EXCLUDED.smcr_roles
         RETURNING id
       `, [
         pt.code,

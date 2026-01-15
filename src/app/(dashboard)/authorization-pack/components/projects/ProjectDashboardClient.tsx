@@ -10,6 +10,7 @@ import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { getRegisterItems } from "@/lib/authorization-pack-integrations";
 import { ProjectHeader } from "./ProjectHeader";
+import { CheckCircle2, Circle } from "lucide-react";
 
 interface ReadinessSummary {
   overall: number;
@@ -124,6 +125,42 @@ export function ProjectDashboardClient() {
     return steps.slice(0, 3);
   }, [project]);
 
+  const guidedSteps = useMemo(() => {
+    if (!project) return [];
+    const assessmentData = project.assessmentData || {};
+    const hasAssessment = Object.keys(assessmentData).length > 0;
+    const planData = project.projectPlan || {};
+    const hasPlan =
+      Array.isArray((planData as { milestones?: unknown }).milestones) &&
+      (planData as { milestones?: unknown[] }).milestones!.length > 0;
+    const narrativeStarted = (project.readiness?.narrative ?? 0) > 0;
+    return [
+      {
+        key: "assessment",
+        label: "Complete firm assessment",
+        description: "Capture company details and the current readiness baseline.",
+        done: hasAssessment,
+        href: `/authorization-pack/${project.id}/assessment`,
+      },
+      {
+        key: "plan",
+        label: "Generate project plan",
+        description: "Auto-build milestones, owners, and target dates.",
+        done: hasPlan,
+        href: `/authorization-pack/${project.id}/plan`,
+        disabled: !hasAssessment,
+      },
+      {
+        key: "workspace",
+        label: "Build the pack narrative",
+        description: "Draft sections, attach evidence, and move into review.",
+        done: narrativeStarted,
+        href: project.packId ? `/authorization-pack/sections?packId=${project.packId}` : undefined,
+        disabled: !project.packId,
+      },
+    ];
+  }, [project]);
+
   if (isLoading) {
     return (
       <Card className="border border-slate-200">
@@ -190,7 +227,7 @@ export function ProjectDashboardClient() {
             <CardTitle>Next actions</CardTitle>
             <CardDescription>Follow the guided steps to unlock the workspace and submission readiness.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3 text-sm text-slate-600">
+          <CardContent className="space-y-4 text-sm text-slate-600">
             {nextActions.length ? (
               <ul className="list-disc space-y-2 pl-4">
                 {nextActions.map((item) => (
@@ -213,6 +250,35 @@ export function ProjectDashboardClient() {
                 ))}
               </div>
             ) : null}
+            <div className="space-y-3 rounded-lg border border-slate-100 bg-white p-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Guided path</p>
+              {guidedSteps.map((step, index) => (
+                <div key={step.key} className="flex items-start gap-3">
+                  {step.done ? (
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 text-teal-600" />
+                  ) : (
+                    <Circle className="mt-0.5 h-4 w-4 text-slate-300" />
+                  )}
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-slate-700">
+                      {index + 1}. {step.label}
+                    </p>
+                    <p className="text-xs text-slate-500">{step.description}</p>
+                  </div>
+                  {step.href ? (
+                    <Button
+                      asChild
+                      size="sm"
+                      variant="outline"
+                      disabled={step.disabled}
+                      className="border-slate-200 text-slate-600"
+                    >
+                      <Link href={step.href}>Open</Link>
+                    </Button>
+                  ) : null}
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
       </div>

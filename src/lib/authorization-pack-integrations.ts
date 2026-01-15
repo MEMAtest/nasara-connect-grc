@@ -10,17 +10,17 @@ const policyLink = (templateCode: string) => `/policies/wizard?template=${encode
 const policyMap: Record<string, IntegrationItem> = {
   "aml-policy": {
     key: "aml-policy",
-    label: "AML/CTF and Sanctions Policy",
+    label: "AML/CTF & Sanctions",
     href: policyLink("AML_CTF"),
   },
   "aml-ctf-and-sanctions-policy": {
     key: "aml-ctf-and-sanctions-policy",
-    label: "AML/CTF and Sanctions Policy",
+    label: "AML/CTF & Sanctions",
     href: policyLink("AML_CTF"),
   },
   "aml-ctf-sanctions-policy": {
     key: "aml-ctf-sanctions-policy",
-    label: "AML/CTF and Sanctions Policy",
+    label: "AML/CTF & Sanctions",
     href: policyLink("AML_CTF"),
   },
   "safeguarding-policy": {
@@ -35,47 +35,47 @@ const policyMap: Record<string, IntegrationItem> = {
   },
   "complaints-policy": {
     key: "complaints-policy",
-    label: "Complaints Handling Policy",
+    label: "Complaints Handling",
     href: policyLink("COMPLAINTS"),
   },
   "complaints-handling-policy": {
     key: "complaints-handling-policy",
-    label: "Complaints Handling Policy",
+    label: "Complaints Handling",
     href: policyLink("COMPLAINTS"),
   },
   "financial-promotions": {
     key: "financial-promotions",
-    label: "Financial Promotions Policy",
+    label: "Financial Promotions",
     href: policyLink("FIN_PROMOTIONS"),
   },
   "fin-promotions": {
     key: "fin-promotions",
-    label: "Financial Promotions Policy",
+    label: "Financial Promotions",
     href: policyLink("FIN_PROMOTIONS"),
   },
   "financial-promotions-policy": {
     key: "financial-promotions-policy",
-    label: "Financial Promotions Policy",
+    label: "Financial Promotions",
     href: policyLink("FIN_PROMOTIONS"),
   },
   "operational-resilience": {
     key: "operational-resilience",
-    label: "Business Continuity & Operational Resilience Policy",
+    label: "Business Continuity & Operational Resilience",
     href: policyLink("BCP_RESILIENCE"),
   },
   "bcp-resilience": {
     key: "bcp-resilience",
-    label: "Business Continuity & Operational Resilience Policy",
+    label: "Business Continuity & Operational Resilience",
     href: policyLink("BCP_RESILIENCE"),
   },
   "operational-resilience-policy": {
     key: "operational-resilience-policy",
-    label: "Business Continuity & Operational Resilience Policy",
+    label: "Business Continuity & Operational Resilience",
     href: policyLink("BCP_RESILIENCE"),
   },
   "business-continuity-resilience": {
     key: "business-continuity-resilience",
-    label: "Business Continuity & Operational Resilience Policy",
+    label: "Business Continuity & Operational Resilience",
     href: policyLink("BCP_RESILIENCE"),
   },
   "consumer-duty": {
@@ -90,127 +90,127 @@ const policyMap: Record<string, IntegrationItem> = {
   },
   "best-execution": {
     key: "best-execution",
-    label: "Best Execution Policy",
+    label: "Best Execution",
     href: policyLink("BEST_EXECUTION"),
   },
   "best-execution-policy": {
     key: "best-execution-policy",
-    label: "Best Execution Policy",
+    label: "Best Execution",
     href: policyLink("BEST_EXECUTION"),
   },
   "conflicts-of-interest": {
     key: "conflicts-of-interest",
-    label: "Conflicts of Interest Policy",
+    label: "Conflicts of Interest",
     href: policyLink("CONFLICTS"),
   },
   conflicts: {
     key: "conflicts",
-    label: "Conflicts of Interest Policy",
+    label: "Conflicts of Interest",
     href: policyLink("CONFLICTS"),
   },
   "conflicts-of-interest-policy": {
     key: "conflicts-of-interest-policy",
-    label: "Conflicts of Interest Policy",
+    label: "Conflicts of Interest",
     href: policyLink("CONFLICTS"),
   },
   suitability: {
     key: "suitability",
-    label: "Suitability of Advice Policy",
+    label: "Suitability of Advice",
     href: policyLink("SUITABILITY_ADVICE"),
   },
   "suitability-advice": {
     key: "suitability-advice",
-    label: "Suitability of Advice Policy",
+    label: "Suitability of Advice",
     href: policyLink("SUITABILITY_ADVICE"),
   },
   "suitability-of-advice-policy": {
     key: "suitability-of-advice-policy",
-    label: "Suitability of Advice Policy",
+    label: "Suitability of Advice",
     href: policyLink("SUITABILITY_ADVICE"),
   },
   "responsible-lending": {
     key: "responsible-lending",
-    label: "Responsible Lending & Affordability Policy",
+    label: "Responsible Lending & Affordability",
     href: policyLink("RESPONSIBLE_LENDING"),
   },
   "responsible-lending-policy": {
     key: "responsible-lending-policy",
-    label: "Responsible Lending & Affordability Policy",
+    label: "Responsible Lending & Affordability",
     href: policyLink("RESPONSIBLE_LENDING"),
   },
   "affordability-policy": {
     key: "affordability-policy",
-    label: "Responsible Lending & Affordability Policy",
+    label: "Responsible Lending & Affordability",
     href: policyLink("RESPONSIBLE_LENDING"),
   },
   "arrears-management": {
     key: "arrears-management",
-    label: "Arrears Management & Forbearance Policy",
+    label: "Arrears Management & Forbearance",
     href: policyLink("ARREARS_MANAGEMENT"),
   },
   "arrears-management-and-forbearance": {
     key: "arrears-management-and-forbearance",
-    label: "Arrears Management & Forbearance Policy",
+    label: "Arrears Management & Forbearance",
     href: policyLink("ARREARS_MANAGEMENT"),
   },
   "arrears-management-and-forbearance-policy": {
     key: "arrears-management-and-forbearance-policy",
-    label: "Arrears Management & Forbearance Policy",
+    label: "Arrears Management & Forbearance",
     href: policyLink("ARREARS_MANAGEMENT"),
   },
   "prod-policy": {
     key: "prod-policy",
-    label: "PROD & Distribution Oversight Policy",
+    label: "PROD & Distribution Oversight",
     href: policyLink("PROD"),
   },
   prod: {
     key: "prod",
-    label: "PROD & Distribution Oversight Policy",
+    label: "PROD & Distribution Oversight",
     href: policyLink("PROD"),
   },
   "risk-assessment": {
     key: "risk-assessment",
-    label: "Risk Assessment & Management Framework",
+    label: "Risk Management Framework",
     href: policyLink("RISK_MGMT"),
   },
   "risk-mgmt": {
     key: "risk-mgmt",
-    label: "Risk Assessment & Management Framework",
+    label: "Risk Management Framework",
     href: policyLink("RISK_MGMT"),
   },
   "risk-assessment-policy": {
     key: "risk-assessment-policy",
-    label: "Risk Assessment & Management Framework",
+    label: "Risk Management Framework",
     href: policyLink("RISK_MGMT"),
   },
   "risk-management-framework": {
     key: "risk-management-framework",
-    label: "Risk Assessment & Management Framework",
+    label: "Risk Management Framework",
     href: policyLink("RISK_MGMT"),
   },
   "vulnerable-customers": {
     key: "vulnerable-customers",
-    label: "Vulnerable Customers Policy",
+    label: "Vulnerable Customers",
     href: policyLink("VULNERABLE_CUST"),
   },
   "vulnerable-cust": {
     key: "vulnerable-cust",
-    label: "Vulnerable Customers Policy",
+    label: "Vulnerable Customers",
     href: policyLink("VULNERABLE_CUST"),
   },
   complaints: {
     key: "complaints",
-    label: "Complaints Handling Policy",
+    label: "Complaints Handling",
     href: policyLink("COMPLAINTS"),
   },
   "aml-ctf": {
     key: "aml-ctf",
-    label: "AML/CTF and Sanctions Policy",
+    label: "AML/CTF & Sanctions",
     href: policyLink("AML_CTF"),
   },
   "sanctions-policy": {
     key: "sanctions-policy",
-    label: "AML/CTF and Sanctions Policy",
+    label: "AML/CTF & Sanctions",
     href: policyLink("AML_CTF"),
   },
   safeguarding: {
@@ -391,6 +391,10 @@ const baseRegisters: IntegrationItem[] = [
   { key: "training-log", label: "Training records", href: "/training-library" },
   { key: "pep-register", label: "PEP register", href: "/registers/pep", description: "Politically exposed persons" },
   { key: "third-party-register", label: "Third-party register", href: "/registers/third-party", description: "Vendors & outsourcing" },
+  { key: "complaints-register", label: "Complaints register", href: "/registers/complaints" },
+  { key: "incidents-register", label: "Incident register", href: "/registers/incidents" },
+  { key: "conflicts-register", label: "Conflicts register", href: "/registers/conflicts" },
+  { key: "gifts-hospitality-register", label: "Gifts & hospitality register", href: "/registers/gifts-hospitality" },
 ];
 
 const registerOverrides: Record<string, IntegrationItem[]> = {

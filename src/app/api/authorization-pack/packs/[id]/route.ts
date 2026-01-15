@@ -1,5 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { deletePack, getPack, getPackReadiness, updatePack } from "@/lib/authorization-pack-db";
+import {
+  deleteAuthorizationProject,
+  deletePack,
+  getAuthorizationProject,
+  getPack,
+  getPackReadiness,
+  updatePack,
+} from "@/lib/authorization-pack-db";
 import { requireAuth, isValidUUID } from "@/lib/auth-utils";
 import { logError } from "@/lib/logger";
 
@@ -19,6 +26,14 @@ export async function GET(
 
     const pack = await getPack(id);
     if (!pack) {
+      const project = await getAuthorizationProject(id);
+      if (project) {
+        if (project.organization_id !== auth.organizationId) {
+          return NextResponse.json({ error: "Access denied" }, { status: 403 });
+        }
+        await deleteAuthorizationProject(id);
+        return NextResponse.json({ success: true, message: "Project deleted successfully" });
+      }
       return NextResponse.json({ error: "Pack not found" }, { status: 404 });
     }
 

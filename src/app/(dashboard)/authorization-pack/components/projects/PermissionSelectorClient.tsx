@@ -101,11 +101,13 @@ const PAYMENT_PERG_ACTIVITIES = [
   },
   {
     value: "ps-execution-payment-account",
-    label: "Execution of payment transactions where funds are on a payment account (direct debits, card payments, credit transfers, standing orders)",
+    label:
+      "Execution of payment transactions where funds are on a payment account (direct debits, card payments, credit transfers, standing orders)",
   },
   {
     value: "ps-execution-credit-line",
-    label: "Execution of payment transactions where funds are covered by a credit line (direct debits, card payments, credit transfers, standing orders)",
+    label:
+      "Execution of payment transactions where funds are covered by a credit line (direct debits, card payments, credit transfers, standing orders)",
   },
   {
     value: "ps-issuing-acquiring",
@@ -664,6 +666,9 @@ export function PermissionSelectorClient() {
             onChange={(e) => updateField("legalName", e.target.value)}
             placeholder="Start typing the registered company name"
           />
+          <p className="text-xs text-slate-400">
+            Select a result to auto-fill company number and registered address.
+          </p>
           {isCompanySearching ? (
             <p className="text-xs text-slate-500">Searching Companies House...</p>
           ) : null}
@@ -772,7 +777,7 @@ export function PermissionSelectorClient() {
         </div>
 
         <div className="space-y-2 md:col-span-2">
-          <Label>Registered address - Street</Label>
+          <Label>Registered address - Street (auto-filled)</Label>
           <Input
             value={data.addressLine1}
             onChange={(e) => updateField("addressLine1", e.target.value)}
