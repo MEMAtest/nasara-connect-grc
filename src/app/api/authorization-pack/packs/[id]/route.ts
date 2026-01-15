@@ -1,19 +1,61 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPack, getPackReadiness } from "@/lib/authorization-pack-db";
+import { initDatabase, getAuthorizationPack, getPackSections } from "@/lib/database";
+import { requireAuth, isValidUUID } from "@/lib/auth-utils";
+
+// Calculate readiness from sections
+function calculateReadiness(sections: { status: string; progress_percentage: number }[]) {
+  if (!sections || sections.length === 0) {
+    return { overall: 0, narrative: 0, evidence: 0, review: 0 };
+  }
+  const total = sections.length;
+  const narrative = Math.round(sections.reduce((sum, s) => sum + (s.progress_percentage || 0), 0) / total);
+  const approved = sections.filter((s) => s.status === "approved").length;
+  const review = Math.round((approved / total) * 100);
+  const evidence = Math.round((narrative + review) / 2);
+  const overall = Math.round(narrative * 0.4 + evidence * 0.3 + review * 0.3);
+  return { overall, narrative, evidence, review };
+}
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
+
+    await initDatabase();
     const { id } = await params;
-    const pack = await getPack(id);
+
+    if (!isValidUUID(id)) {
+      return NextResponse.json({ error: "Invalid pack ID format" }, { status: 400 });
+    }
+
+    const pack = await getAuthorizationPack(id);
     if (!pack) {
       return NextResponse.json({ error: "Pack not found" }, { status: 404 });
     }
 
-    const readiness = await getPackReadiness(id);
-    return NextResponse.json({ pack, readiness });
+    if (pack.organization_id !== auth.organizationId) {
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
+    }
+
+    const sections = await getPackSections(id);
+    const readiness = calculateReadiness(sections);
+
+    return NextResponse.json({
+      pack: {
+        id: pack.id,
+        name: pack.name,
+        status: pack.status,
+        target_submission_date: pack.target_submission_date,
+        created_at: pack.created_at,
+        updated_at: pack.updated_at,
+        template_type: pack.template_name,
+        template_name: pack.template_name,
+      },
+      readiness,
+    });
   } catch (error) {
     return NextResponse.json(
       { error: "Failed to load pack", details: error instanceof Error ? error.message : "Unknown error" },
