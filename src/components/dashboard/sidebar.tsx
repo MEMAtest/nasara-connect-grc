@@ -254,25 +254,32 @@ export function Sidebar({ onNavigate, onClose, isMobile = false }: SidebarProps)
   const pathname = usePathname();
   const { data: session } = useSession();
 
-  // Initialize collapsed state from localStorage
-  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>(() => {
-    if (typeof window === "undefined") return {};
+  // Initialize with empty state to avoid hydration mismatch
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  // Load persisted state from localStorage after hydration
+  useEffect(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
-      return stored ? JSON.parse(stored) : {};
+      if (stored) {
+        setCollapsedGroups(JSON.parse(stored));
+      }
     } catch {
-      return {};
+      // Ignore localStorage errors
     }
-  });
+    setIsHydrated(true);
+  }, []);
 
-  // Persist to localStorage when collapsed state changes
+  // Persist to localStorage when collapsed state changes (only after hydration)
   useEffect(() => {
+    if (!isHydrated) return;
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(collapsedGroups));
     } catch {
       // Ignore localStorage errors
     }
-  }, [collapsedGroups]);
+  }, [collapsedGroups, isHydrated]);
 
   const toggleGroup = useCallback((groupId: string) => {
     setCollapsedGroups((prev) => ({
@@ -384,7 +391,10 @@ export function Sidebar({ onNavigate, onClose, isMobile = false }: SidebarProps)
           {/* Grouped navigation */}
           {navigationGroups.map((group) => {
             const GroupIcon = group.icon;
-            const isCollapsed = collapsedGroups[group.id] ?? !group.defaultOpen;
+            // Before hydration, use defaultOpen; after hydration, use persisted state
+            const isCollapsed = isHydrated
+              ? (collapsedGroups[group.id] ?? !group.defaultOpen)
+              : !group.defaultOpen;
             const hasActiveItem = groupContainsActive(group);
 
             return (
