@@ -153,6 +153,14 @@ export function AssessmentClient() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState<{
+    readiness: Record<string, { suggested: string; reason: string; priority: string }>;
+    priorities: string[];
+    risks: string[];
+    recommendations: string[];
+  } | null>(null);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
 
   const loadProject = async () => {
     if (!projectId) return;
@@ -267,6 +275,45 @@ export function AssessmentClient() {
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  // AI-powered readiness analysis
+  const analyzeReadiness = async () => {
+    if (!projectId || !assessment.basics) return;
+    setIsAnalyzing(true);
+    setAnalysisError(null);
+    try {
+      const response = await fetch(`/api/authorization-pack/projects/${projectId}/analyze`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ basics: assessment.basics }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        setAnalysisError(errorData.error || "Unable to analyze readiness.");
+        return;
+      }
+      const data = await response.json();
+      setAnalysisResult(data.analysis);
+    } catch (error) {
+      setAnalysisError(error instanceof Error ? error.message : "Analysis failed");
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  // Apply AI suggestions to readiness
+  const applyAISuggestions = () => {
+    if (!analysisResult?.readiness) return;
+    setAssessment((prev) => {
+      const newReadiness = { ...(prev.readiness ?? {}) };
+      for (const [key, value] of Object.entries(analysisResult.readiness)) {
+        if (value.suggested && ["missing", "partial", "complete"].includes(value.suggested)) {
+          newReadiness[key] = value.suggested as ReadinessStatus;
+        }
+      }
+      return { ...prev, readiness: newReadiness };
+    });
   };
 
   if (isLoading) {
@@ -408,34 +455,135 @@ export function AssessmentClient() {
       </Card>
 
       <Card className="border border-slate-200">
-        <CardHeader>
-          <CardTitle>Readiness signals</CardTitle>
-          <CardDescription>Track what is ready versus still being built.</CardDescription>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <div>
+            <CardTitle>Readiness signals</CardTitle>
+            <CardDescription>Track what is ready versus still being built.</CardDescription>
+          </div>
+          <div className="flex items-center gap-2">
+            {analysisResult && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={applyAISuggestions}
+                className="gap-1 border-teal-200 text-teal-700 hover:bg-teal-50"
+              >
+                Apply suggestions
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={analyzeReadiness}
+              disabled={isAnalyzing || !assessment.basics?.legalName}
+              className="gap-1 border-teal-200 text-teal-700 hover:bg-teal-50"
+            >
+              {isAnalyzing ? (
+                <>
+                  <span className="h-3 w-3 animate-spin rounded-full border border-teal-500 border-t-transparent" />
+                  Analyzing...
+                </>
+              ) : (
+                <>
+                  <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+                  </svg>
+                  AI Analyze
+                </>
+              )}
+            </Button>
+          </div>
         </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-2">
-          {readinessItems.map((item) => (
-            <div key={item.key} className="rounded-lg border border-slate-100 bg-slate-50 p-4">
-              <div className="space-y-2">
-                <p className="font-semibold text-slate-900">{item.label}</p>
-                <p className="text-xs text-slate-500">{item.description}</p>
-                <Select
-                  value={assessment.readiness?.[item.key] || "missing"}
-                  onValueChange={(value) => updateReadiness(item.key, value as ReadinessStatus)}
-                >
-                  <SelectTrigger className="mt-2 bg-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {statusOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+
+        {/* AI Analysis Results */}
+        {analysisError && (
+          <div className="mx-6 mb-4 flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-800">
+            <span>AI: {analysisError}</span>
+            <button onClick={() => setAnalysisError(null)} className="text-amber-600 hover:text-amber-800">
+              &times;
+            </button>
+          </div>
+        )}
+        {analysisResult && (
+          <div className="mx-6 mb-4 space-y-3 rounded-lg border border-teal-200 bg-teal-50 p-4">
+            <div className="flex items-center gap-2 text-sm font-medium text-teal-800">
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+              </svg>
+              AI Analysis Complete
+              <button onClick={() => setAnalysisResult(null)} className="ml-auto text-teal-600 hover:text-teal-800">
+                &times;
+              </button>
             </div>
-          ))}
+            {analysisResult.priorities?.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-teal-700">Top Priorities:</p>
+                <ul className="mt-1 space-y-1">
+                  {analysisResult.priorities.map((priority, idx) => (
+                    <li key={idx} className="flex items-start gap-2 text-xs text-teal-800">
+                      <span className="flex h-4 w-4 items-center justify-center rounded-full bg-teal-200 text-[10px] font-bold">
+                        {idx + 1}
+                      </span>
+                      {priority}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {analysisResult.risks?.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-amber-700">Risks/Flags:</p>
+                <ul className="mt-1 space-y-1">
+                  {analysisResult.risks.map((risk, idx) => (
+                    <li key={idx} className="text-xs text-amber-800">• {risk}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+
+        <CardContent className="grid gap-4 md:grid-cols-2">
+          {readinessItems.map((item) => {
+            const aiSuggestion = analysisResult?.readiness?.[item.key];
+            return (
+              <div key={item.key} className="rounded-lg border border-slate-100 bg-slate-50 p-4">
+                <div className="space-y-2">
+                  <p className="font-semibold text-slate-900">{item.label}</p>
+                  <p className="text-xs text-slate-500">{item.description}</p>
+                  {aiSuggestion && (
+                    <div className="rounded border border-teal-200 bg-teal-50 p-2 text-xs text-teal-700">
+                      <span className="font-medium">AI suggests: </span>
+                      <span className={`font-semibold ${
+                        aiSuggestion.suggested === "complete" ? "text-green-600" :
+                        aiSuggestion.suggested === "partial" ? "text-amber-600" : "text-red-600"
+                      }`}>
+                        {aiSuggestion.suggested}
+                      </span>
+                      {aiSuggestion.reason && (
+                        <p className="mt-1 text-teal-600">{aiSuggestion.reason}</p>
+                      )}
+                    </div>
+                  )}
+                  <Select
+                    value={assessment.readiness?.[item.key] || "missing"}
+                    onValueChange={(value) => updateReadiness(item.key, value as ReadinessStatus)}
+                  >
+                    <SelectTrigger className="mt-2 bg-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {statusOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            );
+          })}
         </CardContent>
       </Card>
 

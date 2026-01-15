@@ -75,6 +75,14 @@ function AlertIcon({ className }: { className?: string }) {
   );
 }
 
+function SparklesIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+    </svg>
+  );
+}
+
 interface PackRow {
   id: string;
   name: string;
@@ -204,6 +212,15 @@ export function SectionWorkspaceClient() {
   const [reviewNotes, setReviewNotes] = useState<Record<string, { notes: string; clientNotes: string }>>({});
   const [dragActive, setDragActive] = useState<string | null>(null);
   const [uploadingEvidence, setUploadingEvidence] = useState<Record<string, boolean>>({});
+  const [generatingPrompts, setGeneratingPrompts] = useState<Record<string, boolean>>({});
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [analyzingGaps, setAnalyzingGaps] = useState(false);
+  const [evidenceGaps, setEvidenceGaps] = useState<{
+    gaps: Array<{ description: string; priority: string; regulatoryBasis: string; suggestedFormat: string }>;
+    completeness: number;
+    suggestions: string[];
+  } | null>(null);
+  const [gapsError, setGapsError] = useState<string | null>(null);
 
   const saveTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   const abortControllers = useRef<Record<string, AbortController>>({});
@@ -325,6 +342,91 @@ export function SectionWorkspaceClient() {
       }
     }, AUTOSAVE_DELAY_MS);
   };
+
+  // AI-powered narrative generation
+  const handleGenerateNarrative = useCallback(
+    async (prompt: PromptItem, mode: "generate" | "enhance" = "generate") => {
+      if (!pack || !sectionId) return;
+
+      setGeneratingPrompts((prev) => ({ ...prev, [prompt.id]: true }));
+      setAiError(null);
+
+      try {
+        const response = await fetch(
+          `/api/authorization-pack/packs/${pack.id}/sections/${sectionId}/suggest`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              promptKey: prompt.prompt_key,
+              promptTitle: prompt.title,
+              promptGuidance: prompt.guidance,
+              existingContent: mode === "enhance" ? prompt.value : undefined,
+              sectionTemplate: currentSection?.title,
+              mode,
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || "Failed to generate narrative");
+        }
+
+        // Stream the response
+        const reader = response.body?.getReader();
+        if (!reader) throw new Error("No response stream");
+
+        const decoder = new TextDecoder();
+        let content = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          content += decoder.decode(value, { stream: true });
+          // Update in real-time for visual feedback
+          setPrompts((prev) =>
+            prev.map((p) => (p.id === prompt.id ? { ...p, value: content } : p))
+          );
+        }
+
+        // Trigger autosave after generation completes
+        if (content) {
+          handlePromptChange(prompt.id, content);
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "AI generation failed";
+        setAiError(message);
+        console.error("AI generation error:", error);
+      } finally {
+        setGeneratingPrompts((prev) => ({ ...prev, [prompt.id]: false }));
+      }
+    },
+    [pack, sectionId, currentSection?.title, handlePromptChange]
+  );
+
+  // AI-powered evidence gap analysis
+  const analyzeEvidenceGaps = useCallback(async () => {
+    if (!pack || !sectionId) return;
+    setAnalyzingGaps(true);
+    setGapsError(null);
+    try {
+      const response = await fetch(
+        `/api/authorization-pack/packs/${pack.id}/sections/${sectionId}/evidence-gaps`
+      );
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        setGapsError(errorData.error || "Unable to analyze evidence gaps");
+        return;
+      }
+      const data = await response.json();
+      setEvidenceGaps(data);
+    } catch (error) {
+      setGapsError(error instanceof Error ? error.message : "Gap analysis failed");
+    } finally {
+      setAnalyzingGaps(false);
+    }
+  }, [pack, sectionId]);
 
   const handleEvidenceUpload = async (itemId: string, file: File) => {
     if (!pack) return;
@@ -738,6 +840,21 @@ export function SectionWorkspaceClient() {
                 </button>
               </div>
             )}
+            {aiError && (
+              <div className="flex items-center justify-between gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                <div className="flex items-center gap-2">
+                  <SparklesIcon className="h-4 w-4" />
+                  AI: {aiError}
+                </div>
+                <button
+                  onClick={() => setAiError(null)}
+                  className="text-amber-600 hover:text-amber-800"
+                  aria-label="Dismiss AI error"
+                >
+                  &times;
+                </button>
+              </div>
+            )}
             {isLocked && (
               <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
                 <AlertIcon className="h-4 w-4" />
@@ -763,21 +880,66 @@ export function SectionWorkspaceClient() {
                         <p className="ml-8 text-sm text-slate-500">{prompt.guidance}</p>
                       )}
                     </div>
-                    <Badge
-                      variant="outline"
-                      className={prompt.required ? "border-red-200 text-red-600" : "text-slate-400"}
-                    >
-                      {prompt.required ? "Required" : "Optional"}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      {/* AI Generation Buttons */}
+                      {!isLocked && (
+                        <div className="flex gap-1">
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            disabled={generatingPrompts[prompt.id]}
+                            onClick={() => handleGenerateNarrative(prompt, "generate")}
+                            className="gap-1 border-teal-200 text-teal-700 hover:bg-teal-50"
+                            title="Generate AI draft"
+                          >
+                            {generatingPrompts[prompt.id] ? (
+                              <span className="h-3 w-3 animate-spin rounded-full border border-teal-500 border-t-transparent" />
+                            ) : (
+                              <SparklesIcon className="h-3 w-3" />
+                            )}
+                            <span className="hidden sm:inline">
+                              {generatingPrompts[prompt.id] ? "Generating..." : "Generate"}
+                            </span>
+                          </Button>
+                          {prompt.value && prompt.value.length > 20 && (
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="ghost"
+                              disabled={generatingPrompts[prompt.id]}
+                              onClick={() => handleGenerateNarrative(prompt, "enhance")}
+                              className="gap-1 text-slate-600 hover:text-teal-700"
+                              title="Enhance existing content"
+                            >
+                              <SparklesIcon className="h-3 w-3" />
+                              <span className="hidden sm:inline">Enhance</span>
+                            </Button>
+                          )}
+                        </div>
+                      )}
+                      <Badge
+                        variant="outline"
+                        className={prompt.required ? "border-red-200 text-red-600" : "text-slate-400"}
+                      >
+                        {prompt.required ? "Required" : "Optional"}
+                      </Badge>
+                    </div>
                   </div>
                   <div className="ml-8">
                     <PromptEditor
                       value={prompt.value ?? ""}
                       placeholder="Enter your narrative response here..."
                       onChange={(value) => handlePromptChange(prompt.id, value)}
-                      disabled={isLocked}
+                      disabled={isLocked || generatingPrompts[prompt.id]}
                     />
-                    {savingPrompts[prompt.id] === true && (
+                    {generatingPrompts[prompt.id] && (
+                      <p className="mt-1 flex items-center gap-1 text-xs text-teal-600">
+                        <SparklesIcon className="h-3 w-3 animate-pulse" />
+                        AI is generating content...
+                      </p>
+                    )}
+                    {savingPrompts[prompt.id] === true && !generatingPrompts[prompt.id] && (
                       <p className="mt-1 flex items-center gap-1 text-xs text-slate-400">
                         <span className="h-2 w-2 animate-spin rounded-full border border-slate-400 border-t-transparent" />
                         Saving...
@@ -801,13 +963,96 @@ export function SectionWorkspaceClient() {
           {/* Evidence Checklist */}
           <Card className="border border-slate-200">
             <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <UploadIcon className="h-4 w-4 text-teal-600" />
-                Evidence Checklist
-              </CardTitle>
-              <CardDescription>Upload and manage required documentation.</CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <UploadIcon className="h-4 w-4 text-teal-600" />
+                    Evidence Checklist
+                    {evidenceGaps && (
+                      <span className={`ml-2 rounded-full px-2 py-0.5 text-xs font-medium ${
+                        evidenceGaps.completeness >= 80 ? "bg-green-100 text-green-700" :
+                        evidenceGaps.completeness >= 50 ? "bg-amber-100 text-amber-700" :
+                        "bg-red-100 text-red-700"
+                      }`}>
+                        {evidenceGaps.completeness}%
+                      </span>
+                    )}
+                  </CardTitle>
+                  <CardDescription>Upload and manage required documentation.</CardDescription>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={analyzeEvidenceGaps}
+                  disabled={analyzingGaps}
+                  className="gap-1 border-teal-200 text-teal-700 hover:bg-teal-50"
+                >
+                  {analyzingGaps ? (
+                    <>
+                      <span className="h-3 w-3 animate-spin rounded-full border border-teal-500 border-t-transparent" />
+                      Checking...
+                    </>
+                  ) : (
+                    <>
+                      <SparklesIcon className="h-3 w-3" />
+                      Check Gaps
+                    </>
+                  )}
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="space-y-3">
+              {/* Evidence Gaps Analysis Results */}
+              {gapsError && (
+                <div className="flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                  <span>AI: {gapsError}</span>
+                  <button onClick={() => setGapsError(null)} className="text-amber-600 hover:text-amber-800">
+                    &times;
+                  </button>
+                </div>
+              )}
+              {evidenceGaps && evidenceGaps.gaps.length > 0 && (
+                <div className="space-y-2 rounded-lg border border-teal-200 bg-teal-50 p-3">
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-1 text-xs font-medium text-teal-800">
+                      <SparklesIcon className="h-3 w-3" />
+                      AI Identified Gaps ({evidenceGaps.gaps.length})
+                    </span>
+                    <button onClick={() => setEvidenceGaps(null)} className="text-teal-600 hover:text-teal-800">
+                      &times;
+                    </button>
+                  </div>
+                  <div className="space-y-2">
+                    {evidenceGaps.gaps.slice(0, 5).map((gap, idx) => (
+                      <div key={idx} className="rounded border border-teal-200 bg-white p-2">
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="text-xs font-medium text-slate-800">{gap.description}</p>
+                          <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${
+                            gap.priority === "high" ? "bg-red-100 text-red-700" :
+                            gap.priority === "medium" ? "bg-amber-100 text-amber-700" :
+                            "bg-slate-100 text-slate-600"
+                          }`}>
+                            {gap.priority}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-[10px] text-slate-500">
+                          {gap.regulatoryBasis} • Format: {gap.suggestedFormat}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                  {evidenceGaps.suggestions?.length > 0 && (
+                    <div className="mt-2 border-t border-teal-200 pt-2">
+                      <p className="text-[10px] font-medium text-teal-700">Suggestions:</p>
+                      <ul className="mt-1 space-y-0.5">
+                        {evidenceGaps.suggestions.slice(0, 3).map((suggestion, idx) => (
+                          <li key={idx} className="text-[10px] text-teal-600">• {suggestion}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
               {evidence.length === 0 ? (
                 <div className="py-4 text-center text-sm text-slate-400">
                   No evidence requirements for this section.
