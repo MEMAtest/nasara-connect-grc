@@ -22,6 +22,7 @@ const GANTT_CONFIG = {
   PHASE_LABEL_WIDTH: 192, // w-48 = 12rem = 192px
   MIN_CHART_WIDTH: 800,
   TOOLTIP_EDGE_THRESHOLD: 15, // percentage from edge
+  MOBILE_BREAKPOINT: 768, // Tailwind md: breakpoint
 } as const;
 
 // ============================================================================
@@ -104,10 +105,10 @@ const phaseConfig: Record<string, { bg: string; bgSolid: string; border: string;
   },
 };
 
-// Status styles
+// Status styles (in-progress uses inline stripes pattern, not CSS class)
 const statusStyles: Record<string, { className: string; opacity: string }> = {
   complete: { className: "", opacity: "opacity-100" },
-  "in-progress": { className: "bg-stripes", opacity: "opacity-90" },
+  "in-progress": { className: "", opacity: "opacity-90" },
   pending: { className: "", opacity: "opacity-50" },
   blocked: { className: "bg-red-200 border-red-400", opacity: "opacity-70" },
 };
@@ -235,7 +236,7 @@ function MilestoneTooltip({
       <div className="mt-2 flex items-center gap-1">
         <span className="text-xs text-slate-400">Status:</span>
         <Badge variant="outline" className={`text-xs ${getStatusBadgeClassName(milestone.status)}`}>
-          {milestone.status.replace("-", " ")}
+          {milestone.status.replace(/-/g, " ")}
         </Badge>
       </div>
       {/* Arrow */}
@@ -244,12 +245,17 @@ function MilestoneTooltip({
   );
 }
 
-// Loading overlay component
+// Loading overlay component with ARIA live region for accessibility
 function LoadingOverlay({ message }: { message: string }) {
   return (
-    <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm">
+    <div
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+      className="absolute inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm"
+    >
       <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-6 py-4 shadow-lg">
-        <div className="h-5 w-5 animate-spin rounded-full border-2 border-teal-500 border-t-transparent" />
+        <div className="h-5 w-5 animate-spin rounded-full border-2 border-teal-500 border-t-transparent" aria-hidden="true" />
         <span className="text-sm font-medium text-slate-700">{message}</span>
       </div>
     </div>
@@ -293,7 +299,7 @@ function MilestoneListView({
                     </span>
                     <span className="text-slate-400">({milestone.durationWeeks}w)</span>
                     <Badge variant="outline" className={getStatusBadgeClassName(milestone.status)}>
-                      {milestone.status.replace("-", " ")}
+                      {milestone.status.replace(/-/g, " ")}
                     </Badge>
                   </div>
                 </div>
@@ -322,16 +328,16 @@ export function PlanClient() {
   // Ref to track if component is mounted (prevents memory leaks)
   const isMountedRef = useRef(true);
 
-  // Detect mobile viewport for responsive default
+  // Detect mobile viewport for responsive initial view
+  // Note: We use a ref to track if this is initial load vs user-initiated change
+  const hasSetInitialViewRef = useRef(false);
   useEffect(() => {
-    const checkMobile = () => {
-      if (window.innerWidth < 768) {
-        setViewMode("list");
-      }
-    };
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
+    if (hasSetInitialViewRef.current) return;
+    hasSetInitialViewRef.current = true;
+    // Only set initial view - don't override user's manual choice on resize
+    if (window.innerWidth < GANTT_CONFIG.MOBILE_BREAKPOINT) {
+      setViewMode("list");
+    }
   }, []);
 
   const loadProject = useCallback(async () => {
@@ -538,15 +544,16 @@ export function PlanClient() {
             </Badge>
 
             {/* View mode toggle */}
-            <div className="flex rounded-md border border-slate-200">
+            <div className="flex rounded-md border border-slate-200" role="group" aria-label="View mode">
               <button
                 onClick={() => setViewMode("gantt")}
                 className={`flex items-center gap-1 px-2 py-1 text-xs ${
                   viewMode === "gantt" ? "bg-slate-100 text-slate-900" : "text-slate-500 hover:bg-slate-50"
                 }`}
                 aria-label="Gantt view"
+                aria-pressed={viewMode === "gantt"}
               >
-                <LayoutGrid className="h-3.5 w-3.5" />
+                <LayoutGrid className="h-3.5 w-3.5" aria-hidden="true" />
                 <span className="hidden sm:inline">Gantt</span>
               </button>
               <button
@@ -555,8 +562,9 @@ export function PlanClient() {
                   viewMode === "list" ? "bg-slate-100 text-slate-900" : "text-slate-500 hover:bg-slate-50"
                 }`}
                 aria-label="List view"
+                aria-pressed={viewMode === "list"}
               >
-                <List className="h-3.5 w-3.5" />
+                <List className="h-3.5 w-3.5" aria-hidden="true" />
                 <span className="hidden sm:inline">List</span>
               </button>
             </div>
@@ -701,7 +709,7 @@ export function PlanClient() {
                                 <div
                                   role="button"
                                   tabIndex={0}
-                                  aria-label={`${milestone.title}: ${milestone.phase}, Week ${milestone.startWeek} to ${milestone.endWeek}, Status: ${milestone.status.replace("-", " ")}`}
+                                  aria-label={`${milestone.title}: ${milestone.phase}, Week ${milestone.startWeek} to ${milestone.endWeek}, Status: ${milestone.status.replace(/-/g, " ")}`}
                                   onKeyDown={(e) => {
                                     if (e.key === "Enter" || e.key === " ") {
                                       e.preventDefault();
@@ -838,7 +846,7 @@ export function PlanClient() {
                             </p>
                           </div>
                           <Badge variant="outline" className={`text-xs ${getStatusBadgeClassName(milestone.status)}`}>
-                            {milestone.status.replace("-", " ")}
+                            {milestone.status.replace(/-/g, " ")}
                           </Badge>
                         </div>
                       </div>
