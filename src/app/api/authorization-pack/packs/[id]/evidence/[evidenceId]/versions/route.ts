@@ -1,16 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { initDatabase, getAuthorizationPack, getProjectDocument } from "@/lib/database";
-import { requireAuth, isValidUUID } from "@/lib/auth-utils";
+import { isValidUUID } from "@/lib/auth-utils";
+import { getEvidenceItem, getPack, listEvidenceVersions } from "@/lib/authorization-pack-db";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; evidenceId: string }> }
 ) {
   try {
-    const { auth, error } = await requireAuth();
-    if (error) return error;
-
-    await initDatabase();
     const { id, evidenceId } = await params;
 
     if (!isValidUUID(id)) {
@@ -20,35 +16,29 @@ export async function GET(
       return NextResponse.json({ error: "Invalid evidence ID format" }, { status: 400 });
     }
 
-    const pack = await getAuthorizationPack(id);
+    const pack = await getPack(id);
     if (!pack) {
       return NextResponse.json({ error: "Pack not found" }, { status: 404 });
     }
 
-    if (pack.organization_id !== auth.organizationId) {
-      return NextResponse.json({ error: "Access denied" }, { status: 403 });
-    }
-
-    const document = await getProjectDocument(evidenceId);
-    if (!document) {
+    const evidence = await getEvidenceItem({ packId: id, evidenceId });
+    if (!evidence) {
       return NextResponse.json({ error: "Evidence not found" }, { status: 404 });
     }
 
-    // Verify document belongs to the pack
-    if (document.pack_id !== id) {
-      return NextResponse.json({ error: "Evidence does not belong to this pack" }, { status: 403 });
-    }
+    const versions = await listEvidenceVersions({ packId: id, evidenceId });
 
-    // Return current version info (document versioning uses a single version field)
     return NextResponse.json({
-      versions: [{
-        id: document.id,
-        version_number: document.version || 1,
-        uploaded_at: document.uploaded_at,
-        uploaded_by: document.uploaded_by,
-        file_size: document.file_size_bytes,
-        change_notes: null,
-      }],
+      versions: versions.map((version) => ({
+        id: version.id,
+        version: version.version,
+        filename: version.filename,
+        file_size: version.file_size,
+        file_type: version.file_type,
+        uploaded_at: version.uploaded_at,
+        uploaded_by: version.uploaded_by,
+        notes: version.notes ?? null,
+      })),
     });
   } catch (error) {
     return NextResponse.json(

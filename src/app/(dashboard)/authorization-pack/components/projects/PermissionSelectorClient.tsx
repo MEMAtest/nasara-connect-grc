@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -12,11 +12,18 @@ import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
+import {
+  getPolicyItems,
+  getRegisterItems,
+  getSmcrItems,
+  getTrainingItems,
+} from "@/lib/authorization-pack-integrations";
 import { CheckCircle2, ChevronLeft, ChevronRight, Building2, FileText, Users, Shield } from "lucide-react";
 
 interface PermissionEcosystem {
   id: string;
   permission_code: string;
+  template_code?: string;
   name: string;
   description: string;
   pack_template_type: string;
@@ -27,16 +34,11 @@ interface PermissionEcosystem {
   typical_timeline_weeks: number | null;
 }
 
-// Regulatory permission types with "Other" option
-const PERMISSION_TYPES = [
-  { value: "payments", label: "Payment Services (PI/EMI)", description: "Payment institution or e-money institution authorisation" },
-  { value: "investments", label: "Investment Services", description: "MiFID investment firm authorisation" },
-  { value: "consumer-credit", label: "Consumer Credit", description: "Consumer credit firm authorisation" },
-  { value: "insurance", label: "Insurance Distribution", description: "Insurance intermediary authorisation" },
-  { value: "mortgage", label: "Mortgage Lending/Broking", description: "Mortgage intermediary authorisation" },
-  { value: "crypto", label: "Cryptoasset Services", description: "FCA cryptoasset registration" },
-  { value: "other", label: "Other", description: "Specify a different permission type" },
-];
+interface CompanySearchItem {
+  company_number: string;
+  title: string;
+  address_snippet?: string;
+}
 
 // Entity types
 const ENTITY_TYPES = [
@@ -76,7 +78,7 @@ const EMPLOYEE_RANGES = [
 ];
 
 // Primary regulated activities (multi-select)
-const REGULATED_ACTIVITIES = [
+const BASE_REGULATED_ACTIVITIES = [
   { value: "payment-services", label: "Payment Services" },
   { value: "e-money-issuance", label: "E-money Issuance" },
   { value: "account-info-services", label: "Account Information Services (AIS)" },
@@ -88,6 +90,41 @@ const REGULATED_ACTIVITIES = [
   { value: "other", label: "Other (specify below)" },
 ];
 
+const PAYMENT_PERG_ACTIVITIES = [
+  {
+    value: "ps-cash-payment-account",
+    label: "Cash placed on a payment account (and operating that account)",
+  },
+  {
+    value: "ps-cash-withdrawal",
+    label: "Cash withdrawals from a payment account (and operating that account)",
+  },
+  {
+    value: "ps-execution-payment-account",
+    label: "Execution of payment transactions where funds are on a payment account (direct debits, card payments, credit transfers, standing orders)",
+  },
+  {
+    value: "ps-execution-credit-line",
+    label: "Execution of payment transactions where funds are covered by a credit line (direct debits, card payments, credit transfers, standing orders)",
+  },
+  {
+    value: "ps-issuing-acquiring",
+    label: "Issuing payment instruments and/or acquiring payment transactions",
+  },
+  {
+    value: "ps-money-remittance",
+    label: "Money remittance",
+  },
+  {
+    value: "ps-pis",
+    label: "Payment initiation services (PIS)",
+  },
+  {
+    value: "ps-ais",
+    label: "Account information services (AIS)",
+  },
+];
+
 // Timeline preferences
 const TIMELINE_OPTIONS = [
   { value: "urgent", label: "Urgent (< 3 months)" },
@@ -96,10 +133,36 @@ const TIMELINE_OPTIONS = [
   { value: "not-sure", label: "Not sure yet" },
 ];
 
+const TIMELINE_MONTHS: Record<string, number> = {
+  urgent: 3,
+  standard: 6,
+  flexible: 9,
+};
+
+const formatDateInput = (date: Date) => date.toISOString().split("T")[0];
+
+const deriveTargetSubmissionDate = (preference: string) => {
+  const months = TIMELINE_MONTHS[preference];
+  if (!months) return "";
+  const target = new Date();
+  target.setMonth(target.getMonth() + months);
+  return formatDateInput(target);
+};
+
+const deriveTimelinePreference = (dateValue: string) => {
+  if (!dateValue) return "";
+  const target = new Date(dateValue);
+  if (Number.isNaN(target.getTime())) return "";
+  const now = new Date();
+  const monthsDiff = (target.getFullYear() - now.getFullYear()) * 12 + (target.getMonth() - now.getMonth());
+  if (monthsDiff <= 3) return "urgent";
+  if (monthsDiff <= 6) return "standard";
+  return "flexible";
+};
+
 interface WizardData {
   // Step 1: Permission Type
   permissionType: string;
-  permissionTypeOther: string;
 
   // Step 2: Firm Details
   projectName: string;
@@ -109,8 +172,13 @@ interface WizardData {
   entityTypeOther: string;
   companyNumber: string;
   incorporationDate: string;
+  sicCode: string;
   jurisdiction: string;
-  registeredAddress: string;
+  addressLine1: string;
+  addressLine2: string;
+  city: string;
+  postcode: string;
+  country: string;
 
   // Step 3: Regulatory Scope
   regulatedActivities: string[];
@@ -132,7 +200,6 @@ interface WizardData {
 
 const initialData: WizardData = {
   permissionType: "",
-  permissionTypeOther: "",
   projectName: "",
   legalName: "",
   tradingName: "",
@@ -140,8 +207,13 @@ const initialData: WizardData = {
   entityTypeOther: "",
   companyNumber: "",
   incorporationDate: "",
+  sicCode: "",
   jurisdiction: "",
-  registeredAddress: "",
+  addressLine1: "",
+  addressLine2: "",
+  city: "",
+  postcode: "",
+  country: "United Kingdom",
   regulatedActivities: [],
   regulatedActivitiesOther: "",
   targetMarkets: "",
@@ -172,10 +244,30 @@ export function PermissionSelectorClient() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [companyResults, setCompanyResults] = useState<CompanySearchItem[]>([]);
+  const [companySearchError, setCompanySearchError] = useState<string | null>(null);
+  const [isCompanySearching, setIsCompanySearching] = useState(false);
+  const [isCompanyLookup, setIsCompanyLookup] = useState(false);
 
   const selected = useMemo(
     () => ecosystems.find((item) => item.permission_code === data.permissionType) || null,
     [ecosystems, data.permissionType]
+  );
+  const policyItems = useMemo(
+    () => (selected ? getPolicyItems(selected.policy_templates) : []),
+    [selected]
+  );
+  const trainingItems = useMemo(
+    () => (selected ? getTrainingItems(selected.training_requirements) : []),
+    [selected]
+  );
+  const smcrItems = useMemo(
+    () => (selected ? getSmcrItems(selected.smcr_roles) : []),
+    [selected]
+  );
+  const registerItems = useMemo(
+    () => getRegisterItems(selected?.permission_code || data.permissionType),
+    [selected, data.permissionType]
   );
 
   const loadEcosystems = async () => {
@@ -200,20 +292,88 @@ export function PermissionSelectorClient() {
 
   // Auto-generate project name when permission type is selected
   useEffect(() => {
-    if (data.permissionType && !data.projectName) {
-      const permType = PERMISSION_TYPES.find(p => p.value === data.permissionType);
-      if (permType && data.permissionType !== "other") {
-        setData(prev => ({
-          ...prev,
-          projectName: `${permType.label} Authorisation Project`,
-        }));
-      }
+    if (data.permissionType && !data.projectName && selected) {
+      setData((prev) => ({
+        ...prev,
+        projectName: `${selected.name} Authorisation Project`,
+      }));
     }
-  }, [data.permissionType]);
+  }, [data.permissionType, data.projectName, selected]);
+
+  // Companies House name search (debounced)
+  useEffect(() => {
+    const query = data.legalName.trim();
+    if (query.length < 3) {
+      setCompanyResults([]);
+      setCompanySearchError(null);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsCompanySearching(true);
+      setCompanySearchError(null);
+      try {
+        const response = await fetch(`/api/companies-house/search?q=${encodeURIComponent(query)}`);
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          setCompanySearchError(errorData.error || "Unable to search Companies House");
+          setCompanyResults([]);
+          return;
+        }
+        const results = await response.json();
+        setCompanyResults(results.items || []);
+      } catch (error) {
+        setCompanySearchError(error instanceof Error ? error.message : "Companies House search failed");
+      } finally {
+        setIsCompanySearching(false);
+      }
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [data.legalName]);
+
+  const handleCompanySelect = async (item: CompanySearchItem) => {
+    if (!item.company_number) return;
+    setIsCompanyLookup(true);
+    setCompanySearchError(null);
+    try {
+      const response = await fetch(`/api/companies-house/lookup?number=${encodeURIComponent(item.company_number)}`);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        setCompanySearchError(errorData.error || "Company lookup failed");
+        return;
+      }
+      const data = await response.json();
+      const company = data.company;
+
+      setData((prev) => ({
+        ...prev,
+        legalName: company?.name || item.title || prev.legalName,
+        companyNumber: company?.number || item.company_number || prev.companyNumber,
+        incorporationDate: company?.incorporationDate || prev.incorporationDate,
+        sicCode: company?.sicCodes?.[0] || prev.sicCode,
+        addressLine1: company?.address?.line1 || prev.addressLine1,
+        addressLine2: company?.address?.line2 || prev.addressLine2,
+        city: company?.address?.city || prev.city,
+        postcode: company?.address?.postcode || prev.postcode,
+        country: company?.address?.country || prev.country,
+      }));
+      setCompanyResults([]);
+    } catch (error) {
+      setCompanySearchError(error instanceof Error ? error.message : "Company lookup failed");
+    } finally {
+      setIsCompanyLookup(false);
+    }
+  };
 
   const updateField = <K extends keyof WizardData>(field: K, value: WizardData[K]) => {
     setData(prev => ({ ...prev, [field]: value }));
   };
+
+  const regulatedActivityOptions = useMemo(
+    () => (data.permissionType === "payments" ? PAYMENT_PERG_ACTIVITIES : BASE_REGULATED_ACTIVITIES),
+    [data.permissionType]
+  );
 
   const toggleActivity = (activity: string) => {
     setData(prev => ({
@@ -222,6 +382,30 @@ export function PermissionSelectorClient() {
         ? prev.regulatedActivities.filter(a => a !== activity)
         : [...prev.regulatedActivities, activity],
     }));
+  };
+
+  const handleTimelinePreferenceChange = (value: string) => {
+    updateField("timelinePreference", value);
+    if (value === "not-sure") {
+      updateField("targetSubmissionDate", "");
+      return;
+    }
+    const targetDate = deriveTargetSubmissionDate(value);
+    if (targetDate) {
+      updateField("targetSubmissionDate", targetDate);
+    }
+  };
+
+  const handleTargetSubmissionDateChange = (value: string) => {
+    updateField("targetSubmissionDate", value);
+    if (!value) {
+      updateField("timelinePreference", "");
+      return;
+    }
+    const preference = deriveTimelinePreference(value);
+    if (preference) {
+      updateField("timelinePreference", preference);
+    }
   };
 
   // Email validation helper
@@ -233,7 +417,7 @@ export function PermissionSelectorClient() {
   const validateStep = (step: number): boolean => {
     switch (step) {
       case 1:
-        return !!data.permissionType && (data.permissionType !== "other" || !!data.permissionTypeOther.trim());
+        return !!data.permissionType;
       case 2:
         return !!data.projectName.trim() && !!data.legalName.trim() && !!data.entityType && !!data.jurisdiction;
       case 3:
@@ -270,7 +454,8 @@ export function PermissionSelectorClient() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: data.projectName,
-          permissionCode: data.permissionType === "other" ? "custom" : data.permissionType,
+          templateCode: selected?.template_code,
+          permissionCode: data.permissionType,
           targetSubmissionDate: data.targetSubmissionDate || null,
           assessmentData: {
             basics: {
@@ -279,8 +464,13 @@ export function PermissionSelectorClient() {
               entityType: data.entityType === "other" ? data.entityTypeOther : data.entityType,
               companyNumber: data.companyNumber,
               incorporationDate: data.incorporationDate,
+              sicCode: data.sicCode,
               primaryJurisdiction: data.jurisdiction,
-              registeredAddress: data.registeredAddress,
+              addressLine1: data.addressLine1,
+              addressLine2: data.addressLine2,
+              city: data.city,
+              postcode: data.postcode,
+              country: data.country,
               firmStage: data.firmStage === "other" ? data.firmStageOther : data.firmStage,
               headcount: data.employeeRange,
               primaryContact: data.primaryContact,
@@ -293,7 +483,6 @@ export function PermissionSelectorClient() {
               estimatedTransactionVolume: data.estimatedTransactionVolume,
               timelinePreference: data.timelinePreference,
               consultantNotes: data.additionalNotes,
-              permissionTypeOther: data.permissionTypeOther,
             },
           },
         }),
@@ -315,6 +504,27 @@ export function PermissionSelectorClient() {
 
   const progressPercentage = (currentStep / STEPS.length) * 100;
 
+  const renderIntegrationList = (items: ReturnType<typeof getPolicyItems>, emptyLabel: string) => {
+    if (!items.length) {
+      return <p className="text-xs text-slate-400">{emptyLabel}</p>;
+    }
+    return (
+      <div className="space-y-2">
+        {items.map((item) => (
+          <div key={item.key} className="rounded-md border border-slate-100 bg-white px-2 py-1.5 text-xs text-slate-600">
+            {item.href ? (
+              <Link href={item.href} className="text-teal-700 hover:text-teal-800">
+                {item.label}
+              </Link>
+            ) : (
+              item.label
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   // Render step content
   const renderStepContent = () => {
     switch (currentStep) {
@@ -335,65 +545,69 @@ export function PermissionSelectorClient() {
   const renderStep1 = () => (
     <div className="space-y-6">
       <div className="space-y-2">
-        <Label className="text-base font-medium">What type of regulatory permission do you need?</Label>
-        <Select value={data.permissionType} onValueChange={(value) => updateField("permissionType", value)}>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Select permission type" />
-          </SelectTrigger>
-          <SelectContent>
-            {PERMISSION_TYPES.map((type) => (
-              <SelectItem key={type.value} value={type.value}>
-                <div className="flex flex-col">
-                  <span>{type.label}</span>
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {data.permissionType && data.permissionType !== "other" && (
-          <p className="text-sm text-slate-500">
-            {PERMISSION_TYPES.find(t => t.value === data.permissionType)?.description}
-          </p>
-        )}
+        <Label className="text-base font-medium">Select the regulatory permission you need</Label>
+        <p className="text-sm text-slate-500">
+          Choose a permission type to instantly load the sections, policies, training, and Key Persons linked to that
+          FCA application.
+        </p>
       </div>
-
-      {data.permissionType === "other" && (
-        <div className="space-y-2">
-          <Label>Please specify the permission type</Label>
-          <Input
-            value={data.permissionTypeOther}
-            onChange={(e) => updateField("permissionTypeOther", e.target.value)}
-            placeholder="e.g., Fund Management, Claims Management"
-          />
-        </div>
-      )}
 
       {/* Show ecosystem preview if available */}
       {selected && (
         <Card className="border-teal-200 bg-teal-50">
           <CardHeader className="pb-3">
             <CardTitle className="text-base text-teal-800">Ecosystem Preview: {selected.name}</CardTitle>
+            <CardDescription className="text-sm text-teal-700">
+              Policies, registers, training, and Key Person requirements linked to this permission.
+            </CardDescription>
           </CardHeader>
-          <CardContent className="grid grid-cols-2 gap-4 text-sm">
-            <div className="space-y-1">
-              <p className="font-medium text-teal-700">{selected.section_keys.length} Sections</p>
-              <p className="text-teal-600">Business plan sections required</p>
+          <CardContent className="space-y-4 text-sm">
+            <div className="grid gap-3 md:grid-cols-3">
+              <div className="rounded-md border border-teal-100 bg-white p-3">
+                <p className="text-xs uppercase tracking-[0.2em] text-teal-500">Sections</p>
+                <p className="mt-2 text-2xl font-semibold text-teal-900">{selected.section_keys.length}</p>
+                <p className="text-xs text-teal-600">Business plan spine</p>
+              </div>
+              <div className="rounded-md border border-teal-100 bg-white p-3">
+                <p className="text-xs uppercase tracking-[0.2em] text-teal-500">Policies</p>
+                <p className="mt-2 text-2xl font-semibold text-teal-900">{policyItems.length}</p>
+                <p className="text-xs text-teal-600">Templates to draft</p>
+              </div>
+              <div className="rounded-md border border-teal-100 bg-white p-3">
+                <p className="text-xs uppercase tracking-[0.2em] text-teal-500">Training</p>
+                <p className="mt-2 text-2xl font-semibold text-teal-900">{trainingItems.length}</p>
+                <p className="text-xs text-teal-600">Required modules</p>
+              </div>
             </div>
-            <div className="space-y-1">
-              <p className="font-medium text-teal-700">{selected.policy_templates.length} Policies</p>
-              <p className="text-teal-600">Policy templates included</p>
-            </div>
-            <div className="space-y-1">
-              <p className="font-medium text-teal-700">{selected.training_requirements.length} Training</p>
-              <p className="text-teal-600">Training modules required</p>
-            </div>
-            <div className="space-y-1">
-              <p className="font-medium text-teal-700">{selected.smcr_roles.length} SMCR Roles</p>
-              <p className="text-teal-600">Senior management roles</p>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <p className="text-xs uppercase tracking-[0.2em] text-teal-500">
+                  Policies ({policyItems.length})
+                </p>
+                {renderIntegrationList(policyItems, "Policies to be confirmed after assessment.")}
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-[0.2em] text-teal-500">
+                  Training ({trainingItems.length})
+                </p>
+                {renderIntegrationList(trainingItems, "Training plan to be finalised once roles are assigned.")}
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-[0.2em] text-teal-500">
+                  Key Persons / PSD Roles ({smcrItems.length})
+                </p>
+                {renderIntegrationList(smcrItems, "Role holders to be confirmed.")}
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-[0.2em] text-teal-500">
+                  Registers & Trackers ({registerItems.length})
+                </p>
+                {renderIntegrationList(registerItems, "Registers will populate once the pack is created.")}
+              </div>
             </div>
             {selected.typical_timeline_weeks && (
-              <div className="col-span-2 space-y-1">
-                <p className="font-medium text-teal-700">Typical Timeline: {selected.typical_timeline_weeks} weeks</p>
+              <div className="rounded-md border border-teal-100 bg-white px-3 py-2 text-xs text-teal-700">
+                Typical timeline: {selected.typical_timeline_weeks} weeks
               </div>
             )}
           </CardContent>
@@ -402,7 +616,7 @@ export function PermissionSelectorClient() {
 
       {/* Visual cards for quick selection */}
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-        {ecosystems.slice(0, 6).map((ecosystem) => (
+        {ecosystems.map((ecosystem) => (
           <Card
             key={ecosystem.permission_code}
             className={`cursor-pointer transition-all hover:shadow-md ${
@@ -417,6 +631,7 @@ export function PermissionSelectorClient() {
                 <div>
                   <p className="font-medium text-slate-900">{ecosystem.name}</p>
                   <p className="mt-1 text-xs text-slate-500">{ecosystem.section_keys.length} sections</p>
+                  <p className="mt-2 text-xs text-slate-500">{ecosystem.description}</p>
                 </div>
                 {data.permissionType === ecosystem.permission_code && (
                   <CheckCircle2 className="h-5 w-5 text-teal-500" />
@@ -442,13 +657,37 @@ export function PermissionSelectorClient() {
           />
         </div>
 
-        <div className="space-y-2">
-          <Label>Legal Entity Name *</Label>
+        <div className="space-y-2 md:col-span-2">
+          <Label>Company name (search Companies House) *</Label>
           <Input
             value={data.legalName}
             onChange={(e) => updateField("legalName", e.target.value)}
-            placeholder="e.g., XYZ Payments Ltd"
+            placeholder="Start typing the registered company name"
           />
+          {isCompanySearching ? (
+            <p className="text-xs text-slate-500">Searching Companies House...</p>
+          ) : null}
+          {companySearchError ? (
+            <p className="text-xs text-red-500">{companySearchError}</p>
+          ) : null}
+          {companyResults.length > 0 ? (
+            <div className="max-h-48 overflow-y-auto rounded-md border border-slate-200 bg-white">
+              {companyResults.map((item) => (
+                <button
+                  key={item.company_number}
+                  type="button"
+                  className="w-full border-b border-slate-100 px-3 py-2 text-left text-sm hover:bg-slate-50"
+                  onClick={() => handleCompanySelect(item)}
+                  disabled={isCompanyLookup}
+                >
+                  <div className="font-medium text-slate-900">{item.title}</div>
+                  <div className="text-xs text-slate-500">
+                    {item.company_number} {item.address_snippet ? `· ${item.address_snippet}` : ""}
+                  </div>
+                </button>
+              ))}
+            </div>
+          ) : null}
         </div>
 
         <div className="space-y-2">
@@ -488,11 +727,13 @@ export function PermissionSelectorClient() {
         )}
 
         <div className="space-y-2">
-          <Label>Company Registration Number</Label>
+          <Label>Company number (auto-filled)</Label>
           <Input
             value={data.companyNumber}
             onChange={(e) => updateField("companyNumber", e.target.value)}
             placeholder="e.g., 12345678"
+            readOnly
+            className="bg-slate-50"
           />
         </div>
 
@@ -502,6 +743,15 @@ export function PermissionSelectorClient() {
             type="date"
             value={data.incorporationDate}
             onChange={(e) => updateField("incorporationDate", e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label>SIC code</Label>
+          <Input
+            value={data.sicCode}
+            onChange={(e) => updateField("sicCode", e.target.value)}
+            placeholder="e.g., 64999"
           />
         </div>
 
@@ -522,12 +772,41 @@ export function PermissionSelectorClient() {
         </div>
 
         <div className="space-y-2 md:col-span-2">
-          <Label>Registered Address</Label>
-          <Textarea
-            value={data.registeredAddress}
-            onChange={(e) => updateField("registeredAddress", e.target.value)}
-            placeholder="Full registered office address"
-            rows={2}
+          <Label>Registered address - Street</Label>
+          <Input
+            value={data.addressLine1}
+            onChange={(e) => updateField("addressLine1", e.target.value)}
+            placeholder="Street address line 1"
+          />
+          <Input
+            value={data.addressLine2}
+            onChange={(e) => updateField("addressLine2", e.target.value)}
+            placeholder="Street address line 2 (optional)"
+            className="mt-2"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label>City</Label>
+          <Input
+            value={data.city}
+            onChange={(e) => updateField("city", e.target.value)}
+            placeholder="e.g., London"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label>Postcode</Label>
+          <Input
+            value={data.postcode}
+            onChange={(e) => updateField("postcode", e.target.value)}
+            placeholder="e.g., EC1A 1BB"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label>Country</Label>
+          <Input
+            value={data.country}
+            onChange={(e) => updateField("country", e.target.value)}
+            placeholder="United Kingdom"
           />
         </div>
       </div>
@@ -541,10 +820,15 @@ export function PermissionSelectorClient() {
         <div>
           <Label className="text-base font-medium">Primary Regulated Activities *</Label>
           <p className="text-sm text-slate-500">Select all activities you intend to carry out</p>
+          {data.permissionType === "payments" ? (
+            <p className="text-xs text-slate-400">
+              Aligned to PSR 2017 Schedule 1, Part 1 payment services (PERG).
+            </p>
+          ) : null}
         </div>
 
         <div className="grid gap-3 md:grid-cols-2">
-          {REGULATED_ACTIVITIES.map((activity) => (
+          {regulatedActivityOptions.map((activity) => (
             <div
               key={activity.value}
               className={`flex items-center space-x-3 rounded-lg border p-3 cursor-pointer transition-colors ${
@@ -563,7 +847,8 @@ export function PermissionSelectorClient() {
           ))}
         </div>
 
-        {data.regulatedActivities.includes("other") && (
+        {regulatedActivityOptions.some((activity) => activity.value === "other") &&
+          data.regulatedActivities.includes("other") && (
           <div className="space-y-2">
             <Label>Please specify other activities</Label>
             <Input
@@ -696,7 +981,7 @@ export function PermissionSelectorClient() {
 
         <div className="space-y-2">
           <Label>Timeline Preference</Label>
-          <Select value={data.timelinePreference} onValueChange={(value) => updateField("timelinePreference", value)}>
+          <Select value={data.timelinePreference} onValueChange={handleTimelinePreferenceChange}>
             <SelectTrigger>
               <SelectValue placeholder="Select timeline" />
             </SelectTrigger>
@@ -715,7 +1000,7 @@ export function PermissionSelectorClient() {
           <Input
             type="date"
             value={data.targetSubmissionDate}
-            onChange={(e) => updateField("targetSubmissionDate", e.target.value)}
+            onChange={(e) => handleTargetSubmissionDateChange(e.target.value)}
           />
         </div>
 
@@ -743,9 +1028,7 @@ export function PermissionSelectorClient() {
           <div className="flex justify-between">
             <span className="text-slate-500">Permission Type:</span>
             <span className="font-medium">
-              {data.permissionType === "other"
-                ? data.permissionTypeOther
-                : PERMISSION_TYPES.find(t => t.value === data.permissionType)?.label || "-"}
+              {selected?.name || data.permissionType || "-"}
             </span>
           </div>
           <div className="flex justify-between">

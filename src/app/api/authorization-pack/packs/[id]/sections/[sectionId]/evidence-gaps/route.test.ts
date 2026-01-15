@@ -12,24 +12,23 @@ vi.mock("@/lib/auth-utils", () => ({
   isValidUUID: vi.fn().mockReturnValue(true),
 }));
 
-vi.mock("@/lib/database", () => ({
-  initDatabase: vi.fn().mockResolvedValue(undefined),
-  getAuthorizationPack: vi.fn().mockResolvedValue({
+vi.mock("@/lib/authorization-pack-db", () => ({
+  getPack: vi.fn().mockResolvedValue({
     id: "00000000-0000-0000-0000-000000000001",
     name: "Test Pack",
     organization_id: "test-org",
   }),
-  getPackSection: vi.fn().mockResolvedValue({
-    id: "00000000-0000-0000-0000-000000000002",
-    pack_id: "00000000-0000-0000-0000-000000000001",
-    template: {
-      name: "Business Plan",
-      guidance_text: "Describe your business model and regulatory compliance approach.",
+  getSectionWorkspace: vi.fn().mockResolvedValue({
+    section: {
+      id: "00000000-0000-0000-0000-000000000002",
+      title: "Business Plan",
+      description: "Describe your business model and regulatory compliance approach.",
     },
+    prompts: [],
+    evidence: [],
+    tasks: [],
+    reviewGates: [],
   }),
-}));
-
-vi.mock("@/lib/authorization-pack-db", () => ({
   listEvidence: vi.fn().mockResolvedValue([
     {
       id: "ev-1",

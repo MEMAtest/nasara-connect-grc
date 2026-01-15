@@ -4,10 +4,13 @@ import { promises as fs } from "fs";
 // @ts-expect-error archiver does not have types
 import archiver from "archiver";
 import { PassThrough, Readable } from "stream";
-import { initDatabase, getAuthorizationPack, getProjectDocuments, ProjectDocument } from "@/lib/database";
-import { requireAuth, isValidUUID } from "@/lib/auth-utils";
+import { isValidUUID } from "@/lib/auth-utils";
+import {
+  getPack,
+  listEvidenceFilesForZip,
+  listEvidenceVersionFilesForZip,
+} from "@/lib/authorization-pack-db";
 
-// Define storage root as absolute path
 const storageRoot = path.resolve(process.cwd(), "storage", "authorization-pack");
 
 function sanitizeFilename(input: string) {
@@ -26,28 +29,19 @@ function escapeCsv(value: string | null | undefined) {
   return safe;
 }
 
-function buildManifestCsv(documents: ProjectDocument[]) {
-  const header = [
-    "Annex",
-    "Section",
-    "Evidence",
-    "Status",
-    "Version",
-    "Uploaded",
-    "File",
-    "Size",
-  ].join(",");
+function buildManifestCsv(documents: Array<Record<string, unknown>>) {
+  const header = ["Annex", "Section", "Evidence", "Status", "Version", "Uploaded", "File", "Size"].join(",");
   const body = documents
     .map((doc, index) =>
       [
-        escapeCsv(`A${(index + 1).toString().padStart(3, '0')}`),
-        escapeCsv(doc.section_code || "General"),
-        escapeCsv(doc.name),
-        escapeCsv(doc.status),
-        escapeCsv(`v${doc.version}`),
-        escapeCsv(doc.uploaded_at ? new Date(doc.uploaded_at).toISOString() : ""),
-        escapeCsv(doc.storage_key ? doc.storage_key.split("/").pop() : ""),
-        escapeCsv(doc.file_size_bytes ? String(doc.file_size_bytes) : ""),
+        escapeCsv(String(doc.annex_number ?? `Annex-${String(index + 1).padStart(3, "0")}`)),
+        escapeCsv(String(doc.section_title ?? "General")),
+        escapeCsv(String(doc.evidence_name ?? doc.name ?? "")),
+        escapeCsv(String(doc.status ?? "")),
+        escapeCsv(`v${String(doc.version ?? 1)}`),
+        escapeCsv(doc.uploaded_at ? new Date(String(doc.uploaded_at)).toISOString() : ""),
+        escapeCsv(doc.filename ? String(doc.filename) : ""),
+        escapeCsv(doc.file_size ? String(doc.file_size) : ""),
       ].join(",")
     )
     .join("\n");
@@ -61,14 +55,14 @@ function buildManifestJson(pack: { id: string; name: string }, documents: Array<
       packName: pack.name,
       generatedAt: new Date().toISOString(),
       entries: documents.map((doc, index) => ({
-        annexNumber: `A${(index + 1).toString().padStart(3, '0')}`,
-        sectionCode: doc.section_code || "General",
-        evidenceName: doc.name,
-        status: doc.status,
-        version: doc.version,
-        uploadedAt: doc.uploaded_at,
-        filename: doc.storage_key ? String(doc.storage_key).split("/").pop() : null,
-        fileSize: doc.file_size_bytes ?? null,
+        annexNumber: doc.annex_number ?? `Annex-${String(index + 1).padStart(3, "0")}`,
+        sectionTitle: doc.section_title ?? "General",
+        evidenceName: doc.evidence_name ?? doc.name ?? null,
+        status: doc.status ?? null,
+        version: doc.version ?? 1,
+        uploadedAt: doc.uploaded_at ?? null,
+        filename: doc.filename ?? null,
+        fileSize: doc.file_size ?? null,
       })),
     },
     null,
@@ -81,28 +75,45 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { auth, error } = await requireAuth();
-    if (error) return error;
-
-    await initDatabase();
     const { id } = await params;
 
     if (!isValidUUID(id)) {
       return NextResponse.json({ error: "Invalid pack ID format" }, { status: 400 });
     }
 
-    const pack = await getAuthorizationPack(id);
+    const pack = await getPack(id);
     if (!pack) {
       return NextResponse.json({ error: "Pack not found" }, { status: 404 });
     }
 
-    if (pack.organization_id !== auth.organizationId) {
-      return NextResponse.json({ error: "Access denied" }, { status: 403 });
-    }
+    const versionFiles = await listEvidenceVersionFilesForZip(id);
+    const itemFiles = await listEvidenceFilesForZip(id);
+    const documents = versionFiles.length
+      ? versionFiles.map((doc) => ({
+          annex_number: doc.annex_number,
+          section_title: doc.section_title,
+          evidence_name: doc.evidence_name,
+          status: doc.status,
+          version: doc.version,
+          uploaded_at: doc.uploaded_at,
+          filename: doc.filename,
+          file_path: doc.file_path,
+          file_size: doc.file_size,
+        }))
+      : itemFiles.map((doc) => ({
+          annex_number: doc.annex_number,
+          section_title: "General",
+          evidence_name: doc.name,
+          status: "uploaded",
+          version: 1,
+          uploaded_at: null,
+          filename: doc.file_path ? String(doc.file_path).split("/").pop() : doc.name,
+          file_path: doc.file_path,
+          file_size: doc.file_size,
+        }));
 
-    const documents = await getProjectDocuments(id);
     const manifestCsv = buildManifestCsv(documents);
-    const manifestJson = buildManifestJson(pack, documents as unknown as Array<Record<string, unknown>>);
+    const manifestJson = buildManifestJson(pack, documents);
 
     const archive = archiver("zip", { zlib: { level: 9 } });
     const passthrough = new PassThrough();
@@ -124,12 +135,8 @@ export async function GET(
     }
 
     for (const doc of documents) {
-      if (!doc.storage_key) continue;
-
-      // Resolve the file path and prevent path traversal
-      const filePath = path.resolve(storageRoot, doc.storage_key);
-
-      // Security check: ensure resolved path is within storage root
+      if (!doc.file_path) continue;
+      const filePath = path.resolve(storageRoot, String(doc.file_path));
       if (!filePath.startsWith(storageRoot + path.sep) && filePath !== storageRoot) {
         continue;
       }
@@ -140,9 +147,9 @@ export async function GET(
         continue;
       }
 
-      const sectionFolder = doc.section_code ? sanitizeFileSegment(doc.section_code) : "general";
-      const baseName = sanitizeFileSegment(doc.name || path.basename(filePath));
-      const versionLabel = `v${String(doc.version).padStart(2, "0")}`;
+      const sectionFolder = sanitizeFileSegment(String(doc.section_title ?? "general"));
+      const baseName = sanitizeFileSegment(String(doc.filename ?? doc.evidence_name ?? path.basename(filePath)));
+      const versionLabel = `v${String(doc.version ?? 1).padStart(2, "0")}`;
       const zipPath = path.posix.join("evidence", sectionFolder, `${versionLabel}-${baseName}`);
       archive.file(filePath, { name: zipPath });
     }

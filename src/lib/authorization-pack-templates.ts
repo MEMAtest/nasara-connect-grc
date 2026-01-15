@@ -41,7 +41,7 @@ export interface PackTemplate {
   sections: SectionTemplate[];
 }
 
-const sectionOutlines: Record<string, string[]> = {
+export const sectionOutlines: Record<string, string[]> = {
   "executive-summary": ["Submission overview", "Regulatory scope", "Readiness summary"],
   "business-model": [
     "Market opportunity and customer need",

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
@@ -13,8 +13,10 @@ import type { WizardFormState } from "@/components/policies/policy-wizard/types"
 export function WizardClient() {
   const { permissions, requiredPolicies } = usePermissions();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const initialTemplateCode = searchParams.get("template")?.toUpperCase() || undefined;
 
   const handleWizardFinish = async (state: WizardFormState) => {
     try {
@@ -70,7 +72,12 @@ export function WizardClient() {
         </div>
       </div>
 
-      <PolicyWizard initialPermissions={permissions} onFinish={handleWizardFinish} isSubmitting={isSubmitting} />
+      <PolicyWizard
+        initialPermissions={permissions}
+        initialTemplateCode={initialTemplateCode}
+        onFinish={handleWizardFinish}
+        isSubmitting={isSubmitting}
+      />
     </div>
   );
 }

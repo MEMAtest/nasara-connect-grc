@@ -12,25 +12,34 @@ vi.mock("@/lib/auth-utils", () => ({
   isValidUUID: vi.fn().mockReturnValue(true),
 }));
 
-vi.mock("@/lib/database", () => ({
-  initDatabase: vi.fn().mockResolvedValue(undefined),
-  getAuthorizationPack: vi.fn().mockResolvedValue({
+vi.mock("@/lib/authorization-pack-db", () => ({
+  getPack: vi.fn().mockResolvedValue({
     id: "00000000-0000-0000-0000-000000000001",
     name: "Test Pack",
     organization_id: "test-org",
   }),
-  getPackSections: vi.fn().mockResolvedValue([
+  getFullPackSectionsWithResponses: vi.fn().mockResolvedValue([
     {
-      template: { name: "Business Plan" },
-      status: "in-progress",
-      progress_percentage: 75,
-      narrative_content: "Test narrative content for the business plan section.",
+      sectionKey: "business-plan",
+      title: "Business Plan",
+      description: "Test",
+      displayOrder: 1,
+      prompts: [
+        { key: "bp-1", title: "Prompt", guidance: null, weight: 1, response: "<p>Test narrative content</p>" },
+      ],
+      evidence: [],
+      narrativeCompletion: 75,
+      evidenceCompletion: 0,
     },
     {
-      template: { name: "Financial Model" },
-      status: "not-started",
-      progress_percentage: 0,
-      narrative_content: null,
+      sectionKey: "financial-model",
+      title: "Financial Model",
+      description: "Test",
+      displayOrder: 2,
+      prompts: [],
+      evidence: [],
+      narrativeCompletion: 0,
+      evidenceCompletion: 0,
     },
   ]),
 }));

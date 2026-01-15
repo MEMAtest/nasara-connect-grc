@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -13,7 +13,7 @@ interface PromptEditorProps {
   disabled?: boolean;
 }
 
-export function PromptEditor({ value, placeholder, onChange, disabled = false }: PromptEditorProps) {
+function PromptEditorInner({ value, placeholder, onChange, disabled = false }: PromptEditorProps) {
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -102,4 +102,22 @@ export function PromptEditor({ value, placeholder, onChange, disabled = false }:
       <EditorContent editor={editor} />
     </div>
   );
+}
+
+export function PromptEditor(props: PromptEditorProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <div className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-500">
+        Loading editor...
+      </div>
+    );
+  }
+
+  return <PromptEditorInner {...props} />;
 }

@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { buildAssistantContext } from "@/lib/ai/context";
 import { fetchPolicyContext } from "@/lib/ai/policies";
 import { logError } from "@/lib/logger";
+import { requireAuth } from "@/lib/auth-utils";
+import { getPoliciesForOrganization } from "@/lib/server/policy-store";
+import { DEFAULT_ORGANIZATION_ID } from "@/lib/constants";
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const DEFAULT_MODEL = process.env.OPENROUTER_MODEL ?? "openai/gpt-4o-mini";
@@ -60,6 +63,9 @@ ${contextLine}`;
 }
 
 export async function POST(request: Request) {
+  const { auth, error } = await requireAuth();
+  if (error) return error;
+
   if (!process.env.OPENROUTER_API_KEY) {
     return NextResponse.json(
       { error: "Missing OPENROUTER_API_KEY. Add it to your environment." },
@@ -78,8 +84,35 @@ export async function POST(request: Request) {
   const lastUserMessage =
     [...(body.messages ?? [])].reverse().find((m) => m.role === "user")?.content ?? "";
   const storedPolicy = body.context?.policyId
-    ? await fetchPolicyContext(body.context.policyId)
+    ? await fetchPolicyContext(body.context.policyId, auth.organizationId)
     : null;
+
+  let orgPolicySummary = "";
+  try {
+    let orgPolicies = await getPoliciesForOrganization(auth.organizationId);
+    if (!orgPolicies.length && auth.organizationId !== DEFAULT_ORGANIZATION_ID) {
+      orgPolicies = await getPoliciesForOrganization(DEFAULT_ORGANIZATION_ID);
+    }
+    if (orgPolicies.length) {
+      const statusCounts = orgPolicies.reduce<Record<string, number>>((acc, policy) => {
+        acc[policy.status] = (acc[policy.status] ?? 0) + 1;
+        return acc;
+      }, {});
+      const topPolicies = orgPolicies.slice(0, 3).map((policy) => `${policy.name} (${policy.status})`).join(", ");
+      orgPolicySummary = [
+        "Organization policy snapshot:",
+        `- total policies: ${orgPolicies.length}`,
+        `- status mix: ${Object.entries(statusCounts)
+          .map(([status, count]) => `${status}:${count}`)
+          .join(", ")}`,
+        `- recent: ${topPolicies}`,
+      ].join("\n");
+    }
+  } catch (summaryError) {
+    if (process.env.NODE_ENV !== "production") {
+      console.error("Failed to build policy summary", summaryError);
+    }
+  }
 
   const retrievedContext = buildAssistantContext(
     lastUserMessage,
@@ -88,7 +121,13 @@ export async function POST(request: Request) {
     body.context?.runId,
     storedPolicy ?? undefined
   );
-  const systemPrompt = [buildSystemPrompt(mode, body.context), retrievedContext.text].filter(Boolean).join("\n\n");
+  const systemPrompt = [
+    buildSystemPrompt(mode, body.context),
+    orgPolicySummary,
+    retrievedContext.text,
+  ]
+    .filter(Boolean)
+    .join("\n\n");
 
   const messages: Array<{ role: "system" | "user" | "assistant"; content: string }> = [
     { role: "system", content: systemPrompt },

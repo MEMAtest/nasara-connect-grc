@@ -446,6 +446,359 @@ export async function initDatabase() {
       CREATE INDEX IF NOT EXISTS idx_pack_tasks_pack ON pack_tasks (pack_id)
     `);
 
+    // PEP (Politically Exposed Person) Register
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS pep_records (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        organization_id VARCHAR(100) NOT NULL DEFAULT 'default-org',
+        pack_id UUID REFERENCES authorization_packs(id) ON DELETE SET NULL,
+        pep_type VARCHAR(50) NOT NULL DEFAULT 'customer',
+        full_name VARCHAR(255) NOT NULL,
+        date_of_birth DATE,
+        nationality VARCHAR(100),
+        position_held VARCHAR(500),
+        pep_category VARCHAR(50) NOT NULL DEFAULT 'pep',
+        relationship_type VARCHAR(100),
+        risk_rating VARCHAR(20) DEFAULT 'high',
+        status VARCHAR(50) DEFAULT 'active',
+        identification_date DATE NOT NULL DEFAULT CURRENT_DATE,
+        last_review_date DATE,
+        next_review_date DATE,
+        edd_completed BOOLEAN DEFAULT FALSE,
+        edd_completed_date DATE,
+        source_of_wealth TEXT,
+        source_of_funds TEXT,
+        approval_status VARCHAR(50) DEFAULT 'pending',
+        approved_by VARCHAR(255),
+        approved_at TIMESTAMP,
+        notes TEXT,
+        created_by VARCHAR(255),
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_pep_records_org ON pep_records (organization_id)
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_pep_records_pack ON pep_records (pack_id)
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_pep_records_status ON pep_records (status)
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_pep_records_risk ON pep_records (risk_rating)
+    `);
+
+    // Third-Party Register (Vendor/Outsourcing Management)
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS third_party_records (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        organization_id VARCHAR(100) NOT NULL DEFAULT 'default-org',
+        pack_id UUID REFERENCES authorization_packs(id) ON DELETE SET NULL,
+        vendor_name VARCHAR(255) NOT NULL,
+        vendor_type VARCHAR(100) NOT NULL,
+        service_description TEXT,
+        criticality VARCHAR(20) DEFAULT 'medium',
+        is_outsourcing BOOLEAN DEFAULT FALSE,
+        is_material_outsourcing BOOLEAN DEFAULT FALSE,
+        regulatory_notification_required BOOLEAN DEFAULT FALSE,
+        contract_start_date DATE,
+        contract_end_date DATE,
+        contract_value_gbp DECIMAL(15,2),
+        risk_rating VARCHAR(20) DEFAULT 'medium',
+        status VARCHAR(50) DEFAULT 'active',
+        primary_contact_name VARCHAR(255),
+        primary_contact_email VARCHAR(255),
+        primary_contact_phone VARCHAR(50),
+        due_diligence_completed BOOLEAN DEFAULT FALSE,
+        due_diligence_date DATE,
+        last_review_date DATE,
+        next_review_date DATE,
+        exit_strategy_documented BOOLEAN DEFAULT FALSE,
+        data_processing_agreement BOOLEAN DEFAULT FALSE,
+        sub_outsourcing_permitted BOOLEAN DEFAULT FALSE,
+        geographic_location VARCHAR(255),
+        approval_status VARCHAR(50) DEFAULT 'pending',
+        approved_by VARCHAR(255),
+        approved_at TIMESTAMP,
+        notes TEXT,
+        created_by VARCHAR(255),
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_third_party_org ON third_party_records (organization_id)
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_third_party_pack ON third_party_records (pack_id)
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_third_party_status ON third_party_records (status)
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_third_party_criticality ON third_party_records (criticality)
+    `);
+
+    // Complaints Register
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS complaints_records (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        organization_id VARCHAR(100) NOT NULL DEFAULT 'default-org',
+        pack_id UUID REFERENCES authorization_packs(id) ON DELETE SET NULL,
+        complaint_reference VARCHAR(50) UNIQUE,
+        complainant_name VARCHAR(255) NOT NULL,
+        complaint_type VARCHAR(50) NOT NULL DEFAULT 'other',
+        complaint_category VARCHAR(50) DEFAULT 'pending',
+        received_date DATE NOT NULL DEFAULT CURRENT_DATE,
+        acknowledged_date DATE,
+        resolution_deadline DATE,
+        resolved_date DATE,
+        root_cause TEXT,
+        remedial_action TEXT,
+        compensation_amount DECIMAL(15,2),
+        fos_referred BOOLEAN DEFAULT FALSE,
+        fos_outcome VARCHAR(100),
+        status VARCHAR(50) DEFAULT 'open',
+        assigned_to VARCHAR(255),
+        priority VARCHAR(20) DEFAULT 'medium',
+        notes TEXT,
+        created_by VARCHAR(255),
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_complaints_org ON complaints_records (organization_id)
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_complaints_status ON complaints_records (status)
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_complaints_received ON complaints_records (received_date)
+    `);
+
+    // Complaint Letters Table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS complaint_letters (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        complaint_id UUID NOT NULL REFERENCES complaints_records(id) ON DELETE CASCADE,
+        template_type VARCHAR(50) NOT NULL,
+        letter_reference VARCHAR(50),
+        generated_content TEXT,
+        template_variables JSONB,
+        status VARCHAR(30) DEFAULT 'draft',
+        generated_at TIMESTAMP DEFAULT NOW(),
+        sent_at TIMESTAMP,
+        sent_via VARCHAR(30),
+        generated_by VARCHAR(255),
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_complaint_letters_complaint ON complaint_letters (complaint_id)
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_complaint_letters_type ON complaint_letters (template_type)
+    `);
+
+    // Complaint Activities Table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS complaint_activities (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        complaint_id UUID NOT NULL REFERENCES complaints_records(id) ON DELETE CASCADE,
+        activity_type VARCHAR(50) NOT NULL,
+        description TEXT NOT NULL,
+        old_value VARCHAR(255),
+        new_value VARCHAR(255),
+        metadata JSONB,
+        performed_by VARCHAR(255),
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_complaint_activities_complaint ON complaint_activities (complaint_id)
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_complaint_activities_type ON complaint_activities (activity_type)
+    `);
+
+    // Add new fields to complaints_records if they don't exist
+    await client.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'complaints_records' AND column_name = 'complainant_email') THEN
+          ALTER TABLE complaints_records ADD COLUMN complainant_email VARCHAR(255);
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'complaints_records' AND column_name = 'complainant_address') THEN
+          ALTER TABLE complaints_records ADD COLUMN complainant_address TEXT;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'complaints_records' AND column_name = 'four_week_letter_sent') THEN
+          ALTER TABLE complaints_records ADD COLUMN four_week_letter_sent BOOLEAN DEFAULT FALSE;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'complaints_records' AND column_name = 'eight_week_letter_sent') THEN
+          ALTER TABLE complaints_records ADD COLUMN eight_week_letter_sent BOOLEAN DEFAULT FALSE;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'complaints_records' AND column_name = 'final_response_sent') THEN
+          ALTER TABLE complaints_records ADD COLUMN final_response_sent BOOLEAN DEFAULT FALSE;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'complaints_records' AND column_name = 'final_response_date') THEN
+          ALTER TABLE complaints_records ADD COLUMN final_response_date DATE;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'complaints_records' AND column_name = 'product_type') THEN
+          ALTER TABLE complaints_records ADD COLUMN product_type VARCHAR(100);
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'complaints_records' AND column_name = 'policy_reference') THEN
+          ALTER TABLE complaints_records ADD COLUMN policy_reference VARCHAR(100);
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'complaints_records' AND column_name = 'contact_method') THEN
+          ALTER TABLE complaints_records ADD COLUMN contact_method VARCHAR(50);
+        END IF;
+      END $$
+    `);
+
+    // Incident Register
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS incident_records (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        organization_id VARCHAR(100) NOT NULL DEFAULT 'default-org',
+        pack_id UUID REFERENCES authorization_packs(id) ON DELETE SET NULL,
+        incident_reference VARCHAR(50) UNIQUE,
+        incident_title VARCHAR(255) NOT NULL,
+        incident_type VARCHAR(50) NOT NULL DEFAULT 'other',
+        severity VARCHAR(20) DEFAULT 'medium',
+        detected_date DATE NOT NULL DEFAULT CURRENT_DATE,
+        occurred_date DATE,
+        reported_date DATE,
+        resolved_date DATE,
+        description TEXT,
+        root_cause TEXT,
+        impact_assessment TEXT,
+        immediate_actions TEXT,
+        remedial_actions TEXT,
+        lessons_learned TEXT,
+        regulatory_notification_required BOOLEAN DEFAULT FALSE,
+        regulatory_notification_date DATE,
+        status VARCHAR(50) DEFAULT 'detected',
+        assigned_to VARCHAR(255),
+        affected_systems TEXT,
+        affected_customers_count INTEGER DEFAULT 0,
+        financial_impact DECIMAL(15,2),
+        notes TEXT,
+        created_by VARCHAR(255),
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_incidents_org ON incident_records (organization_id)
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_incidents_status ON incident_records (status)
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_incidents_severity ON incident_records (severity)
+    `);
+
+    // Conflicts of Interest Register
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS coi_records (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        organization_id VARCHAR(100) NOT NULL DEFAULT 'default-org',
+        pack_id UUID REFERENCES authorization_packs(id) ON DELETE SET NULL,
+        declarant_name VARCHAR(255) NOT NULL,
+        declarant_role VARCHAR(255),
+        declaration_date DATE NOT NULL DEFAULT CURRENT_DATE,
+        conflict_type VARCHAR(50) NOT NULL DEFAULT 'other',
+        description TEXT NOT NULL,
+        parties_involved TEXT,
+        potential_impact TEXT,
+        mitigation_measures TEXT,
+        review_frequency VARCHAR(50) DEFAULT 'annual',
+        last_review_date DATE,
+        next_review_date DATE,
+        risk_rating VARCHAR(20) DEFAULT 'medium',
+        status VARCHAR(50) DEFAULT 'active',
+        approved_by VARCHAR(255),
+        approved_at TIMESTAMP,
+        notes TEXT,
+        created_by VARCHAR(255),
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_coi_org ON coi_records (organization_id)
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_coi_status ON coi_records (status)
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_coi_declarant ON coi_records (declarant_name)
+    `);
+
+    // Gifts & Hospitality Register
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS gifts_hospitality_records (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        organization_id VARCHAR(100) NOT NULL DEFAULT 'default-org',
+        pack_id UUID REFERENCES authorization_packs(id) ON DELETE SET NULL,
+        entry_type VARCHAR(50) NOT NULL DEFAULT 'gift_received',
+        date_of_event DATE NOT NULL DEFAULT CURRENT_DATE,
+        recipient_name VARCHAR(255),
+        recipient_organization VARCHAR(255),
+        provider_name VARCHAR(255),
+        provider_organization VARCHAR(255),
+        description TEXT NOT NULL,
+        estimated_value_gbp DECIMAL(15,2),
+        business_justification TEXT,
+        approval_required BOOLEAN DEFAULT FALSE,
+        approval_status VARCHAR(50) DEFAULT 'not_required',
+        approved_by VARCHAR(255),
+        approved_at TIMESTAMP,
+        declined BOOLEAN DEFAULT FALSE,
+        declined_reason TEXT,
+        notes TEXT,
+        created_by VARCHAR(255),
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_gifts_org ON gifts_hospitality_records (organization_id)
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_gifts_type ON gifts_hospitality_records (entry_type)
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_gifts_date ON gifts_hospitality_records (date_of_event)
+    `);
+
     logger.info('Database tables initialized successfully');
   } catch (error) {
     logError(error, 'Failed to initialize database');
@@ -2357,7 +2710,7 @@ export async function seedPackTemplates(force: boolean = false): Promise<void> {
       )
     `);
 
-    // Create the three pack types
+    // Create the pack types
     const packTypes = [
       {
         code: 'payments-emi',
@@ -2365,8 +2718,20 @@ export async function seedPackTemplates(force: boolean = false): Promise<void> {
         description: 'FCA authorization pack for firms seeking payment services or e-money institution authorization under PSD2/EMD2.',
         pack_type: 'payments',
         typical_timeline_weeks: 16,
-        policy_templates: ['aml-policy', 'safeguarding-policy', 'complaints-policy', 'operational-resilience', 'consumer-duty'],
-        training_requirements: ['aml-training', 'consumer-duty-training', 'payments-regulation'],
+        policy_templates: [
+          'aml-policy',
+          'safeguarding-policy',
+          'complaints-policy',
+          'financial-promotions',
+          'operational-resilience',
+          'consumer-duty'
+        ],
+        training_requirements: [
+          'aml-training',
+          'consumer-duty-training',
+          'payments-regulation',
+          'operational-resilience'
+        ],
         smcr_roles: ['SMF16', 'SMF17', 'SMF29']
       },
       {
@@ -2375,8 +2740,22 @@ export async function seedPackTemplates(force: boolean = false): Promise<void> {
         description: 'FCA authorization pack for firms seeking MiFID investment permissions including dealing, advising, and managing.',
         pack_type: 'investments',
         typical_timeline_weeks: 20,
-        policy_templates: ['aml-policy', 'best-execution', 'conflicts-of-interest', 'suitability', 'consumer-duty', 'complaints-policy'],
-        training_requirements: ['aml-training', 'consumer-duty-training', 'mifid-training', 'investment-advice'],
+        policy_templates: [
+          'aml-policy',
+          'conflicts-of-interest',
+          'best-execution',
+          'suitability',
+          'financial-promotions',
+          'consumer-duty',
+          'complaints-policy'
+        ],
+        training_requirements: [
+          'aml-training',
+          'consumer-duty-training',
+          'mifid-training',
+          'investment-advice',
+          'financial-promotions'
+        ],
         smcr_roles: ['SMF3', 'SMF16', 'SMF17', 'SMF24']
       },
       {
@@ -2385,8 +2764,59 @@ export async function seedPackTemplates(force: boolean = false): Promise<void> {
         description: 'FCA authorization pack for firms seeking consumer credit permissions including lending, broking, and debt activities.',
         pack_type: 'credit',
         typical_timeline_weeks: 14,
-        policy_templates: ['aml-policy', 'responsible-lending', 'complaints-policy', 'consumer-duty', 'arrears-management'],
-        training_requirements: ['aml-training', 'consumer-duty-training', 'consumer-credit-training'],
+        policy_templates: [
+          'aml-policy',
+          'responsible-lending',
+          'arrears-management',
+          'complaints-policy',
+          'consumer-duty'
+        ],
+        training_requirements: [
+          'aml-training',
+          'consumer-duty-training',
+          'consumer-credit-training',
+          'vulnerable-customers'
+        ],
+        smcr_roles: ['SMF16', 'SMF17']
+      },
+      {
+        code: 'insurance-distribution',
+        name: 'Insurance Distribution Authorization',
+        description: 'FCA authorization pack for insurance intermediaries under the IDD/PROD framework.',
+        pack_type: 'insurance',
+        typical_timeline_weeks: 14,
+        policy_templates: [
+          'aml-policy',
+          'prod-policy',
+          'complaints-policy',
+          'consumer-duty',
+          'financial-promotions'
+        ],
+        training_requirements: [
+          'aml-training',
+          'consumer-duty-training',
+          'insurance-conduct',
+          'financial-promotions'
+        ],
+        smcr_roles: ['SMF16', 'SMF17']
+      },
+      {
+        code: 'crypto-registration',
+        name: 'Cryptoasset Registration',
+        description: 'FCA cryptoasset registration pack with enhanced financial crime and risk governance.',
+        pack_type: 'crypto',
+        typical_timeline_weeks: 18,
+        policy_templates: [
+          'aml-policy',
+          'risk-assessment',
+          'financial-promotions',
+          'operational-resilience'
+        ],
+        training_requirements: [
+          'aml-training',
+          'sanctions-training',
+          'cryptoasset-risk'
+        ],
         smcr_roles: ['SMF16', 'SMF17']
       }
     ];
@@ -2449,6 +2879,1249 @@ export async function seedPackTemplates(force: boolean = false): Promise<void> {
     }
 
     logger.info('Pack templates seeded successfully');
+  } finally {
+    client.release();
+  }
+}
+
+// ============================================
+// PEP Register Types and Functions
+// ============================================
+
+export interface PEPRecord {
+  id: string;
+  organization_id: string;
+  pack_id?: string;
+  pep_type: 'customer' | 'beneficial_owner' | 'director' | 'shareholder';
+  full_name: string;
+  date_of_birth?: Date;
+  nationality?: string;
+  position_held?: string;
+  pep_category: 'pep' | 'rca' | 'family_member';
+  relationship_type?: string;
+  risk_rating: 'low' | 'medium' | 'high' | 'critical';
+  status: 'active' | 'inactive' | 'archived' | 'under_review';
+  identification_date: Date;
+  last_review_date?: Date;
+  next_review_date?: Date;
+  edd_completed: boolean;
+  edd_completed_date?: Date;
+  source_of_wealth?: string;
+  source_of_funds?: string;
+  approval_status: 'pending' | 'approved' | 'rejected';
+  approved_by?: string;
+  approved_at?: Date;
+  notes?: string;
+  created_by?: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export async function getPEPRecords(
+  organizationId: string = 'default-org',
+  packId?: string
+): Promise<PEPRecord[]> {
+  const client = await pool.connect();
+  try {
+    let query = `
+      SELECT * FROM pep_records
+      WHERE organization_id = $1
+    `;
+    const params: (string | undefined)[] = [organizationId];
+
+    if (packId) {
+      query += ` AND pack_id = $2`;
+      params.push(packId);
+    }
+
+    query += ` ORDER BY created_at DESC`;
+
+    const result = await client.query(query, params);
+    return result.rows;
+  } finally {
+    client.release();
+  }
+}
+
+export async function getPEPRecord(id: string): Promise<PEPRecord | null> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `SELECT * FROM pep_records WHERE id = $1`,
+      [id]
+    );
+    return result.rows[0] || null;
+  } finally {
+    client.release();
+  }
+}
+
+export async function createPEPRecord(data: Omit<PEPRecord, 'id' | 'created_at' | 'updated_at'>): Promise<PEPRecord> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`
+      INSERT INTO pep_records (
+        organization_id, pack_id, pep_type, full_name, date_of_birth,
+        nationality, position_held, pep_category, relationship_type,
+        risk_rating, status, identification_date, last_review_date,
+        next_review_date, edd_completed, edd_completed_date,
+        source_of_wealth, source_of_funds, approval_status,
+        approved_by, approved_at, notes, created_by
+      ) VALUES (
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
+        $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23
+      )
+      RETURNING *
+    `, [
+      data.organization_id,
+      data.pack_id || null,
+      data.pep_type,
+      data.full_name,
+      data.date_of_birth || null,
+      data.nationality || null,
+      data.position_held || null,
+      data.pep_category,
+      data.relationship_type || null,
+      data.risk_rating,
+      data.status,
+      data.identification_date,
+      data.last_review_date || null,
+      data.next_review_date || null,
+      data.edd_completed,
+      data.edd_completed_date || null,
+      data.source_of_wealth || null,
+      data.source_of_funds || null,
+      data.approval_status,
+      data.approved_by || null,
+      data.approved_at || null,
+      data.notes || null,
+      data.created_by || null,
+    ]);
+    return result.rows[0];
+  } finally {
+    client.release();
+  }
+}
+
+export async function updatePEPRecord(
+  id: string,
+  data: Partial<Omit<PEPRecord, 'id' | 'created_at'>>
+): Promise<PEPRecord | null> {
+  const client = await pool.connect();
+  try {
+    const fields: string[] = [];
+    const values: unknown[] = [];
+    let paramCount = 1;
+
+    const allowedFields = [
+      'pep_type', 'full_name', 'date_of_birth', 'nationality',
+      'position_held', 'pep_category', 'relationship_type',
+      'risk_rating', 'status', 'identification_date',
+      'last_review_date', 'next_review_date', 'edd_completed',
+      'edd_completed_date', 'source_of_wealth', 'source_of_funds',
+      'approval_status', 'approved_by', 'approved_at', 'notes'
+    ];
+
+    for (const [key, value] of Object.entries(data)) {
+      if (allowedFields.includes(key) && value !== undefined) {
+        fields.push(`${key} = $${paramCount}`);
+        values.push(value);
+        paramCount++;
+      }
+    }
+
+    if (fields.length === 0) return null;
+
+    fields.push(`updated_at = NOW()`);
+    values.push(id);
+
+    const result = await client.query(
+      `UPDATE pep_records SET ${fields.join(', ')} WHERE id = $${paramCount} RETURNING *`,
+      values
+    );
+    return result.rows[0] || null;
+  } finally {
+    client.release();
+  }
+}
+
+export async function deletePEPRecord(id: string): Promise<boolean> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `DELETE FROM pep_records WHERE id = $1`,
+      [id]
+    );
+    return (result.rowCount ?? 0) > 0;
+  } finally {
+    client.release();
+  }
+}
+
+// ============================================
+// Third-Party Register Types and Functions
+// ============================================
+
+export interface ThirdPartyRecord {
+  id: string;
+  organization_id: string;
+  pack_id?: string;
+  vendor_name: string;
+  vendor_type: string;
+  service_description?: string;
+  criticality: 'low' | 'medium' | 'high' | 'critical';
+  is_outsourcing: boolean;
+  is_material_outsourcing: boolean;
+  regulatory_notification_required: boolean;
+  contract_start_date?: Date;
+  contract_end_date?: Date;
+  contract_value_gbp?: number;
+  risk_rating: 'low' | 'medium' | 'high' | 'critical';
+  status: 'active' | 'inactive' | 'pending' | 'terminated' | 'under_review';
+  primary_contact_name?: string;
+  primary_contact_email?: string;
+  primary_contact_phone?: string;
+  due_diligence_completed: boolean;
+  due_diligence_date?: Date;
+  last_review_date?: Date;
+  next_review_date?: Date;
+  exit_strategy_documented: boolean;
+  data_processing_agreement: boolean;
+  sub_outsourcing_permitted: boolean;
+  geographic_location?: string;
+  approval_status: 'pending' | 'approved' | 'rejected';
+  approved_by?: string;
+  approved_at?: Date;
+  notes?: string;
+  created_by?: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export async function getThirdPartyRecords(
+  organizationId: string = 'default-org',
+  packId?: string
+): Promise<ThirdPartyRecord[]> {
+  const client = await pool.connect();
+  try {
+    let query = `
+      SELECT * FROM third_party_records
+      WHERE organization_id = $1
+    `;
+    const params: (string | undefined)[] = [organizationId];
+
+    if (packId) {
+      query += ` AND pack_id = $2`;
+      params.push(packId);
+    }
+
+    query += ` ORDER BY created_at DESC`;
+
+    const result = await client.query(query, params);
+    return result.rows;
+  } finally {
+    client.release();
+  }
+}
+
+export async function getThirdPartyRecord(id: string): Promise<ThirdPartyRecord | null> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `SELECT * FROM third_party_records WHERE id = $1`,
+      [id]
+    );
+    return result.rows[0] || null;
+  } finally {
+    client.release();
+  }
+}
+
+export async function createThirdPartyRecord(
+  data: Omit<ThirdPartyRecord, 'id' | 'created_at' | 'updated_at'>
+): Promise<ThirdPartyRecord> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`
+      INSERT INTO third_party_records (
+        organization_id, pack_id, vendor_name, vendor_type,
+        service_description, criticality, is_outsourcing,
+        is_material_outsourcing, regulatory_notification_required,
+        contract_start_date, contract_end_date, contract_value_gbp,
+        risk_rating, status, primary_contact_name, primary_contact_email,
+        primary_contact_phone, due_diligence_completed, due_diligence_date,
+        last_review_date, next_review_date, exit_strategy_documented,
+        data_processing_agreement, sub_outsourcing_permitted,
+        geographic_location, approval_status, approved_by, approved_at,
+        notes, created_by
+      ) VALUES (
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
+        $11, $12, $13, $14, $15, $16, $17, $18, $19, $20,
+        $21, $22, $23, $24, $25, $26, $27, $28, $29, $30
+      )
+      RETURNING *
+    `, [
+      data.organization_id,
+      data.pack_id || null,
+      data.vendor_name,
+      data.vendor_type,
+      data.service_description || null,
+      data.criticality,
+      data.is_outsourcing,
+      data.is_material_outsourcing,
+      data.regulatory_notification_required,
+      data.contract_start_date || null,
+      data.contract_end_date || null,
+      data.contract_value_gbp || null,
+      data.risk_rating,
+      data.status,
+      data.primary_contact_name || null,
+      data.primary_contact_email || null,
+      data.primary_contact_phone || null,
+      data.due_diligence_completed,
+      data.due_diligence_date || null,
+      data.last_review_date || null,
+      data.next_review_date || null,
+      data.exit_strategy_documented,
+      data.data_processing_agreement,
+      data.sub_outsourcing_permitted,
+      data.geographic_location || null,
+      data.approval_status,
+      data.approved_by || null,
+      data.approved_at || null,
+      data.notes || null,
+      data.created_by || null,
+    ]);
+    return result.rows[0];
+  } finally {
+    client.release();
+  }
+}
+
+export async function updateThirdPartyRecord(
+  id: string,
+  data: Partial<Omit<ThirdPartyRecord, 'id' | 'created_at'>>
+): Promise<ThirdPartyRecord | null> {
+  const client = await pool.connect();
+  try {
+    const fields: string[] = [];
+    const values: unknown[] = [];
+    let paramCount = 1;
+
+    const allowedFields = [
+      'vendor_name', 'vendor_type', 'service_description', 'criticality',
+      'is_outsourcing', 'is_material_outsourcing', 'regulatory_notification_required',
+      'contract_start_date', 'contract_end_date', 'contract_value_gbp',
+      'risk_rating', 'status', 'primary_contact_name', 'primary_contact_email',
+      'primary_contact_phone', 'due_diligence_completed', 'due_diligence_date',
+      'last_review_date', 'next_review_date', 'exit_strategy_documented',
+      'data_processing_agreement', 'sub_outsourcing_permitted',
+      'geographic_location', 'approval_status', 'approved_by', 'approved_at', 'notes'
+    ];
+
+    for (const [key, value] of Object.entries(data)) {
+      if (allowedFields.includes(key) && value !== undefined) {
+        fields.push(`${key} = $${paramCount}`);
+        values.push(value);
+        paramCount++;
+      }
+    }
+
+    if (fields.length === 0) return null;
+
+    fields.push(`updated_at = NOW()`);
+    values.push(id);
+
+    const result = await client.query(
+      `UPDATE third_party_records SET ${fields.join(', ')} WHERE id = $${paramCount} RETURNING *`,
+      values
+    );
+    return result.rows[0] || null;
+  } finally {
+    client.release();
+  }
+}
+
+export async function deleteThirdPartyRecord(id: string): Promise<boolean> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `DELETE FROM third_party_records WHERE id = $1`,
+      [id]
+    );
+    return (result.rowCount ?? 0) > 0;
+  } finally {
+    client.release();
+  }
+}
+
+// ============================================
+// Complaints Register Types and Functions
+// ============================================
+
+export type ComplaintStatus = 'open' | 'investigating' | 'resolved' | 'closed' | 'escalated' | 'referred_to_fos';
+export type ComplaintPriority = 'low' | 'medium' | 'high' | 'urgent';
+
+export interface ComplaintRecord {
+  id: string;
+  organization_id: string;
+  pack_id?: string;
+  complaint_reference?: string;
+  complainant_name: string;
+  complainant_email?: string;
+  complainant_phone?: string;
+  complainant_address?: string;
+  complaint_type: 'product' | 'service' | 'staff_conduct' | 'fees' | 'advice' | 'delay' | 'communication' | 'other';
+  complaint_category: 'upheld' | 'partially_upheld' | 'rejected' | 'pending';
+  description?: string;
+  received_date: Date;
+  acknowledged_date?: Date;
+  resolution_deadline?: Date;
+  resolved_date?: Date;
+  root_cause?: string;
+  remedial_action?: string;
+  resolution?: string;
+  compensation_amount?: number;
+  fos_referred: boolean;
+  fos_outcome?: string;
+  status: ComplaintStatus;
+  assigned_to?: string;
+  priority: ComplaintPriority;
+  notes?: string;
+  product_type?: string;
+  policy_reference?: string;
+  contact_method?: 'phone' | 'email' | 'letter' | 'online' | 'in_person';
+  four_week_letter_sent: boolean;
+  eight_week_letter_sent: boolean;
+  final_response_sent: boolean;
+  final_response_date?: Date;
+  created_by?: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export type LetterTemplateType =
+  | 'acknowledgement'
+  | 'forward_third_party'
+  | 'four_week_holding'
+  | 'eight_week_holding'
+  | 'complaint_upheld'
+  | 'complaint_rejected'
+  | 'general_contact';
+
+export interface ComplaintLetter {
+  id: string;
+  complaint_id: string;
+  template_type: LetterTemplateType;
+  letter_reference?: string;
+  generated_content?: string;
+  template_variables?: Record<string, unknown>;
+  status: 'draft' | 'ready' | 'sent' | 'delivered';
+  generated_at: Date;
+  sent_at?: Date;
+  sent_via?: 'email' | 'post' | 'both';
+  generated_by?: string;
+  created_at: Date;
+}
+
+export type ActivityType =
+  | 'complaint_created'
+  | 'status_change'
+  | 'letter_generated'
+  | 'letter_sent'
+  | 'note_added'
+  | 'assigned'
+  | 'priority_change'
+  | 'fos_referred'
+  | 'resolved'
+  | 'closed';
+
+export interface ComplaintActivity {
+  id: string;
+  complaint_id: string;
+  activity_type: ActivityType;
+  description: string;
+  old_value?: string;
+  new_value?: string;
+  metadata?: Record<string, unknown>;
+  performed_by?: string;
+  created_at: Date;
+}
+
+export async function getComplaintRecords(
+  organizationId: string = 'default-org',
+  packId?: string
+): Promise<ComplaintRecord[]> {
+  const client = await pool.connect();
+  try {
+    let query = `SELECT * FROM complaints_records WHERE organization_id = $1`;
+    const params: (string | undefined)[] = [organizationId];
+    if (packId) {
+      query += ` AND pack_id = $2`;
+      params.push(packId);
+    }
+    query += ` ORDER BY received_date DESC`;
+    const result = await client.query(query, params);
+    return result.rows;
+  } finally {
+    client.release();
+  }
+}
+
+export async function getComplaintRecord(id: string): Promise<ComplaintRecord | null> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`SELECT * FROM complaints_records WHERE id = $1`, [id]);
+    return result.rows[0] || null;
+  } finally {
+    client.release();
+  }
+}
+
+export async function createComplaintRecord(
+  data: Omit<ComplaintRecord, 'id' | 'created_at' | 'updated_at' | 'complaint_reference'>
+): Promise<ComplaintRecord> {
+  const client = await pool.connect();
+  try {
+    // Generate reference number
+    const countResult = await client.query(
+      `SELECT COUNT(*) FROM complaints_records WHERE organization_id = $1`,
+      [data.organization_id]
+    );
+    const count = parseInt(countResult.rows[0].count) + 1;
+    const complaint_reference = `COMP-${new Date().getFullYear()}-${String(count).padStart(4, '0')}`;
+
+    const result = await client.query(`
+      INSERT INTO complaints_records (
+        organization_id, pack_id, complaint_reference, complainant_name,
+        complaint_type, complaint_category, received_date, acknowledged_date,
+        resolution_deadline, resolved_date, root_cause, remedial_action,
+        compensation_amount, fos_referred, fos_outcome, status, assigned_to,
+        priority, notes, created_by
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
+      RETURNING *
+    `, [
+      data.organization_id,
+      data.pack_id || null,
+      complaint_reference,
+      data.complainant_name,
+      data.complaint_type,
+      data.complaint_category,
+      data.received_date,
+      data.acknowledged_date || null,
+      data.resolution_deadline || null,
+      data.resolved_date || null,
+      data.root_cause || null,
+      data.remedial_action || null,
+      data.compensation_amount || null,
+      data.fos_referred,
+      data.fos_outcome || null,
+      data.status,
+      data.assigned_to || null,
+      data.priority,
+      data.notes || null,
+      data.created_by || null,
+    ]);
+    return result.rows[0];
+  } finally {
+    client.release();
+  }
+}
+
+export async function updateComplaintRecord(
+  id: string,
+  data: Partial<Omit<ComplaintRecord, 'id' | 'created_at' | 'complaint_reference'>>
+): Promise<ComplaintRecord | null> {
+  const client = await pool.connect();
+  try {
+    const fields: string[] = [];
+    const values: unknown[] = [];
+    let paramCount = 1;
+
+    const allowedFields = [
+      'complainant_name', 'complaint_type', 'complaint_category',
+      'received_date', 'acknowledged_date', 'resolution_deadline',
+      'resolved_date', 'root_cause', 'remedial_action', 'compensation_amount',
+      'fos_referred', 'fos_outcome', 'status', 'assigned_to', 'priority', 'notes'
+    ];
+
+    for (const [key, value] of Object.entries(data)) {
+      if (allowedFields.includes(key) && value !== undefined) {
+        fields.push(`${key} = $${paramCount}`);
+        values.push(value);
+        paramCount++;
+      }
+    }
+
+    if (fields.length === 0) return null;
+    fields.push(`updated_at = NOW()`);
+    values.push(id);
+
+    const result = await client.query(
+      `UPDATE complaints_records SET ${fields.join(', ')} WHERE id = $${paramCount} RETURNING *`,
+      values
+    );
+    return result.rows[0] || null;
+  } finally {
+    client.release();
+  }
+}
+
+export async function deleteComplaintRecord(id: string): Promise<boolean> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`DELETE FROM complaints_records WHERE id = $1`, [id]);
+    return (result.rowCount ?? 0) > 0;
+  } finally {
+    client.release();
+  }
+}
+
+// ============================================
+// Complaint Letters Functions
+// ============================================
+
+export async function getComplaintLetters(complaintId: string): Promise<ComplaintLetter[]> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `SELECT * FROM complaint_letters WHERE complaint_id = $1 ORDER BY created_at DESC`,
+      [complaintId]
+    );
+    return result.rows;
+  } finally {
+    client.release();
+  }
+}
+
+export async function getComplaintLetter(id: string): Promise<ComplaintLetter | null> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `SELECT * FROM complaint_letters WHERE id = $1`,
+      [id]
+    );
+    return result.rows[0] || null;
+  } finally {
+    client.release();
+  }
+}
+
+export async function createComplaintLetter(
+  data: Omit<ComplaintLetter, 'id' | 'created_at' | 'generated_at' | 'letter_reference'>
+): Promise<ComplaintLetter> {
+  const client = await pool.connect();
+  try {
+    // Generate letter reference
+    const countResult = await client.query(
+      `SELECT COUNT(*) FROM complaint_letters`
+    );
+    const count = parseInt(countResult.rows[0].count) + 1;
+    const letter_reference = `LTR-${new Date().getFullYear()}-${String(count).padStart(4, '0')}`;
+
+    const result = await client.query(
+      `INSERT INTO complaint_letters (
+        complaint_id, template_type, letter_reference, generated_content,
+        template_variables, status, sent_at, sent_via, generated_by
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+      [
+        data.complaint_id,
+        data.template_type,
+        letter_reference,
+        data.generated_content,
+        JSON.stringify(data.template_variables || {}),
+        data.status || 'draft',
+        data.sent_at,
+        data.sent_via,
+        data.generated_by
+      ]
+    );
+    return result.rows[0];
+  } finally {
+    client.release();
+  }
+}
+
+export async function updateComplaintLetter(
+  id: string,
+  data: Partial<Omit<ComplaintLetter, 'id' | 'created_at' | 'complaint_id'>>
+): Promise<ComplaintLetter | null> {
+  const client = await pool.connect();
+  try {
+    const fields: string[] = [];
+    const values: unknown[] = [];
+    let paramCount = 1;
+
+    if (data.status !== undefined) {
+      fields.push(`status = $${paramCount++}`);
+      values.push(data.status);
+    }
+    if (data.sent_at !== undefined) {
+      fields.push(`sent_at = $${paramCount++}`);
+      values.push(data.sent_at);
+    }
+    if (data.sent_via !== undefined) {
+      fields.push(`sent_via = $${paramCount++}`);
+      values.push(data.sent_via);
+    }
+    if (data.generated_content !== undefined) {
+      fields.push(`generated_content = $${paramCount++}`);
+      values.push(data.generated_content);
+    }
+
+    if (fields.length === 0) return null;
+    values.push(id);
+
+    const result = await client.query(
+      `UPDATE complaint_letters SET ${fields.join(', ')} WHERE id = $${paramCount} RETURNING *`,
+      values
+    );
+    return result.rows[0] || null;
+  } finally {
+    client.release();
+  }
+}
+
+export async function deleteComplaintLetter(id: string): Promise<boolean> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`DELETE FROM complaint_letters WHERE id = $1`, [id]);
+    return (result.rowCount ?? 0) > 0;
+  } finally {
+    client.release();
+  }
+}
+
+// ============================================
+// Complaint Activities Functions
+// ============================================
+
+export async function getComplaintActivities(complaintId: string): Promise<ComplaintActivity[]> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `SELECT * FROM complaint_activities WHERE complaint_id = $1 ORDER BY created_at DESC`,
+      [complaintId]
+    );
+    return result.rows;
+  } finally {
+    client.release();
+  }
+}
+
+export async function createComplaintActivity(
+  data: Omit<ComplaintActivity, 'id' | 'created_at'>
+): Promise<ComplaintActivity> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `INSERT INTO complaint_activities (
+        complaint_id, activity_type, description, old_value, new_value, metadata, performed_by
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      [
+        data.complaint_id,
+        data.activity_type,
+        data.description,
+        data.old_value,
+        data.new_value,
+        JSON.stringify(data.metadata || {}),
+        data.performed_by
+      ]
+    );
+    return result.rows[0];
+  } finally {
+    client.release();
+  }
+}
+
+export async function getComplaintWithDetails(id: string): Promise<{
+  complaint: ComplaintRecord | null;
+  letters: ComplaintLetter[];
+  activities: ComplaintActivity[];
+}> {
+  const client = await pool.connect();
+  try {
+    const [complaintResult, lettersResult, activitiesResult] = await Promise.all([
+      client.query(`SELECT * FROM complaints_records WHERE id = $1`, [id]),
+      client.query(`SELECT * FROM complaint_letters WHERE complaint_id = $1 ORDER BY created_at DESC`, [id]),
+      client.query(`SELECT * FROM complaint_activities WHERE complaint_id = $1 ORDER BY created_at DESC`, [id])
+    ]);
+    return {
+      complaint: complaintResult.rows[0] || null,
+      letters: lettersResult.rows,
+      activities: activitiesResult.rows
+    };
+  } finally {
+    client.release();
+  }
+}
+
+// ============================================
+// Incident Register Types and Functions
+// ============================================
+
+export interface IncidentRecord {
+  id: string;
+  organization_id: string;
+  pack_id?: string;
+  incident_reference?: string;
+  incident_title: string;
+  incident_type: 'operational' | 'security' | 'data_breach' | 'system_failure' | 'fraud' | 'compliance' | 'human_error' | 'third_party' | 'other';
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  detected_date: Date;
+  occurred_date?: Date;
+  reported_date?: Date;
+  resolved_date?: Date;
+  description?: string;
+  root_cause?: string;
+  impact_assessment?: string;
+  immediate_actions?: string;
+  remedial_actions?: string;
+  lessons_learned?: string;
+  regulatory_notification_required: boolean;
+  regulatory_notification_date?: Date;
+  status: 'detected' | 'investigating' | 'contained' | 'resolved' | 'closed';
+  assigned_to?: string;
+  affected_systems?: string;
+  affected_customers_count: number;
+  financial_impact?: number;
+  notes?: string;
+  created_by?: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export async function getIncidentRecords(
+  organizationId: string = 'default-org',
+  packId?: string
+): Promise<IncidentRecord[]> {
+  const client = await pool.connect();
+  try {
+    let query = `SELECT * FROM incident_records WHERE organization_id = $1`;
+    const params: (string | undefined)[] = [organizationId];
+    if (packId) {
+      query += ` AND pack_id = $2`;
+      params.push(packId);
+    }
+    query += ` ORDER BY detected_date DESC`;
+    const result = await client.query(query, params);
+    return result.rows;
+  } finally {
+    client.release();
+  }
+}
+
+export async function getIncidentRecord(id: string): Promise<IncidentRecord | null> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`SELECT * FROM incident_records WHERE id = $1`, [id]);
+    return result.rows[0] || null;
+  } finally {
+    client.release();
+  }
+}
+
+export async function createIncidentRecord(
+  data: Omit<IncidentRecord, 'id' | 'created_at' | 'updated_at' | 'incident_reference'>
+): Promise<IncidentRecord> {
+  const client = await pool.connect();
+  try {
+    // Generate reference number
+    const countResult = await client.query(
+      `SELECT COUNT(*) FROM incident_records WHERE organization_id = $1`,
+      [data.organization_id]
+    );
+    const count = parseInt(countResult.rows[0].count) + 1;
+    const incident_reference = `INC-${new Date().getFullYear()}-${String(count).padStart(4, '0')}`;
+
+    const result = await client.query(`
+      INSERT INTO incident_records (
+        organization_id, pack_id, incident_reference, incident_title,
+        incident_type, severity, detected_date, occurred_date, reported_date,
+        resolved_date, description, root_cause, impact_assessment,
+        immediate_actions, remedial_actions, lessons_learned,
+        regulatory_notification_required, regulatory_notification_date,
+        status, assigned_to, affected_systems, affected_customers_count,
+        financial_impact, notes, created_by
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)
+      RETURNING *
+    `, [
+      data.organization_id,
+      data.pack_id || null,
+      incident_reference,
+      data.incident_title,
+      data.incident_type,
+      data.severity,
+      data.detected_date,
+      data.occurred_date || null,
+      data.reported_date || null,
+      data.resolved_date || null,
+      data.description || null,
+      data.root_cause || null,
+      data.impact_assessment || null,
+      data.immediate_actions || null,
+      data.remedial_actions || null,
+      data.lessons_learned || null,
+      data.regulatory_notification_required,
+      data.regulatory_notification_date || null,
+      data.status,
+      data.assigned_to || null,
+      data.affected_systems || null,
+      data.affected_customers_count,
+      data.financial_impact || null,
+      data.notes || null,
+      data.created_by || null,
+    ]);
+    return result.rows[0];
+  } finally {
+    client.release();
+  }
+}
+
+export async function updateIncidentRecord(
+  id: string,
+  data: Partial<Omit<IncidentRecord, 'id' | 'created_at' | 'incident_reference'>>
+): Promise<IncidentRecord | null> {
+  const client = await pool.connect();
+  try {
+    const fields: string[] = [];
+    const values: unknown[] = [];
+    let paramCount = 1;
+
+    const allowedFields = [
+      'incident_title', 'incident_type', 'severity', 'detected_date',
+      'occurred_date', 'reported_date', 'resolved_date', 'description',
+      'root_cause', 'impact_assessment', 'immediate_actions', 'remedial_actions',
+      'lessons_learned', 'regulatory_notification_required',
+      'regulatory_notification_date', 'status', 'assigned_to',
+      'affected_systems', 'affected_customers_count', 'financial_impact', 'notes'
+    ];
+
+    for (const [key, value] of Object.entries(data)) {
+      if (allowedFields.includes(key) && value !== undefined) {
+        fields.push(`${key} = $${paramCount}`);
+        values.push(value);
+        paramCount++;
+      }
+    }
+
+    if (fields.length === 0) return null;
+    fields.push(`updated_at = NOW()`);
+    values.push(id);
+
+    const result = await client.query(
+      `UPDATE incident_records SET ${fields.join(', ')} WHERE id = $${paramCount} RETURNING *`,
+      values
+    );
+    return result.rows[0] || null;
+  } finally {
+    client.release();
+  }
+}
+
+export async function deleteIncidentRecord(id: string): Promise<boolean> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`DELETE FROM incident_records WHERE id = $1`, [id]);
+    return (result.rowCount ?? 0) > 0;
+  } finally {
+    client.release();
+  }
+}
+
+// ============================================
+// Conflicts of Interest Register Types and Functions
+// ============================================
+
+export interface COIRecord {
+  id: string;
+  organization_id: string;
+  pack_id?: string;
+  declarant_name: string;
+  declarant_role?: string;
+  declaration_date: Date;
+  conflict_type: 'personal_interest' | 'family_relationship' | 'outside_employment' | 'financial_interest' | 'gift_hospitality' | 'board_membership' | 'shareholder' | 'other';
+  description: string;
+  parties_involved?: string;
+  potential_impact?: string;
+  mitigation_measures?: string;
+  review_frequency: 'annual' | 'semi_annual' | 'quarterly' | 'monthly' | 'ad_hoc';
+  last_review_date?: Date;
+  next_review_date?: Date;
+  risk_rating: 'low' | 'medium' | 'high' | 'critical';
+  status: 'active' | 'mitigated' | 'resolved' | 'archived';
+  approved_by?: string;
+  approved_at?: Date;
+  notes?: string;
+  created_by?: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export async function getCOIRecords(
+  organizationId: string = 'default-org',
+  packId?: string
+): Promise<COIRecord[]> {
+  const client = await pool.connect();
+  try {
+    let query = `SELECT * FROM coi_records WHERE organization_id = $1`;
+    const params: (string | undefined)[] = [organizationId];
+    if (packId) {
+      query += ` AND pack_id = $2`;
+      params.push(packId);
+    }
+    query += ` ORDER BY declaration_date DESC`;
+    const result = await client.query(query, params);
+    return result.rows;
+  } finally {
+    client.release();
+  }
+}
+
+export async function getCOIRecord(id: string): Promise<COIRecord | null> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`SELECT * FROM coi_records WHERE id = $1`, [id]);
+    return result.rows[0] || null;
+  } finally {
+    client.release();
+  }
+}
+
+export async function createCOIRecord(
+  data: Omit<COIRecord, 'id' | 'created_at' | 'updated_at'>
+): Promise<COIRecord> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`
+      INSERT INTO coi_records (
+        organization_id, pack_id, declarant_name, declarant_role,
+        declaration_date, conflict_type, description, parties_involved,
+        potential_impact, mitigation_measures, review_frequency,
+        last_review_date, next_review_date, risk_rating, status,
+        approved_by, approved_at, notes, created_by
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+      RETURNING *
+    `, [
+      data.organization_id,
+      data.pack_id || null,
+      data.declarant_name,
+      data.declarant_role || null,
+      data.declaration_date,
+      data.conflict_type,
+      data.description,
+      data.parties_involved || null,
+      data.potential_impact || null,
+      data.mitigation_measures || null,
+      data.review_frequency,
+      data.last_review_date || null,
+      data.next_review_date || null,
+      data.risk_rating,
+      data.status,
+      data.approved_by || null,
+      data.approved_at || null,
+      data.notes || null,
+      data.created_by || null,
+    ]);
+    return result.rows[0];
+  } finally {
+    client.release();
+  }
+}
+
+export async function updateCOIRecord(
+  id: string,
+  data: Partial<Omit<COIRecord, 'id' | 'created_at'>>
+): Promise<COIRecord | null> {
+  const client = await pool.connect();
+  try {
+    const fields: string[] = [];
+    const values: unknown[] = [];
+    let paramCount = 1;
+
+    const allowedFields = [
+      'declarant_name', 'declarant_role', 'declaration_date', 'conflict_type',
+      'description', 'parties_involved', 'potential_impact', 'mitigation_measures',
+      'review_frequency', 'last_review_date', 'next_review_date', 'risk_rating',
+      'status', 'approved_by', 'approved_at', 'notes'
+    ];
+
+    for (const [key, value] of Object.entries(data)) {
+      if (allowedFields.includes(key) && value !== undefined) {
+        fields.push(`${key} = $${paramCount}`);
+        values.push(value);
+        paramCount++;
+      }
+    }
+
+    if (fields.length === 0) return null;
+    fields.push(`updated_at = NOW()`);
+    values.push(id);
+
+    const result = await client.query(
+      `UPDATE coi_records SET ${fields.join(', ')} WHERE id = $${paramCount} RETURNING *`,
+      values
+    );
+    return result.rows[0] || null;
+  } finally {
+    client.release();
+  }
+}
+
+export async function deleteCOIRecord(id: string): Promise<boolean> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`DELETE FROM coi_records WHERE id = $1`, [id]);
+    return (result.rowCount ?? 0) > 0;
+  } finally {
+    client.release();
+  }
+}
+
+// ============================================
+// Gifts & Hospitality Register Types and Functions
+// ============================================
+
+export interface GiftHospitalityRecord {
+  id: string;
+  organization_id: string;
+  pack_id?: string;
+  entry_type: 'gift_received' | 'gift_given' | 'hospitality_received' | 'hospitality_given';
+  date_of_event: Date;
+  recipient_name?: string;
+  recipient_organization?: string;
+  provider_name?: string;
+  provider_organization?: string;
+  description: string;
+  estimated_value_gbp?: number;
+  business_justification?: string;
+  approval_required: boolean;
+  approval_status: 'not_required' | 'pending' | 'approved' | 'rejected';
+  approved_by?: string;
+  approved_at?: Date;
+  declined: boolean;
+  declined_reason?: string;
+  notes?: string;
+  created_by?: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export async function getGiftHospitalityRecords(
+  organizationId: string = 'default-org',
+  packId?: string
+): Promise<GiftHospitalityRecord[]> {
+  const client = await pool.connect();
+  try {
+    let query = `SELECT * FROM gifts_hospitality_records WHERE organization_id = $1`;
+    const params: (string | undefined)[] = [organizationId];
+    if (packId) {
+      query += ` AND pack_id = $2`;
+      params.push(packId);
+    }
+    query += ` ORDER BY date_of_event DESC`;
+    const result = await client.query(query, params);
+    return result.rows;
+  } finally {
+    client.release();
+  }
+}
+
+export async function getGiftHospitalityRecord(id: string): Promise<GiftHospitalityRecord | null> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`SELECT * FROM gifts_hospitality_records WHERE id = $1`, [id]);
+    return result.rows[0] || null;
+  } finally {
+    client.release();
+  }
+}
+
+export async function createGiftHospitalityRecord(
+  data: Omit<GiftHospitalityRecord, 'id' | 'created_at' | 'updated_at'>
+): Promise<GiftHospitalityRecord> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`
+      INSERT INTO gifts_hospitality_records (
+        organization_id, pack_id, entry_type, date_of_event,
+        recipient_name, recipient_organization, provider_name,
+        provider_organization, description, estimated_value_gbp,
+        business_justification, approval_required, approval_status,
+        approved_by, approved_at, declined, declined_reason, notes, created_by
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+      RETURNING *
+    `, [
+      data.organization_id,
+      data.pack_id || null,
+      data.entry_type,
+      data.date_of_event,
+      data.recipient_name || null,
+      data.recipient_organization || null,
+      data.provider_name || null,
+      data.provider_organization || null,
+      data.description,
+      data.estimated_value_gbp || null,
+      data.business_justification || null,
+      data.approval_required,
+      data.approval_status,
+      data.approved_by || null,
+      data.approved_at || null,
+      data.declined,
+      data.declined_reason || null,
+      data.notes || null,
+      data.created_by || null,
+    ]);
+    return result.rows[0];
+  } finally {
+    client.release();
+  }
+}
+
+export async function updateGiftHospitalityRecord(
+  id: string,
+  data: Partial<Omit<GiftHospitalityRecord, 'id' | 'created_at'>>
+): Promise<GiftHospitalityRecord | null> {
+  const client = await pool.connect();
+  try {
+    const fields: string[] = [];
+    const values: unknown[] = [];
+    let paramCount = 1;
+
+    const allowedFields = [
+      'entry_type', 'date_of_event', 'recipient_name', 'recipient_organization',
+      'provider_name', 'provider_organization', 'description', 'estimated_value_gbp',
+      'business_justification', 'approval_required', 'approval_status',
+      'approved_by', 'approved_at', 'declined', 'declined_reason', 'notes'
+    ];
+
+    for (const [key, value] of Object.entries(data)) {
+      if (allowedFields.includes(key) && value !== undefined) {
+        fields.push(`${key} = $${paramCount}`);
+        values.push(value);
+        paramCount++;
+      }
+    }
+
+    if (fields.length === 0) return null;
+    fields.push(`updated_at = NOW()`);
+    values.push(id);
+
+    const result = await client.query(
+      `UPDATE gifts_hospitality_records SET ${fields.join(', ')} WHERE id = $${paramCount} RETURNING *`,
+      values
+    );
+    return result.rows[0] || null;
+  } finally {
+    client.release();
+  }
+}
+
+export async function deleteGiftHospitalityRecord(id: string): Promise<boolean> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`DELETE FROM gifts_hospitality_records WHERE id = $1`, [id]);
+    return (result.rowCount ?? 0) > 0;
   } finally {
     client.release();
   }

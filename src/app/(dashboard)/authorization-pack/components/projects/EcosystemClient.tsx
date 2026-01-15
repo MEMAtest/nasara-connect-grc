@@ -6,6 +6,12 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
+import {
+  getPolicyItems,
+  getRegisterItems,
+  getSmcrItems,
+  getTrainingItems,
+} from "@/lib/authorization-pack-integrations";
 import { ProjectHeader } from "./ProjectHeader";
 
 interface SectionSummary {
@@ -80,9 +86,31 @@ export function EcosystemClient() {
   }
 
   const sections = project.sections || [];
-  const policies = project.policyTemplates || [];
-  const training = project.trainingRequirements || [];
-  const smcr = project.smcrRoles || [];
+  const policyItems = getPolicyItems(project.policyTemplates);
+  const trainingItems = getTrainingItems(project.trainingRequirements);
+  const smcrItems = getSmcrItems(project.smcrRoles);
+  const registerItems = getRegisterItems(project.permissionCode);
+
+  const renderItems = (items: typeof policyItems, emptyLabel: string) => {
+    if (!items.length) {
+      return <p className="text-xs text-slate-400">{emptyLabel}</p>;
+    }
+    return (
+      <div className="space-y-2 text-sm text-slate-600">
+        {items.map((item) => (
+          <div key={item.key} className="rounded-md border border-slate-100 bg-white p-2">
+            {item.href ? (
+              <Link href={item.href} className="text-teal-700 hover:text-teal-800">
+                {item.label}
+              </Link>
+            ) : (
+              item.label
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -141,45 +169,34 @@ export function EcosystemClient() {
         </CardContent>
       </Card>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="border border-slate-200">
           <CardHeader>
             <CardTitle>Policies</CardTitle>
-            <CardDescription>{policies.length} required</CardDescription>
+            <CardDescription>{policyItems.length} required</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-2 text-sm text-slate-600">
-            {policies.map((item) => (
-              <div key={item} className="rounded-md border border-slate-100 bg-white p-2">
-                {item}
-              </div>
-            ))}
-          </CardContent>
+          <CardContent>{renderItems(policyItems, "Policy templates to be confirmed.")}</CardContent>
         </Card>
         <Card className="border border-slate-200">
           <CardHeader>
             <CardTitle>Training</CardTitle>
-            <CardDescription>{training.length} modules</CardDescription>
+            <CardDescription>{trainingItems.length} modules</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-2 text-sm text-slate-600">
-            {training.map((item) => (
-              <div key={item} className="rounded-md border border-slate-100 bg-white p-2">
-                {item}
-              </div>
-            ))}
-          </CardContent>
+          <CardContent>{renderItems(trainingItems, "Training plan will be finalised after assessment.")}</CardContent>
         </Card>
         <Card className="border border-slate-200">
           <CardHeader>
             <CardTitle>Key Persons / PSD Roles</CardTitle>
-            <CardDescription>{smcr.length} responsible persons</CardDescription>
+            <CardDescription>{smcrItems.length} responsible persons</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-2 text-sm text-slate-600">
-            {smcr.map((item) => (
-              <div key={item} className="rounded-md border border-slate-100 bg-white p-2">
-                {item}
-              </div>
-            ))}
-          </CardContent>
+          <CardContent>{renderItems(smcrItems, "Key Person roles to be assigned.")}</CardContent>
+        </Card>
+        <Card className="border border-slate-200">
+          <CardHeader>
+            <CardTitle>Registers & Trackers</CardTitle>
+            <CardDescription>{registerItems.length} logs</CardDescription>
+          </CardHeader>
+          <CardContent>{renderItems(registerItems, "Registers are created once the workspace is active.")}</CardContent>
         </Card>
       </div>
     </div>

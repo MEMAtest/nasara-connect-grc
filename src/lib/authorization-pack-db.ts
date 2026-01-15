@@ -30,6 +30,12 @@ interface PermissionEcosystemRow {
 }
 
 const normalizeEvidenceName = (value: string) => value.trim().toLowerCase();
+const normalizeSectionKey = (value: string) =>
+  value
+    .toLowerCase()
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 
 const parseAnnexNumber = (value: string | null) => {
   if (!value) return 0;
@@ -50,7 +56,7 @@ const coerceJsonArray = <T,>(value: unknown): T[] => {
   return [];
 };
 
-const coerceJsonObject = <T extends Record<string, unknown>>(value: unknown): T => {
+const coerceJsonObject = <T>(value: unknown): T => {
   if (value && typeof value === "object" && !Array.isArray(value)) {
     return value as T;
   }
@@ -78,10 +84,38 @@ export async function initAuthorizationPackDatabase() {
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         code VARCHAR(100),
         type VARCHAR(100),
+        pack_type VARCHAR(100),
         name VARCHAR(255) NOT NULL,
         description TEXT,
+        typical_timeline_weeks INTEGER DEFAULT 12,
+        policy_templates JSONB DEFAULT '[]'::jsonb,
+        training_requirements JSONB DEFAULT '[]'::jsonb,
+        smcr_roles JSONB DEFAULT '[]'::jsonb,
+        is_active BOOLEAN DEFAULT TRUE,
         created_at TIMESTAMP DEFAULT NOW()
       )
+    `);
+
+    await client.query(`
+      ALTER TABLE pack_templates ADD COLUMN IF NOT EXISTS pack_type VARCHAR(100);
+      ALTER TABLE pack_templates ADD COLUMN IF NOT EXISTS type VARCHAR(100);
+      ALTER TABLE pack_templates ADD COLUMN IF NOT EXISTS typical_timeline_weeks INTEGER DEFAULT 12;
+      ALTER TABLE pack_templates ADD COLUMN IF NOT EXISTS policy_templates JSONB DEFAULT '[]'::jsonb;
+      ALTER TABLE pack_templates ADD COLUMN IF NOT EXISTS training_requirements JSONB DEFAULT '[]'::jsonb;
+      ALTER TABLE pack_templates ADD COLUMN IF NOT EXISTS smcr_roles JSONB DEFAULT '[]'::jsonb;
+      ALTER TABLE pack_templates ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE;
+    `);
+
+    await client.query(`
+      UPDATE pack_templates
+      SET pack_type = COALESCE(pack_type, type, code)
+      WHERE pack_type IS NULL;
+    `);
+
+    await client.query(`
+      UPDATE pack_templates
+      SET type = COALESCE(type, pack_type, code)
+      WHERE type IS NULL;
     `);
 
     await client.query(`
@@ -111,6 +145,84 @@ export async function initAuthorizationPackDatabase() {
         addon_trigger VARCHAR(100),
         UNIQUE(template_id, section_key)
       )
+    `);
+
+    await client.query(`
+      ALTER TABLE section_templates ADD COLUMN IF NOT EXISTS pack_template_id UUID;
+      ALTER TABLE section_templates ADD COLUMN IF NOT EXISTS code VARCHAR(150);
+      ALTER TABLE section_templates ADD COLUMN IF NOT EXISTS name VARCHAR(255);
+      ALTER TABLE section_templates ADD COLUMN IF NOT EXISTS guidance_text TEXT;
+      ALTER TABLE section_templates ADD COLUMN IF NOT EXISTS order_index INTEGER;
+      ALTER TABLE section_templates ADD COLUMN IF NOT EXISTS regulatory_reference VARCHAR(500);
+      ALTER TABLE section_templates ADD COLUMN IF NOT EXISTS definition_of_done JSONB DEFAULT '[]'::jsonb;
+      ALTER TABLE section_templates ADD COLUMN IF NOT EXISTS evidence_requirements JSONB DEFAULT '[]'::jsonb;
+      ALTER TABLE section_templates ADD COLUMN IF NOT EXISTS template_id UUID;
+      ALTER TABLE section_templates ADD COLUMN IF NOT EXISTS section_key VARCHAR(150);
+      ALTER TABLE section_templates ADD COLUMN IF NOT EXISTS title VARCHAR(255);
+      ALTER TABLE section_templates ADD COLUMN IF NOT EXISTS description TEXT;
+      ALTER TABLE section_templates ADD COLUMN IF NOT EXISTS display_order INTEGER;
+      ALTER TABLE section_templates ADD COLUMN IF NOT EXISTS is_addon BOOLEAN DEFAULT FALSE;
+      ALTER TABLE section_templates ADD COLUMN IF NOT EXISTS addon_trigger VARCHAR(100);
+    `);
+
+    await client.query(`
+      UPDATE section_templates
+      SET template_id = COALESCE(template_id, pack_template_id)
+      WHERE template_id IS NULL AND pack_template_id IS NOT NULL;
+    `);
+
+    await client.query(`
+      UPDATE section_templates
+      SET pack_template_id = COALESCE(pack_template_id, template_id)
+      WHERE pack_template_id IS NULL AND template_id IS NOT NULL;
+    `);
+
+    await client.query(`
+      UPDATE section_templates
+      SET section_key = COALESCE(section_key, code)
+      WHERE section_key IS NULL AND code IS NOT NULL;
+    `);
+
+    await client.query(`
+      UPDATE section_templates
+      SET code = COALESCE(code, section_key)
+      WHERE code IS NULL AND section_key IS NOT NULL;
+    `);
+
+    await client.query(`
+      UPDATE section_templates
+      SET title = COALESCE(title, name)
+      WHERE title IS NULL AND name IS NOT NULL;
+    `);
+
+    await client.query(`
+      UPDATE section_templates
+      SET name = COALESCE(name, title)
+      WHERE name IS NULL AND title IS NOT NULL;
+    `);
+
+    await client.query(`
+      UPDATE section_templates
+      SET description = COALESCE(description, guidance_text)
+      WHERE description IS NULL AND guidance_text IS NOT NULL;
+    `);
+
+    await client.query(`
+      UPDATE section_templates
+      SET guidance_text = COALESCE(guidance_text, description)
+      WHERE guidance_text IS NULL AND description IS NOT NULL;
+    `);
+
+    await client.query(`
+      UPDATE section_templates
+      SET display_order = COALESCE(display_order, order_index)
+      WHERE display_order IS NULL AND order_index IS NOT NULL;
+    `);
+
+    await client.query(`
+      UPDATE section_templates
+      SET order_index = COALESCE(order_index, display_order)
+      WHERE order_index IS NULL AND display_order IS NOT NULL;
     `);
 
     await client.query(`
@@ -282,7 +394,7 @@ export async function initAuthorizationPackDatabase() {
       )
     `);
 
-    await client.query(`CREATE INDEX IF NOT EXISTS idx_pack_templates_code ON pack_templates(code)`);
+    await client.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_pack_templates_code_unique ON pack_templates(code)`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_permission_ecosystems_code ON permission_ecosystems(permission_code)`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_section_templates_template ON section_templates(template_id)`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_authorization_projects_org ON authorization_projects(organization_id)`);
@@ -302,54 +414,101 @@ export async function syncAuthorizationTemplates() {
   try {
     await client.query("BEGIN");
 
-    const existingTemplates = await client.query(`SELECT id, COALESCE(type, code) as type FROM pack_templates`);
+    const existingTemplates = await client.query(
+      `SELECT id, code, pack_type, type, COALESCE(pack_type, type, code) as type_key FROM pack_templates`
+    );
     const templateMap = new Map<string, string>();
     for (const row of existingTemplates.rows) {
-      templateMap.set(row.type, row.id);
+      if (row.type_key) {
+        templateMap.set(row.type_key, row.id);
+      }
+      if (row.code) {
+        templateMap.set(row.code, row.id);
+      }
+      if (row.pack_type) {
+        templateMap.set(row.pack_type, row.id);
+      }
+      if (row.type) {
+        templateMap.set(row.type, row.id);
+      }
     }
 
     for (const template of PACK_TEMPLATES) {
       let templateId = templateMap.get(template.type);
       if (!templateId) {
-        templateId = randomUUID();
-        templateMap.set(template.type, templateId);
-        await client.query(
-          `INSERT INTO pack_templates (id, code, name, description) VALUES ($1, $2, $3, $4)
-           ON CONFLICT (id) DO NOTHING`,
-          [templateId, template.type, template.name, template.description]
+        const existing = await client.query(
+          `SELECT id FROM pack_templates WHERE code = $1 OR pack_type = $1 OR type = $1 LIMIT 1`,
+          [template.type]
         );
+        templateId = existing.rows[0]?.id;
+      }
+      if (!templateId) {
+        const upsert = await client.query(
+          `INSERT INTO pack_templates (code, name, description, pack_type, type)
+           VALUES ($1, $2, $3, $4, $5)
+           ON CONFLICT (code)
+           DO UPDATE SET name = EXCLUDED.name,
+                         description = EXCLUDED.description,
+                         pack_type = EXCLUDED.pack_type,
+                         type = EXCLUDED.type
+           RETURNING id`,
+          [template.type, template.name, template.description, template.type, template.type]
+        );
+        templateId = upsert.rows[0]?.id;
+        if (!templateId) {
+          throw new Error(`Failed to upsert pack template ${template.type}`);
+        }
+        templateMap.set(template.type, templateId);
       } else {
         await client.query(
-          `UPDATE pack_templates SET name = $2, description = $3 WHERE id = $1`,
-          [templateId, template.name, template.description]
+          `UPDATE pack_templates
+           SET name = $2, description = $3, pack_type = $4, type = $4
+           WHERE id = $1`,
+          [templateId, template.name, template.description, template.type]
         );
       }
 
       const existingSections = await client.query(
-        `SELECT id, section_key FROM section_templates WHERE template_id = $1`,
+        `SELECT id, section_key, code, title, name
+         FROM section_templates
+         WHERE template_id = $1 OR pack_template_id = $1`,
         [templateId]
       );
       const sectionMap = new Map<string, string>();
       for (const row of existingSections.rows) {
-        sectionMap.set(row.section_key, row.id);
+        const candidates = [row.section_key, row.code, row.title, row.name].filter(Boolean) as string[];
+        for (const candidate of candidates) {
+          const normalized = normalizeSectionKey(candidate);
+          if (normalized) {
+            sectionMap.set(normalized, row.id);
+          }
+        }
       }
 
       let displayOrder = 1;
       for (const section of template.sections) {
-        let sectionId = sectionMap.get(section.key);
+        const sectionKey = normalizeSectionKey(section.key);
+        const titleKey = normalizeSectionKey(section.title);
+        let sectionId = sectionMap.get(sectionKey) ?? sectionMap.get(titleKey);
         if (!sectionId) {
           sectionId = randomUUID();
-          sectionMap.set(section.key, sectionId);
+          sectionMap.set(sectionKey, sectionId);
           await client.query(
             `INSERT INTO section_templates
-              (id, template_id, section_key, title, description, display_order, is_addon, addon_trigger)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+              (id, template_id, pack_template_id, section_key, code, title, name, description, guidance_text,
+               display_order, order_index, is_addon, addon_trigger)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
             [
               sectionId,
               templateId,
+              templateId,
+              section.key,
               section.key,
               section.title,
+              section.title,
               section.description,
+              section.description,
+              displayOrder,
               displayOrder,
               Boolean(section.isAddon),
               section.addonTrigger ?? null,
@@ -358,15 +517,22 @@ export async function syncAuthorizationTemplates() {
         } else {
           await client.query(
             `UPDATE section_templates
-             SET section_key = $2,
-                 title = $3,
-                 description = $4,
-                 display_order = $5,
-                 is_addon = $6,
-                 addon_trigger = $7
+             SET template_id = $2,
+                 pack_template_id = $2,
+                 section_key = $3,
+                 code = $3,
+                 title = $4,
+                 name = $4,
+                 description = $5,
+                 guidance_text = $5,
+                 display_order = $6,
+                 order_index = $6,
+                 is_addon = $7,
+                 addon_trigger = $8
              WHERE id = $1`,
             [
               sectionId,
+              templateId,
               section.key,
               section.title,
               section.description,
@@ -586,6 +752,7 @@ export async function createAuthorizationProject(input: {
   permissionCode: PermissionCode;
   name: string;
   targetSubmissionDate?: string | null;
+  assessmentData?: AssessmentData;
 }) {
   await ensurePermissionEcosystems();
   const client = await pool.connect();
@@ -613,8 +780,8 @@ export async function createAuthorizationProject(input: {
     const projectId = randomUUID();
     await client.query(
       `INSERT INTO authorization_projects
-        (id, organization_id, name, permission_code, pack_id, target_submission_date)
-       VALUES ($1, $2, $3, $4, $5, $6)`,
+        (id, organization_id, name, permission_code, pack_id, target_submission_date, assessment_data)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
       [
         projectId,
         input.organizationId,
@@ -622,6 +789,7 @@ export async function createAuthorizationProject(input: {
         input.permissionCode,
         pack.id,
         input.targetSubmissionDate ?? null,
+        input.assessmentData ?? {},
       ]
     );
 
@@ -666,7 +834,7 @@ export async function getAuthorizationProjects(organizationId: string) {
               p.name as pack_name,
               p.status as pack_status,
               p.target_submission_date as pack_target_submission_date,
-              COALESCE(pt.type, pt.code) as pack_template_type,
+              COALESCE(pt.pack_type, pt.type, pt.code) as pack_template_type,
               pt.name as pack_template_name
        FROM authorization_projects ap
        LEFT JOIN permission_ecosystems pe ON pe.permission_code = ap.permission_code
@@ -701,6 +869,7 @@ export async function getAuthorizationProject(projectId: string) {
   try {
     const result = await client.query(
       `SELECT ap.id,
+              ap.organization_id,
               ap.name,
               ap.permission_code,
               ap.status,
@@ -719,7 +888,7 @@ export async function getAuthorizationProject(projectId: string) {
               pe.smcr_roles,
               p.name as pack_name,
               p.status as pack_status,
-              COALESCE(pt.type, pt.code) as pack_template_type,
+              COALESCE(pt.pack_type, pt.type, pt.code) as pack_template_type,
               pt.name as pack_template_name
        FROM authorization_projects ap
        LEFT JOIN permission_ecosystems pe ON pe.permission_code = ap.permission_code
@@ -751,6 +920,38 @@ export async function getAuthorizationProject(projectId: string) {
   }
 }
 
+export async function deleteAuthorizationProject(projectId: string) {
+  await initAuthorizationPackDatabase();
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const projectResult = await client.query(
+      `SELECT pack_id FROM authorization_projects WHERE id = $1 LIMIT 1`,
+      [projectId]
+    );
+    if (projectResult.rowCount === 0) {
+      await client.query("ROLLBACK");
+      return false;
+    }
+
+    const packId = projectResult.rows[0]?.pack_id as string | null;
+    if (packId) {
+      await client.query(`DELETE FROM authorization_projects WHERE pack_id = $1`, [packId]);
+      await client.query(`DELETE FROM packs WHERE id = $1`, [packId]);
+    } else {
+      await client.query(`DELETE FROM authorization_projects WHERE id = $1`, [projectId]);
+    }
+
+    await client.query("COMMIT");
+    return true;
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
 type ReadinessStatus = "missing" | "partial" | "complete";
 type TrainingStatus = "missing" | "in-progress" | "complete";
 type SmcrStatus = "unassigned" | "assigned";
@@ -770,6 +971,7 @@ interface ProjectMilestone {
   description: string;
   phase: string;
   status: "pending" | "in-progress" | "blocked" | "complete";
+  owner?: string;
   startWeek: number;
   durationWeeks: number;
   endWeek: number;
@@ -1193,6 +1395,23 @@ export async function generateAuthorizationProjectPlan(projectId: string) {
   }
 }
 
+export async function updateAuthorizationProjectPlan(projectId: string, plan: ProjectPlan) {
+  await initAuthorizationPackDatabase();
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `UPDATE authorization_projects
+       SET project_plan = $2,
+           updated_at = NOW()
+       WHERE id = $1`,
+      [projectId, plan]
+    );
+    return result.rowCount !== null && result.rowCount > 0;
+  } finally {
+    client.release();
+  }
+}
+
 export async function syncPackFromTemplate(packId: string) {
   await syncAuthorizationTemplates();
   const client = await pool.connect();
@@ -1374,7 +1593,7 @@ export async function getPackTemplates(): Promise<PackTemplateRow[]> {
   const client = await pool.connect();
   try {
     const templates = await client.query(
-      `SELECT id, COALESCE(type, code) as type, name, description FROM pack_templates ORDER BY created_at ASC`
+      `SELECT id, COALESCE(pack_type, type, code) as type, name, description FROM pack_templates ORDER BY created_at ASC`
     );
     return templates.rows;
   } finally {
@@ -1393,7 +1612,10 @@ export async function createPack(input: {
   try {
     await client.query("BEGIN");
     const templateResult = await client.query(
-      `SELECT id, COALESCE(type, code) as type, name FROM pack_templates WHERE type = $1 OR code = $1 LIMIT 1`,
+      `SELECT id, COALESCE(pack_type, type, code) as type, name
+       FROM pack_templates
+       WHERE pack_type = $1 OR type = $1 OR code = $1
+       LIMIT 1`,
       [input.templateType]
     );
     if (templateResult.rows.length === 0) {
@@ -1505,7 +1727,7 @@ export async function getPacks(organizationId: string) {
   try {
     const result = await client.query(
       `SELECT p.id, p.name, p.status, p.target_submission_date, p.created_at, p.updated_at,
-              COALESCE(pt.type, pt.code) as template_type, pt.name as template_name
+              COALESCE(pt.pack_type, pt.type, pt.code) as template_type, pt.name as template_name
        FROM packs p
        JOIN pack_templates pt ON p.template_id = pt.id
        WHERE p.organization_id = $1
@@ -1523,8 +1745,8 @@ export async function getPack(packId: string) {
   const client = await pool.connect();
   try {
     const result = await client.query(
-      `SELECT p.id, p.name, p.status, p.target_submission_date, p.created_at, p.updated_at,
-              COALESCE(pt.type, pt.code) as template_type, pt.name as template_name
+      `SELECT p.id, p.organization_id, p.name, p.status, p.target_submission_date, p.created_at, p.updated_at,
+              COALESCE(pt.pack_type, pt.type, pt.code) as template_type, pt.name as template_name
        FROM packs p
        JOIN pack_templates pt ON p.template_id = pt.id
        WHERE p.id = $1
@@ -1532,6 +1754,62 @@ export async function getPack(packId: string) {
       [packId]
     );
     return result.rows[0] ?? null;
+  } finally {
+    client.release();
+  }
+}
+
+export async function updatePack(
+  packId: string,
+  updates: {
+    status?: string;
+    targetSubmissionDate?: string | null;
+  }
+) {
+  await initAuthorizationPackDatabase();
+  const client = await pool.connect();
+  try {
+    const setClauses: string[] = ["updated_at = NOW()"];
+    const values: Array<string | null> = [];
+    let idx = 1;
+
+    if (updates.status !== undefined) {
+      setClauses.push(`status = $${idx++}`);
+      values.push(updates.status);
+    }
+
+    if (updates.targetSubmissionDate !== undefined) {
+      setClauses.push(`target_submission_date = $${idx++}`);
+      values.push(updates.targetSubmissionDate);
+    }
+
+    values.push(packId);
+
+    const result = await client.query(
+      `UPDATE packs SET ${setClauses.join(", ")} WHERE id = $${idx} RETURNING id`,
+      values
+    );
+
+    return result.rowCount !== null && result.rowCount > 0;
+  } finally {
+    client.release();
+  }
+}
+
+export async function deletePack(packId: string) {
+  await initAuthorizationPackDatabase();
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+
+    await client.query(`DELETE FROM authorization_projects WHERE pack_id = $1`, [packId]);
+    const result = await client.query(`DELETE FROM packs WHERE id = $1 RETURNING id`, [packId]);
+
+    await client.query("COMMIT");
+    return result.rowCount !== null && result.rowCount > 0;
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
   } finally {
     client.release();
   }
@@ -1708,6 +1986,28 @@ export async function listEvidence(packId: string) {
       [packId]
     );
     return result.rows;
+  } finally {
+    client.release();
+  }
+}
+
+export async function updateEvidenceStatus(input: {
+  packId: string;
+  evidenceId: string;
+  status: string;
+}) {
+  await initAuthorizationPackDatabase();
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `UPDATE evidence_items
+       SET status = $3,
+           updated_at = NOW()
+       WHERE pack_id = $1 AND id = $2
+       RETURNING id, status`,
+      [input.packId, input.evidenceId, input.status]
+    );
+    return result.rows[0] ?? null;
   } finally {
     client.release();
   }
@@ -2135,4 +2435,205 @@ function average(values: number[]) {
 function calcPercent(part: number, total: number) {
   if (!total) return 0;
   return Math.round((Number(part) / Number(total)) * 100);
+}
+
+export interface FullSectionData {
+  sectionKey: string;
+  title: string;
+  description: string;
+  displayOrder: number;
+  prompts: Array<{
+    key: string;
+    title: string;
+    guidance: string | null;
+    weight: number;
+    response: string | null;
+  }>;
+  evidence: Array<{
+    name: string;
+    description: string | null;
+    status: string;
+    annexNumber: string | null;
+  }>;
+  narrativeCompletion: number;
+  evidenceCompletion: number;
+}
+
+export async function getFullPackSectionsWithResponses(packId: string): Promise<FullSectionData[]> {
+  await initAuthorizationPackDatabase();
+  const client = await pool.connect();
+  try {
+    // Query 1: Get all sections for the pack
+    const sectionsResult = await client.query(
+      `SELECT si.id, si.section_key, si.title, si.display_order,
+              st.description
+       FROM section_instances si
+       JOIN section_templates st ON si.section_template_id = st.id
+       WHERE si.pack_id = $1
+       ORDER BY si.display_order ASC`,
+      [packId]
+    );
+
+    if (sectionsResult.rows.length === 0) {
+      return [];
+    }
+
+    const sectionIds = sectionsResult.rows.map((s) => s.id);
+
+    // Query 2: Get ALL prompts with responses for all sections in one query
+    const promptsResult = await client.query(
+      `SELECT si.id as section_instance_id,
+              p.prompt_key, p.title, p.guidance, p.weight, p.display_order,
+              pr.value as response
+       FROM section_instances si
+       JOIN section_templates st ON si.section_template_id = st.id
+       JOIN prompts p ON p.section_template_id = st.id
+       LEFT JOIN prompt_responses pr ON pr.prompt_id = p.id AND pr.section_instance_id = si.id
+       WHERE si.id = ANY($1::uuid[])
+       ORDER BY si.display_order ASC, p.display_order ASC`,
+      [sectionIds]
+    );
+
+    // Query 3: Get ALL evidence for all sections in one query
+    const evidenceResult = await client.query(
+      `SELECT section_instance_id, name, description, status, annex_number
+       FROM evidence_items
+       WHERE section_instance_id = ANY($1::uuid[])
+       ORDER BY created_at ASC`,
+      [sectionIds]
+    );
+
+    // Group prompts by section
+    const promptsBySection = new Map<string, typeof promptsResult.rows>();
+    for (const prompt of promptsResult.rows) {
+      const sectionId = prompt.section_instance_id;
+      if (!promptsBySection.has(sectionId)) {
+        promptsBySection.set(sectionId, []);
+      }
+      promptsBySection.get(sectionId)!.push(prompt);
+    }
+
+    // Group evidence by section
+    const evidenceBySection = new Map<string, typeof evidenceResult.rows>();
+    for (const evidence of evidenceResult.rows) {
+      const sectionId = evidence.section_instance_id;
+      if (!evidenceBySection.has(sectionId)) {
+        evidenceBySection.set(sectionId, []);
+      }
+      evidenceBySection.get(sectionId)!.push(evidence);
+    }
+
+    // Build sections with their prompts and evidence
+    const sections: FullSectionData[] = sectionsResult.rows.map((section) => {
+      const sectionPrompts = promptsBySection.get(section.id) || [];
+      const sectionEvidence = evidenceBySection.get(section.id) || [];
+
+      // Calculate completion
+      const requiredPrompts = sectionPrompts.filter((p) => p.weight > 0);
+      const answeredPrompts = requiredPrompts.filter(
+        (p) => p.response && p.response.trim().length > 0
+      );
+      const narrativeCompletion = calcPercent(answeredPrompts.length, requiredPrompts.length);
+
+      const totalEvidence = sectionEvidence.length;
+      const uploadedEvidence = sectionEvidence.filter(
+        (e) => e.status === "uploaded" || e.status === "approved"
+      ).length;
+      const evidenceCompletion = calcPercent(uploadedEvidence, totalEvidence);
+
+      return {
+        sectionKey: section.section_key,
+        title: section.title,
+        description: section.description || "",
+        displayOrder: section.display_order,
+        prompts: sectionPrompts.map((p) => ({
+          key: p.prompt_key,
+          title: p.title,
+          guidance: p.guidance,
+          weight: p.weight,
+          response: p.response,
+        })),
+        evidence: sectionEvidence.map((e) => ({
+          name: e.name,
+          description: e.description,
+          status: e.status,
+          annexNumber: e.annex_number,
+        })),
+        narrativeCompletion,
+        evidenceCompletion,
+      };
+    });
+
+    return sections;
+  } finally {
+    client.release();
+  }
+}
+
+export interface ProjectAssessmentData {
+  basics?: {
+    legalName?: string;
+    incorporationDate?: string;
+    companyNumber?: string;
+    sicCode?: string;
+    addressLine1?: string;
+    addressLine2?: string;
+    city?: string;
+    postcode?: string;
+    country?: string;
+    primaryJurisdiction?: string;
+    primaryContact?: string;
+    contactEmail?: string;
+    firmStage?: string;
+    regulatedActivities?: string;
+    headcount?: number;
+    consultantNotes?: string;
+  };
+  readiness?: Record<string, "missing" | "partial" | "complete">;
+  policies?: Record<string, "missing" | "partial" | "complete">;
+  training?: Record<string, "missing" | "in-progress" | "complete">;
+  smcr?: Record<string, "unassigned" | "assigned">;
+  meta?: {
+    completion?: number;
+    updatedAt?: string;
+  };
+}
+
+export async function getProjectByPackId(packId: string): Promise<{
+  id: string;
+  name: string;
+  permissionCode: string;
+  permissionName: string | null;
+  assessmentData: ProjectAssessmentData;
+} | null> {
+  await initAuthorizationPackDatabase();
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `SELECT ap.id, ap.name, ap.permission_code, ap.assessment_data,
+              pe.name as permission_name
+       FROM authorization_projects ap
+       LEFT JOIN permission_ecosystems pe ON pe.permission_code = ap.permission_code
+       WHERE ap.pack_id = $1
+       LIMIT 1`,
+      [packId]
+    );
+
+    if (result.rows.length === 0) {
+      return null;
+    }
+
+    const row = result.rows[0];
+    const assessmentData = coerceJsonObject<ProjectAssessmentData>(row.assessment_data);
+
+    return {
+      id: row.id,
+      name: row.name,
+      permissionCode: row.permission_code,
+      permissionName: row.permission_name,
+      assessmentData,
+    };
+  } finally {
+    client.release();
+  }
 }

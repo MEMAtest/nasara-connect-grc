@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { initDatabase, getAuthorizationPack, getPackTasks, updatePackTask } from "@/lib/database";
+import { getPack, listTasks, updateTaskStatus } from "@/lib/authorization-pack-db";
 import { requireAuth, isValidUUID } from "@/lib/auth-utils";
 
 export async function GET(
@@ -10,14 +10,13 @@ export async function GET(
     const { auth, error } = await requireAuth();
     if (error) return error;
 
-    await initDatabase();
     const { id } = await params;
 
     if (!isValidUUID(id)) {
       return NextResponse.json({ error: "Invalid pack ID format" }, { status: 400 });
     }
 
-    const pack = await getAuthorizationPack(id);
+    const pack = await getPack(id);
     if (!pack) {
       return NextResponse.json({ error: "Pack not found" }, { status: 404 });
     }
@@ -26,7 +25,7 @@ export async function GET(
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
-    const tasks = await getPackTasks(id);
+    const tasks = await listTasks(id);
 
     // Transform to expected format
     const formattedTasks = tasks.map((t) => ({
@@ -35,10 +34,10 @@ export async function GET(
       description: t.description,
       status: t.status,
       priority: t.priority,
-      owner_id: t.assigned_to,
+      owner_id: t.owner_id,
       due_date: t.due_date,
-      section_title: null,
-      source: t.task_type,
+      section_title: t.section_title || null,
+      source: t.source,
     }));
 
     return NextResponse.json({ tasks: formattedTasks });
@@ -58,14 +57,13 @@ export async function PATCH(
     const { auth, error } = await requireAuth();
     if (error) return error;
 
-    await initDatabase();
     const { id } = await params;
 
     if (!isValidUUID(id)) {
       return NextResponse.json({ error: "Invalid pack ID format" }, { status: 400 });
     }
 
-    const pack = await getAuthorizationPack(id);
+    const pack = await getPack(id);
     if (!pack) {
       return NextResponse.json({ error: "Pack not found" }, { status: 404 });
     }
@@ -92,7 +90,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Invalid status value" }, { status: 400 });
     }
 
-    await updatePackTask(taskId, { status: status as typeof validStatuses[number] });
+    await updateTaskStatus(taskId, status as typeof validStatuses[number]);
     return NextResponse.json({ status: "ok" });
   } catch (error) {
     return NextResponse.json(

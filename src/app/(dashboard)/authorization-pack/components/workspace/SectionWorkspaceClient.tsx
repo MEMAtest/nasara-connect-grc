@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,7 +13,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { WorkspaceHeader } from "./WorkspaceHeader";
-import { PromptEditor } from "./PromptEditor";
 import { packTypeLabels, PackType } from "@/lib/authorization-pack-templates";
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 
@@ -20,6 +20,11 @@ import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 const AUTOSAVE_DELAY_MS = 800;
 const MAX_FILE_SIZE_MB = 50;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+
+const PromptEditor = dynamic(
+  () => import("./PromptEditor").then((mod) => mod.PromptEditor),
+  { ssr: false }
+);
 
 // Sanitize filename to prevent XSS
 function sanitizeFilename(filename: string): string {

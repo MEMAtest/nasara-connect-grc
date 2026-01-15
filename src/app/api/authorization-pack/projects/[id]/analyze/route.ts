@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { initDatabase, getAuthorizationPack } from "@/lib/database";
+import { getAuthorizationProject } from "@/lib/authorization-pack-db";
 import { requireAuth, isValidUUID } from "@/lib/auth-utils";
 import { logError } from "@/lib/logger";
 
@@ -124,7 +124,6 @@ export async function POST(
     const { auth, error } = await requireAuth();
     if (error) return error;
 
-    await initDatabase();
     const { id } = await params;
 
     // Validate UUID
@@ -132,12 +131,11 @@ export async function POST(
       return NextResponse.json({ error: "Invalid project ID format" }, { status: 400 });
     }
 
-    // Verify pack access
-    const pack = await getAuthorizationPack(id);
-    if (!pack) {
+    const project = await getAuthorizationProject(id);
+    if (!project) {
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
     }
-    if (pack.organization_id !== auth.organizationId) {
+    if (project.organization_id !== auth.organizationId) {
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 

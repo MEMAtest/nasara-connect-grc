@@ -31,6 +31,7 @@ interface HeaderProps {
 
 const breadcrumbsMap: Record<string, string> = {
   "": "Dashboard",
+  "grc-hub": "GRC Control Panel",
   "authorization-pack": "Authorization Pack",
   "risk-assessment": "Risk Assessment",
   "compliance-framework": "Compliance Framework",
@@ -51,6 +52,14 @@ const breadcrumbsMap: Record<string, string> = {
   "fitness-propriety": "Fitness & Propriety",
   "conduct-rules": "Conduct Rules",
   workflows: "Workflows",
+  // Registers
+  registers: "Registers",
+  pep: "PEP Register",
+  "third-party": "Third-Party Register",
+  complaints: "Complaints Register",
+  incidents: "Incident Register",
+  conflicts: "Conflicts of Interest",
+  "gifts-hospitality": "Gifts & Hospitality",
 };
 
 type BreadcrumbItem = {
@@ -120,19 +129,21 @@ export function Header({ onToggleSidebar, isSidebarOpen }: HeaderProps) {
             </div>
           </div>
 
-          <div className="flex flex-col">
-            <nav aria-label="Breadcrumb" className="flex items-center gap-1 text-xs text-slate-500">
+          <div className="flex flex-col gap-1.5">
+            <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm text-slate-400">
               {crumbs.map((crumb, index) => {
                 const isLast = index === crumbs.length - 1;
                 return (
-                  <div key={crumb.href} className="flex items-center gap-1">
-                    {index !== 0 && <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />}
+                  <div key={crumb.href} className="flex items-center gap-1.5">
+                    {index !== 0 && (
+                      <ChevronRight className="h-3.5 w-3.5 text-slate-300" aria-hidden="true" />
+                    )}
                     {isLast ? (
-                      <span className="capitalize text-slate-700 font-semibold">{crumb.label}</span>
+                      <span className="text-slate-600 font-medium">{crumb.label}</span>
                     ) : (
                       <Link
                         href={crumb.href}
-                        className="capitalize transition hover:text-slate-700 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-400"
+                        className="transition-colors hover:text-slate-600 hover:underline underline-offset-2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-400 focus-visible:rounded"
                       >
                         {crumb.label}
                       </Link>
@@ -141,7 +152,7 @@ export function Header({ onToggleSidebar, isSidebarOpen }: HeaderProps) {
                 );
               })}
             </nav>
-            <h1 className="mt-1 text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">
+            <h1 className="text-lg font-semibold tracking-tight text-slate-900 sm:text-xl">
               {pageTitle}
             </h1>
           </div>

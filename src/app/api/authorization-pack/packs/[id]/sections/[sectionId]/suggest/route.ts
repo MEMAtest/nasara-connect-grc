@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { initDatabase, getAuthorizationPack, getPackSection } from "@/lib/database";
+import { getPack, getSectionWorkspace } from "@/lib/authorization-pack-db";
 import { requireAuth, isValidUUID } from "@/lib/auth-utils";
 import { logError } from "@/lib/logger";
 
@@ -130,7 +130,6 @@ export async function POST(
     const { auth, error } = await requireAuth();
     if (error) return error;
 
-    await initDatabase();
     const { id, sectionId } = await params;
 
     // Validate UUIDs
@@ -142,7 +141,7 @@ export async function POST(
     }
 
     // Verify pack access
-    const pack = await getAuthorizationPack(id);
+    const pack = await getPack(id);
     if (!pack) {
       return NextResponse.json({ error: "Pack not found" }, { status: 404 });
     }
@@ -151,12 +150,9 @@ export async function POST(
     }
 
     // Verify section belongs to pack
-    const section = await getPackSection(sectionId);
-    if (!section) {
+    const workspace = await getSectionWorkspace(id, sectionId);
+    if (!workspace) {
       return NextResponse.json({ error: "Section not found" }, { status: 404 });
-    }
-    if (section.pack_id !== id) {
-      return NextResponse.json({ error: "Section does not belong to this pack" }, { status: 403 });
     }
 
     // Parse request body
@@ -172,8 +168,8 @@ export async function POST(
     }
 
     // Build the system prompt
-    const sectionTitle = section.template?.name || "Authorization Pack Section";
-    const sectionGuidance = section.template?.guidance_text;
+    const sectionTitle = workspace.section?.title || "Authorization Pack Section";
+    const sectionGuidance = workspace.section?.description || null;
     const systemPrompt = buildNarrativeSystemPrompt(body, sectionTitle, sectionGuidance);
 
     // Prepare messages for the AI

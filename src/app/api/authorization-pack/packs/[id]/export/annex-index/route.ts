@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { initDatabase, getAuthorizationPack, getProjectDocuments } from "@/lib/database";
-import { requireAuth, isValidUUID } from "@/lib/auth-utils";
+import { isValidUUID } from "@/lib/auth-utils";
+import { getAnnexIndexRows, getPack } from "@/lib/authorization-pack-db";
 
 function sanitizeFilename(input: string) {
   return input.replace(/[^a-z0-9-_]+/gi, "-").replace(/-+/g, "-").toLowerCase();
@@ -19,37 +19,29 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { auth, error } = await requireAuth();
-    if (error) return error;
-
-    await initDatabase();
     const { id } = await params;
 
     if (!isValidUUID(id)) {
       return NextResponse.json({ error: "Invalid pack ID format" }, { status: 400 });
     }
 
-    const pack = await getAuthorizationPack(id);
+    const pack = await getPack(id);
     if (!pack) {
       return NextResponse.json({ error: "Pack not found" }, { status: 404 });
     }
 
-    if (pack.organization_id !== auth.organizationId) {
-      return NextResponse.json({ error: "Access denied" }, { status: 403 });
-    }
-
-    const documents = await getProjectDocuments(id);
+    const documents = await getAnnexIndexRows(id);
 
     const header = ["Annex", "Section", "Evidence", "Status", "Version", "File"].join(",");
     const body = documents
-      .map((doc, index) =>
+      .map((doc) =>
         [
-          escapeCsv(`A${(index + 1).toString().padStart(3, '0')}`),
-          escapeCsv(doc.section_code || "General"),
+          escapeCsv(doc.annex_number ?? ""),
+          escapeCsv(doc.section_title || "General"),
           escapeCsv(doc.name),
           escapeCsv(doc.status),
           escapeCsv(doc.version?.toString()),
-          escapeCsv(doc.storage_key ? doc.storage_key.split("/").pop() : ""),
+          escapeCsv(doc.file_path ? doc.file_path.split("/").pop() : ""),
         ].join(",")
       )
       .join("\n");

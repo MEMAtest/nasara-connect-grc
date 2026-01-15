@@ -10,9 +10,10 @@ import { StepContentBuilder } from "./StepContentBuilder";
 import { StepReviewFinish } from "./StepReviewFinish";
 import type { WizardFormState, WizardStepDefinition } from "./types";
 import { DEFAULT_PERMISSIONS } from "@/lib/policies";
-import { DEFAULT_COMPLAINTS_ANSWERS } from "@/lib/policies/assemblers/complaints";
+import { assembleComplaintsPolicy, DEFAULT_COMPLAINTS_ANSWERS } from "@/lib/policies/assemblers/complaints";
 import { toComplaintsDetailLevel } from "./detail-level";
 import type { DetailLevel } from "@/lib/policies/clause-tiers";
+import { getApplicableClauses, getTemplateByCode, type PolicyTemplate } from "@/lib/policies/templates";
 
 const STEP_DEFINITIONS: WizardStepDefinition[] = [
   {
@@ -85,11 +86,44 @@ const buildInitialState = (permissionsOverride?: typeof DEFAULT_PERMISSIONS): Wi
 
 interface PolicyWizardProps {
   initialPermissions?: typeof DEFAULT_PERMISSIONS;
+  initialTemplateCode?: string;
   onFinish?: (state: WizardFormState) => void;
   isSubmitting?: boolean;
 }
 
-export function PolicyWizard({ initialPermissions, onFinish, isSubmitting }: PolicyWizardProps) {
+function applyTemplateSelection(state: WizardFormState, template: PolicyTemplate): WizardFormState {
+  const detailLevel = state.detailLevel || DEFAULT_DETAIL_LEVEL;
+  const complaintsAnswers = {
+    ...(state.complaintsAnswers ?? DEFAULT_COMPLAINTS_ANSWERS),
+    detailLevel: toComplaintsDetailLevel(detailLevel),
+  };
+  const applicableClauses = getApplicableClauses(template.code, state.permissions);
+  const initialSectionClauses =
+    template.code === "COMPLAINTS"
+      ? assembleComplaintsPolicy(template, complaintsAnswers).sectionClauses
+      : template.sections.reduce<Record<string, string[]>>((acc, section) => {
+          acc[section.id] = [...section.suggestedClauses];
+          return acc;
+        }, {});
+
+  const clauseIds = Array.from(new Set(Object.values(initialSectionClauses).flatMap((ids) => ids)));
+  const selectedClauses = clauseIds
+    .map((id) => applicableClauses.find((clause) => clause.id === id))
+    .filter((clause): clause is NonNullable<typeof clause> => Boolean(clause));
+
+  return {
+    ...state,
+    selectedTemplate: template,
+    complaintsAnswers,
+    sectionOptions: {},
+    sectionClauses: initialSectionClauses,
+    sectionNotes: {},
+    clauseVariables: {},
+    selectedClauses,
+  };
+}
+
+export function PolicyWizard({ initialPermissions, initialTemplateCode, onFinish, isSubmitting }: PolicyWizardProps) {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [formState, setFormState] = useState<WizardFormState>(buildInitialState(initialPermissions));
   const currentStep = STEP_DEFINITIONS[currentStepIndex];
@@ -102,13 +136,22 @@ export function PolicyWizard({ initialPermissions, onFinish, isSubmitting }: Pol
   };
 
   useEffect(() => {
-    if (initialPermissions) {
-      setFormState((state) => ({
+    if (!initialPermissions) return;
+    setFormState((state) => {
+      const nextState = {
         ...state,
         permissions: { ...initialPermissions },
-      }));
-    }
-  }, [initialPermissions]);
+      };
+      if (!initialTemplateCode || nextState.selectedTemplate) {
+        return nextState;
+      }
+      const template = getTemplateByCode(initialTemplateCode);
+      if (!template) {
+        return nextState;
+      }
+      return applyTemplateSelection(nextState, template);
+    });
+  }, [initialPermissions, initialTemplateCode]);
 
   const handleFinish = () => {
     onFinish?.(formState);

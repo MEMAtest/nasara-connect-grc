@@ -6,6 +6,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 import { ProjectHeader } from "./ProjectHeader";
 import { BarChart3, List, LayoutGrid } from "lucide-react";
@@ -36,6 +38,7 @@ interface ProjectMilestone {
   description: string;
   phase: string;
   status: MilestoneStatus | string; // Allow string for backwards compatibility
+  owner?: string;
   startWeek: number;
   durationWeeks: number;
   endWeek: number;
@@ -166,6 +169,31 @@ function getCurrentWeek(startDate: string): number {
   return Math.max(1, Math.ceil((daysSinceStart + 1) / 7));
 }
 
+const formatIsoDate = (date: Date) => date.toISOString().split("T")[0];
+
+function getDueDateForWeek(startDate: string, endWeek: number): string {
+  if (!startDate) return "";
+  const start = new Date(startDate);
+  if (isNaN(start.getTime())) return "";
+  const date = new Date(start);
+  date.setDate(date.getDate() + (endWeek - 1) * 7);
+  return formatIsoDate(date);
+}
+
+function getWeekFromDate(startDate: string, dueDate: string): number {
+  if (!startDate || !dueDate) return 1;
+  const start = new Date(startDate);
+  const due = new Date(dueDate);
+  if (isNaN(start.getTime()) || isNaN(due.getTime())) return 1;
+  const startNormalized = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+  const dueNormalized = new Date(due.getFullYear(), due.getMonth(), due.getDate());
+  const daysSinceStart = Math.floor((dueNormalized.getTime() - startNormalized.getTime()) / (1000 * 60 * 60 * 24));
+  return Math.max(1, Math.ceil((daysSinceStart + 1) / 7));
+}
+
+const clonePlan = (plan?: ProjectPlan | null): ProjectPlan | null =>
+  plan ? (JSON.parse(JSON.stringify(plan)) as ProjectPlan) : null;
+
 // Extracted status badge styling helper to eliminate duplication
 function getStatusBadgeClassName(status: string): string {
   const statusMap: Record<string, string> = {
@@ -239,6 +267,9 @@ function MilestoneTooltip({
           {milestone.status.replace(/-/g, " ")}
         </Badge>
       </div>
+      {milestone.owner ? (
+        <p className="mt-2 text-xs text-slate-500">Owner: {milestone.owner}</p>
+      ) : null}
       {/* Arrow */}
       <div className={`absolute -bottom-2 h-3 w-3 rotate-45 border-b border-r border-slate-200 bg-white ${arrowClasses}`} />
     </div>
@@ -265,8 +296,12 @@ function LoadingOverlay({ message }: { message: string }) {
 // Mobile-friendly list view component
 function MilestoneListView({
   phaseGroups,
+  editable = false,
+  onMilestoneUpdate,
 }: {
   phaseGroups: [string, ProjectMilestone[]][];
+  editable?: boolean;
+  onMilestoneUpdate?: (milestoneId: string, updates: Partial<ProjectMilestone>) => void;
 }) {
   return (
     <div className="space-y-4">
@@ -293,15 +328,68 @@ function MilestoneListView({
                     <p className="font-medium text-slate-900">{milestone.title}</p>
                     <p className="text-xs text-slate-500">{milestone.description}</p>
                   </div>
-                  <div className="flex flex-wrap items-center gap-2 text-xs">
-                    <span className="text-slate-400">
-                      W{milestone.startWeek}-{milestone.endWeek}
-                    </span>
-                    <span className="text-slate-400">({milestone.durationWeeks}w)</span>
-                    <Badge variant="outline" className={getStatusBadgeClassName(milestone.status)}>
-                      {milestone.status.replace(/-/g, " ")}
-                    </Badge>
-                  </div>
+                  {editable ? (
+                    <div className="grid gap-2 text-xs sm:grid-cols-2 lg:grid-cols-4">
+                      <div className="space-y-1">
+                        <span className="text-[10px] uppercase tracking-[0.2em] text-slate-400">Owner</span>
+                        <Input
+                          value={milestone.owner ?? ""}
+                          onChange={(event) => onMilestoneUpdate?.(milestone.id, { owner: event.target.value })}
+                          placeholder="Assign owner"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-[10px] uppercase tracking-[0.2em] text-slate-400">Due date</span>
+                        <Input
+                          type="date"
+                          value={milestone.dueDate || ""}
+                          onChange={(event) => onMilestoneUpdate?.(milestone.id, { dueDate: event.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-[10px] uppercase tracking-[0.2em] text-slate-400">Duration (weeks)</span>
+                        <Input
+                          type="number"
+                          min={1}
+                          value={milestone.durationWeeks}
+                          onChange={(event) =>
+                            onMilestoneUpdate?.(milestone.id, { durationWeeks: Number(event.target.value) })
+                          }
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-[10px] uppercase tracking-[0.2em] text-slate-400">Status</span>
+                        <Select
+                          value={milestone.status}
+                          onValueChange={(value) => onMilestoneUpdate?.(milestone.id, { status: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="pending">Pending</SelectItem>
+                            <SelectItem value="in-progress">In progress</SelectItem>
+                            <SelectItem value="blocked">Blocked</SelectItem>
+                            <SelectItem value="complete">Complete</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="col-span-full text-[11px] text-slate-400">
+                        Weeks {milestone.startWeek}-{milestone.endWeek} · {milestone.durationWeeks} week
+                        {milestone.durationWeeks !== 1 ? "s" : ""}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-wrap items-center gap-2 text-xs">
+                      <span className="text-slate-400">
+                        W{milestone.startWeek}-{milestone.endWeek}
+                      </span>
+                      <span className="text-slate-400">({milestone.durationWeeks}w)</span>
+                      <Badge variant="outline" className={getStatusBadgeClassName(milestone.status)}>
+                        {milestone.status.replace(/-/g, " ")}
+                      </Badge>
+                    </div>
+                  )}
                 </div>
               ))}
             </CardContent>
@@ -324,6 +412,10 @@ export function PlanClient() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("gantt");
+  const [isEditing, setIsEditing] = useState(false);
+  const [draftPlan, setDraftPlan] = useState<ProjectPlan | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // Ref to track if component is mounted (prevents memory leaks)
   const isMountedRef = useRef(true);
@@ -379,7 +471,12 @@ export function PlanClient() {
     };
   }, [loadProject]);
 
-  const plan = project?.projectPlan || {};
+  useEffect(() => {
+    setDraftPlan(clonePlan(project?.projectPlan ?? null));
+  }, [project?.projectPlan]);
+
+  const basePlan = project?.projectPlan || {};
+  const plan = isEditing ? draftPlan ?? basePlan : basePlan;
 
   // Memoize milestones array properly to prevent unnecessary re-renders
   const milestones = useMemo(
@@ -388,7 +485,7 @@ export function PlanClient() {
   );
 
   const totalWeeks = plan.totalWeeks || Math.max(1, ...milestones.map((item) => item.endWeek || 1));
-  const startDate = plan.startDate || new Date().toISOString();
+  const startDate = plan.startDate || formatIsoDate(new Date());
   const currentWeek = getCurrentWeek(startDate);
 
   // Group milestones by phase
@@ -446,6 +543,112 @@ export function PlanClient() {
       if (isMountedRef.current) {
         setIsGenerating(false);
       }
+    }
+  };
+
+  const beginEditing = () => {
+    setDraftPlan(clonePlan(basePlan) ?? null);
+    setIsEditing(true);
+    setSaveError(null);
+    setViewMode("list");
+  };
+
+  const cancelEditing = () => {
+    setDraftPlan(clonePlan(basePlan) ?? null);
+    setIsEditing(false);
+    setSaveError(null);
+  };
+
+  const updateDraftPlan = (updater: (plan: ProjectPlan) => ProjectPlan) => {
+    setDraftPlan((prev) => {
+      const seed = prev ?? (clonePlan(basePlan) ?? null);
+      if (!seed) return prev;
+      return updater(seed);
+    });
+  };
+
+  const handleStartDateChange = (value: string) => {
+    updateDraftPlan((currentPlan) => {
+      const nextStartDate = value || formatIsoDate(new Date());
+      const nextMilestones = (currentPlan.milestones || []).map((milestone) => ({
+        ...milestone,
+        dueDate: getDueDateForWeek(nextStartDate, milestone.endWeek),
+      }));
+      return {
+        ...currentPlan,
+        startDate: nextStartDate,
+        milestones: nextMilestones,
+      };
+    });
+  };
+
+  const handleMilestoneUpdate = (milestoneId: string, updates: Partial<ProjectMilestone>) => {
+    updateDraftPlan((currentPlan) => {
+      const planStartDate = currentPlan.startDate || startDate;
+      const nextMilestones = (currentPlan.milestones || []).map((milestone) => {
+        if (milestone.id !== milestoneId) return milestone;
+
+        const nextMilestone = { ...milestone, ...updates };
+        const durationWeeks = Math.max(1, Number(nextMilestone.durationWeeks) || 1);
+        let startWeek = Math.max(1, Number(nextMilestone.startWeek) || 1);
+        let endWeek = startWeek + durationWeeks - 1;
+
+        if (typeof updates.dueDate === "string" && updates.dueDate.trim().length > 0) {
+          endWeek = getWeekFromDate(planStartDate, updates.dueDate);
+          startWeek = Math.max(1, endWeek - durationWeeks + 1);
+        } else if (updates.durationWeeks !== undefined) {
+          endWeek = startWeek + durationWeeks - 1;
+        }
+
+        const dueDate =
+          typeof updates.dueDate === "string" && updates.dueDate.trim().length > 0
+            ? updates.dueDate
+            : getDueDateForWeek(planStartDate, endWeek);
+
+        return {
+          ...nextMilestone,
+          startWeek,
+          durationWeeks,
+          endWeek,
+          dueDate,
+        };
+      });
+
+      const nextTotalWeeks = Math.max(1, ...nextMilestones.map((item) => item.endWeek || 1));
+
+      return {
+        ...currentPlan,
+        milestones: nextMilestones,
+        totalWeeks: nextTotalWeeks,
+      };
+    });
+  };
+
+  const savePlanChanges = async () => {
+    if (!projectId || !draftPlan) return;
+    setIsSaving(true);
+    setSaveError(null);
+    try {
+      const response = await fetch(`/api/authorization-pack/projects/${projectId}/plan`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: draftPlan }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        setSaveError(errorData.error || "Unable to save plan changes.");
+        return;
+      }
+
+      const data = await response.json();
+      setProject((prev) => (prev ? { ...prev, projectPlan: data.plan } : prev));
+      setDraftPlan(clonePlan(data.plan));
+      setIsEditing(false);
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : "Unable to save plan changes.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -534,6 +737,30 @@ export function PlanClient() {
                   })
                 : "recently"}
             </CardDescription>
+            <div className="mt-2 text-xs text-slate-500">
+              {isEditing ? (
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-[10px] uppercase tracking-[0.2em] text-slate-400">Timeline start</span>
+                  <Input
+                    type="date"
+                    value={startDate}
+                    onChange={(event) => handleStartDateChange(event.target.value)}
+                  />
+                  <span className="text-[10px] text-slate-400">Adjusts all milestone due dates.</span>
+                </div>
+              ) : (
+                <span>
+                  Start date{" "}
+                  {startDate
+                    ? new Date(startDate).toLocaleDateString("en-GB", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })
+                    : "pending"}
+                </span>
+              )}
+            </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="outline" className="border-slate-200 text-slate-600">
@@ -569,7 +796,21 @@ export function PlanClient() {
               </button>
             </div>
 
-            <Button variant="outline" size="sm" onClick={generatePlan} disabled={isGenerating}>
+            {isEditing ? (
+              <>
+                <Button size="sm" className="bg-teal-600 hover:bg-teal-700" onClick={savePlanChanges} disabled={isSaving}>
+                  {isSaving ? "Saving..." : "Save changes"}
+                </Button>
+                <Button variant="outline" size="sm" onClick={cancelEditing} disabled={isSaving}>
+                  Cancel
+                </Button>
+              </>
+            ) : (
+              <Button variant="outline" size="sm" onClick={beginEditing}>
+                Edit timeline
+              </Button>
+            )}
+            <Button variant="outline" size="sm" onClick={generatePlan} disabled={isGenerating || isEditing}>
               {isGenerating ? "Regenerating..." : "Regenerate"}
             </Button>
             {project.packId && (
@@ -580,10 +821,19 @@ export function PlanClient() {
           </div>
         </CardHeader>
       </Card>
+      {saveError ? (
+        <Card className="border border-rose-200 bg-rose-50">
+          <CardContent className="p-4 text-sm text-rose-700">{saveError}</CardContent>
+        </Card>
+      ) : null}
 
       {/* Conditional rendering based on view mode */}
       {viewMode === "list" ? (
-        <MilestoneListView phaseGroups={phaseGroups} />
+        <MilestoneListView
+          phaseGroups={phaseGroups}
+          editable={isEditing}
+          onMilestoneUpdate={handleMilestoneUpdate}
+        />
       ) : (
         <>
           {/* Gantt Chart */}

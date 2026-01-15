@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { getRegisterItems } from "@/lib/authorization-pack-integrations";
 import { ProjectHeader } from "./ProjectHeader";
 
 interface ReadinessSummary {
@@ -74,6 +76,10 @@ export function ProjectDashboardClient() {
 
   const readiness = project?.readiness;
   const sectionCount = project?.sections?.length || 0;
+  const registerCount = useMemo(
+    () => (project ? getRegisterItems(project.permissionCode).length : 0),
+    [project]
+  );
 
   const nextActions = useMemo(() => {
     if (!project) return [];
@@ -96,6 +102,26 @@ export function ProjectDashboardClient() {
     }
 
     return actions.slice(0, 4);
+  }, [project]);
+
+  const nextSteps = useMemo(() => {
+    if (!project) return [];
+    const assessmentData = project.assessmentData || {};
+    const hasAssessment = Object.keys(assessmentData).length > 0;
+    const planData = project.projectPlan || {};
+    const hasPlan = Array.isArray((planData as { milestones?: unknown }).milestones) && (planData as { milestones?: unknown[] }).milestones!.length > 0;
+
+    const steps = [];
+    if (!hasAssessment) {
+      steps.push({ label: "Complete firm assessment", href: `/authorization-pack/${project.id}/assessment` });
+    }
+    if (hasAssessment && !hasPlan) {
+      steps.push({ label: "Generate project plan", href: `/authorization-pack/${project.id}/plan` });
+    }
+    if (project.packId) {
+      steps.push({ label: "Open pack workspace", href: `/authorization-pack/sections?packId=${project.packId}` });
+    }
+    return steps.slice(0, 3);
   }, [project]);
 
   if (isLoading) {
@@ -162,7 +188,7 @@ export function ProjectDashboardClient() {
         <Card className="border border-slate-200">
           <CardHeader>
             <CardTitle>Next actions</CardTitle>
-            <CardDescription>Phase 2 will add the assessment and project plan automation.</CardDescription>
+            <CardDescription>Follow the guided steps to unlock the workspace and submission readiness.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-slate-600">
             {nextActions.length ? (
@@ -174,17 +200,19 @@ export function ProjectDashboardClient() {
             ) : (
               <p>Assessment and plan are complete. Continue executing in the workspace.</p>
             )}
-            <div className="flex flex-wrap gap-2">
-              <Button asChild variant="outline" className="border-slate-200 text-slate-600">
-                <Link href={`/authorization-pack/${project.id}/assessment`}>Assessment</Link>
-              </Button>
-              <Button asChild variant="outline" className="border-slate-200 text-slate-600">
-                <Link href={`/authorization-pack/${project.id}/plan`}>Plan</Link>
-              </Button>
-              <Button asChild variant="outline" className="border-slate-200 text-slate-600">
-                <Link href={`/authorization-pack/${project.id}/ecosystem`}>Ecosystem</Link>
-              </Button>
-            </div>
+            {nextSteps.length ? (
+              <div className="space-y-2 rounded-lg border border-slate-100 bg-slate-50 p-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Start here</p>
+                {nextSteps.map((step, index) => (
+                  <div key={step.label} className="flex items-center justify-between gap-2">
+                    <span className="text-sm text-slate-600">{index + 1}. {step.label}</span>
+                    <Button asChild size="sm" variant="outline" className="border-slate-200 text-slate-600">
+                      <Link href={step.href}>Open</Link>
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            ) : null}
           </CardContent>
         </Card>
       </div>
@@ -194,28 +222,55 @@ export function ProjectDashboardClient() {
           <CardTitle>Connected ecosystem</CardTitle>
           <CardDescription>Everything linked to policies, training, and Key Persons requirements.</CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-lg border border-slate-100 bg-slate-50 p-4">
-            <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Policies</p>
-            <p className="mt-2 text-2xl font-semibold text-slate-900">{project.policyTemplates?.length || 0}</p>
-            <Button asChild variant="link" className="px-0 text-teal-600">
-              <Link href="/policies">Open policy library</Link>
-            </Button>
-          </div>
-          <div className="rounded-lg border border-slate-100 bg-slate-50 p-4">
-            <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Training</p>
-            <p className="mt-2 text-2xl font-semibold text-slate-900">{project.trainingRequirements?.length || 0}</p>
-            <Button asChild variant="link" className="px-0 text-teal-600">
-              <Link href="/training-library">Open training library</Link>
-            </Button>
-          </div>
-          <div className="rounded-lg border border-slate-100 bg-slate-50 p-4">
-            <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Key Persons</p>
-            <p className="mt-2 text-2xl font-semibold text-slate-900">{project.smcrRoles?.length || 0}</p>
-            <Button asChild variant="link" className="px-0 text-teal-600">
-              <Link href="/smcr">Open Key Persons module</Link>
-            </Button>
-          </div>
+        <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="rounded-lg border border-slate-100 bg-slate-50 p-4">
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Policies</p>
+                <p className="mt-2 text-2xl font-semibold text-slate-900">{project.policyTemplates?.length || 0}</p>
+                <Button asChild variant="link" className="px-0 text-teal-600">
+                  <Link href="/policies">Open policy library</Link>
+                </Button>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>Templates your permission type must evidence in the submission pack.</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="rounded-lg border border-slate-100 bg-slate-50 p-4">
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Training</p>
+                <p className="mt-2 text-2xl font-semibold text-slate-900">{project.trainingRequirements?.length || 0}</p>
+                <Button asChild variant="link" className="px-0 text-teal-600">
+                  <Link href="/training-library">Open training library</Link>
+                </Button>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>Mandatory staff training linked to FCA expectations for this permission.</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="rounded-lg border border-slate-100 bg-slate-50 p-4">
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Key Persons</p>
+                <p className="mt-2 text-2xl font-semibold text-slate-900">{project.smcrRoles?.length || 0}</p>
+                <Button asChild variant="link" className="px-0 text-teal-600">
+                  <Link href="/smcr">Open Key Persons module</Link>
+                </Button>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>SMCR / PSD roles that must be assigned before submission.</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="rounded-lg border border-slate-100 bg-slate-50 p-4">
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Registers</p>
+                <p className="mt-2 text-2xl font-semibold text-slate-900">{registerCount}</p>
+                <Button asChild variant="link" className="px-0 text-teal-600">
+                  <Link href="/registers">Open registers</Link>
+                </Button>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>Live logs and trackers required for audit-ready evidence.</TooltipContent>
+          </Tooltip>
         </CardContent>
       </Card>
     </div>

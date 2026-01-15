@@ -1,32 +1,22 @@
 import { NextResponse } from "next/server";
-import { initDatabase, getPackTemplates, seedPackTemplates, getSectionTemplates } from "@/lib/database";
+import {
+  getPermissionEcosystems,
+  syncAuthorizationTemplates,
+  syncPermissionEcosystems,
+} from "@/lib/authorization-pack-db";
 import { logError } from "@/lib/logger";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    await initDatabase();
-    await seedPackTemplates();
+    const url = new URL(request.url);
+    const force = url.searchParams.get("force") === "1";
+    const allowForce = force && process.env.NODE_ENV !== "production";
+    if (allowForce) {
+      await syncAuthorizationTemplates();
+      await syncPermissionEcosystems();
+    }
 
-    const templates = await getPackTemplates();
-
-    // Transform templates to ecosystem format expected by the frontend
-    const ecosystemsPromises = templates.map(async (t) => {
-      const sections = await getSectionTemplates(t.id);
-      return {
-        id: t.id,
-        permission_code: t.code,
-        name: t.name,
-        description: t.description || `FCA authorization for ${t.name}`,
-        pack_template_type: t.pack_type,
-        section_keys: sections.map((s) => s.code),
-        policy_templates: t.policy_templates || [],
-        training_requirements: t.training_requirements || [],
-        smcr_roles: t.smcr_roles || [],
-        typical_timeline_weeks: t.typical_timeline_weeks,
-      };
-    });
-
-    const ecosystems = await Promise.all(ecosystemsPromises);
+    const ecosystems = await getPermissionEcosystems();
 
     return NextResponse.json({ ecosystems });
   } catch (error) {

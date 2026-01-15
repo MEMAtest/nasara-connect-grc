@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { initDatabase, getAuthorizationPack, getPackSection } from "@/lib/database";
-import { listEvidence } from "@/lib/authorization-pack-db";
+import { getPack, getSectionWorkspace, listEvidence } from "@/lib/authorization-pack-db";
 import { requireAuth, isValidUUID } from "@/lib/auth-utils";
 import { logError } from "@/lib/logger";
 
@@ -107,7 +106,6 @@ export async function GET(
     const { auth, error } = await requireAuth();
     if (error) return error;
 
-    await initDatabase();
     const { id, sectionId } = await params;
 
     // Validate UUIDs
@@ -119,7 +117,7 @@ export async function GET(
     }
 
     // Verify pack access
-    const pack = await getAuthorizationPack(id);
+    const pack = await getPack(id);
     if (!pack) {
       return NextResponse.json({ error: "Pack not found" }, { status: 404 });
     }
@@ -128,12 +126,9 @@ export async function GET(
     }
 
     // Verify section belongs to pack
-    const section = await getPackSection(sectionId);
-    if (!section) {
+    const workspace = await getSectionWorkspace(id, sectionId);
+    if (!workspace) {
       return NextResponse.json({ error: "Section not found" }, { status: 404 });
-    }
-    if (section.pack_id !== id) {
-      return NextResponse.json({ error: "Section does not belong to this pack" }, { status: 403 });
     }
 
     // Get existing evidence for this section
@@ -141,8 +136,8 @@ export async function GET(
     const evidence = allEvidence.filter((e: { section_instance_id: string }) => e.section_instance_id === sectionId);
 
     // Build prompts
-    const sectionTitle = section.template?.name || "Authorization Pack Section";
-    const sectionGuidance = section.template?.guidance_text || null;
+    const sectionTitle = workspace.section?.title || "Authorization Pack Section";
+    const sectionGuidance = workspace.section?.description || null;
     const systemPrompt = buildEvidenceGapsSystemPrompt();
     const userPrompt = buildEvidenceGapsUserPrompt(
       sectionTitle,

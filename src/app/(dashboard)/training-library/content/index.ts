@@ -19,6 +19,11 @@ import { outsourcingThirdPartyModule } from './outsourcing-third-party';
 import { operationalResilienceModule } from './operational-resilience';
 import { operationalResilienceFrameworkModule } from './operational-resilience-framework';
 import { moneyLaunderingRedFlagsModule } from './money-laundering-red-flags';
+import { paymentsRegulationModule } from './payments-regulation';
+import { mifidTrainingModule } from './mifid-training';
+import { consumerCreditTrainingModule } from './consumer-credit-training';
+import { insuranceConductModule } from './insurance-conduct';
+import { cryptoassetRiskModule } from './cryptoasset-risk';
 
 // Core Training Modules Registry
 export const trainingModules: Record<string, TrainingModule> = {
@@ -40,6 +45,11 @@ export const trainingModules: Record<string, TrainingModule> = {
   'operational-resilience': operationalResilienceModule,
   'operational-resilience-framework': operationalResilienceFrameworkModule,
   'money-laundering-red-flags': moneyLaunderingRedFlagsModule,
+  'payments-regulation': paymentsRegulationModule,
+  'mifid-training': mifidTrainingModule,
+  'consumer-credit-training': consumerCreditTrainingModule,
+  'insurance-conduct': insuranceConductModule,
+  'cryptoasset-risk': cryptoassetRiskModule,
 };
 
 // Helper function to get module by ID

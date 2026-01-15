@@ -1,0 +1,162 @@
+import { NextRequest, NextResponse } from "next/server";
+import {
+  initDatabase,
+  getIncidentRecords,
+  createIncidentRecord,
+} from "@/lib/database";
+import {
+  isValidUUID,
+  isValidEnum,
+  sanitizeString,
+  sanitizeText,
+  parseValidDate,
+  parsePositiveNumber,
+  INCIDENT_TYPES,
+  INCIDENT_SEVERITIES,
+  INCIDENT_STATUSES,
+} from "@/lib/validation";
+
+// GET /api/registers/incidents - List all Incident records
+export async function GET(request: NextRequest) {
+  try {
+    await initDatabase();
+
+    const { searchParams } = new URL(request.url);
+    const organizationId = searchParams.get("organizationId") || "default-org";
+    const packId = searchParams.get("packId") || undefined;
+
+    if (packId && !isValidUUID(packId)) {
+      return NextResponse.json(
+        { error: "Invalid pack ID format" },
+        { status: 400 }
+      );
+    }
+
+    const records = await getIncidentRecords(organizationId, packId);
+
+    return NextResponse.json({ records });
+  } catch (error) {
+    console.error("Error fetching Incident records:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch Incident records" },
+      { status: 500 }
+    );
+  }
+}
+
+// POST /api/registers/incidents - Create a new Incident record
+export async function POST(request: NextRequest) {
+  try {
+    await initDatabase();
+
+    const body = await request.json();
+
+    // Validate required fields
+    const incidentTitle = sanitizeString(body.incident_title);
+    if (!incidentTitle) {
+      return NextResponse.json(
+        { error: "Incident title is required" },
+        { status: 400 }
+      );
+    }
+
+    // Validate pack_id if provided
+    if (body.pack_id && !isValidUUID(body.pack_id)) {
+      return NextResponse.json(
+        { error: "Invalid pack ID format" },
+        { status: 400 }
+      );
+    }
+
+    // Validate enum fields
+    const incidentType = body.incident_type || "other";
+    if (!isValidEnum(incidentType, INCIDENT_TYPES)) {
+      return NextResponse.json(
+        { error: `Invalid incident type. Must be one of: ${INCIDENT_TYPES.join(", ")}` },
+        { status: 400 }
+      );
+    }
+
+    const severity = body.severity || "medium";
+    if (!isValidEnum(severity, INCIDENT_SEVERITIES)) {
+      return NextResponse.json(
+        { error: `Invalid severity. Must be one of: ${INCIDENT_SEVERITIES.join(", ")}` },
+        { status: 400 }
+      );
+    }
+
+    const status = body.status || "detected";
+    if (!isValidEnum(status, INCIDENT_STATUSES)) {
+      return NextResponse.json(
+        { error: `Invalid status. Must be one of: ${INCIDENT_STATUSES.join(", ")}` },
+        { status: 400 }
+      );
+    }
+
+    // Parse dates
+    const detectedDate = parseValidDate(body.detected_date) || new Date();
+    const occurredDate = parseValidDate(body.occurred_date);
+    const reportedDate = parseValidDate(body.reported_date);
+    const resolvedDate = parseValidDate(body.resolved_date);
+    const regulatoryNotificationDate = parseValidDate(body.regulatory_notification_date);
+
+    // Parse financial impact
+    let financialImpact: number | undefined;
+    if (body.financial_impact !== undefined && body.financial_impact !== null && body.financial_impact !== "") {
+      const parsedValue = parsePositiveNumber(body.financial_impact);
+      if (parsedValue === null) {
+        return NextResponse.json(
+          { error: "Invalid financial impact. Must be a positive number" },
+          { status: 400 }
+        );
+      }
+      financialImpact = parsedValue;
+    }
+
+    // Parse affected customers count
+    let affectedCustomersCount = 0;
+    if (body.affected_customers_count !== undefined && body.affected_customers_count !== null) {
+      const parsed = parsePositiveNumber(body.affected_customers_count);
+      if (parsed !== null) {
+        affectedCustomersCount = Math.floor(parsed);
+      }
+    }
+
+    const recordData = {
+      organization_id: body.organization_id || "default-org",
+      pack_id: body.pack_id,
+      incident_title: incidentTitle,
+      incident_type: incidentType as typeof INCIDENT_TYPES[number],
+      severity: severity as typeof INCIDENT_SEVERITIES[number],
+      detected_date: detectedDate,
+      occurred_date: occurredDate || undefined,
+      reported_date: reportedDate || undefined,
+      resolved_date: resolvedDate || undefined,
+      description: sanitizeText(body.description) || undefined,
+      root_cause: sanitizeText(body.root_cause) || undefined,
+      impact_assessment: sanitizeText(body.impact_assessment) || undefined,
+      immediate_actions: sanitizeText(body.immediate_actions) || undefined,
+      remedial_actions: sanitizeText(body.remedial_actions) || undefined,
+      lessons_learned: sanitizeText(body.lessons_learned) || undefined,
+      regulatory_notification_required: Boolean(body.regulatory_notification_required),
+      regulatory_notification_date: regulatoryNotificationDate || undefined,
+      status: status as typeof INCIDENT_STATUSES[number],
+      assigned_to: sanitizeString(body.assigned_to) || undefined,
+      affected_systems: sanitizeText(body.affected_systems) || undefined,
+      affected_customers_count: affectedCustomersCount,
+      financial_impact: financialImpact,
+      notes: sanitizeText(body.notes) || undefined,
+      created_by: sanitizeString(body.created_by) || undefined,
+    };
+
+    const record = await createIncidentRecord(recordData);
+
+    return NextResponse.json({ record }, { status: 201 });
+  } catch (error) {
+    console.error("Error creating Incident record:", error);
+    return NextResponse.json(
+      { error: "Failed to create Incident record" },
+      { status: 500 }
+    );
+  }
+}

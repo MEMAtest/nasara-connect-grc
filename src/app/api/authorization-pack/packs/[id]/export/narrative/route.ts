@@ -1,9 +1,36 @@
 import { NextRequest, NextResponse } from "next/server";
-import { initDatabase, getAuthorizationPack, getPackSections } from "@/lib/database";
-import { requireAuth, isValidUUID } from "@/lib/auth-utils";
+import { isValidUUID } from "@/lib/auth-utils";
+import { getNarrativeExportRows, getPack } from "@/lib/authorization-pack-db";
+import { buildNarrativeBlocks } from "@/lib/authorization-pack-export";
 
 function sanitizeFilename(input: string) {
   return input.replace(/[^a-z0-9-_]+/gi, "-").replace(/-+/g, "-").toLowerCase();
+}
+
+function renderMarkdown(blocks: ReturnType<typeof buildNarrativeBlocks>) {
+  const lines: string[] = [];
+  for (const block of blocks) {
+    if (block.type === "title") {
+      lines.push(`# ${block.text}`);
+      lines.push("");
+      continue;
+    }
+    if (block.type === "section") {
+      lines.push(`## ${block.text}`);
+      lines.push("");
+      continue;
+    }
+    if (block.type === "prompt") {
+      lines.push(`### ${block.text}`);
+      lines.push("");
+      continue;
+    }
+    if (block.type === "text") {
+      lines.push(block.text || "");
+      lines.push("");
+    }
+  }
+  return lines.join("\n").trim() + "\n";
 }
 
 export async function GET(
@@ -11,44 +38,20 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { auth, error } = await requireAuth();
-    if (error) return error;
-
-    await initDatabase();
     const { id } = await params;
 
     if (!isValidUUID(id)) {
       return NextResponse.json({ error: "Invalid pack ID format" }, { status: 400 });
     }
 
-    const pack = await getAuthorizationPack(id);
+    const pack = await getPack(id);
     if (!pack) {
       return NextResponse.json({ error: "Pack not found" }, { status: 404 });
     }
 
-    if (pack.organization_id !== auth.organizationId) {
-      return NextResponse.json({ error: "Access denied" }, { status: 403 });
-    }
-
-    const sections = await getPackSections(id);
-
-    let output = `# ${pack.name}\n\n`;
-
-    for (const section of sections) {
-      const sectionTitle = section.template?.name || "Section";
-      output += `## ${sectionTitle}\n\n`;
-
-      // Add narrative content if available
-      const narrative = section.narrative_content;
-      if (narrative && typeof narrative === 'object') {
-        for (const [key, value] of Object.entries(narrative)) {
-          const responseValue = (value as string)?.trim() || "_No response yet._";
-          output += `### ${key}\n\n${responseValue}\n\n`;
-        }
-      } else {
-        output += "_No content yet._\n\n";
-      }
-    }
+    const rows = await getNarrativeExportRows(id);
+    const blocks = buildNarrativeBlocks(pack.name, rows);
+    const output = renderMarkdown(blocks);
 
     const filename = `${sanitizeFilename(pack.name)}-narrative.md`;
     return new NextResponse(output, {

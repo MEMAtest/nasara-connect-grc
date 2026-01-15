@@ -38,6 +38,12 @@ interface ProjectDetail {
   assessmentData?: AssessmentData;
 }
 
+interface CompanySearchItem {
+  company_number: string;
+  title: string;
+  address_snippet?: string;
+}
+
 const readinessItems = [
   { key: "businessPlanDraft", label: "Business plan draft", description: "Narrative outline and gold-standard coverage." },
   { key: "financialModel", label: "Financial model", description: "Capital, projections, stress testing." },
@@ -88,6 +94,8 @@ const buildDefaultAssessment = (project: ProjectDetail | null, existing?: Assess
 
   const basicsDefaults: Record<string, string | number | null> = {
     legalName: existing?.basics?.legalName ?? "",
+    tradingName: existing?.basics?.tradingName ?? "",
+    entityType: existing?.basics?.entityType ?? "",
     incorporationDate: existing?.basics?.incorporationDate ?? "",
     companyNumber: existing?.basics?.companyNumber ?? "",
     sicCode: existing?.basics?.sicCode ?? "",
@@ -99,9 +107,13 @@ const buildDefaultAssessment = (project: ProjectDetail | null, existing?: Assess
     primaryJurisdiction: existing?.basics?.primaryJurisdiction ?? "",
     primaryContact: existing?.basics?.primaryContact ?? "",
     contactEmail: existing?.basics?.contactEmail ?? "",
+    contactPhone: existing?.basics?.contactPhone ?? "",
     firmStage: existing?.basics?.firmStage ?? "",
     regulatedActivities: existing?.basics?.regulatedActivities ?? "",
     headcount: existing?.basics?.headcount ?? "",
+    targetMarkets: existing?.basics?.targetMarkets ?? "",
+    estimatedTransactionVolume: existing?.basics?.estimatedTransactionVolume ?? "",
+    timelinePreference: existing?.basics?.timelinePreference ?? "",
     consultantNotes: existing?.basics?.consultantNotes ?? "",
   };
 
@@ -167,6 +179,9 @@ export function AssessmentClient() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isLookingUp, setIsLookingUp] = useState(false);
   const [lookupError, setLookupError] = useState<string | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const [companyResults, setCompanyResults] = useState<CompanySearchItem[]>([]);
   const [analysisResult, setAnalysisResult] = useState<{
     readiness: Record<string, { suggested: string; reason: string; priority: string }>;
     priorities: string[];
@@ -198,6 +213,37 @@ export function AssessmentClient() {
   useEffect(() => {
     loadProject();
   }, [projectId]);
+
+  useEffect(() => {
+    const query = String(assessment.basics?.legalName ?? "").trim();
+    if (query.length < 3) {
+      setCompanyResults([]);
+      setSearchError(null);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsSearching(true);
+      setSearchError(null);
+      try {
+        const response = await fetch(`/api/companies-house/search?q=${encodeURIComponent(query)}`);
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          setSearchError(errorData.error || "Unable to search Companies House");
+          setCompanyResults([]);
+          return;
+        }
+        const data = await response.json();
+        setCompanyResults(data.items || []);
+      } catch (error) {
+        setSearchError(error instanceof Error ? error.message : "Companies House search failed");
+      } finally {
+        setIsSearching(false);
+      }
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [assessment.basics?.legalName]);
 
   const completion = useMemo(() => calculateCompletion(assessment), [assessment]);
 
@@ -330,8 +376,7 @@ export function AssessmentClient() {
   };
 
   // Companies House lookup
-  const lookupCompany = async () => {
-    const companyNumber = assessment.basics?.companyNumber;
+  const lookupCompany = async (companyNumber?: string, fallbackName?: string) => {
     if (!companyNumber || typeof companyNumber !== "string") return;
 
     setIsLookingUp(true);
@@ -351,7 +396,8 @@ export function AssessmentClient() {
         ...prev,
         basics: {
           ...(prev.basics ?? {}),
-          legalName: company.name || prev.basics?.legalName,
+          legalName: company.name || fallbackName || prev.basics?.legalName,
+          companyNumber: company.number || companyNumber || prev.basics?.companyNumber,
           incorporationDate: company.incorporationDate || prev.basics?.incorporationDate,
           sicCode: company.sicCodes?.[0] || prev.basics?.sicCode,
           addressLine1: company.address?.line1 || prev.basics?.addressLine1,
@@ -428,7 +474,34 @@ export function AssessmentClient() {
         <CardContent className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
             <Label>Legal name</Label>
-            <Input value={String(assessment.basics?.legalName ?? "")} onChange={(event) => updateBasics("legalName", event.target.value)} />
+            <Input
+              value={String(assessment.basics?.legalName ?? "")}
+              onChange={(event) => updateBasics("legalName", event.target.value)}
+              placeholder="Start typing the registered company name"
+            />
+            {isSearching ? <p className="text-xs text-slate-500">Searching Companies House...</p> : null}
+            {searchError ? <p className="text-xs text-red-500">{searchError}</p> : null}
+            {companyResults.length > 0 ? (
+              <div className="max-h-48 overflow-y-auto rounded-md border border-slate-200 bg-white">
+                {companyResults.map((item) => (
+                  <button
+                    key={item.company_number}
+                    type="button"
+                    className="w-full border-b border-slate-100 px-3 py-2 text-left text-sm hover:bg-slate-50"
+                    onClick={() => {
+                      setCompanyResults([]);
+                      lookupCompany(item.company_number, item.title);
+                    }}
+                    disabled={isLookingUp}
+                  >
+                    <div className="font-medium text-slate-900">{item.title}</div>
+                    <div className="text-xs text-slate-500">
+                      {item.company_number} {item.address_snippet ? `· ${item.address_snippet}` : ""}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            ) : null}
           </div>
           <div className="space-y-2">
             <Label>Incorporation date</Label>
@@ -440,26 +513,15 @@ export function AssessmentClient() {
           </div>
           <div className="space-y-2">
             <Label>Company number</Label>
-            <div className="flex gap-2">
-              <Input
-                value={String(assessment.basics?.companyNumber ?? "")}
-                onChange={(event) => updateBasics("companyNumber", event.target.value)}
-                placeholder="e.g., 12345678"
-                className="flex-1"
-              />
-              <Button
-                type="button"
-                variant="outline"
-                onClick={lookupCompany}
-                disabled={isLookingUp || !assessment.basics?.companyNumber}
-                className="shrink-0"
-              >
-                {isLookingUp ? "Looking up..." : "Lookup"}
-              </Button>
-            </div>
-            {lookupError && (
-              <p className="text-xs text-red-500 mt-1">{lookupError}</p>
-            )}
+            <Input
+              value={String(assessment.basics?.companyNumber ?? "")}
+              onChange={(event) => updateBasics("companyNumber", event.target.value)}
+              placeholder="Auto-filled from Companies House"
+              readOnly
+              className="bg-slate-50"
+            />
+            {isLookingUp ? <p className="text-xs text-slate-500">Loading company details...</p> : null}
+            {lookupError ? <p className="text-xs text-red-500 mt-1">{lookupError}</p> : null}
           </div>
           <div className="space-y-2">
             <Label>SIC code</Label>

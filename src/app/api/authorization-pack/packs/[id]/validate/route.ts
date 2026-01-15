@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { initDatabase, getAuthorizationPack, getPackSections } from "@/lib/database";
+import { getFullPackSectionsWithResponses, getPack } from "@/lib/authorization-pack-db";
 import { requireAuth, isValidUUID } from "@/lib/auth-utils";
 import { logError } from "@/lib/logger";
+import { htmlToText } from "@/lib/authorization-pack-export";
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const DEFAULT_MODEL = process.env.OPENROUTER_MODEL ?? "openai/gpt-4o-mini";
@@ -110,7 +111,6 @@ export async function POST(
     const { auth, error } = await requireAuth();
     if (error) return error;
 
-    await initDatabase();
     const { id } = await params;
 
     // Validate UUID
@@ -119,7 +119,7 @@ export async function POST(
     }
 
     // Verify pack access
-    const pack = await getAuthorizationPack(id);
+    const pack = await getPack(id);
     if (!pack) {
       return NextResponse.json({ error: "Pack not found" }, { status: 404 });
     }
@@ -127,18 +127,21 @@ export async function POST(
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
-    // Get all sections with their content
-    const sections = await getPackSections(id);
-
-    // Build section data for AI analysis
-    const sectionData = sections.map((s) => ({
-      name: s.template?.name || "Unknown Section",
-      status: s.status || "not-started",
-      progress: s.progress_percentage || 0,
-      narrativeContent: typeof s.narrative_content === "string"
-        ? s.narrative_content
-        : JSON.stringify(s.narrative_content || ""),
-    }));
+    const sections = await getFullPackSectionsWithResponses(id);
+    const sectionData = sections.map((section) => {
+      const narrativeContent = section.prompts
+        .map((prompt) => (prompt.response ? htmlToText(prompt.response) : ""))
+        .filter(Boolean)
+        .join("\n\n");
+      const progress = section.narrativeCompletion;
+      const status = progress >= 80 ? "complete" : progress > 0 ? "in-progress" : "missing";
+      return {
+        name: section.title || "Unknown Section",
+        status,
+        progress,
+        narrativeContent,
+      };
+    });
 
     // Build prompts
     const systemPrompt = buildValidationSystemPrompt();

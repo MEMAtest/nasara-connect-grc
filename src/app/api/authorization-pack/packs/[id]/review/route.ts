@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { initDatabase, getAuthorizationPack, getPackSections } from "@/lib/database";
+import { getPack, listReviewQueue, updateReviewGate } from "@/lib/authorization-pack-db";
 import { requireAuth, isValidUUID } from "@/lib/auth-utils";
 
 export async function GET(
@@ -10,14 +10,13 @@ export async function GET(
     const { auth, error } = await requireAuth();
     if (error) return error;
 
-    await initDatabase();
     const { id } = await params;
 
     if (!isValidUUID(id)) {
       return NextResponse.json({ error: "Invalid pack ID format" }, { status: 400 });
     }
 
-    const pack = await getAuthorizationPack(id);
+    const pack = await getPack(id);
     if (!pack) {
       return NextResponse.json({ error: "Pack not found" }, { status: 404 });
     }
@@ -26,21 +25,7 @@ export async function GET(
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
-    // Get sections and build review queue from section statuses
-    const sections = await getPackSections(id);
-
-    const review = sections.map((s) => ({
-      id: s.id,
-      section_instance_id: s.id,
-      section_title: s.template?.name || "Section",
-      stage: s.status === "approved" ? "approved" : s.status === "review" ? "in-review" : "pending",
-      state: s.status === "approved" ? "approved" : "pending",
-      reviewer_role: "consultant",
-      reviewer_id: s.reviewed_by,
-      reviewed_at: s.approved_at,
-      notes: null,
-      client_notes: null,
-    }));
+    const review = await listReviewQueue(id);
 
     return NextResponse.json({ review });
   } catch (error) {
@@ -59,14 +44,13 @@ export async function PATCH(
     const { auth, error } = await requireAuth();
     if (error) return error;
 
-    await initDatabase();
     const { id } = await params;
 
     if (!isValidUUID(id)) {
       return NextResponse.json({ error: "Invalid pack ID format" }, { status: 400 });
     }
 
-    const pack = await getAuthorizationPack(id);
+    const pack = await getPack(id);
     if (!pack) {
       return NextResponse.json({ error: "Pack not found" }, { status: 404 });
     }
@@ -75,8 +59,28 @@ export async function PATCH(
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
-    // Review gate updates not yet implemented with new schema
-    return NextResponse.json({ status: "ok", message: "Review updates coming soon" });
+    const body = await request.json();
+    const gateId = body.gateId as string | undefined;
+    const state = body.state as string | undefined;
+    const notes = body.notes as string | undefined;
+    const clientNotes = body.clientNotes as string | undefined;
+
+    if (!gateId || !state) {
+      return NextResponse.json({ error: "gateId and state are required" }, { status: 400 });
+    }
+    if (!isValidUUID(gateId)) {
+      return NextResponse.json({ error: "Invalid gate ID format" }, { status: 400 });
+    }
+
+    await updateReviewGate({
+      gateId,
+      state,
+      reviewerId: auth.userId || null,
+      notes,
+      clientNotes,
+    });
+
+    return NextResponse.json({ status: "ok" });
   } catch (error) {
     return NextResponse.json(
       { error: "Failed to update review gate", details: error instanceof Error ? error.message : "Unknown error" },

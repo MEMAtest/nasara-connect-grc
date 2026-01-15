@@ -12,9 +12,8 @@ vi.mock("@/lib/auth-utils", () => ({
   isValidUUID: vi.fn().mockReturnValue(true),
 }));
 
-vi.mock("@/lib/database", () => ({
-  initDatabase: vi.fn().mockResolvedValue(undefined),
-  getAuthorizationPack: vi.fn().mockResolvedValue({
+vi.mock("@/lib/authorization-pack-db", () => ({
+  getAuthorizationProject: vi.fn().mockResolvedValue({
     id: "00000000-0000-0000-0000-000000000001",
     name: "Test Project",
     organization_id: "test-org",

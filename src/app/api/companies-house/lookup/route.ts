@@ -33,9 +33,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Company number is required" }, { status: 400 });
     }
 
-    // Validate company number format (8 characters, can include leading zeros or letters)
+    // Validate company number format (1-8 characters, letters or digits)
     const cleanNumber = companyNumber.trim().toUpperCase();
-    if (!/^[A-Z0-9]{6,8}$/.test(cleanNumber)) {
+    if (!/^[A-Z0-9]{1,8}$/.test(cleanNumber)) {
       return NextResponse.json({ error: "Invalid company number format" }, { status: 400 });
     }
 
@@ -64,7 +64,14 @@ export async function GET(request: NextRequest) {
     }
 
     // Make request to Companies House API
-    const paddedNumber = cleanNumber.padStart(8, "0");
+    let paddedNumber = cleanNumber;
+    const prefixedMatch = cleanNumber.match(/^([A-Z]{1,2})(\d+)$/);
+    if (prefixedMatch) {
+      const [, prefix, digits] = prefixedMatch;
+      paddedNumber = `${prefix}${digits.padStart(6, "0")}`;
+    } else if (/^\d+$/.test(cleanNumber)) {
+      paddedNumber = cleanNumber.padStart(8, "0");
+    }
     const response = await fetch(`${COMPANIES_HOUSE_API}/company/${paddedNumber}`, {
       headers: {
         Authorization: `Basic ${Buffer.from(`${apiKey}:`).toString("base64")}`,

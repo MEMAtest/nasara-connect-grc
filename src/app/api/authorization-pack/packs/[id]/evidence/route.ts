@@ -1,50 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
-import { initDatabase, getAuthorizationPack, getProjectDocuments } from "@/lib/database";
-import { requireAuth, isValidUUID } from "@/lib/auth-utils";
+import path from "path";
+import { promises as fs } from "fs";
+import { isValidUUID } from "@/lib/auth-utils";
+import { addEvidenceVersion, getEvidenceItem, getPack, listEvidence } from "@/lib/authorization-pack-db";
+
+const storageRoot = path.resolve(process.cwd(), "storage", "authorization-pack");
+
+function sanitizeFilename(filename: string): string {
+  return filename.replace(/[<>:"/\\|?*\x00-\x1f]/g, "_").slice(0, 255);
+}
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { auth, error } = await requireAuth();
-    if (error) return error;
-
-    await initDatabase();
     const { id } = await params;
 
     if (!isValidUUID(id)) {
       return NextResponse.json({ error: "Invalid pack ID format" }, { status: 400 });
     }
 
-    const pack = await getAuthorizationPack(id);
+    const pack = await getPack(id);
     if (!pack) {
       return NextResponse.json({ error: "Pack not found" }, { status: 404 });
     }
 
-    if (pack.organization_id !== auth.organizationId) {
-      return NextResponse.json({ error: "Access denied" }, { status: 403 });
-    }
-
-    const documents = await getProjectDocuments(id);
-
-    // Transform to expected evidence format
-    const evidence = documents.map((d) => ({
-      id: d.id,
-      name: d.name,
-      description: d.description,
-      status: d.status,
-      annex_number: null,
-      file_path: d.storage_key,
-      file_size: d.file_size_bytes,
-      file_type: d.mime_type,
-      uploaded_at: d.uploaded_at,
-      version: d.version,
-      section_instance_id: null,
-      section_key: d.section_code,
-      section_title: d.section_code,
-    }));
-
+    const evidence = await listEvidence(id);
     return NextResponse.json({ evidence });
   } catch (error) {
     return NextResponse.json(
@@ -58,10 +40,65 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  // File upload functionality requires cloud storage setup
-  // For now, return a message indicating this needs to be configured
-  return NextResponse.json(
-    { error: "File upload requires cloud storage configuration" },
-    { status: 501 }
-  );
+  try {
+    const { id } = await params;
+
+    if (!isValidUUID(id)) {
+      return NextResponse.json({ error: "Invalid pack ID format" }, { status: 400 });
+    }
+
+    const pack = await getPack(id);
+    if (!pack) {
+      return NextResponse.json({ error: "Pack not found" }, { status: 404 });
+    }
+
+    const formData = await request.formData();
+    const file = formData.get("file");
+    const evidenceItemId = formData.get("evidenceItemId");
+
+    if (!evidenceItemId || typeof evidenceItemId !== "string") {
+      return NextResponse.json({ error: "Missing evidence item ID" }, { status: 400 });
+    }
+    if (!file || !(file instanceof File)) {
+      return NextResponse.json({ error: "Missing file" }, { status: 400 });
+    }
+
+    if (!isValidUUID(evidenceItemId)) {
+      return NextResponse.json({ error: "Invalid evidence ID" }, { status: 400 });
+    }
+
+    const evidence = await getEvidenceItem({ packId: id, evidenceId: evidenceItemId });
+    if (!evidence) {
+      return NextResponse.json({ error: "Evidence item not found" }, { status: 404 });
+    }
+
+    const safeName = sanitizeFilename(file.name);
+    const relativeDir = path.join(id, evidenceItemId);
+    const relativePath = path.join(relativeDir, `${Date.now()}-${safeName}`);
+    const fullPath = path.resolve(storageRoot, relativePath);
+
+    if (!fullPath.startsWith(storageRoot + path.sep) && fullPath !== storageRoot) {
+      return NextResponse.json({ error: "Invalid file path" }, { status: 400 });
+    }
+
+    await fs.mkdir(path.dirname(fullPath), { recursive: true });
+    const buffer = Buffer.from(await file.arrayBuffer());
+    await fs.writeFile(fullPath, buffer);
+
+    await addEvidenceVersion({
+      evidenceItemId,
+      filename: safeName,
+      filePath: relativePath,
+      fileSize: buffer.length,
+      fileType: file.type || null,
+      uploadedBy: "system",
+    });
+
+    return NextResponse.json({ status: "ok" });
+  } catch (error) {
+    return NextResponse.json(
+      { error: "Failed to upload evidence", details: error instanceof Error ? error.message : "Unknown error" },
+      { status: 500 }
+    );
+  }
 }

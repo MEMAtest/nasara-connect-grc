@@ -2,10 +2,21 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 
 interface ReadinessSummary {
@@ -45,6 +56,8 @@ export function ProjectsClient() {
   const [projects, setProjects] = useState<ProjectRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<ProjectRow | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const loadProjects = async () => {
     setIsLoading(true);
@@ -54,7 +67,9 @@ export function ProjectsClient() {
         () => null
       );
       if (!response || !response.ok) {
-        setLoadError("Unable to load authorisation projects. Check the database connection and try again.");
+        const errorData = await response?.json().catch(() => ({}));
+        const details = errorData?.details ? ` (${errorData.details})` : "";
+        setLoadError(`Unable to load authorisation projects.${details}`);
         return;
       }
       const data = await response.json();
@@ -67,6 +82,24 @@ export function ProjectsClient() {
   useEffect(() => {
     loadProjects();
   }, []);
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try {
+      const response = await fetchWithTimeout(`/api/authorization-pack/projects/${deleteTarget.id}`, {
+        method: "DELETE",
+      }).catch(() => null);
+      if (response?.ok) {
+        setProjects((prev) => prev.filter((p) => p.id !== deleteTarget.id));
+      } else {
+        setLoadError("Unable to delete project. Please try again.");
+      }
+    } finally {
+      setIsDeleting(false);
+      setDeleteTarget(null);
+    }
+  };
 
   const emptyState = useMemo(() => !isLoading && !loadError && projects.length === 0, [isLoading, loadError, projects]);
 
@@ -179,7 +212,7 @@ export function ProjectsClient() {
                     <div className="flex flex-wrap gap-3 text-xs text-slate-500">
                       <span>{policiesCount} policies</span>
                       <span>{trainingCount} training modules</span>
-                      <span>{smcrCount} SMCR roles</span>
+                      <span>{smcrCount} Key Persons roles</span>
                     </div>
                   </div>
                   <div className="flex flex-col gap-3">
@@ -195,6 +228,14 @@ export function ProjectsClient() {
                         Workspace pending
                       </Button>
                     )}
+                    <Button
+                      variant="outline"
+                      className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                      onClick={() => setDeleteTarget(project)}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -202,6 +243,28 @@ export function ProjectsClient() {
           })}
         </div>
       ) : null}
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete authorization project?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete <strong>{deleteTarget?.name}</strong> and all associated pack data,
+              sections, evidence, and review comments. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isDeleting ? "Deleting..." : "Delete Project"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -1,262 +1,208 @@
 import { NextRequest, NextResponse } from "next/server";
-import { initDatabase, getAuthorizationPack, getPackSections, getProjectDocuments } from "@/lib/database";
-import { requireAuth, isValidUUID } from "@/lib/auth-utils";
-import { logError } from "@/lib/logger";
+import path from "path";
+import { promises as fs } from "fs";
 // @ts-expect-error archiver has no type declarations
 import archiver from "archiver";
+import { AlignmentType, Document, HeadingLevel, Packer, Paragraph, TextRun } from "docx";
+import { PDFDocument, StandardFonts, rgb, PDFFont } from "pdf-lib";
+import { isValidUUID } from "@/lib/auth-utils";
+import { logError } from "@/lib/logger";
+import { buildNarrativeBlocks } from "@/lib/authorization-pack-export";
 import {
-  Document,
-  Packer,
-  Paragraph,
-  TextRun,
-  HeadingLevel,
-  PageBreak,
-  AlignmentType,
-} from "docx";
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
-import { htmlToText } from "@/lib/authorization-pack-export";
-import fs from "fs/promises";
-import path from "path";
+  getAnnexIndexRows,
+  getNarrativeExportRows,
+  getPack,
+  getPackReadiness,
+  listEvidenceFilesForZip,
+  listEvidenceVersionFilesForZip,
+} from "@/lib/authorization-pack-db";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type SectionData = any;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type EvidenceData = any;
+const storageRoot = path.resolve(process.cwd(), "storage", "authorization-pack");
 
 function sanitizeFilename(name: string): string {
   return name.replace(/[^a-z0-9-_\.]+/gi, "-").replace(/-+/g, "-").toLowerCase();
 }
 
-function wrapTextForPdf(text: string, maxWidth: number, fontSize: number): string[] {
-  const avgCharWidth = fontSize * 0.5;
-  const charsPerLine = Math.floor(maxWidth / avgCharWidth);
-  const words = text.split(" ");
-  const lines: string[] = [];
-  let currentLine = "";
+function sanitizeFileSegment(value: string): string {
+  return value.replace(/[^a-zA-Z0-9._-]/g, "_");
+}
 
-  for (const word of words) {
-    const testLine = currentLine ? `${currentLine} ${word}` : word;
-    if (testLine.length > charsPerLine && currentLine) {
-      lines.push(currentLine);
-      currentLine = word;
-    } else {
-      currentLine = testLine;
+function renderMarkdown(blocks: ReturnType<typeof buildNarrativeBlocks>) {
+  const lines: string[] = [];
+  for (const block of blocks) {
+    if (block.type === "title") {
+      lines.push(`# ${block.text}`, "");
+      continue;
+    }
+    if (block.type === "section") {
+      lines.push(`## ${block.text}`, "");
+      continue;
+    }
+    if (block.type === "prompt") {
+      lines.push(`### ${block.text}`, "");
+      continue;
+    }
+    if (block.type === "text") {
+      lines.push(block.text || "", "");
     }
   }
-  if (currentLine) {
-    lines.push(currentLine);
+  return lines.join("\n").trim() + "\n";
+}
+
+function escapeCsv(value: string | null | undefined) {
+  const safe = (value ?? "").toString();
+  if (safe.includes(",") || safe.includes("\"") || safe.includes("\n")) {
+    return `"${safe.replace(/\"/g, "\"\"")}"`;
   }
+  return safe;
+}
+
+function buildAnnexCsv(rows: Array<{ annex_number: string | null; section_title: string | null; name: string; status: string; version: number | null; file_path: string | null; }>) {
+  const header = ["Annex", "Section", "Evidence", "Status", "Version", "File"].join(",");
+  const body = rows
+    .map((row) =>
+      [
+        escapeCsv(row.annex_number ?? ""),
+        escapeCsv(row.section_title ?? "General"),
+        escapeCsv(row.name),
+        escapeCsv(row.status),
+        escapeCsv(row.version?.toString() ?? ""),
+        escapeCsv(row.file_path ? row.file_path.split("/").pop() : ""),
+      ].join(",")
+    )
+    .join("\n");
+  return `${header}\n${body}`;
+}
+
+function wrapText(text: string, font: PDFFont, fontSize: number, maxWidth: number) {
+  const words = text.split(/\s+/).filter(Boolean);
+  if (words.length === 0) {
+    return [""];
+  }
+
+  const lines: string[] = [];
+  let current = words[0];
+  for (let i = 1; i < words.length; i += 1) {
+    const next = `${current} ${words[i]}`;
+    if (font.widthOfTextAtSize(next, fontSize) <= maxWidth) {
+      current = next;
+    } else {
+      lines.push(current);
+      current = words[i];
+    }
+  }
+  lines.push(current);
   return lines;
 }
 
-function extractNarrativeText(section: SectionData): string {
-  const narrative = section.narrative_content;
-  if (narrative && typeof narrative === "object") {
-    const parts: string[] = [];
-    for (const [key, value] of Object.entries(narrative)) {
-      const text = typeof value === "string" ? htmlToText(value.trim()) : "";
-      if (text) {
-        parts.push(`${key}: ${text}`);
-      }
+async function buildDocxBuffer(
+  packName: string,
+  blocks: ReturnType<typeof buildNarrativeBlocks>,
+  readiness: { overall: number; narrative: number; evidence: number; review: number }
+) {
+  const children: Paragraph[] = [];
+
+  children.push(
+    new Paragraph({
+      text: packName,
+      heading: HeadingLevel.TITLE,
+      alignment: AlignmentType.CENTER,
+    })
+  );
+  children.push(
+    new Paragraph({
+      children: [new TextRun({ text: "Authorisation Pack Narrative", bold: true })],
+      alignment: AlignmentType.CENTER,
+    })
+  );
+  children.push(
+    new Paragraph({
+      text: `Generated ${new Date().toLocaleDateString("en-GB")}`,
+      alignment: AlignmentType.CENTER,
+    })
+  );
+  children.push(
+    new Paragraph({
+      text: `Readiness: ${readiness.overall}% (Narrative ${readiness.narrative}%, Evidence ${readiness.evidence}%, Review ${readiness.review}%)`,
+      alignment: AlignmentType.CENTER,
+    })
+  );
+
+  for (const block of blocks) {
+    if (block.type === "title") continue;
+    if (block.type === "section") {
+      children.push(new Paragraph({ text: block.text, heading: HeadingLevel.HEADING_1 }));
+      continue;
     }
-    return parts.join("\n\n");
-  }
-  return "";
-}
-
-function generateMarkdownNarrative(packName: string, sections: SectionData[]): string {
-  let output = `# ${packName}\n\n`;
-
-  for (const section of sections) {
-    const sectionTitle = section.template?.name || "Section";
-    output += `## ${sectionTitle}\n\n`;
-
-    const narrative = section.narrative_content;
-    if (narrative && typeof narrative === "object") {
-      for (const [key, value] of Object.entries(narrative)) {
-        const responseValue = typeof value === "string" ? htmlToText(value.trim()) || "_No response yet._" : "_No response yet._";
-        output += `### ${key}\n\n${responseValue}\n\n`;
-      }
-    } else {
-      output += "_No content yet._\n\n";
+    if (block.type === "prompt") {
+      children.push(new Paragraph({ text: block.text, heading: HeadingLevel.HEADING_2 }));
+      continue;
     }
-  }
-
-  return output;
-}
-
-async function generateDocxBuffer(packName: string, sections: SectionData[]): Promise<Buffer> {
-  const sectionParagraphs: Paragraph[] = [];
-
-  for (const sec of sections) {
-    const title = sec.template?.name || "Section";
-    sectionParagraphs.push(
-      new Paragraph({
-        text: title,
-        heading: HeadingLevel.HEADING_2,
-        spacing: { before: 400, after: 200 },
-      })
-    );
-
-    const text = extractNarrativeText(sec);
-    if (text) {
-      for (const block of text.split("\n\n")) {
-        sectionParagraphs.push(
-          new Paragraph({
-            children: [new TextRun({ text: block, size: 24 })],
-            spacing: { after: 200 },
-          })
-        );
-      }
-    } else {
-      sectionParagraphs.push(
-        new Paragraph({
-          children: [new TextRun({ text: "No narrative content.", italics: true, size: 24 })],
-          spacing: { after: 200 },
-        })
-      );
+    if (block.type === "text") {
+      children.push(new Paragraph(block.text || ""));
     }
-
-    sectionParagraphs.push(new Paragraph({ children: [new PageBreak()] }));
   }
 
-  const doc = new Document({
-    sections: [
-      {
-        children: [
-          new Paragraph({
-            text: packName,
-            heading: HeadingLevel.HEADING_1,
-            alignment: AlignmentType.CENTER,
-            spacing: { after: 600 },
-          }),
-          new Paragraph({
-            text: "Business Plan Narrative",
-            heading: HeadingLevel.HEADING_2,
-            alignment: AlignmentType.CENTER,
-            spacing: { after: 400 },
-          }),
-          new Paragraph({
-            children: [new TextRun({ text: `Generated: ${new Date().toISOString().split("T")[0]}`, size: 20 })],
-            alignment: AlignmentType.CENTER,
-            spacing: { after: 800 },
-          }),
-          new Paragraph({ children: [new PageBreak()] }),
-          ...sectionParagraphs,
-        ],
-      },
-    ],
-  });
-
+  const doc = new Document({ sections: [{ children }] });
   return Buffer.from(await Packer.toBuffer(doc));
 }
 
-async function generatePdfBuffer(packName: string, sections: SectionData[]): Promise<Buffer> {
+async function buildPdfBuffer(
+  packName: string,
+  blocks: ReturnType<typeof buildNarrativeBlocks>,
+  readiness: { overall: number; narrative: number; evidence: number; review: number }
+) {
   const pdfDoc = await PDFDocument.create();
-  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-  const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-  const pageWidth = 612;
-  const pageHeight = 792;
-  const margin = 50;
-  const contentWidth = pageWidth - margin * 2;
+  let page = pdfDoc.addPage();
+  const { width, height } = page.getSize();
+  const margin = 48;
+  let y = height - margin;
 
-  // Title page
-  const titlePage = pdfDoc.addPage([pageWidth, pageHeight]);
-  titlePage.drawText(packName, {
-    x: margin,
-    y: pageHeight - 200,
-    size: 24,
-    font: boldFont,
-    color: rgb(0.1, 0.1, 0.1),
-    maxWidth: contentWidth,
-  });
-  titlePage.drawText("Business Plan Narrative", {
-    x: margin,
-    y: pageHeight - 240,
-    size: 16,
-    font,
-    color: rgb(0.3, 0.3, 0.3),
-  });
-  titlePage.drawText(`Generated: ${new Date().toISOString().split("T")[0]}`, {
-    x: margin,
-    y: pageHeight - 280,
-    size: 12,
-    font,
-    color: rgb(0.5, 0.5, 0.5),
-  });
-
-  // Content pages
-  let currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
-  let yPos = pageHeight - margin;
-
-  for (const sec of sections) {
-    const title = sec.template?.name || "Section";
-
-    if (yPos < 150) {
-      currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
-      yPos = pageHeight - margin;
-    }
-
-    currentPage.drawText(title, {
-      x: margin,
-      y: yPos,
-      size: 14,
-      font: boldFont,
-      color: rgb(0.1, 0.1, 0.1),
-    });
-    yPos -= 30;
-
-    const contentText = extractNarrativeText(sec) || "No narrative content.";
-    const lines = wrapTextForPdf(contentText, contentWidth, 11);
+  const drawBlock = (text: string, font: PDFFont, fontSize: number, extraSpacing = 6) => {
+    const maxWidth = width - margin * 2;
+    const lineHeight = fontSize * 1.4;
+    const lines = wrapText(text, font, fontSize, maxWidth);
 
     for (const line of lines) {
-      if (yPos < margin + 20) {
-        currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
-        yPos = pageHeight - margin;
+      if (y - lineHeight < margin) {
+        page = pdfDoc.addPage();
+        y = page.getSize().height - margin;
       }
-      currentPage.drawText(line, {
-        x: margin,
-        y: yPos,
-        size: 11,
-        font,
-        color: rgb(0.2, 0.2, 0.2),
-      });
-      yPos -= 16;
+      page.drawText(line, { x: margin, y, font, size: fontSize, color: rgb(0, 0, 0) });
+      y -= lineHeight;
     }
+    y -= extraSpacing;
+  };
 
-    yPos -= 20;
+  drawBlock(packName, fontBold, 24, 12);
+  drawBlock("Authorisation Pack Narrative", fontBold, 14, 8);
+  drawBlock(`Generated ${new Date().toLocaleDateString("en-GB")}`, fontRegular, 11, 4);
+  drawBlock(
+    `Readiness: ${readiness.overall}% (Narrative ${readiness.narrative}%, Evidence ${readiness.evidence}%, Review ${readiness.review}%)`,
+    fontRegular,
+    11,
+    12
+  );
+
+  for (const block of blocks) {
+    if (block.type === "title") continue;
+    if (block.type === "section") {
+      drawBlock(block.text, fontBold, 13, 8);
+      continue;
+    }
+    if (block.type === "prompt") {
+      drawBlock(block.text, fontBold, 11, 4);
+      continue;
+    }
+    if (block.type === "text") {
+      drawBlock(block.text || "", fontRegular, 10, 3);
+    }
   }
 
   return Buffer.from(await pdfDoc.save());
-}
-
-function generateAnnexCsv(evidence: EvidenceData[]): string {
-  const escapeCSV = (val: unknown) => {
-    const str = String(val ?? "");
-    if (str.includes(",") || str.includes('"') || str.includes("\n")) {
-      return `"${str.replace(/"/g, '""')}"`;
-    }
-    return str;
-  };
-
-  const rows: string[] = [
-    "Annex Number,Section,Evidence Name,Status,Version,Filename",
-  ];
-
-  for (const ev of evidence) {
-    const annexNum = ev.annex_number ?? "";
-    const section = ev.section_code ?? "";
-    const name = ev.name ?? "";
-    const status = ev.status ?? "";
-    const version = ev.version ?? "";
-    const filename = ev.storage_key ? path.basename(ev.storage_key) : "";
-    rows.push(
-      [annexNum, section, name, status, version, filename].map(escapeCSV).join(",")
-    );
-  }
-
-  return rows.join("\n");
 }
 
 export async function GET(
@@ -264,31 +210,25 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { auth, error } = await requireAuth();
-    if (error) return error;
-
-    await initDatabase();
     const { id } = await params;
 
     if (!isValidUUID(id)) {
       return NextResponse.json({ error: "Invalid pack ID format" }, { status: 400 });
     }
 
-    const pack = await getAuthorizationPack(id);
+    const pack = await getPack(id);
     if (!pack) {
       return NextResponse.json({ error: "Pack not found" }, { status: 404 });
     }
-    if (pack.organization_id !== auth.organizationId) {
-      return NextResponse.json({ error: "Access denied" }, { status: 403 });
-    }
 
-    const sections = await getPackSections(id);
-    const evidence = await getProjectDocuments(id);
+    const rows = await getNarrativeExportRows(id);
+    const blocks = buildNarrativeBlocks(pack.name, rows);
+    const readiness = await getPackReadiness(id);
+    const annexRows = await getAnnexIndexRows(id);
 
     const safeName = sanitizeFilename(pack.name || "pack");
     const timestamp = new Date().toISOString().split("T")[0];
 
-    // Create the batch ZIP archive
     const archive = archiver("zip", { zlib: { level: 6 } });
     const chunks: Buffer[] = [];
 
@@ -297,51 +237,71 @@ export async function GET(
       throw err;
     });
 
-    // Generate and add narrative files
-    const mdContent = generateMarkdownNarrative(pack.name, sections);
-    archive.append(mdContent, { name: `${safeName}-narrative.md` });
+    const markdown = renderMarkdown(blocks);
+    archive.append(markdown, { name: `${safeName}-narrative.md` });
 
-    const docxBuffer = await generateDocxBuffer(pack.name, sections);
+    const docxBuffer = await buildDocxBuffer(pack.name, blocks, readiness);
     archive.append(docxBuffer, { name: `${safeName}-narrative.docx` });
 
-    const pdfBuffer = await generatePdfBuffer(pack.name, sections);
+    const pdfBuffer = await buildPdfBuffer(pack.name, blocks, readiness);
     archive.append(pdfBuffer, { name: `${safeName}-narrative.pdf` });
 
-    // Generate and add annex index
-    const csvContent = generateAnnexCsv(evidence);
-    archive.append(csvContent, { name: `${safeName}-annex-index.csv` });
+    const annexCsv = buildAnnexCsv(annexRows);
+    archive.append(annexCsv, { name: `${safeName}-annex-index.csv` });
 
-    // Add evidence files (if they exist)
-    const uploadDir = path.resolve(process.cwd(), "uploads", "evidence");
-    for (const ev of evidence) {
-      if (ev.storage_key) {
-        const filename = path.basename(ev.storage_key);
-        // Security: Resolve full path and verify it's within the upload directory
-        const filePath = path.resolve(uploadDir, filename);
-        if (!filePath.startsWith(uploadDir + path.sep)) {
-          // Path traversal attempt - skip this file
-          continue;
-        }
-        try {
-          await fs.access(filePath);
-          const sectionFolder = sanitizeFilename(ev.section_code || "uncategorized");
-          const versionPrefix = `v${String(ev.version ?? 1).padStart(2, "0")}`;
-          archive.file(filePath, { name: `evidence/${sectionFolder}/${versionPrefix}-${filename}` });
-        } catch {
-          // File doesn't exist, skip
-        }
+    const versionFiles = await listEvidenceVersionFilesForZip(id);
+    const itemFiles = await listEvidenceFilesForZip(id);
+    const documents = versionFiles.length
+      ? versionFiles.map((doc) => ({
+          annex_number: doc.annex_number,
+          section_title: doc.section_title,
+          evidence_name: doc.evidence_name,
+          status: doc.status,
+          version: doc.version,
+          filename: doc.filename,
+          file_path: doc.file_path,
+        }))
+      : itemFiles.map((doc) => ({
+          annex_number: doc.annex_number,
+          section_title: "General",
+          evidence_name: doc.name,
+          status: "uploaded",
+          version: 1,
+          filename: doc.file_path ? String(doc.file_path).split("/").pop() : doc.name,
+          file_path: doc.file_path,
+        }));
+
+    for (const doc of documents) {
+      if (!doc.file_path) continue;
+      const filePath = path.resolve(storageRoot, String(doc.file_path));
+      if (!filePath.startsWith(storageRoot + path.sep) && filePath !== storageRoot) {
+        continue;
       }
+      try {
+        await fs.access(filePath);
+      } catch {
+        continue;
+      }
+
+      const sectionFolder = sanitizeFileSegment(String(doc.section_title ?? "general"));
+      const baseName = sanitizeFileSegment(String(doc.filename ?? doc.evidence_name ?? path.basename(filePath)));
+      const versionLabel = `v${String(doc.version ?? 1).padStart(2, "0")}`;
+      const zipPath = path.posix.join("evidence", sectionFolder, `${versionLabel}-${baseName}`);
+      archive.file(filePath, { name: zipPath });
     }
 
-    // Add manifest
     const manifest = {
       packId: id,
       packName: pack.name,
       exportDate: new Date().toISOString(),
       contents: {
-        narrative: [`${safeName}-narrative.md`, `${safeName}-narrative.docx`, `${safeName}-narrative.pdf`],
+        narrative: [
+          `${safeName}-narrative.md`,
+          `${safeName}-narrative.docx`,
+          `${safeName}-narrative.pdf`,
+        ],
         annexIndex: `${safeName}-annex-index.csv`,
-        evidenceCount: evidence.filter((e: EvidenceData) => e.storage_key).length,
+        evidenceCount: documents.filter((doc) => doc.file_path).length,
       },
     };
     archive.append(JSON.stringify(manifest, null, 2), { name: "manifest.json" });

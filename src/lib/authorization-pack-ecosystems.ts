@@ -1,6 +1,6 @@
 import { PackType } from "@/lib/authorization-pack-templates";
 
-export type PermissionCode = "payments" | "investment" | "consumer-credit" | "insurance" | "crypto";
+export type PermissionCode = "payments" | "investments" | "consumer-credit" | "insurance" | "crypto";
 
 export interface PermissionEcosystemTemplate {
   code: PermissionCode;
@@ -17,21 +17,68 @@ export const PERMISSION_ECOSYSTEMS: PermissionEcosystemTemplate[] = [
   {
     code: "payments",
     name: "Payment Services",
-    description: "Payments/EMI authorization with safeguarding and operational resilience focus.",
+    description: "Payments/EMI authorization with safeguarding, consumer duty, and operational resilience focus.",
     packTemplateType: "payments-emi",
-    policyTemplates: ["AML Policy", "Safeguarding Policy", "Complaints Policy", "Financial Promotions Policy"],
-    trainingRequirements: ["AML Training", "Consumer Duty Training", "Operational Resilience Training"],
-    smcrRoles: ["SMF16 (Compliance Oversight)", "SMF17 (MLRO)", "SMF1 (CEO)"],
+    policyTemplates: [
+      "AML_CTF",
+      "SAFEGUARDING",
+      "COMPLAINTS",
+      "FIN_PROMOTIONS",
+      "CONSUMER_DUTY",
+      "VULNERABLE_CUST",
+      "BCP_RESILIENCE",
+      "RISK_MGMT"
+    ],
+    trainingRequirements: [
+      "aml-training",
+      "kyc-fundamentals",
+      "sanctions-training",
+      "peps-training",
+      "sars-training",
+      "payments-regulation",
+      "consumer-duty-training",
+      "vulnerable-customers",
+      "complaints-handling",
+      "operational-resilience-framework",
+      "financial-promotions",
+      "outsourcing-third-party",
+      "smcr-training"
+    ],
+    smcrRoles: ["SMF16", "SMF17", "SMF29"],
     typicalTimelineWeeks: 14,
   },
   {
-    code: "investment",
+    code: "investments",
     name: "Investment Services",
     description: "Investment firm authorization covering suitability and best execution.",
     packTemplateType: "investment",
-    policyTemplates: ["AML Policy", "Conflicts of Interest Policy", "Best Execution Policy"],
-    trainingRequirements: ["AML Training", "Conduct Risk Training"],
-    smcrRoles: ["SMF16 (Compliance Oversight)", "SMF17 (MLRO)", "SMF3 (Executive Director)"],
+    policyTemplates: [
+      "AML_CTF",
+      "CONFLICTS",
+      "BEST_EXECUTION",
+      "SUITABILITY_ADVICE",
+      "FIN_PROMOTIONS",
+      "CONSUMER_DUTY",
+      "VULNERABLE_CUST",
+      "COMPLAINTS",
+      "RISK_MGMT",
+      "BCP_RESILIENCE"
+    ],
+    trainingRequirements: [
+      "aml-training",
+      "kyc-fundamentals",
+      "sanctions-training",
+      "mifid-training",
+      "investment-advice",
+      "client-categorisation",
+      "financial-promotions",
+      "consumer-duty-training",
+      "vulnerable-customers",
+      "complaints-handling",
+      "operational-resilience-framework",
+      "smcr-training"
+    ],
+    smcrRoles: ["SMF3", "SMF16", "SMF17", "SMF24"],
     typicalTimelineWeeks: 16,
   },
   {
@@ -39,9 +86,31 @@ export const PERMISSION_ECOSYSTEMS: PermissionEcosystemTemplate[] = [
     name: "Consumer Credit",
     description: "Consumer credit permissions with affordability and vulnerability focus.",
     packTemplateType: "consumer-credit",
-    policyTemplates: ["AML Policy", "Affordability Policy", "Complaints Policy"],
-    trainingRequirements: ["AML Training", "Consumer Duty Training"],
-    smcrRoles: ["SMF16 (Compliance Oversight)", "SMF17 (MLRO)"],
+    policyTemplates: [
+      "AML_CTF",
+      "RESPONSIBLE_LENDING",
+      "ARREARS_MANAGEMENT",
+      "COMPLAINTS",
+      "CONSUMER_DUTY",
+      "VULNERABLE_CUST",
+      "FIN_PROMOTIONS",
+      "RISK_MGMT",
+      "BCP_RESILIENCE"
+    ],
+    trainingRequirements: [
+      "aml-training",
+      "kyc-fundamentals",
+      "sanctions-training",
+      "consumer-credit-training",
+      "consumer-duty-training",
+      "vulnerable-customers",
+      "complaints-handling",
+      "financial-promotions",
+      "operational-resilience",
+      "operational-resilience-framework",
+      "smcr-training"
+    ],
+    smcrRoles: ["SMF16", "SMF17"],
     typicalTimelineWeeks: 12,
   },
   {
@@ -49,9 +118,29 @@ export const PERMISSION_ECOSYSTEMS: PermissionEcosystemTemplate[] = [
     name: "Insurance Distribution",
     description: "Insurance distribution permissions with PROD and oversight.",
     packTemplateType: "insurance-distribution",
-    policyTemplates: ["AML Policy", "PROD Policy", "Complaints Policy"],
-    trainingRequirements: ["AML Training", "Insurance Conduct Training"],
-    smcrRoles: ["SMF16 (Compliance Oversight)", "SMF17 (MLRO)"],
+    policyTemplates: [
+      "AML_CTF",
+      "PROD",
+      "COMPLAINTS",
+      "CONSUMER_DUTY",
+      "VULNERABLE_CUST",
+      "FIN_PROMOTIONS",
+      "RISK_MGMT",
+      "BCP_RESILIENCE"
+    ],
+    trainingRequirements: [
+      "aml-training",
+      "kyc-fundamentals",
+      "sanctions-training",
+      "insurance-conduct",
+      "financial-promotions",
+      "consumer-duty-training",
+      "vulnerable-customers",
+      "complaints-handling",
+      "operational-resilience-framework",
+      "smcr-training"
+    ],
+    smcrRoles: ["SMF16", "SMF17"],
     typicalTimelineWeeks: 14,
   },
   {
@@ -59,9 +148,25 @@ export const PERMISSION_ECOSYSTEMS: PermissionEcosystemTemplate[] = [
     name: "Cryptoasset Registration",
     description: "Crypto registration with AML/CTF emphasis.",
     packTemplateType: "crypto-registration",
-    policyTemplates: ["AML Policy", "Sanctions Policy", "Risk Assessment Policy"],
-    trainingRequirements: ["AML Training", "Cryptoasset Risk Training"],
-    smcrRoles: ["SMF16 (Compliance Oversight)", "SMF17 (MLRO)"],
+    policyTemplates: [
+      "AML_CTF",
+      "FIN_PROMOTIONS",
+      "RISK_MGMT",
+      "BCP_RESILIENCE",
+      "COMPLAINTS"
+    ],
+    trainingRequirements: [
+      "aml-training",
+      "sanctions-training",
+      "kyc-fundamentals",
+      "peps-training",
+      "sars-training",
+      "cryptoasset-risk",
+      "financial-promotions",
+      "operational-resilience-framework",
+      "smcr-training"
+    ],
+    smcrRoles: ["SMF16", "SMF17"],
     typicalTimelineWeeks: 16,
   },
 ];

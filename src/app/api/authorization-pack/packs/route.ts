@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthorizationPacks, createAuthorizationPack, getPackTemplates, initDatabase, seedPackTemplates } from "@/lib/database";
+import { createPack, getPack, getPackTemplates, getPacks } from "@/lib/authorization-pack-db";
 import { requireAuth } from "@/lib/auth-utils";
 
 export async function GET() {
@@ -8,20 +8,17 @@ export async function GET() {
     const { auth, error } = await requireAuth();
     if (error) return error;
 
-    await initDatabase();
-    await seedPackTemplates();
-
-    const packs = await getAuthorizationPacks(auth.organizationId);
+    const packs = await getPacks(auth.organizationId);
 
     // Transform to expected format
-    const formattedPacks = packs.map(pack => ({
+    const formattedPacks = packs.map((pack) => ({
       id: pack.id,
       name: pack.name,
       status: pack.status,
       target_submission_date: pack.target_submission_date,
       created_at: pack.created_at,
       updated_at: pack.updated_at,
-      template_type: pack.template_name,
+      template_type: pack.template_type,
       template_name: pack.template_name,
     }));
 
@@ -39,9 +36,6 @@ export async function POST(request: NextRequest) {
     // Authenticate the request
     const { auth, error } = await requireAuth();
     if (error) return error;
-
-    await initDatabase();
-    await seedPackTemplates();
 
     const body = await request.json();
     const templateType = body.templateType;
@@ -61,21 +55,21 @@ export async function POST(request: NextRequest) {
 
     // Get template by code or pack_type
     const templates = await getPackTemplates();
-    const template = templates.find(t => t.code === templateType || t.pack_type === templateType);
+    const template = templates.find((t) => t.type === templateType || t.code === templateType);
 
     if (!template) {
       return NextResponse.json({ error: "Invalid template type" }, { status: 400 });
     }
 
-    const pack = await createAuthorizationPack({
-      organization_id: auth.organizationId,
-      pack_template_id: template.id,
+    const created = await createPack({
+      organizationId: auth.organizationId,
+      templateType: template.type,
       name,
-      target_submission_date: targetSubmissionDate ? new Date(targetSubmissionDate) : undefined,
-      created_by: auth.userId || undefined,
+      targetSubmissionDate,
     });
+    const pack = await getPack(created.id);
 
-    return NextResponse.json({ pack }, { status: 201 });
+    return NextResponse.json({ pack: pack ?? { id: created.id } }, { status: 201 });
   } catch (error) {
     return NextResponse.json(
       { error: "Failed to create pack", details: error instanceof Error ? error.message : "Unknown error" },

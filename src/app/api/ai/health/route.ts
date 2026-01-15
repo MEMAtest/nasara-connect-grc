@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
+import { requireAuth } from "@/lib/auth-utils";
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const DEFAULT_MODEL = process.env.OPENROUTER_MODEL ?? "openai/gpt-4o-mini";
 
 export async function GET() {
+  const { error } = await requireAuth();
+  if (error) return error;
+
   if (!process.env.OPENROUTER_API_KEY) {
     return NextResponse.json({ ok: false, error: "Missing OPENROUTER_API_KEY" }, { status: 500 });
   }

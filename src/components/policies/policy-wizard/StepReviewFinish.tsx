@@ -112,7 +112,18 @@ export function StepReviewFinish({
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 relative">
+      {/* Loading Overlay */}
+      {isSubmitting && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
+          <div className="rounded-2xl bg-white p-8 shadow-xl text-center">
+            <Loader2 className="mx-auto h-12 w-12 animate-spin text-indigo-600" />
+            <p className="mt-4 text-lg font-semibold text-slate-900">Generating your policy...</p>
+            <p className="mt-2 text-sm text-slate-500">This may take a moment. Please don&apos;t close this page.</p>
+          </div>
+        </div>
+      )}
+
       {/* Summary Header */}
       <div className="rounded-2xl bg-gradient-to-br from-indigo-50 via-white to-teal-50 p-6">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
