@@ -86,7 +86,13 @@ export async function PATCH(
       return NextResponse.json({ error: "Invalid task ID format" }, { status: 400 });
     }
 
-    await updatePackTask(taskId, { status });
+    // Validate status value
+    const validStatuses = ["pending", "in_progress", "completed", "blocked"] as const;
+    if (!validStatuses.includes(status as typeof validStatuses[number])) {
+      return NextResponse.json({ error: "Invalid status value" }, { status: 400 });
+    }
+
+    await updatePackTask(taskId, { status: status as typeof validStatuses[number] });
     return NextResponse.json({ status: "ok" });
   } catch (error) {
     return NextResponse.json(

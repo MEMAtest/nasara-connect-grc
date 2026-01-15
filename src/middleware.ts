@@ -1,13 +1,14 @@
 import { auth } from "@/auth"
 import { NextResponse } from "next/server"
 
-// Auth temporarily disabled - set to false to re-enable login
-const AUTH_DISABLED = true
+// Auth controlled via environment variable AUTH_DISABLED
+// Set AUTH_DISABLED=true in .env for development, remove for production
+const isAuthDisabled = () => process.env.AUTH_DISABLED === "true" || process.env.AUTH_DISABLED === "1";
 
 export default auth((req) => {
   const { pathname } = req.nextUrl
 
-  if (AUTH_DISABLED) {
+  if (isAuthDisabled()) {
     if (pathname.startsWith('/auth/login') || pathname.startsWith('/auth/error')) {
       const response = NextResponse.redirect(new URL('/authorization-pack', req.url))
       response.headers.set('X-Robots-Tag', 'noindex, nofollow')

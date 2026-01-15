@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
-import { getNarrativeExportRows, getPack, getPackReadiness } from "@/lib/authorization-pack-db";
-import { buildNarrativeBlocks, extractSectionTitles } from "@/lib/authorization-pack-export";
+import { PDFDocument, StandardFonts, rgb, PDFFont } from "pdf-lib";
+import { initDatabase, getAuthorizationPack, getPackSections } from "@/lib/database";
+import { requireAuth, isValidUUID } from "@/lib/auth-utils";
 
 function sanitizeFilename(input: string) {
   return input.replace(/[^a-z0-9-_]+/gi, "-").replace(/-+/g, "-").toLowerCase();
 }
 
-function wrapText(text: string, font: any, fontSize: number, maxWidth: number) {
+function wrapText(text: string, font: PDFFont, fontSize: number, maxWidth: number) {
   const words = text.split(/\s+/).filter(Boolean);
   if (words.length === 0) {
     return [""];
@@ -28,21 +28,46 @@ function wrapText(text: string, font: any, fontSize: number, maxWidth: number) {
   return lines;
 }
 
+// Calculate readiness from sections
+function calculateReadiness(sections: { status: string; progress_percentage: number }[]) {
+  if (!sections || sections.length === 0) {
+    return { overall: 0, narrative: 0, evidence: 0, review: 0 };
+  }
+  const total = sections.length;
+  const narrative = Math.round(sections.reduce((sum, s) => sum + (s.progress_percentage || 0), 0) / total);
+  const approved = sections.filter((s) => s.status === "approved").length;
+  const review = Math.round((approved / total) * 100);
+  const evidence = Math.round((narrative + review) / 2);
+  const overall = Math.round(narrative * 0.4 + evidence * 0.3 + review * 0.3);
+  return { overall, narrative, evidence, review };
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
+
+    await initDatabase();
     const { id } = await params;
-    const pack = await getPack(id);
+
+    if (!isValidUUID(id)) {
+      return NextResponse.json({ error: "Invalid pack ID format" }, { status: 400 });
+    }
+
+    const pack = await getAuthorizationPack(id);
     if (!pack) {
       return NextResponse.json({ error: "Pack not found" }, { status: 404 });
     }
 
-    const rows = await getNarrativeExportRows(id);
-    const blocks = buildNarrativeBlocks(pack.name, rows);
-    const sectionTitles = extractSectionTitles(rows);
-    const readiness = await getPackReadiness(id);
+    if (pack.organization_id !== auth.organizationId) {
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
+    }
+
+    const sections = await getPackSections(id);
+    const readiness = calculateReadiness(sections);
     const generatedAt = new Date().toLocaleDateString();
 
     const pdfDoc = await PDFDocument.create();
@@ -54,7 +79,7 @@ export async function GET(
     const margin = 48;
     let y = height - margin;
 
-    const drawBlock = (text: string, font: any, fontSize: number, extraSpacing = 6) => {
+    const drawBlock = (text: string, font: PDFFont, fontSize: number, extraSpacing = 6) => {
       const maxWidth = width - margin * 2;
       const lineHeight = fontSize * 1.4;
       const lines = wrapText(text, font, fontSize, maxWidth);
@@ -70,6 +95,7 @@ export async function GET(
       y -= extraSpacing;
     };
 
+    // Title page
     page.drawText(pack.name, {
       x: margin,
       y,
@@ -105,40 +131,40 @@ export async function GET(
       }
     );
 
+    // Contents page
     page = pdfDoc.addPage();
     y = page.getSize().height - margin;
     drawBlock("Contents", fontBold, 16, 10);
-    sectionTitles.forEach((title, index) => {
+    sections.forEach((section, index) => {
+      const title = section.template?.name || "Section";
       drawBlock(`${index + 1}. ${title}`, fontRegular, 11, 4);
     });
 
+    // Content pages
     page = pdfDoc.addPage();
     y = page.getSize().height - margin;
 
-    for (const block of blocks) {
-      if (!block.text) {
-        y -= 8;
-        continue;
-      }
+    for (const section of sections) {
+      const sectionTitle = section.template?.name || "Section";
+      drawBlock(sectionTitle, fontBold, 14, 10);
 
-      if (block.type === "title") {
-        continue;
+      const narrative = section.narrative_content;
+      if (narrative && typeof narrative === 'object') {
+        for (const [key, value] of Object.entries(narrative)) {
+          drawBlock(key, fontBold, 12, 6);
+          const responseValue = (value as string)?.trim() || "No response yet.";
+          drawBlock(responseValue, fontRegular, 11, 4);
+        }
+      } else {
+        drawBlock("No content yet.", fontRegular, 11, 4);
       }
-      if (block.type === "section") {
-        drawBlock(block.text, fontBold, 14, 10);
-        continue;
-      }
-      if (block.type === "prompt") {
-        drawBlock(block.text, fontBold, 12, 6);
-        continue;
-      }
-      drawBlock(block.text, fontRegular, 11, 4);
+      y -= 8;
     }
 
     const pdfBytes = await pdfDoc.save();
     const filename = `${sanitizeFilename(pack.name)}-narrative.pdf`;
 
-    return new NextResponse(pdfBytes, {
+    return new NextResponse(Buffer.from(pdfBytes), {
       headers: {
         "Content-Type": "application/pdf",
         "Content-Disposition": `attachment; filename="${filename}"`,

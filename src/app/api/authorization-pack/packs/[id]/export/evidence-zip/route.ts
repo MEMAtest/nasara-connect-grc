@@ -1,16 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import path from "path";
 import { promises as fs } from "fs";
+// @ts-expect-error archiver does not have types
 import archiver from "archiver";
 import { PassThrough, Readable } from "stream";
-import {
-  getAnnexIndexRows,
-  getPack,
-  listEvidenceFilesForZip,
-  listEvidenceVersionFilesForZip,
-} from "@/lib/authorization-pack-db";
+import { initDatabase, getAuthorizationPack, getProjectDocuments, ProjectDocument } from "@/lib/database";
+import { requireAuth, isValidUUID } from "@/lib/auth-utils";
 
-const storageRoot = path.join(process.cwd(), "storage", "authorization-pack");
+// Define storage root as absolute path
+const storageRoot = path.resolve(process.cwd(), "storage", "authorization-pack");
 
 function sanitizeFilename(input: string) {
   return input.replace(/[^a-z0-9-_]+/gi, "-").replace(/-+/g, "-").toLowerCase();
@@ -28,75 +26,49 @@ function escapeCsv(value: string | null | undefined) {
   return safe;
 }
 
-function buildAnnexCsv(rows: Array<Record<string, unknown>>) {
-  const header = ["Annex", "Section", "Evidence", "Status", "Version", "File"].join(",");
-  const body = rows
-    .map((row) =>
-      [
-        escapeCsv(row.annex_number as string),
-        escapeCsv(row.section_title as string),
-        escapeCsv(row.name as string),
-        escapeCsv(row.status as string),
-        escapeCsv(row.version ? String(row.version) : ""),
-        escapeCsv(row.file_path ? String(row.file_path).split("/").pop() : ""),
-      ].join(",")
-    )
-    .join("\n");
-  return `${header}\n${body}`;
-}
-
-function buildManifestCsv(rows: Array<Record<string, unknown>>) {
+function buildManifestCsv(documents: ProjectDocument[]) {
   const header = [
     "Annex",
     "Section",
     "Evidence",
     "Status",
-    "Owner",
-    "Due date",
-    "Review state",
     "Version",
     "Uploaded",
     "File",
     "Size",
   ].join(",");
-  const body = rows
-    .map((row) =>
+  const body = documents
+    .map((doc, index) =>
       [
-        escapeCsv(row.annex_number as string),
-        escapeCsv(row.section_title as string),
-        escapeCsv(row.evidence_name as string),
-        escapeCsv(row.status as string),
-        escapeCsv(row.owner_id ? String(row.owner_id) : ""),
-        escapeCsv(row.due_date ? String(row.due_date) : ""),
-        escapeCsv(row.review_state ? String(row.review_state) : ""),
-        escapeCsv(row.version ? `v${row.version}` : ""),
-        escapeCsv(row.uploaded_at ? String(row.uploaded_at) : ""),
-        escapeCsv(row.filename as string),
-        escapeCsv(row.file_size ? String(row.file_size) : ""),
+        escapeCsv(`A${(index + 1).toString().padStart(3, '0')}`),
+        escapeCsv(doc.section_code || "General"),
+        escapeCsv(doc.name),
+        escapeCsv(doc.status),
+        escapeCsv(`v${doc.version}`),
+        escapeCsv(doc.uploaded_at ? new Date(doc.uploaded_at).toISOString() : ""),
+        escapeCsv(doc.storage_key ? doc.storage_key.split("/").pop() : ""),
+        escapeCsv(doc.file_size_bytes ? String(doc.file_size_bytes) : ""),
       ].join(",")
     )
     .join("\n");
   return `${header}\n${body}`;
 }
 
-function buildManifestJson(pack: { id: string; name: string }, rows: Array<Record<string, unknown>>) {
+function buildManifestJson(pack: { id: string; name: string }, documents: Array<Record<string, unknown>>) {
   return JSON.stringify(
     {
       packId: pack.id,
       packName: pack.name,
       generatedAt: new Date().toISOString(),
-      entries: rows.map((row) => ({
-        annexNumber: row.annex_number ?? null,
-        sectionTitle: row.section_title ?? null,
-        evidenceName: row.evidence_name ?? null,
-        status: row.status ?? null,
-        ownerId: row.owner_id ?? null,
-        dueDate: row.due_date ?? null,
-        reviewState: row.review_state ?? null,
-        version: row.version ?? null,
-        uploadedAt: row.uploaded_at ?? null,
-        filename: row.filename ?? null,
-        fileSize: row.file_size ?? null,
+      entries: documents.map((doc, index) => ({
+        annexNumber: `A${(index + 1).toString().padStart(3, '0')}`,
+        sectionCode: doc.section_code || "General",
+        evidenceName: doc.name,
+        status: doc.status,
+        version: doc.version,
+        uploadedAt: doc.uploaded_at,
+        filename: doc.storage_key ? String(doc.storage_key).split("/").pop() : null,
+        fileSize: doc.file_size_bytes ?? null,
       })),
     },
     null,
@@ -109,72 +81,69 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
+
+    await initDatabase();
     const { id } = await params;
-    const pack = await getPack(id);
+
+    if (!isValidUUID(id)) {
+      return NextResponse.json({ error: "Invalid pack ID format" }, { status: 400 });
+    }
+
+    const pack = await getAuthorizationPack(id);
     if (!pack) {
       return NextResponse.json({ error: "Pack not found" }, { status: 404 });
     }
 
-    const files = await listEvidenceFilesForZip(id);
-    const versions = await listEvidenceVersionFilesForZip(id);
-    const annexRows = await getAnnexIndexRows(id);
-    const annexCsv = buildAnnexCsv(annexRows);
-    const manifestCsv = buildManifestCsv(versions);
-    const manifestJson = buildManifestJson(pack, versions);
+    if (pack.organization_id !== auth.organizationId) {
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
+    }
+
+    const documents = await getProjectDocuments(id);
+    const manifestCsv = buildManifestCsv(documents);
+    const manifestJson = buildManifestJson(pack, documents as unknown as Array<Record<string, unknown>>);
 
     const archive = archiver("zip", { zlib: { level: 9 } });
     const passthrough = new PassThrough();
-    archive.on("warning", (error) => {
+    archive.on("warning", (error: Error & { code?: string }) => {
       if (error.code !== "ENOENT") {
         passthrough.destroy(error);
       }
     });
-    archive.on("error", (error) => {
+    archive.on("error", (error: Error) => {
       passthrough.destroy(error);
     });
     archive.pipe(passthrough);
 
-    archive.append(annexCsv, { name: "annex-index.csv" });
     archive.append(manifestCsv, { name: "manifest.csv" });
     archive.append(manifestJson, { name: "manifest.json" });
 
-    if (!files.length && !versions.length) {
+    if (!documents.length) {
       archive.append("No evidence uploaded yet.", { name: "README.txt" });
     }
 
-    const includedPaths = new Set<string>();
-    for (const version of versions) {
-      const filePath = version.file_path as string;
-      if (!filePath || !filePath.startsWith(storageRoot)) {
-        continue;
-      }
-      try {
-        await fs.access(filePath);
-      } catch {
-        continue;
-      }
-      const annexFolder = version.annex_number ? sanitizeFileSegment(version.annex_number) : "unassigned";
-      const evidenceLabel = sanitizeFileSegment(version.evidence_name || "evidence");
-      const baseName = sanitizeFileSegment(version.filename || path.basename(filePath));
-      const versionLabel = version.version ? `v${String(version.version).padStart(2, "0")}` : "v00";
-      const zipPath = path.posix.join("evidence", annexFolder, `${versionLabel}-${evidenceLabel}-${baseName}`);
-      archive.file(filePath, { name: zipPath });
-      includedPaths.add(filePath);
-    }
+    for (const doc of documents) {
+      if (!doc.storage_key) continue;
 
-    for (const file of files) {
-      const filePath = file.file_path as string;
-      if (!filePath || includedPaths.has(filePath) || !filePath.startsWith(storageRoot)) {
+      // Resolve the file path and prevent path traversal
+      const filePath = path.resolve(storageRoot, doc.storage_key);
+
+      // Security check: ensure resolved path is within storage root
+      if (!filePath.startsWith(storageRoot + path.sep) && filePath !== storageRoot) {
         continue;
       }
+
       try {
         await fs.access(filePath);
       } catch {
         continue;
       }
-      const annexFolder = file.annex_number ? sanitizeFileSegment(file.annex_number) : "unassigned";
-      const baseName = sanitizeFileSegment(path.basename(filePath));
-      const zipPath = path.posix.join("evidence", annexFolder, `latest-${baseName}`);
+
+      const sectionFolder = doc.section_code ? sanitizeFileSegment(doc.section_code) : "general";
+      const baseName = sanitizeFileSegment(doc.name || path.basename(filePath));
+      const versionLabel = `v${String(doc.version).padStart(2, "0")}`;
+      const zipPath = path.posix.join("evidence", sectionFolder, `${versionLabel}-${baseName}`);
       archive.file(filePath, { name: zipPath });
     }
 
@@ -184,7 +153,7 @@ export async function GET(
     return new NextResponse(Readable.toWeb(passthrough) as ReadableStream, {
       headers: {
         "Content-Type": "application/zip",
-        "Content-Disposition": `attachment; filename=\"${filename}\"`,
+        "Content-Disposition": `attachment; filename="${filename}"`,
       },
     });
   } catch (error) {

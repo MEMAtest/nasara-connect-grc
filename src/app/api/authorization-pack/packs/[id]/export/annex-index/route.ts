@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPack, getAnnexIndexRows } from "@/lib/authorization-pack-db";
+import { initDatabase, getAuthorizationPack, getProjectDocuments } from "@/lib/database";
+import { requireAuth, isValidUUID } from "@/lib/auth-utils";
 
 function sanitizeFilename(input: string) {
   return input.replace(/[^a-z0-9-_]+/gi, "-").replace(/-+/g, "-").toLowerCase();
@@ -18,23 +19,37 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
+
+    await initDatabase();
     const { id } = await params;
-    const pack = await getPack(id);
+
+    if (!isValidUUID(id)) {
+      return NextResponse.json({ error: "Invalid pack ID format" }, { status: 400 });
+    }
+
+    const pack = await getAuthorizationPack(id);
     if (!pack) {
       return NextResponse.json({ error: "Pack not found" }, { status: 404 });
     }
 
-    const rows = await getAnnexIndexRows(id);
+    if (pack.organization_id !== auth.organizationId) {
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
+    }
+
+    const documents = await getProjectDocuments(id);
+
     const header = ["Annex", "Section", "Evidence", "Status", "Version", "File"].join(",");
-    const body = rows
-      .map((row) =>
+    const body = documents
+      .map((doc, index) =>
         [
-          escapeCsv(row.annex_number),
-          escapeCsv(row.section_title),
-          escapeCsv(row.name),
-          escapeCsv(row.status),
-          escapeCsv(row.version?.toString()),
-          escapeCsv(row.file_path ? row.file_path.split("/").pop() : ""),
+          escapeCsv(`A${(index + 1).toString().padStart(3, '0')}`),
+          escapeCsv(doc.section_code || "General"),
+          escapeCsv(doc.name),
+          escapeCsv(doc.status),
+          escapeCsv(doc.version?.toString()),
+          escapeCsv(doc.storage_key ? doc.storage_key.split("/").pop() : ""),
         ].join(",")
       )
       .join("\n");
