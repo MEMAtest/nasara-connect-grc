@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -109,22 +109,39 @@ const defaultPhaseConfig = {
 };
 
 function getWeekDate(startDate: string, weekNumber: number): string {
+  if (!startDate) return "N/A";
   const start = new Date(startDate);
-  const date = new Date(start.getTime() + (weekNumber - 1) * 7 * 24 * 60 * 60 * 1000);
+  if (isNaN(start.getTime())) return "Invalid";
+
+  // Use setDate to handle DST correctly
+  const date = new Date(start);
+  date.setDate(date.getDate() + (weekNumber - 1) * 7);
   return date.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 }
 
 function getCurrentWeek(startDate: string): number {
+  if (!startDate) return 0;
   const start = new Date(startDate);
+  if (isNaN(start.getTime())) return 0;
+
   const today = new Date();
-  const daysSinceStart = Math.floor((today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-  return Math.max(0.5, Math.ceil(daysSinceStart / 7));
+  // Normalize both dates to midnight for accurate day calculation
+  const startNormalized = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+  const todayNormalized = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+  const daysSinceStart = Math.floor((todayNormalized.getTime() - startNormalized.getTime()) / (1000 * 60 * 60 * 24));
+  if (daysSinceStart < 0) return 0; // Project hasn't started yet
+
+  return Math.max(1, Math.ceil((daysSinceStart + 1) / 7));
 }
 
 // Milestone tooltip component
 function MilestoneTooltip({ milestone, config }: { milestone: ProjectMilestone; config: typeof defaultPhaseConfig }) {
   return (
-    <div className="absolute bottom-full left-1/2 z-50 mb-2 hidden w-64 -translate-x-1/2 rounded-lg border border-slate-200 bg-white p-3 shadow-lg group-hover:block">
+    <div
+      role="tooltip"
+      className="absolute bottom-full left-1/2 z-50 mb-2 hidden w-64 -translate-x-1/2 rounded-lg border border-slate-200 bg-white p-3 shadow-lg group-hover:block group-focus:block"
+    >
       <div className="mb-2 flex items-center gap-2">
         <div className={`h-3 w-3 rounded-full ${config.dot}`} />
         <span className={`text-sm font-semibold ${config.text}`}>{milestone.phase}</span>
@@ -180,26 +197,47 @@ export function PlanClient() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const loadProject = async () => {
+  // Ref to track if component is mounted (prevents memory leaks)
+  const isMountedRef = useRef(true);
+
+  const loadProject = useCallback(async () => {
     if (!projectId) return;
     setIsLoading(true);
     setLoadError(null);
     try {
-      const response = await fetchWithTimeout(`/api/authorization-pack/projects/${projectId}`).catch(() => null);
+      const response = await fetchWithTimeout(`/api/authorization-pack/projects/${projectId}`).catch((err) => {
+        console.error("Failed to fetch project:", err);
+        return null;
+      });
+      if (!isMountedRef.current) return; // Abort if unmounted
+
       if (!response || !response.ok) {
         setLoadError("Unable to load project plan. Please try again.");
         return;
       }
       const data = await response.json();
-      setProject(data.project || null);
+      if (isMountedRef.current) {
+        setProject(data.project || null);
+      }
+    } catch (error) {
+      if (isMountedRef.current) {
+        console.error("Error loading project:", error);
+        setLoadError("Unable to load project plan. Please try again.");
+      }
     } finally {
-      setIsLoading(false);
+      if (isMountedRef.current) {
+        setIsLoading(false);
+      }
     }
-  };
+  }, [projectId]);
 
   useEffect(() => {
+    isMountedRef.current = true;
     loadProject();
-  }, [projectId]);
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, [loadProject]);
 
   const plan = project?.projectPlan || {};
   const milestones = Array.isArray(plan.milestones) ? plan.milestones : [];
@@ -226,9 +264,9 @@ export function PlanClient() {
     }));
   }, [totalWeeks, startDate]);
 
-  // Calculate today marker position
+  // Calculate today marker position (with division by zero guard)
   const todayPosition = useMemo(() => {
-    if (currentWeek <= 0) return 0;
+    if (totalWeeks === 0 || currentWeek <= 0) return 0;
     if (currentWeek > totalWeeks) return 100;
     return ((currentWeek - 0.5) / totalWeeks) * 100;
   }, [currentWeek, totalWeeks]);
@@ -239,14 +277,29 @@ export function PlanClient() {
     setLoadError(null);
     try {
       const response = await fetch(`/api/authorization-pack/projects/${projectId}/plan`, { method: "POST" });
+      if (!isMountedRef.current) return;
+
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        setLoadError(errorData.error || "Unable to generate project plan.");
+        let errorMessage = "Unable to generate project plan.";
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          errorMessage = `Server error: ${response.status} ${response.statusText}`;
+        }
+        setLoadError(errorMessage);
         return;
       }
       await loadProject();
+    } catch (error) {
+      if (isMountedRef.current) {
+        console.error("Error generating plan:", error);
+        setLoadError("Network error. Please check your connection and try again.");
+      }
     } finally {
-      setIsGenerating(false);
+      if (isMountedRef.current) {
+        setIsGenerating(false);
+      }
     }
   };
 
@@ -413,8 +466,8 @@ export function PlanClient() {
 
                       {/* Milestone bars */}
                       {items.map((milestone, milestoneIdx) => {
-                        const left = ((milestone.startWeek - 1) / totalWeeks) * 100;
-                        const width = (milestone.durationWeeks / totalWeeks) * 100;
+                        const left = totalWeeks > 0 ? ((milestone.startWeek - 1) / totalWeeks) * 100 : 0;
+                        const width = totalWeeks > 0 ? (milestone.durationWeeks / totalWeeks) * 100 : 0;
                         const status = statusStyles[milestone.status] || statusStyles.pending;
 
                         return (
@@ -428,7 +481,16 @@ export function PlanClient() {
                             }}
                           >
                             <div
-                              className={`relative flex h-8 cursor-pointer items-center justify-between overflow-hidden rounded-md border-2 px-2 shadow-sm transition-all hover:shadow-md ${config.bg} ${config.border} ${status.opacity} ${status.className}`}
+                              role="button"
+                              tabIndex={0}
+                              aria-label={`${milestone.title}: ${milestone.phase}, Week ${milestone.startWeek} to ${milestone.endWeek}, Status: ${milestone.status.replace("-", " ")}`}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                  e.preventDefault();
+                                  // Could open a detail modal in the future
+                                }
+                              }}
+                              className={`relative flex h-8 cursor-pointer items-center justify-between overflow-hidden rounded-md border-2 px-2 shadow-sm transition-all hover:shadow-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-1 ${config.bg} ${config.border} ${status.opacity} ${status.className}`}
                             >
                               {/* Progress fill for completed */}
                               {milestone.status === "complete" && (
