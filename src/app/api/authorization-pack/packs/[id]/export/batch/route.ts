@@ -312,14 +312,16 @@ export async function GET(
     archive.append(csvContent, { name: `${safeName}-annex-index.csv` });
 
     // Add evidence files (if they exist)
-    const uploadDir = path.join(process.cwd(), "uploads", "evidence");
+    const uploadDir = path.resolve(process.cwd(), "uploads", "evidence");
     for (const ev of evidence) {
       if (ev.storage_key) {
         const filename = path.basename(ev.storage_key);
-        if (filename.includes("..") || filename.startsWith("/")) {
-          continue; // Security: skip path traversal attempts
+        // Security: Resolve full path and verify it's within the upload directory
+        const filePath = path.resolve(uploadDir, filename);
+        if (!filePath.startsWith(uploadDir + path.sep)) {
+          // Path traversal attempt - skip this file
+          continue;
         }
-        const filePath = path.join(uploadDir, filename);
         try {
           await fs.access(filePath);
           const sectionFolder = sanitizeFilename(ev.section_code || "uncategorized");

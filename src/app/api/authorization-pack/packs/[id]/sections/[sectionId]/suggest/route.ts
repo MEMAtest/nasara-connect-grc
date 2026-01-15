@@ -5,6 +5,28 @@ import { logError } from "@/lib/logger";
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const DEFAULT_MODEL = process.env.OPENROUTER_MODEL ?? "openai/gpt-4o-mini";
+const MAX_INPUT_LENGTH = 10000;
+
+/**
+ * Sanitize user input to prevent prompt injection attacks.
+ * Strips control characters, limits length, and escapes delimiter patterns.
+ */
+function sanitizePromptInput(input: string | undefined, maxLength = MAX_INPUT_LENGTH): string {
+  if (!input) return "";
+  // Remove control characters except newlines and tabs
+  let sanitized = input.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "");
+  // Limit length
+  if (sanitized.length > maxLength) {
+    sanitized = sanitized.substring(0, maxLength) + "...";
+  }
+  // Escape common prompt injection patterns
+  sanitized = sanitized
+    .replace(/```/g, "'''")
+    .replace(/\[INST\]/gi, "[instruction]")
+    .replace(/\[\/INST\]/gi, "[/instruction]")
+    .replace(/<\|.*?\|>/g, "");
+  return sanitized;
+}
 
 interface SuggestRequestBody {
   promptKey: string;
@@ -76,7 +98,7 @@ ${body.assessmentData.headcount ? `- Headcount: ${body.assessmentData.headcount}
     ? `
 Existing Content to Enhance:
 ---
-${body.existingContent}
+${sanitizePromptInput(body.existingContent, 5000)}
 ---
 
 Please improve this content while maintaining its core message.`
@@ -155,9 +177,10 @@ export async function POST(
     const systemPrompt = buildNarrativeSystemPrompt(body, sectionTitle, sectionGuidance);
 
     // Prepare messages for the AI
+    const sanitizedTitle = sanitizePromptInput(body.promptTitle, 500);
     const userMessage = body.mode === "enhance" && body.existingContent
-      ? `Please enhance the existing content for the prompt: "${body.promptTitle}"`
-      : `Please generate professional narrative content for the following prompt: "${body.promptTitle}"`;
+      ? `Please enhance the existing content for the prompt: "${sanitizedTitle}"`
+      : `Please generate professional narrative content for the following prompt: "${sanitizedTitle}"`;
 
     const messages = [
       { role: "system" as const, content: systemPrompt },
@@ -185,9 +208,9 @@ export async function POST(
 
     if (!upstream.ok) {
       const errorText = await upstream.text();
-      console.error("OpenRouter error", upstream.status, errorText);
+      logError(new Error(`OpenRouter error ${upstream.status}: ${errorText}`), "Suggest AI call failed");
       return NextResponse.json(
-        { error: "AI service unavailable", details: errorText },
+        { error: "AI service temporarily unavailable. Please try again." },
         { status: 502 }
       );
     }

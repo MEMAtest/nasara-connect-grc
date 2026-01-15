@@ -5,6 +5,24 @@ import { logError } from "@/lib/logger";
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const DEFAULT_MODEL = process.env.OPENROUTER_MODEL ?? "openai/gpt-4o-mini";
+const MAX_INPUT_LENGTH = 2000;
+
+/**
+ * Sanitize user input to prevent prompt injection attacks.
+ */
+function sanitizeInput(input: string | undefined, maxLength = MAX_INPUT_LENGTH): string {
+  if (!input) return "";
+  let sanitized = input.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "");
+  if (sanitized.length > maxLength) {
+    sanitized = sanitized.substring(0, maxLength) + "...";
+  }
+  sanitized = sanitized
+    .replace(/```/g, "'''")
+    .replace(/\[INST\]/gi, "[instruction]")
+    .replace(/\[\/INST\]/gi, "[/instruction]")
+    .replace(/<\|.*?\|>/g, "");
+  return sanitized;
+}
 
 interface ValidationIssue {
   section: string;
@@ -58,16 +76,16 @@ function buildValidationUserPrompt(
 ): string {
   const sectionSummaries = sections.map((s) => {
     const contentPreview = s.narrativeContent
-      ? s.narrativeContent.substring(0, 500).replace(/<[^>]*>/g, "").trim()
+      ? sanitizeInput(s.narrativeContent.substring(0, 500).replace(/<[^>]*>/g, "").trim(), 500)
       : "(No content)";
-    return `## ${s.name}
-Status: ${s.status} | Progress: ${s.progress}%
+    return `## ${sanitizeInput(s.name, 200)}
+Status: ${sanitizeInput(s.status, 50)} | Progress: ${s.progress}%
 Content: ${contentPreview}${s.narrativeContent && s.narrativeContent.length > 500 ? "..." : ""}`;
   }).join("\n\n");
 
   return `Validate this FCA authorization pack for submission readiness:
 
-Pack Name: ${packName}
+Pack Name: ${sanitizeInput(packName, 200)}
 Total Sections: ${sections.length}
 Sections with Content: ${sections.filter(s => s.narrativeContent && s.narrativeContent.length > 10).length}
 
@@ -152,9 +170,9 @@ export async function POST(
 
     if (!upstream.ok) {
       const errorText = await upstream.text();
-      console.error("OpenRouter error", upstream.status, errorText);
+      logError(new Error(`OpenRouter error ${upstream.status}: ${errorText}`), "Validation AI call failed");
       return NextResponse.json(
-        { error: "AI service unavailable", details: errorText },
+        { error: "AI service temporarily unavailable. Please try again." },
         { status: 502 }
       );
     }

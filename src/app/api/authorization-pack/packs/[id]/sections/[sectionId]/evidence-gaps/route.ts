@@ -6,6 +6,24 @@ import { logError } from "@/lib/logger";
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const DEFAULT_MODEL = process.env.OPENROUTER_MODEL ?? "openai/gpt-4o-mini";
+const MAX_INPUT_LENGTH = 1000;
+
+/**
+ * Sanitize user input to prevent prompt injection attacks.
+ */
+function sanitizeInput(input: string | undefined | null, maxLength = MAX_INPUT_LENGTH): string {
+  if (!input) return "";
+  let sanitized = input.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "");
+  if (sanitized.length > maxLength) {
+    sanitized = sanitized.substring(0, maxLength) + "...";
+  }
+  sanitized = sanitized
+    .replace(/```/g, "'''")
+    .replace(/\[INST\]/gi, "[instruction]")
+    .replace(/\[\/INST\]/gi, "[/instruction]")
+    .replace(/<\|.*?\|>/g, "");
+  return sanitized;
+}
 
 interface EvidenceGap {
   description: string;
@@ -59,13 +77,13 @@ function buildEvidenceGapsUserPrompt(
   existingEvidence: Array<{ name: string; status: string; description?: string | null }>
 ): string {
   const evidenceList = existingEvidence.length > 0
-    ? existingEvidence.map((e) => `- ${e.name} (${e.status})${e.description ? `: ${e.description}` : ""}`).join("\n")
+    ? existingEvidence.map((e) => `- ${sanitizeInput(e.name, 200)} (${sanitizeInput(e.status, 50)})${e.description ? `: ${sanitizeInput(e.description, 300)}` : ""}`).join("\n")
     : "No evidence uploaded yet";
 
   return `Analyze evidence gaps for this FCA authorization pack section:
 
-Section: ${sectionTitle}
-${sectionGuidance ? `Guidance: ${sectionGuidance}` : ""}
+Section: ${sanitizeInput(sectionTitle, 200)}
+${sectionGuidance ? `Guidance: ${sanitizeInput(sectionGuidance, 500)}` : ""}
 
 Current Evidence:
 ${evidenceList}
@@ -162,9 +180,9 @@ export async function GET(
 
     if (!upstream.ok) {
       const errorText = await upstream.text();
-      console.error("OpenRouter error", upstream.status, errorText);
+      logError(new Error(`OpenRouter error ${upstream.status}: ${errorText}`), "Evidence gaps AI call failed");
       return NextResponse.json(
-        { error: "AI service unavailable", details: errorText },
+        { error: "AI service temporarily unavailable. Please try again." },
         { status: 502 }
       );
     }
