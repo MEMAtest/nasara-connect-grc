@@ -8,13 +8,33 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 import { ProjectHeader } from "./ProjectHeader";
+import { BarChart3, List, LayoutGrid } from "lucide-react";
+
+// ============================================================================
+// CONSTANTS - Extracted magic numbers for maintainability
+// ============================================================================
+const GANTT_CONFIG = {
+  WEEK_COLUMN_MIN_WIDTH: 60,
+  MILESTONE_ROW_HEIGHT: 44,
+  MILESTONE_MIN_HEIGHT: 60,
+  MILESTONE_BAR_HEIGHT: 32,
+  MILESTONE_VERTICAL_PADDING: 8,
+  PHASE_LABEL_WIDTH: 192, // w-48 = 12rem = 192px
+  MIN_CHART_WIDTH: 800,
+  TOOLTIP_EDGE_THRESHOLD: 15, // percentage from edge
+} as const;
+
+// ============================================================================
+// TYPES - Stricter TypeScript types
+// ============================================================================
+type MilestoneStatus = "complete" | "in-progress" | "pending" | "blocked";
 
 interface ProjectMilestone {
   id: string;
   title: string;
   description: string;
   phase: string;
-  status: string;
+  status: MilestoneStatus | string; // Allow string for backwards compatibility
   startWeek: number;
   durationWeeks: number;
   endWeek: number;
@@ -38,6 +58,12 @@ interface ProjectDetail {
   packId?: string | null;
   projectPlan?: ProjectPlan;
 }
+
+type ViewMode = "gantt" | "list";
+
+// ============================================================================
+// CONFIGURATION
+// ============================================================================
 
 // Phase configuration with colors
 const phaseConfig: Record<string, { bg: string; bgSolid: string; border: string; text: string; dot: string }> = {
@@ -94,11 +120,6 @@ const phaseOrder = [
   "Review & Submission",
 ];
 
-const getPhaseIndex = (phase: string) => {
-  const idx = phaseOrder.indexOf(phase);
-  return idx === -1 ? phaseOrder.length : idx;
-};
-
 // Default phase config for unknown phases
 const defaultPhaseConfig = {
   bg: "bg-slate-100",
@@ -106,6 +127,15 @@ const defaultPhaseConfig = {
   border: "border-slate-400",
   text: "text-slate-700",
   dot: "bg-slate-500",
+};
+
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
+const getPhaseIndex = (phase: string) => {
+  const idx = phaseOrder.indexOf(phase);
+  return idx === -1 ? phaseOrder.length : idx;
 };
 
 function getWeekDate(startDate: string, weekNumber: number): string {
@@ -135,12 +165,48 @@ function getCurrentWeek(startDate: string): number {
   return Math.max(1, Math.ceil((daysSinceStart + 1) / 7));
 }
 
-// Milestone tooltip component
-function MilestoneTooltip({ milestone, config }: { milestone: ProjectMilestone; config: typeof defaultPhaseConfig }) {
+// Extracted status badge styling helper to eliminate duplication
+function getStatusBadgeClassName(status: string): string {
+  const statusMap: Record<string, string> = {
+    complete: "border-green-400 bg-green-50 text-green-700",
+    "in-progress": "border-blue-400 bg-blue-50 text-blue-700",
+    blocked: "border-red-400 bg-red-50 text-red-700",
+  };
+  return statusMap[status] || "border-slate-300 bg-slate-50 text-slate-600";
+}
+
+// ============================================================================
+// SUB-COMPONENTS
+// ============================================================================
+
+// Milestone tooltip component with smart positioning
+function MilestoneTooltip({
+  milestone,
+  config,
+  position,
+}: {
+  milestone: ProjectMilestone;
+  config: typeof defaultPhaseConfig;
+  position: "left" | "center" | "right";
+}) {
+  const positionClasses =
+    position === "left"
+      ? "left-0"
+      : position === "right"
+      ? "right-0"
+      : "left-1/2 -translate-x-1/2";
+
+  const arrowClasses =
+    position === "left"
+      ? "left-4"
+      : position === "right"
+      ? "right-4"
+      : "left-1/2 -translate-x-1/2";
+
   return (
     <div
       role="tooltip"
-      className="absolute bottom-full left-1/2 z-50 mb-2 hidden w-64 -translate-x-1/2 rounded-lg border border-slate-200 bg-white p-3 shadow-lg group-hover:block group-focus:block"
+      className={`absolute bottom-full z-50 mb-2 hidden w-64 rounded-lg border border-slate-200 bg-white p-3 shadow-lg group-hover:block group-focus:block ${positionClasses}`}
     >
       <div className="mb-2 flex items-center gap-2">
         <div className={`h-3 w-3 rounded-full ${config.dot}`} />
@@ -168,26 +234,81 @@ function MilestoneTooltip({ milestone, config }: { milestone: ProjectMilestone; 
       </div>
       <div className="mt-2 flex items-center gap-1">
         <span className="text-xs text-slate-400">Status:</span>
-        <Badge
-          variant="outline"
-          className={`text-xs ${
-            milestone.status === "complete"
-              ? "border-green-400 bg-green-50 text-green-700"
-              : milestone.status === "in-progress"
-              ? "border-blue-400 bg-blue-50 text-blue-700"
-              : milestone.status === "blocked"
-              ? "border-red-400 bg-red-50 text-red-700"
-              : "border-slate-300 bg-slate-50 text-slate-600"
-          }`}
-        >
+        <Badge variant="outline" className={`text-xs ${getStatusBadgeClassName(milestone.status)}`}>
           {milestone.status.replace("-", " ")}
         </Badge>
       </div>
       {/* Arrow */}
-      <div className="absolute -bottom-2 left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 border-b border-r border-slate-200 bg-white" />
+      <div className={`absolute -bottom-2 h-3 w-3 rotate-45 border-b border-r border-slate-200 bg-white ${arrowClasses}`} />
     </div>
   );
 }
+
+// Loading overlay component
+function LoadingOverlay({ message }: { message: string }) {
+  return (
+    <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm">
+      <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-6 py-4 shadow-lg">
+        <div className="h-5 w-5 animate-spin rounded-full border-2 border-teal-500 border-t-transparent" />
+        <span className="text-sm font-medium text-slate-700">{message}</span>
+      </div>
+    </div>
+  );
+}
+
+// Mobile-friendly list view component
+function MilestoneListView({
+  phaseGroups,
+}: {
+  phaseGroups: [string, ProjectMilestone[]][];
+}) {
+  return (
+    <div className="space-y-4">
+      {phaseGroups.map(([phase, items]) => {
+        const config = phaseConfig[phase] || defaultPhaseConfig;
+        return (
+          <Card key={phase} className={`border-2 ${config.border}`}>
+            <CardHeader className={`py-3 ${config.bg}`}>
+              <div className="flex items-center gap-2">
+                <div className={`h-3 w-3 rounded-full ${config.dot}`} />
+                <CardTitle className={`text-sm ${config.text}`}>{phase}</CardTitle>
+                <Badge variant="outline" className="ml-auto text-xs">
+                  {items.length} milestone{items.length !== 1 ? "s" : ""}
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-2 p-3">
+              {items.map((milestone) => (
+                <div
+                  key={milestone.id}
+                  className="flex flex-col gap-2 rounded-lg border border-slate-200 bg-white p-3 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div className="flex-1">
+                    <p className="font-medium text-slate-900">{milestone.title}</p>
+                    <p className="text-xs text-slate-500">{milestone.description}</p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 text-xs">
+                    <span className="text-slate-400">
+                      W{milestone.startWeek}-{milestone.endWeek}
+                    </span>
+                    <span className="text-slate-400">({milestone.durationWeeks}w)</span>
+                    <Badge variant="outline" className={getStatusBadgeClassName(milestone.status)}>
+                      {milestone.status.replace("-", " ")}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        );
+      })}
+    </div>
+  );
+}
+
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
 
 export function PlanClient() {
   const params = useParams();
@@ -196,9 +317,22 @@ export function PlanClient() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>("gantt");
 
   // Ref to track if component is mounted (prevents memory leaks)
   const isMountedRef = useRef(true);
+
+  // Detect mobile viewport for responsive default
+  useEffect(() => {
+    const checkMobile = () => {
+      if (window.innerWidth < 768) {
+        setViewMode("list");
+      }
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const loadProject = useCallback(async () => {
     if (!projectId) return;
@@ -240,7 +374,13 @@ export function PlanClient() {
   }, [loadProject]);
 
   const plan = project?.projectPlan || {};
-  const milestones = Array.isArray(plan.milestones) ? plan.milestones : [];
+
+  // Memoize milestones array properly to prevent unnecessary re-renders
+  const milestones = useMemo(
+    () => (Array.isArray(plan.milestones) ? plan.milestones : []),
+    [plan.milestones]
+  );
+
   const totalWeeks = plan.totalWeeks || Math.max(1, ...milestones.map((item) => item.endWeek || 1));
   const startDate = plan.startDate || new Date().toISOString();
   const currentWeek = getCurrentWeek(startDate);
@@ -303,6 +443,9 @@ export function PlanClient() {
     }
   };
 
+  // ============================================================================
+  // RENDER - Loading state
+  // ============================================================================
   if (isLoading) {
     return (
       <Card className="border border-slate-200">
@@ -316,6 +459,9 @@ export function PlanClient() {
     );
   }
 
+  // ============================================================================
+  // RENDER - Error state
+  // ============================================================================
   if (loadError || !project) {
     return (
       <Card className="border border-slate-200">
@@ -332,6 +478,9 @@ export function PlanClient() {
     );
   }
 
+  // ============================================================================
+  // RENDER - Empty state
+  // ============================================================================
   if (!milestones.length) {
     return (
       <div className="space-y-6">
@@ -354,6 +503,9 @@ export function PlanClient() {
     );
   }
 
+  // ============================================================================
+  // RENDER - Main content
+  // ============================================================================
   return (
     <div className="space-y-6">
       <ProjectHeader project={project} active="plan" />
@@ -363,13 +515,18 @@ export function PlanClient() {
         <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
             <CardTitle className="flex items-center gap-2">
-              <svg className="h-5 w-5 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
+              <BarChart3 className="h-5 w-5 text-teal-600" />
               Project Timeline
             </CardTitle>
             <CardDescription>
-              Generated {plan.generatedAt ? new Date(plan.generatedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "recently"}
+              Generated{" "}
+              {plan.generatedAt
+                ? new Date(plan.generatedAt).toLocaleDateString("en-GB", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                  })
+                : "recently"}
             </CardDescription>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -379,6 +536,31 @@ export function PlanClient() {
             <Badge variant="outline" className="border-teal-200 bg-teal-50 text-teal-700">
               {milestones.length} milestones
             </Badge>
+
+            {/* View mode toggle */}
+            <div className="flex rounded-md border border-slate-200">
+              <button
+                onClick={() => setViewMode("gantt")}
+                className={`flex items-center gap-1 px-2 py-1 text-xs ${
+                  viewMode === "gantt" ? "bg-slate-100 text-slate-900" : "text-slate-500 hover:bg-slate-50"
+                }`}
+                aria-label="Gantt view"
+              >
+                <LayoutGrid className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Gantt</span>
+              </button>
+              <button
+                onClick={() => setViewMode("list")}
+                className={`flex items-center gap-1 border-l border-slate-200 px-2 py-1 text-xs ${
+                  viewMode === "list" ? "bg-slate-100 text-slate-900" : "text-slate-500 hover:bg-slate-50"
+                }`}
+                aria-label="List view"
+              >
+                <List className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">List</span>
+              </button>
+            </div>
+
             <Button variant="outline" size="sm" onClick={generatePlan} disabled={isGenerating}>
               {isGenerating ? "Regenerating..." : "Regenerate"}
             </Button>
@@ -391,242 +573,283 @@ export function PlanClient() {
         </CardHeader>
       </Card>
 
-      {/* Gantt Chart */}
-      <Card className="overflow-hidden border border-slate-200">
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <div className="min-w-[800px]">
-              {/* Week Header Row */}
-              <div className="flex border-b border-slate-200 bg-slate-50">
-                {/* Phase label column */}
-                <div className="w-48 flex-shrink-0 border-r border-slate-200 px-4 py-3">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Phase</span>
-                </div>
-                {/* Week columns */}
-                <div className="relative flex flex-1">
-                  {weekColumns.map((col, idx) => (
+      {/* Conditional rendering based on view mode */}
+      {viewMode === "list" ? (
+        <MilestoneListView phaseGroups={phaseGroups} />
+      ) : (
+        <>
+          {/* Gantt Chart */}
+          <Card className="relative overflow-hidden border border-slate-200">
+            {/* Loading overlay during regeneration */}
+            {isGenerating && <LoadingOverlay message="Regenerating plan..." />}
+
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <div style={{ minWidth: `${GANTT_CONFIG.MIN_CHART_WIDTH}px` }}>
+                  {/* Week Header Row */}
+                  <div className="flex border-b border-slate-200 bg-slate-50">
+                    {/* Phase label column */}
                     <div
-                      key={col.week}
-                      className={`flex-1 border-r border-slate-100 px-1 py-2 text-center ${idx === weekColumns.length - 1 ? "border-r-0" : ""}`}
-                      style={{ minWidth: "60px" }}
+                      className="flex-shrink-0 border-r border-slate-200 px-4 py-3"
+                      style={{ width: `${GANTT_CONFIG.PHASE_LABEL_WIDTH}px` }}
                     >
-                      <div className="text-xs font-medium text-slate-600">W{col.week}</div>
-                      <div className="text-[10px] text-slate-400">{col.date}</div>
+                      <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Phase</span>
                     </div>
-                  ))}
-                  {/* Today marker in header */}
-                  {currentWeek > 0 && currentWeek <= totalWeeks && (
-                    <div
-                      className="absolute top-0 z-10 flex flex-col items-center"
-                      style={{ left: `${todayPosition}%`, transform: "translateX(-50%)" }}
-                    >
-                      <div className="rounded bg-red-500 px-1.5 py-0.5 text-[10px] font-medium text-white">Today</div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Phase Rows */}
-              {phaseGroups.map(([phase, items], phaseIdx) => {
-                const config = phaseConfig[phase] || defaultPhaseConfig;
-                return (
-                  <div
-                    key={phase}
-                    className={`flex ${phaseIdx < phaseGroups.length - 1 ? "border-b border-slate-100" : ""}`}
-                  >
-                    {/* Phase label */}
-                    <div className={`w-48 flex-shrink-0 border-r border-slate-200 px-4 py-4 ${config.bg}`}>
-                      <div className="flex items-center gap-2">
-                        <div className={`h-3 w-3 rounded-full ${config.dot}`} />
-                        <span className={`text-sm font-semibold ${config.text}`}>{phase}</span>
-                      </div>
-                      <div className="mt-1 text-xs text-slate-500">{items.length} milestone{items.length !== 1 ? "s" : ""}</div>
-                    </div>
-
-                    {/* Timeline area */}
-                    <div className="relative flex-1 py-3" style={{ minHeight: `${Math.max(60, items.length * 44)}px` }}>
-                      {/* Grid lines */}
-                      <div className="pointer-events-none absolute inset-0 flex">
-                        {weekColumns.map((col, idx) => (
-                          <div
-                            key={col.week}
-                            className={`flex-1 border-r border-slate-50 ${idx === weekColumns.length - 1 ? "border-r-0" : ""}`}
-                            style={{ minWidth: "60px" }}
-                          />
-                        ))}
-                      </div>
-
-                      {/* Today marker line */}
+                    {/* Week columns */}
+                    <div className="relative flex flex-1">
+                      {weekColumns.map((col, idx) => (
+                        <div
+                          key={col.week}
+                          className={`flex-1 border-r border-slate-100 px-1 py-2 text-center ${
+                            idx === weekColumns.length - 1 ? "border-r-0" : ""
+                          }`}
+                          style={{ minWidth: `${GANTT_CONFIG.WEEK_COLUMN_MIN_WIDTH}px` }}
+                        >
+                          <div className="text-xs font-medium text-slate-600">W{col.week}</div>
+                          <div className="text-[10px] text-slate-400">{col.date}</div>
+                        </div>
+                      ))}
+                      {/* Today marker in header */}
                       {currentWeek > 0 && currentWeek <= totalWeeks && (
                         <div
-                          className="absolute top-0 bottom-0 z-10 w-0.5 bg-red-400"
-                          style={{ left: `${todayPosition}%` }}
-                        />
-                      )}
-
-                      {/* Milestone bars */}
-                      {items.map((milestone, milestoneIdx) => {
-                        const left = totalWeeks > 0 ? ((milestone.startWeek - 1) / totalWeeks) * 100 : 0;
-                        const width = totalWeeks > 0 ? (milestone.durationWeeks / totalWeeks) * 100 : 0;
-                        const status = statusStyles[milestone.status] || statusStyles.pending;
-
-                        return (
-                          <div
-                            key={milestone.id}
-                            className="group absolute px-1"
-                            style={{
-                              left: `${left}%`,
-                              width: `${Math.max(width, 5)}%`,
-                              top: `${milestoneIdx * 44 + 8}px`,
-                            }}
-                          >
-                            <div
-                              role="button"
-                              tabIndex={0}
-                              aria-label={`${milestone.title}: ${milestone.phase}, Week ${milestone.startWeek} to ${milestone.endWeek}, Status: ${milestone.status.replace("-", " ")}`}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter" || e.key === " ") {
-                                  e.preventDefault();
-                                  // Could open a detail modal in the future
-                                }
-                              }}
-                              className={`relative flex h-8 cursor-pointer items-center justify-between overflow-hidden rounded-md border-2 px-2 shadow-sm transition-all hover:shadow-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-1 ${config.bg} ${config.border} ${status.opacity} ${status.className}`}
-                            >
-                              {/* Progress fill for completed */}
-                              {milestone.status === "complete" && (
-                                <div className={`absolute inset-0 ${config.bgSolid} opacity-20`} />
-                              )}
-                              {/* In-progress stripes */}
-                              {milestone.status === "in-progress" && (
-                                <div
-                                  className="absolute inset-0 opacity-10"
-                                  style={{
-                                    backgroundImage: `repeating-linear-gradient(
-                                      45deg,
-                                      transparent,
-                                      transparent 4px,
-                                      currentColor 4px,
-                                      currentColor 8px
-                                    )`,
-                                  }}
-                                />
-                              )}
-
-                              {/* Content */}
-                              <span className={`relative z-10 truncate text-xs font-medium ${config.text}`}>
-                                {milestone.title}
-                              </span>
-                              <span className={`relative z-10 ml-1 flex-shrink-0 text-[10px] ${config.text} opacity-70`}>
-                                {milestone.durationWeeks}w
-                              </span>
-
-                              {/* Tooltip */}
-                              <MilestoneTooltip milestone={milestone} config={config} />
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Legend */}
-      <Card className="border border-slate-200">
-        <CardContent className="py-4">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex flex-wrap items-center gap-4">
-              <span className="text-xs font-medium text-slate-500">Status:</span>
-              <div className="flex items-center gap-1.5">
-                <div className="h-3 w-3 rounded-full bg-green-500" />
-                <span className="text-xs text-slate-600">Complete</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="h-3 w-3 rounded-full bg-blue-500 opacity-80" style={{ backgroundImage: "repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(255,255,255,0.5) 2px, rgba(255,255,255,0.5) 4px)" }} />
-                <span className="text-xs text-slate-600">In Progress</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="h-3 w-3 rounded-full bg-slate-300" />
-                <span className="text-xs text-slate-600">Pending</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="h-3 w-3 rounded-full bg-red-400" />
-                <span className="text-xs text-slate-600">Blocked</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <span className="text-xs font-medium text-slate-500">Phases:</span>
-              {phaseOrder.slice(0, 5).map((phase) => {
-                const config = phaseConfig[phase] || defaultPhaseConfig;
-                return (
-                  <div key={phase} className="flex items-center gap-1">
-                    <div className={`h-2.5 w-2.5 rounded-full ${config.dot}`} />
-                    <span className="text-[10px] text-slate-500">{phase.split(" ")[0]}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Detailed Milestone List */}
-      <Card className="border border-slate-200">
-        <CardHeader>
-          <CardTitle className="text-base">Milestone Details</CardTitle>
-          <CardDescription>Complete list of all milestones by phase</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {phaseGroups.map(([phase, items]) => {
-            const config = phaseConfig[phase] || defaultPhaseConfig;
-            return (
-              <div key={phase}>
-                <div className="mb-3 flex items-center gap-2">
-                  <div className={`h-3 w-3 rounded-full ${config.dot}`} />
-                  <h3 className={`text-sm font-semibold ${config.text}`}>{phase}</h3>
-                </div>
-                <div className="space-y-2 pl-5">
-                  {items.map((milestone) => (
-                    <div
-                      key={milestone.id}
-                      className={`flex items-center justify-between rounded-lg border px-4 py-3 ${config.bg} ${config.border}`}
-                    >
-                      <div className="flex-1">
-                        <p className={`font-medium ${config.text}`}>{milestone.title}</p>
-                        <p className="text-xs text-slate-500">{milestone.description}</p>
-                      </div>
-                      <div className="flex items-center gap-4 text-right">
-                        <div>
-                          <p className="text-xs text-slate-400">Week {milestone.startWeek} - {milestone.endWeek}</p>
-                          <p className="text-xs text-slate-400">{milestone.durationWeeks} week{milestone.durationWeeks !== 1 ? "s" : ""}</p>
-                        </div>
-                        <Badge
-                          variant="outline"
-                          className={`text-xs ${
-                            milestone.status === "complete"
-                              ? "border-green-400 bg-green-50 text-green-700"
-                              : milestone.status === "in-progress"
-                              ? "border-blue-400 bg-blue-50 text-blue-700"
-                              : milestone.status === "blocked"
-                              ? "border-red-400 bg-red-50 text-red-700"
-                              : "border-slate-300 bg-slate-50 text-slate-600"
-                          }`}
+                          className="absolute top-0 z-10 flex flex-col items-center"
+                          style={{ left: `${todayPosition}%`, transform: "translateX(-50%)" }}
                         >
-                          {milestone.status.replace("-", " ")}
-                        </Badge>
-                      </div>
+                          <div className="rounded bg-red-500 px-1.5 py-0.5 text-[10px] font-medium text-white">Today</div>
+                        </div>
+                      )}
                     </div>
-                  ))}
+                  </div>
+
+                  {/* Phase Rows */}
+                  {phaseGroups.map(([phase, items], phaseIdx) => {
+                    const config = phaseConfig[phase] || defaultPhaseConfig;
+                    return (
+                      <div
+                        key={phase}
+                        className={`flex ${phaseIdx < phaseGroups.length - 1 ? "border-b border-slate-100" : ""}`}
+                      >
+                        {/* Phase label */}
+                        <div
+                          className={`flex-shrink-0 border-r border-slate-200 px-4 py-4 ${config.bg}`}
+                          style={{ width: `${GANTT_CONFIG.PHASE_LABEL_WIDTH}px` }}
+                        >
+                          <div className="flex items-center gap-2">
+                            <div className={`h-3 w-3 rounded-full ${config.dot}`} />
+                            <span className={`text-sm font-semibold ${config.text}`}>{phase}</span>
+                          </div>
+                          <div className="mt-1 text-xs text-slate-500">
+                            {items.length} milestone{items.length !== 1 ? "s" : ""}
+                          </div>
+                        </div>
+
+                        {/* Timeline area */}
+                        <div
+                          className="relative flex-1 py-3"
+                          style={{
+                            minHeight: `${Math.max(
+                              GANTT_CONFIG.MILESTONE_MIN_HEIGHT,
+                              items.length * GANTT_CONFIG.MILESTONE_ROW_HEIGHT
+                            )}px`,
+                          }}
+                        >
+                          {/* Grid lines */}
+                          <div className="pointer-events-none absolute inset-0 flex">
+                            {weekColumns.map((col, idx) => (
+                              <div
+                                key={col.week}
+                                className={`flex-1 border-r border-slate-50 ${
+                                  idx === weekColumns.length - 1 ? "border-r-0" : ""
+                                }`}
+                                style={{ minWidth: `${GANTT_CONFIG.WEEK_COLUMN_MIN_WIDTH}px` }}
+                              />
+                            ))}
+                          </div>
+
+                          {/* Today marker line */}
+                          {currentWeek > 0 && currentWeek <= totalWeeks && (
+                            <div
+                              className="absolute bottom-0 top-0 z-10 w-0.5 bg-red-400"
+                              style={{ left: `${todayPosition}%` }}
+                            />
+                          )}
+
+                          {/* Milestone bars */}
+                          {items.map((milestone, milestoneIdx) => {
+                            const left = totalWeeks > 0 ? ((milestone.startWeek - 1) / totalWeeks) * 100 : 0;
+                            const width = totalWeeks > 0 ? (milestone.durationWeeks / totalWeeks) * 100 : 0;
+                            const status = statusStyles[milestone.status] || statusStyles.pending;
+
+                            // Determine tooltip position to prevent clipping
+                            const tooltipPosition: "left" | "center" | "right" =
+                              left < GANTT_CONFIG.TOOLTIP_EDGE_THRESHOLD
+                                ? "left"
+                                : left + width > 100 - GANTT_CONFIG.TOOLTIP_EDGE_THRESHOLD
+                                ? "right"
+                                : "center";
+
+                            return (
+                              <div
+                                key={milestone.id}
+                                className="group absolute px-1"
+                                style={{
+                                  left: `${left}%`,
+                                  width: `${Math.max(width, 5)}%`,
+                                  top: `${milestoneIdx * GANTT_CONFIG.MILESTONE_ROW_HEIGHT + GANTT_CONFIG.MILESTONE_VERTICAL_PADDING}px`,
+                                }}
+                              >
+                                <div
+                                  role="button"
+                                  tabIndex={0}
+                                  aria-label={`${milestone.title}: ${milestone.phase}, Week ${milestone.startWeek} to ${milestone.endWeek}, Status: ${milestone.status.replace("-", " ")}`}
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter" || e.key === " ") {
+                                      e.preventDefault();
+                                      // Could open a detail modal in the future
+                                    }
+                                  }}
+                                  className={`relative flex h-8 cursor-pointer items-center justify-between overflow-hidden rounded-md border-2 px-2 shadow-sm transition-all hover:shadow-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-1 ${config.bg} ${config.border} ${status.opacity} ${status.className}`}
+                                >
+                                  {/* Progress fill for completed */}
+                                  {milestone.status === "complete" && (
+                                    <div className={`absolute inset-0 ${config.bgSolid} opacity-20`} />
+                                  )}
+                                  {/* In-progress stripes */}
+                                  {milestone.status === "in-progress" && (
+                                    <div
+                                      className="absolute inset-0 opacity-10"
+                                      style={{
+                                        backgroundImage: `repeating-linear-gradient(
+                                          45deg,
+                                          transparent,
+                                          transparent 4px,
+                                          currentColor 4px,
+                                          currentColor 8px
+                                        )`,
+                                      }}
+                                    />
+                                  )}
+
+                                  {/* Content */}
+                                  <span className={`relative z-10 truncate text-xs font-medium ${config.text}`}>
+                                    {milestone.title}
+                                  </span>
+                                  <span
+                                    className={`relative z-10 ml-1 flex-shrink-0 text-[10px] ${config.text} opacity-70`}
+                                  >
+                                    {milestone.durationWeeks}w
+                                  </span>
+
+                                  {/* Tooltip with smart positioning */}
+                                  <MilestoneTooltip milestone={milestone} config={config} position={tooltipPosition} />
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
-            );
-          })}
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+
+          {/* Legend */}
+          <Card className="border border-slate-200">
+            <CardContent className="py-4">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="flex flex-wrap items-center gap-4">
+                  <span className="text-xs font-medium text-slate-500">Status:</span>
+                  <div className="flex items-center gap-1.5">
+                    <div className="h-3 w-3 rounded-full bg-green-500" />
+                    <span className="text-xs text-slate-600">Complete</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <div
+                      className="h-3 w-3 rounded-full bg-blue-500 opacity-80"
+                      style={{
+                        backgroundImage:
+                          "repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(255,255,255,0.5) 2px, rgba(255,255,255,0.5) 4px)",
+                      }}
+                    />
+                    <span className="text-xs text-slate-600">In Progress</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <div className="h-3 w-3 rounded-full bg-slate-300" />
+                    <span className="text-xs text-slate-600">Pending</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <div className="h-3 w-3 rounded-full bg-red-400" />
+                    <span className="text-xs text-slate-600">Blocked</span>
+                  </div>
+                </div>
+                <div className="flex flex-wrap items-center gap-4">
+                  <span className="text-xs font-medium text-slate-500">Phases:</span>
+                  {phaseOrder.map((phase) => {
+                    const config = phaseConfig[phase] || defaultPhaseConfig;
+                    return (
+                      <div key={phase} className="flex items-center gap-1">
+                        <div className={`h-2.5 w-2.5 rounded-full ${config.dot}`} />
+                        <span className="text-[10px] text-slate-500">{phase.split(" ")[0]}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </>
+      )}
+
+      {/* Detailed Milestone List (shown in both modes) */}
+      {viewMode === "gantt" && (
+        <Card className="border border-slate-200">
+          <CardHeader>
+            <CardTitle className="text-base">Milestone Details</CardTitle>
+            <CardDescription>Complete list of all milestones by phase</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {phaseGroups.map(([phase, items]) => {
+              const config = phaseConfig[phase] || defaultPhaseConfig;
+              return (
+                <div key={phase}>
+                  <div className="mb-3 flex items-center gap-2">
+                    <div className={`h-3 w-3 rounded-full ${config.dot}`} />
+                    <h3 className={`text-sm font-semibold ${config.text}`}>{phase}</h3>
+                  </div>
+                  <div className="space-y-2 pl-5">
+                    {items.map((milestone) => (
+                      <div
+                        key={milestone.id}
+                        className={`flex items-center justify-between rounded-lg border px-4 py-3 ${config.bg} ${config.border}`}
+                      >
+                        <div className="flex-1">
+                          <p className={`font-medium ${config.text}`}>{milestone.title}</p>
+                          <p className="text-xs text-slate-500">{milestone.description}</p>
+                        </div>
+                        <div className="flex items-center gap-4 text-right">
+                          <div>
+                            <p className="text-xs text-slate-400">
+                              Week {milestone.startWeek} - {milestone.endWeek}
+                            </p>
+                            <p className="text-xs text-slate-400">
+                              {milestone.durationWeeks} week{milestone.durationWeeks !== 1 ? "s" : ""}
+                            </p>
+                          </div>
+                          <Badge variant="outline" className={`text-xs ${getStatusBadgeClassName(milestone.status)}`}>
+                            {milestone.status.replace("-", " ")}
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
