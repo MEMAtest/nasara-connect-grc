@@ -3,15 +3,18 @@ import { POST } from "./route";
 
 const originalFetch = global.fetch;
 const originalEnvKey = process.env.OPENROUTER_API_KEY;
+const originalAuthDisabled = process.env.AUTH_DISABLED;
 
 describe("AI chat route", () => {
   beforeEach(() => {
     process.env.OPENROUTER_API_KEY = "test-key";
+    process.env.AUTH_DISABLED = "true";
   });
 
   afterEach(() => {
     global.fetch = originalFetch;
     process.env.OPENROUTER_API_KEY = originalEnvKey;
+    process.env.AUTH_DISABLED = originalAuthDisabled;
     vi.restoreAllMocks();
   });
 

@@ -32,6 +32,69 @@ const QUICK_PROMPTS = [
   "Generate a remediation plan for a failed KYC sample review.",
 ];
 
+const STORAGE_KEY = "nasara.ai.chat.session";
+
+const normalizeAssistantText = (text: string) => {
+  let cleaned = text;
+  cleaned = cleaned.replace(/^#{1,6}\s+/gm, "");
+  cleaned = cleaned.replace(/\*\*(.*?)\*\*/g, "$1");
+  cleaned = cleaned.replace(/`([^`]+)`/g, "$1");
+  cleaned = cleaned.replace(/^\s*\d+\.\s+/gm, "- ");
+  cleaned = cleaned.replace(/^\s*[-*]\s+/gm, "- ");
+  cleaned = cleaned.replace(/[ \t]+\n/g, "\n");
+  cleaned = cleaned.replace(/\n{3,}/g, "\n\n");
+  return cleaned.trim();
+};
+
+const renderAssistantContent = (text: string) => {
+  const normalized = normalizeAssistantText(text);
+  const lines = normalized.split("\n");
+  const rendered: JSX.Element[] = [];
+  let hasTitle = false;
+
+  for (let i = 0; i < lines.length; i += 1) {
+    const line = lines[i];
+    const trimmed = line.trim();
+
+    if (!trimmed) {
+      rendered.push(<div key={`line-${i}`} className="h-3" />);
+      continue;
+    }
+
+    const isBullet = trimmed.startsWith("- ");
+    let content = isBullet ? trimmed.slice(2).trimStart() : trimmed;
+    const isTitle = !hasTitle && !isBullet;
+    if (isTitle) {
+      hasTitle = true;
+    }
+    const isHeading = isTitle || content.endsWith(":");
+    const textNode = isHeading ? <strong className="font-semibold">{content}</strong> : content;
+
+    rendered.push(
+      <div key={`line-${i}`}>
+        {isBullet ? (
+          <span>
+            - {textNode}
+          </span>
+        ) : (
+          textNode
+        )}
+      </div>
+    );
+  }
+
+  return rendered;
+};
+
+type StoredChatState = {
+  messages: ChatMessage[];
+  mode: Mode;
+  useContext: boolean;
+  policyId: string;
+  runId: string;
+  extraContext: string;
+};
+
 export function AiChatClient() {
   const pathname = usePathname();
   const assistantCtx = useAssistantContext();
@@ -53,6 +116,7 @@ export function AiChatClient() {
   const [runId, setRunId] = useState(assistantCtx.context.runId ?? "");
   const [useContext, setUseContext] = useState(true);
   const [healthStatus, setHealthStatus] = useState<"idle" | "ok" | "fail" | "checking">("idle");
+  const [hasHydrated, setHasHydrated] = useState(false);
 
   const stats = useMemo(
     () => ({
@@ -65,6 +129,55 @@ export function AiChatClient() {
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const stored = sessionStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored) as Partial<StoredChatState>;
+        if (Array.isArray(parsed.messages) && parsed.messages.length > 0) {
+          setMessages(parsed.messages);
+        }
+        if (parsed.mode && MODES.some((entry) => entry.id === parsed.mode)) {
+          setMode(parsed.mode);
+        }
+        if (typeof parsed.useContext === "boolean") {
+          setUseContext(parsed.useContext);
+        }
+        if (typeof parsed.policyId === "string") {
+          setPolicyId(parsed.policyId);
+        }
+        if (typeof parsed.runId === "string") {
+          setRunId(parsed.runId);
+        }
+        if (typeof parsed.extraContext === "string") {
+          setExtraContext(parsed.extraContext);
+        }
+      }
+    } catch {
+      // Ignore storage errors (e.g., private mode).
+    } finally {
+      setHasHydrated(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!hasHydrated) return;
+    try {
+      const payload: StoredChatState = {
+        messages,
+        mode,
+        useContext,
+        policyId,
+        runId,
+        extraContext,
+      };
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    } catch {
+      // Ignore storage errors (e.g., private mode).
+    }
+  }, [hasHydrated, messages, mode, useContext, policyId, runId, extraContext]);
 
   const sendMessage = async (text?: string) => {
     const content = (text ?? input).trim();
@@ -127,9 +240,9 @@ export function AiChatClient() {
               const updated = [...prev];
               const lastAssistantIndex = updated.findLastIndex((m) => m.role === "assistant");
               if (lastAssistantIndex >= 0) {
-                updated[lastAssistantIndex] = { role: "assistant", content: acc };
+                updated[lastAssistantIndex] = { role: "assistant", content: normalizeAssistantText(acc) };
               } else {
-                updated.push({ role: "assistant", content: acc });
+                updated.push({ role: "assistant", content: normalizeAssistantText(acc) });
               }
               return updated;
             });
@@ -155,7 +268,10 @@ export function AiChatClient() {
           });
           const data = (await fallback.json()) as { message?: ChatMessage; citations?: ChatMessage["citations"] };
           if (data.message) {
-            const msg: ChatMessage = data.citations ? { ...data.message, citations: data.citations } : (data.message as ChatMessage);
+            const msg: ChatMessage = data.citations
+              ? { ...data.message, citations: data.citations }
+              : (data.message as ChatMessage);
+            msg.content = normalizeAssistantText(msg.content);
             setMessages((prev) => [...prev, msg]);
           }
         }
@@ -177,7 +293,10 @@ export function AiChatClient() {
         // Non-streaming fallback
         const data = (await response.json()) as { message?: ChatMessage; citations?: ChatMessage["citations"] };
         if (data.message) {
-          const msg: ChatMessage = data.citations ? { ...data.message, citations: data.citations } : (data.message as ChatMessage);
+          const msg: ChatMessage = data.citations
+            ? { ...data.message, citations: data.citations }
+            : (data.message as ChatMessage);
+          msg.content = normalizeAssistantText(msg.content);
           setMessages((prev) => [...prev, msg]);
         } else {
           throw new Error("No response from assistant");
@@ -329,32 +448,36 @@ export function AiChatClient() {
           </div>
 
           <div className="rounded-lg border bg-muted/40 p-4 space-y-3 max-h-[520px] overflow-y-auto">
-            {messages.map((msg, idx) => (
-              <div
-                key={`${msg.role}-${idx}-${msg.content.slice(0, 10)}`}
-                className={`flex gap-3 ${msg.role === "assistant" ? "items-start" : "items-start justify-end"}`}
-              >
-                {msg.role === "assistant" ? (
-                  <div className="mt-1 flex h-7 w-7 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
-                    <Bot className="h-4 w-4" />
-                  </div>
-                ) : null}
-                <div className="space-y-1">
-                  <div
-                    className={`max-w-3xl rounded-2xl px-4 py-3 text-sm leading-6 shadow-sm ${
-                      msg.role === "assistant"
-                        ? "bg-white text-slate-800 border border-slate-200"
-                        : "bg-emerald-600 text-white"
-                    }`}
-                  >
-                    {msg.content}
-                  </div>
-                  {msg.role === "assistant" && msg.citations ? (
-                    <AssistantCitations citations={msg.citations} />
+            {messages.map((msg, idx) => {
+              const displayContent =
+                msg.role === "assistant" ? renderAssistantContent(msg.content) : msg.content;
+              return (
+                <div
+                  key={`${msg.role}-${idx}-${msg.content.slice(0, 10)}`}
+                  className={`flex gap-3 ${msg.role === "assistant" ? "items-start" : "items-start justify-end"}`}
+                >
+                  {msg.role === "assistant" ? (
+                    <div className="mt-1 flex h-7 w-7 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                      <Bot className="h-4 w-4" />
+                    </div>
                   ) : null}
+                  <div className="space-y-1">
+                    <div
+                      className={`max-w-3xl whitespace-pre-wrap break-words rounded-2xl px-4 py-3 text-sm leading-6 shadow-sm ${
+                        msg.role === "assistant"
+                          ? "bg-white text-slate-800 border border-slate-200"
+                          : "bg-emerald-600 text-white"
+                      }`}
+                    >
+                      {displayContent}
+                    </div>
+                    {msg.role === "assistant" && msg.citations ? (
+                      <AssistantCitations citations={msg.citations} />
+                    ) : null}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
             {isSending && (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <div className="h-2 w-2 animate-ping rounded-full bg-emerald-500" />

@@ -11,6 +11,13 @@ const DEFAULT_MODEL = process.env.OPENROUTER_MODEL ?? "openai/gpt-4o-mini";
 
 type Mode = "qa" | "draft" | "explain" | "insights";
 
+const MODE_MAX_TOKENS: Record<Mode, number> = {
+  qa: 180,
+  draft: 360,
+  explain: 220,
+  insights: 220,
+};
+
 interface ChatRequestBody {
   messages: Array<{ role: "user" | "assistant" | "system"; content: string }>;
   mode?: Mode;
@@ -32,17 +39,21 @@ type UpstreamStreamChunk =
 function buildSystemPrompt(mode: Mode, context?: ChatRequestBody["context"]): string {
   const base = `You are Nasara Connect's AI Compliance Assistant.
 - Be concise, structured, and action-oriented (bullets are fine).
+- Default to short replies (3-6 bullets or <= 120 words).
+- If asked for more detail, expand to medium (<= 200 words or <= 10 bullets).
+- Use short headings and avoid filler or repetition.
+- Format as plain text only: no markdown headings, no bold, no numbering.
+- Use '-' for bullets and include line breaks between sections.
 - Ground answers in FCA/UK financial services practice. If unsure, ask clarifying questions.
-- When drafting, keep it professional and ready to paste.
+- When drafting, keep it professional and ready to paste. Ask before producing more than ~200 words.
 - Always prefer practical next steps, evidence to retain, and control suggestions when relevant.
 - Do NOT invent data; if context is missing, ask for it.`;
 
   const modeDirectives: Record<Mode, string> = {
     qa: "Answer compliance questions with short, direct guidance and optional next steps.",
-    draft: "Draft policy or clause text; keep headings and bullet formatting clean.",
-    explain: "Explain clearly: what it is, why it matters, required actions, and evidence to keep.",
-    insights:
-      "Generate concise insights, risks, and next best actions based on the provided context.",
+    draft: "Draft policy or clause text; keep short sections and avoid filler.",
+    explain: "Explain clearly: what it is, why it matters, required actions, and evidence to keep (brief bullets).",
+    insights: "Generate concise insights, risks, and next best actions based on the provided context (brief bullets).",
   };
 
   const contextLine = context
@@ -88,29 +99,34 @@ export async function POST(request: Request) {
     : null;
 
   let orgPolicySummary = "";
-  try {
-    let orgPolicies = await getPoliciesForOrganization(auth.organizationId);
-    if (!orgPolicies.length && auth.organizationId !== DEFAULT_ORGANIZATION_ID) {
-      orgPolicies = await getPoliciesForOrganization(DEFAULT_ORGANIZATION_ID);
-    }
-    if (orgPolicies.length) {
-      const statusCounts = orgPolicies.reduce<Record<string, number>>((acc, policy) => {
-        acc[policy.status] = (acc[policy.status] ?? 0) + 1;
-        return acc;
-      }, {});
-      const topPolicies = orgPolicies.slice(0, 3).map((policy) => `${policy.name} (${policy.status})`).join(", ");
-      orgPolicySummary = [
-        "Organization policy snapshot:",
-        `- total policies: ${orgPolicies.length}`,
-        `- status mix: ${Object.entries(statusCounts)
-          .map(([status, count]) => `${status}:${count}`)
-          .join(", ")}`,
-        `- recent: ${topPolicies}`,
-      ].join("\n");
-    }
-  } catch (summaryError) {
-    if (process.env.NODE_ENV !== "production") {
-      console.error("Failed to build policy summary", summaryError);
+  if (process.env.NODE_ENV !== "test") {
+    try {
+      let orgPolicies = await getPoliciesForOrganization(auth.organizationId);
+      if (!orgPolicies.length && auth.organizationId !== DEFAULT_ORGANIZATION_ID) {
+        orgPolicies = await getPoliciesForOrganization(DEFAULT_ORGANIZATION_ID);
+      }
+      if (orgPolicies.length) {
+        const statusCounts = orgPolicies.reduce<Record<string, number>>((acc, policy) => {
+          acc[policy.status] = (acc[policy.status] ?? 0) + 1;
+          return acc;
+        }, {});
+        const topPolicies = orgPolicies
+          .slice(0, 3)
+          .map((policy) => `${policy.name} (${policy.status})`)
+          .join(", ");
+        orgPolicySummary = [
+          "Organization policy snapshot:",
+          `- total policies: ${orgPolicies.length}`,
+          `- status mix: ${Object.entries(statusCounts)
+            .map(([status, count]) => `${status}:${count}`)
+            .join(", ")}`,
+          `- recent: ${topPolicies}`,
+        ].join("\n");
+      }
+    } catch (summaryError) {
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Failed to build policy summary", summaryError);
+      }
     }
   }
 
@@ -152,7 +168,7 @@ export async function POST(request: Request) {
         model: DEFAULT_MODEL,
         messages,
         temperature: 0.3,
-        max_tokens: 800,
+        max_tokens: MODE_MAX_TOKENS[mode] ?? 400,
         top_p: 1,
         stream: wantsStream,
       }),
@@ -193,34 +209,46 @@ export async function POST(request: Request) {
       async start(controller) {
         const reader = upstream.body?.getReader();
         const decoder = new TextDecoder();
-        let content = "";
+        const encoder = new TextEncoder();
+        let buffer = "";
 
         if (!reader) {
           controller.error(new Error("No stream from upstream"));
           return;
         }
 
+        const handleLine = (line: string) => {
+          const trimmed = line.trim();
+          if (!trimmed || trimmed === "data: [DONE]") return;
+          if (!trimmed.startsWith("data:")) return;
+          const json = trimmed.replace(/^data:\s*/, "");
+          try {
+            const parsed = JSON.parse(json) as UpstreamStreamChunk;
+            const delta = parsed.choices?.[0]?.delta?.content;
+            if (delta) {
+              controller.enqueue(encoder.encode(delta));
+            }
+          } catch {
+            // ignore malformed chunk
+          }
+        };
+
         try {
           while (true) {
             const { done, value } = await reader.read();
             if (done) break;
-            const chunk = decoder.decode(value, { stream: true });
-            const lines = chunk.split("\n");
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split("\n");
+            buffer = lines.pop() ?? "";
             for (const line of lines) {
-              const trimmed = line.trim();
-              if (!trimmed || trimmed === "data: [DONE]") continue;
-              if (!trimmed.startsWith("data:")) continue;
-              const json = trimmed.replace(/^data:\s*/, "");
-              try {
-                const parsed = JSON.parse(json) as UpstreamStreamChunk;
-                const delta = parsed.choices?.[0]?.delta?.content;
-                if (delta) {
-                  content += delta;
-                  controller.enqueue(delta);
-                }
-              } catch {
-                // ignore malformed chunk
-              }
+              handleLine(line);
+            }
+          }
+          buffer += decoder.decode();
+          if (buffer) {
+            const remaining = buffer.split("\n");
+            for (const line of remaining) {
+              handleLine(line);
             }
           }
           controller.close();

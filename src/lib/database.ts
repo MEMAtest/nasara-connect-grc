@@ -2,20 +2,49 @@ import { Pool } from 'pg';
 import { logger, logError, logDbOperation } from '@/lib/logger';
 
 const connectionString = process.env.DATABASE_URL;
+const allowMissingDatabase =
+  process.env.NODE_ENV === 'test' || process.env.VITEST === 'true' || process.env.VITEST === '1';
 
-if (!connectionString) {
-  throw new Error('DATABASE_URL environment variable is required');
+const missingDatabaseError = () => new Error('DATABASE_URL environment variable is required');
+
+const createUnavailablePool = (): Pool => {
+  const fail = async () => {
+    throw missingDatabaseError();
+  };
+  return {
+    connect: fail,
+    query: fail,
+    end: async () => undefined,
+    on: () => undefined,
+  } as unknown as Pool;
+};
+
+if (!connectionString && !allowMissingDatabase) {
+  throw missingDatabaseError();
 }
 
-const pool = new Pool({
-  connectionString,
-  ssl: {
-    rejectUnauthorized: process.env.NODE_ENV === 'production'
-  },
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000,
-});
+const pool = connectionString
+  ? new Pool({
+      connectionString,
+      ssl: {
+        rejectUnauthorized: process.env.NODE_ENV === 'production'
+      },
+      max: 20,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 5000,
+    })
+  : createUnavailablePool();
+
+// Add pool error handling
+if (connectionString) {
+  pool.on('error', (err) => {
+    logError(err, 'Unexpected database pool error');
+  });
+
+  pool.on('connect', () => {
+    logger.debug('New database connection established');
+  });
+}
 
 export { pool };
 

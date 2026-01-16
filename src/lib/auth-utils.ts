@@ -1,5 +1,4 @@
 import type { Session } from "next-auth";
-import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 
 export function isAuthDisabled() {
@@ -74,6 +73,7 @@ export async function authenticateApiRequest(): Promise<ApiAuthResult> {
   }
 
   // Get the session
+  const { auth } = await import("@/auth");
   const session = await auth();
 
   if (!session?.user?.email) {
