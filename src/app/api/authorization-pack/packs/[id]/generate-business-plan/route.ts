@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import path from "path";
-import { promises as fs } from "fs";
 import { requireAuth, isValidUUID } from "@/lib/auth-utils";
 import {
   createPackDocument,
@@ -9,6 +8,10 @@ import {
   getProjectByPackId,
 } from "@/lib/authorization-pack-db";
 import { createProjectDocument, deleteProjectDocument, initDatabase } from "@/lib/database";
+import {
+  removeAuthorizationPackPdf,
+  storeAuthorizationPackPdf,
+} from "@/lib/authorization-pack-storage";
 import { htmlToText } from "@/lib/authorization-pack-export";
 import {
   buildProfileInsights,
@@ -25,7 +28,6 @@ import {
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const DEFAULT_MODEL = process.env.OPENROUTER_MODEL ?? "openai/gpt-4o-mini";
-const storageRoot = path.resolve(process.cwd(), "storage", "authorization-pack");
 
 function sanitizeFilename(input: string) {
   return input.replace(/[<>:"/\\|?*\x00-\x1f]/g, "_").trim().slice(0, 180);
@@ -39,15 +41,7 @@ function ensurePdfFilename(input: string) {
 function buildStorageKey(packId: string, packName: string) {
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
   const safeBase = sanitizeFilename(packName).replace(/\s+/g, "-").toLowerCase() || "authorization-pack";
-  return path.join(packId, "documents", `${timestamp}-${safeBase}-perimeter-opinion.pdf`);
-}
-
-function resolveStoragePath(storageKey: string) {
-  const fullPath = path.resolve(storageRoot, storageKey);
-  if (!fullPath.startsWith(storageRoot + path.sep) && fullPath !== storageRoot) {
-    throw new Error("Invalid file path");
-  }
-  return fullPath;
+  return path.posix.join(packId, "documents", `${timestamp}-${safeBase}-perimeter-opinion.pdf`);
 }
 
 const AI_SYNTHESIS_TIMEOUT = 30000;
@@ -417,9 +411,7 @@ export async function POST(
     const description = `Perimeter opinion pack generated from profile responses. Completion: ${insights.completionPercent}%.`;
 
     const storageKey = buildStorageKey(packId, pack.name);
-    const storagePath = resolveStoragePath(storageKey);
-    await fs.mkdir(path.dirname(storagePath), { recursive: true });
-    await fs.writeFile(storagePath, Buffer.from(pdfBytes));
+    const storedFile = await storeAuthorizationPackPdf(storageKey, pdfBytes);
 
     let document = null;
     let packDocument = null;
@@ -430,7 +422,7 @@ export async function POST(
         name: documentName,
         description,
         section_code: "perimeter-opinion",
-        storage_key: storageKey,
+        storage_key: storedFile.storageKey,
         uploaded_by: auth.userId ?? undefined,
         mime_type: "application/pdf",
         file_size_bytes: pdfBytes.length,
@@ -445,7 +437,7 @@ export async function POST(
         name: documentName,
         description,
         sectionCode: "perimeter-opinion",
-        storageKey,
+        storageKey: storedFile.storageKey,
         mimeType: "application/pdf",
         fileSizeBytes: pdfBytes.length,
         uploadedBy: auth.userId ?? null,
@@ -462,7 +454,7 @@ export async function POST(
       if (document?.id) {
         await deleteProjectDocument(document.id).catch(() => null);
       }
-      await fs.unlink(storagePath).catch(() => null);
+      await removeAuthorizationPackPdf(storedFile.storageKey).catch(() => null);
       throw error;
     }
 

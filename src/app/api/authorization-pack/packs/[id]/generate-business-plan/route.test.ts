@@ -142,6 +142,7 @@ vi.mock("@/lib/perimeter-opinion-pdf-builder", () => ({
 describe("Generate opinion pack route", () => {
   beforeEach(() => {
     delete process.env.OPENROUTER_API_KEY;
+    delete process.env.BLOB_READ_WRITE_TOKEN;
   });
 
   afterEach(() => {

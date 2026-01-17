@@ -14,10 +14,11 @@
 1. **Environment Variables**
    Create a `.env.local` file with required configuration:
    ```env
-   NODE_ENV=production
-   NEXT_PUBLIC_APP_URL=https://your-domain.com
-   # Add other environment variables as needed
-   ```
+    NODE_ENV=production
+    NEXT_PUBLIC_APP_URL=https://your-domain.com
+    BLOB_READ_WRITE_TOKEN=your-vercel-blob-token
+    # Add other environment variables as needed
+  ```
 
 2. **Dependencies Installation**
    ```bash

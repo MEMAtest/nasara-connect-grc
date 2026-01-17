@@ -1,21 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import path from "path";
-import { promises as fs } from "fs";
 import { isValidUUID, requireAuth } from "@/lib/auth-utils";
 import { getPack, getPackDocument } from "@/lib/authorization-pack-db";
-
-const storageRoot = path.resolve(process.cwd(), "storage", "authorization-pack");
+import { readAuthorizationPackPdf } from "@/lib/authorization-pack-storage";
 
 function sanitizeFilename(input: string) {
   return input.replace(/[<>:"/\\|?*\x00-\x1f]/g, "_").trim().slice(0, 180);
-}
-
-function resolveStoragePath(storageKey: string) {
-  const fullPath = path.resolve(storageRoot, storageKey);
-  if (!fullPath.startsWith(storageRoot + path.sep) && fullPath !== storageRoot) {
-    throw new Error("Invalid file path");
-  }
-  return fullPath;
 }
 
 export async function GET(
@@ -52,28 +41,26 @@ export async function GET(
       return NextResponse.json({ error: "Document file missing" }, { status: 404 });
     }
 
-    const filePath = resolveStoragePath(document.storage_key);
-    try {
-      await fs.access(filePath);
-    } catch {
-      return NextResponse.json({ error: "File not found on disk" }, { status: 404 });
+    const storedFile = await readAuthorizationPackPdf(document.storage_key);
+    if (!storedFile) {
+      return NextResponse.json({ error: "File not found on storage" }, { status: 404 });
     }
-
-    const fileBuffer = await fs.readFile(filePath);
 
     const baseName = sanitizeFilename(String(document.name || "document"));
     const fallbackName = baseName || `document-${documentId}`;
-    const extension =
-      path.extname(document.storage_key) || (document.mime_type === "application/pdf" ? ".pdf" : "");
-    const filename = extension && !fallbackName.toLowerCase().endsWith(extension.toLowerCase())
-      ? `${fallbackName}${extension}`
-      : fallbackName;
+    const hasExtension = /\.[a-z0-9]{1,8}$/i.test(fallbackName);
+    const filename =
+      !hasExtension && document.mime_type === "application/pdf" ? `${fallbackName}.pdf` : fallbackName;
 
-    return new NextResponse(new Uint8Array(fileBuffer), {
+    const contentType = storedFile.contentType || document.mime_type || "application/octet-stream";
+    const contentLength =
+      storedFile.contentLength ?? (storedFile.buffer ? storedFile.buffer.length : null);
+
+    return new NextResponse(new Uint8Array(storedFile.buffer), {
       headers: {
-        "Content-Type": document.mime_type || "application/octet-stream",
+        "Content-Type": contentType,
         "Content-Disposition": `attachment; filename="${filename}"`,
-        "Content-Length": fileBuffer.length.toString(),
+        ...(contentLength ? { "Content-Length": contentLength.toString() } : {}),
         "X-Document-Filename": filename,
       },
     });
