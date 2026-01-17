@@ -27,6 +27,7 @@ import { ComplaintTimeline } from "./ComplaintTimeline";
 import { DeadlineTracker } from "./DeadlineTracker";
 import { QuickActions } from "./QuickActions";
 import { LetterTemplateSelector } from "./LetterTemplateSelector";
+import { ComplaintInsights } from "./ComplaintInsights";
 import {
   ComplaintRecord,
   ComplaintActivity,
@@ -459,6 +460,14 @@ export function ComplaintDetailView({ complaintId }: ComplaintDetailViewProps) {
               fourWeekLetterSent={complaint.four_week_letter_sent || false}
               eightWeekLetterSent={complaint.eight_week_letter_sent || false}
               finalResponseSent={complaint.final_response_sent || false}
+            />
+
+            <ComplaintInsights
+              complaintType={complaint.complaint_type}
+              daysElapsed={getDaysElapsed(complaint.received_date)}
+              fourWeekLetterSent={complaint.four_week_letter_sent || false}
+              eightWeekLetterSent={complaint.eight_week_letter_sent || false}
+              status={complaint.status}
             />
           </div>
         </div>

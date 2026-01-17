@@ -52,6 +52,15 @@ function getScoreColor(score: number): string {
   return "bg-yellow-100 text-yellow-700";
 }
 
+function isSafeUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
 function getStatusConfig(status: string) {
   switch (status) {
     case "confirmed_match":
@@ -206,7 +215,7 @@ export function MatchReviewCard({
         )}
 
         {/* Source Link */}
-        {match.matchedEntry.sourceUrl && (
+        {match.matchedEntry.sourceUrl && isSafeUrl(match.matchedEntry.sourceUrl) && (
           <div className="flex justify-end pt-2">
             <a
               href={match.matchedEntry.sourceUrl}
