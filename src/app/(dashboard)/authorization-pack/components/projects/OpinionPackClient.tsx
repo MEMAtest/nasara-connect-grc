@@ -16,6 +16,7 @@ interface ProjectDocument {
   name: string;
   description?: string;
   sectionCode?: string;
+  storageKey?: string;
   version: number;
   status: "draft" | "review" | "approved" | "signed";
   uploadedBy?: string;
@@ -56,7 +57,29 @@ const sectionLabels: Record<string, string> = {
   "consumer-duty": "Consumer Duty",
 };
 
-export function DocumentHubClient() {
+const invalidFilenameChars = /[<>:"/\\|?*\x00-\x1f]/g;
+
+function sanitizeFilename(input: string) {
+  const safe = input.replace(invalidFilenameChars, "_").trim();
+  return safe.length ? safe : "opinion-pack";
+}
+
+function ensurePdfFilename(input: string) {
+  return input.toLowerCase().endsWith(".pdf") ? input : `${input}.pdf`;
+}
+
+function triggerDownload(blob: Blob, filename: string) {
+  const url = window.URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
+  window.URL.revokeObjectURL(url);
+}
+
+export function OpinionPackClient() {
   const params = useParams();
   const projectId = params?.projectId as string | undefined;
   const [project, setProject] = useState<ProjectDetail | null>(null);
@@ -66,6 +89,7 @@ export function DocumentHubClient() {
   const [docsError, setDocsError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("profile");
 
   const loadData = async () => {
@@ -73,6 +97,7 @@ export function DocumentHubClient() {
     setIsLoading(true);
     setLoadError(null);
     setDocsError(null);
+    setDownloadError(null);
     try {
       const projectRes = await fetchWithTimeout(`/api/authorization-pack/projects/${projectId}`).catch(() => null);
 
@@ -143,6 +168,7 @@ export function DocumentHubClient() {
 
     setIsGenerating(true);
     setGenerateError(null);
+    setDownloadError(null);
 
     try {
       const response = await fetch(`/api/authorization-pack/packs/${project.packId}/generate-business-plan`, {
@@ -158,15 +184,12 @@ export function DocumentHubClient() {
 
       // Download the PDF
       const blob = await response.blob();
-      const documentName = response.headers.get("X-Document-Name") || "Perimeter Opinion Pack";
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${documentName.replace(/\s+/g, "-")}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
+      const documentName =
+        response.headers.get("X-Document-Filename") ||
+        response.headers.get("X-Document-Name") ||
+        "Perimeter Opinion Pack";
+      const safeFilename = ensurePdfFilename(sanitizeFilename(documentName));
+      triggerDownload(blob, safeFilename);
 
       // Reload documents to show the new entry
       await loadData();
@@ -174,6 +197,30 @@ export function DocumentHubClient() {
       setGenerateError("Failed to connect to the server. Please try again.");
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const handleDownloadDocument = async (doc: ProjectDocument) => {
+    if (!project?.packId) return;
+    setDownloadError(null);
+
+    try {
+      const response = await fetch(
+        `/api/authorization-pack/packs/${project.packId}/documents/${doc.id}`
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        setDownloadError(errorData.error || "Failed to download document.");
+        return;
+      }
+
+      const blob = await response.blob();
+      const headerName = response.headers.get("X-Document-Filename") || doc.name || "Perimeter Opinion Pack";
+      const safeFilename = ensurePdfFilename(sanitizeFilename(headerName));
+      triggerDownload(blob, safeFilename);
+    } catch {
+      setDownloadError("Failed to download document.");
     }
   };
 
@@ -223,7 +270,7 @@ export function DocumentHubClient() {
 
   return (
     <div className="space-y-6">
-      <ProjectHeader project={project} active="documents" />
+      <ProjectHeader project={project} active="opinion-pack" />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="flex flex-wrap justify-start">
@@ -288,6 +335,14 @@ export function DocumentHubClient() {
             <Card className="border border-red-200 bg-red-50">
               <CardContent className="p-4">
                 <p className="text-sm text-red-700">{generateError}</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {downloadError && (
+            <Card className="border border-red-200 bg-red-50">
+              <CardContent className="p-4">
+                <p className="text-sm text-red-700">{downloadError}</p>
               </CardContent>
             </Card>
           )}
@@ -377,6 +432,15 @@ export function DocumentHubClient() {
                         </div>
                       </div>
                       <div className="flex flex-wrap gap-2">
+                        {doc.storageKey ? (
+                          <Button size="sm" variant="outline" onClick={() => handleDownloadDocument(doc)}>
+                            Download
+                          </Button>
+                        ) : (
+                          <Badge variant="outline" className="border-slate-200 text-slate-500">
+                            File missing
+                          </Badge>
+                        )}
                         {doc.status === "draft" && (
                           <Button size="sm" variant="outline" onClick={() => handleStatusChange(doc.id, "review")}>
                             Submit for Review

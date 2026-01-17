@@ -13,7 +13,7 @@ interface ProjectHeaderProps {
     status: string;
     packId?: string | null;
   };
-  active: "overview" | "assessment" | "plan" | "documents" | "ecosystem";
+  active: "overview" | "assessment" | "plan" | "opinion-pack" | "ecosystem";
 }
 
 export function ProjectHeader({ project, active }: ProjectHeaderProps) {
@@ -68,11 +68,11 @@ export function ProjectHeader({ project, active }: ProjectHeaderProps) {
           <Link href={`/authorization-pack/${project.id}/plan`}>Plan</Link>
         </Button>
         <Button
-          variant={active === "documents" ? "default" : "outline"}
-          className={active === "documents" ? "bg-slate-900 text-white" : "text-slate-600"}
+          variant={active === "opinion-pack" ? "default" : "outline"}
+          className={active === "opinion-pack" ? "bg-slate-900 text-white" : "text-slate-600"}
           asChild
         >
-          <Link href={`/authorization-pack/${project.id}/documents`}>Opinion Pack</Link>
+          <Link href={`/authorization-pack/${project.id}/opinion-pack`}>Opinion Pack</Link>
         </Button>
         <Button
           variant={active === "ecosystem" ? "default" : "outline"}

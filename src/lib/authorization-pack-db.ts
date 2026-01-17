@@ -1977,6 +1977,25 @@ export async function getPackDocuments(packId: string) {
   }
 }
 
+export async function getPackDocument(documentId: string) {
+  await initAuthorizationPackDatabase();
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `SELECT id, pack_id, section_code, name, description, storage_key, file_size_bytes, mime_type, checksum,
+              version, status, uploaded_by, uploaded_at, reviewed_by, reviewed_at, signed_by, signed_at,
+              created_at, updated_at
+       FROM pack_documents
+       WHERE id = $1
+       LIMIT 1`,
+      [documentId]
+    );
+    return result.rows[0] ?? null;
+  } finally {
+    client.release();
+  }
+}
+
 export async function createPackDocument(input: {
   packId: string;
   name: string;
