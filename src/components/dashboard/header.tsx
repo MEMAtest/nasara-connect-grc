@@ -45,6 +45,7 @@ const breadcrumbsMap: Record<string, string> = {
   clauses: "Clause library",
   edit: "Edit",
   training: "Training Library",
+  reporting: "Reporting Pack",
   "regulatory-news": "Regulatory News",
   "ai-chat": "AI Assistant",
   smcr: "SM&CR",

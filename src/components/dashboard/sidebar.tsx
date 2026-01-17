@@ -9,6 +9,7 @@ import {
   ChevronDown,
   ClipboardList,
   FileCheck2,
+  FileBarChart2,
   FileText,
   LayoutDashboard,
   LifeBuoy,
@@ -109,6 +110,12 @@ const navigationGroups: NavigationGroup[] = [
         label: "Monitoring Workflows",
         icon: Globe,
         href: "/compliance-framework/monitoring",
+        badge: { text: "NEW", variant: "success" },
+      },
+      {
+        label: "Reporting Pack",
+        icon: FileBarChart2,
+        href: "/reporting",
         badge: { text: "NEW", variant: "success" },
       },
       {
@@ -216,6 +223,7 @@ const glowByPath: Record<string, string> = {
   "/policies": "shadow-[0_0_18px_rgba(79,70,229,0.45)]",
   "/compliance-framework/builder": "shadow-[0_0_18px_rgba(99,102,241,0.45)]",
   "/compliance-framework/monitoring": "shadow-[0_0_18px_rgba(20,184,166,0.45)]",
+  "/reporting": "shadow-[0_0_18px_rgba(16,185,129,0.45)]",
   "/training-library": "shadow-[0_0_18px_rgba(249,115,22,0.45)]",
   "/regulatory-news": "shadow-[0_0_18px_rgba(244,63,94,0.45)]",
   "/payments": "shadow-[0_0_18px_rgba(34,197,94,0.45)]",

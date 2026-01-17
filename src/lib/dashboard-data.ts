@@ -115,6 +115,17 @@ export const dashboardModules: DashboardModule[] = [
     isLocked: false,
   },
   {
+    id: "reportingPack",
+    title: "Reporting Pack",
+    description: "Create board-ready packs that pull from every module",
+    icon: TrendingUp,
+    color: "teal",
+    route: "/reporting",
+    progress: 0,
+    alerts: 0,
+    isLocked: false,
+  },
+  {
     id: "training",
     title: "Training Library",
     description: "Access compliance training modules and track progress",

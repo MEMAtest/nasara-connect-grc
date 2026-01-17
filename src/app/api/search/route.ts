@@ -32,6 +32,7 @@ const navigationItems: SearchResult[] = [
   { id: 'nav-risk', type: 'module', title: 'Risk Assessment', description: 'Risk management and assessment tools', url: '/risk-assessment', relevance: 1 },
   { id: 'nav-compliance-builder', type: 'module', title: 'Framework Builder', description: 'Build the compliance framework and mappings', url: '/compliance-framework/builder', relevance: 1 },
   { id: 'nav-compliance-monitoring', type: 'module', title: 'Monitoring Workflows', description: 'CMP monitoring and control testing', url: '/compliance-framework/monitoring', relevance: 1 },
+  { id: 'nav-reporting', type: 'module', title: 'Reporting Pack', description: 'Generate board-ready packs across modules', url: '/reporting', relevance: 1 },
   { id: 'nav-smcr', type: 'module', title: 'SM&CR Management', description: 'Senior Managers & Certification Regime', url: '/smcr', relevance: 1 },
   { id: 'nav-smcr-smfs', type: 'module', title: 'SMF Assignments', description: 'Senior Management Function assignments', url: '/smcr/smfs', relevance: 1 },
   { id: 'nav-smcr-fp', type: 'module', title: 'Fitness & Propriety', description: 'F&P assessments and monitoring', url: '/smcr/fitness-propriety', relevance: 1 },

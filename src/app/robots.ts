@@ -33,6 +33,7 @@ export default function robots(): MetadataRoute.Robots {
           "/compliance-framework",
           "/compliance-framework/builder",
           "/compliance-framework/monitoring",
+          "/reporting",
           "/payments",
           "/settings",
           "/support",

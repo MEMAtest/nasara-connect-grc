@@ -26,6 +26,7 @@ export default auth((req) => {
     pathname.startsWith('/smcr') ||
     pathname.startsWith('/policies') ||
     pathname.startsWith('/compliance-framework') ||
+    pathname.startsWith('/reporting') ||
     pathname.startsWith('/training-library') ||
     pathname.startsWith('/regulatory-news') ||
     pathname.startsWith('/payments') ||
