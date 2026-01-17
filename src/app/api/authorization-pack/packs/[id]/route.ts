@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
-  deleteAuthorizationProject,
   deletePack,
-  getAuthorizationProject,
   getPack,
   getPackReadiness,
   updatePack,
@@ -26,14 +24,6 @@ export async function GET(
 
     const pack = await getPack(id);
     if (!pack) {
-      const project = await getAuthorizationProject(id);
-      if (project) {
-        if (project.organization_id !== auth.organizationId) {
-          return NextResponse.json({ error: "Access denied" }, { status: 403 });
-        }
-        await deleteAuthorizationProject(id);
-        return NextResponse.json({ success: true, message: "Project deleted successfully" });
-      }
       return NextResponse.json({ error: "Pack not found" }, { status: 404 });
     }
 

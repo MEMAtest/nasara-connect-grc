@@ -2,15 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { FileText, Loader2, Sparkles, Upload } from "lucide-react";
+import { FileText, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 import { ProjectHeader } from "./ProjectHeader";
+import { BusinessPlanProfileClient } from "./BusinessPlanProfileClient";
 
 interface ProjectDocument {
   id: string;
@@ -46,7 +45,8 @@ const statusColors: Record<string, string> = {
 };
 
 const sectionLabels: Record<string, string> = {
-  "business-plan": "Business Plan",
+  "business-plan": "Perimeter Opinion Pack",
+  "perimeter-opinion": "Perimeter Opinion Pack",
   "executive-summary": "Executive Summary",
   "business-model": "Business Model",
   "regulatory-permissions": "Regulatory Permissions",
@@ -63,20 +63,16 @@ export function DocumentHubClient() {
   const [documents, setDocuments] = useState<ProjectDocument[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [showUploadForm, setShowUploadForm] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
+  const [docsError, setDocsError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
-
-  // Upload form state
-  const [uploadName, setUploadName] = useState("");
-  const [uploadDescription, setUploadDescription] = useState("");
-  const [uploadSection, setUploadSection] = useState("");
+  const [activeTab, setActiveTab] = useState("profile");
 
   const loadData = async () => {
     if (!projectId) return;
     setIsLoading(true);
     setLoadError(null);
+    setDocsError(null);
     try {
       const projectRes = await fetchWithTimeout(`/api/authorization-pack/projects/${projectId}`).catch(() => null);
 
@@ -88,24 +84,29 @@ export function DocumentHubClient() {
           setProject({
             id: proj.id,
             name: proj.name,
-            permissionCode: proj.permission_code,
-            permissionName: proj.permission_name,
+            permissionCode: proj.permissionCode,
+            permissionName: proj.permissionName,
             status: proj.status,
-            packId: proj.pack_id,
+            packId: proj.packId,
           });
-          packIdForDocs = proj.pack_id;
+          packIdForDocs = proj.packId;
         }
       }
 
       if (packIdForDocs) {
-        const docsRes = await fetchWithTimeout(`/api/packs/${packIdForDocs}/documents`).catch(() => null);
+        const docsRes = await fetchWithTimeout(
+          `/api/authorization-pack/packs/${packIdForDocs}/documents`
+        ).catch(() => null);
         if (docsRes?.ok) {
           const docsData = await docsRes.json();
           setDocuments(docsData.documents || []);
+        } else if (docsRes) {
+          const errorData = await docsRes.json().catch(() => ({}));
+          setDocsError(errorData.error || "Failed to load opinion pack.");
         }
       }
     } catch {
-      setLoadError("Failed to load document hub.");
+      setLoadError("Failed to load opinion pack.");
     } finally {
       setIsLoading(false);
     }
@@ -115,37 +116,10 @@ export function DocumentHubClient() {
     loadData();
   }, [projectId]);
 
-  const handleUpload = async () => {
-    if (!project?.packId || !uploadName.trim()) return;
-    setIsUploading(true);
-    try {
-      const response = await fetch(`/api/packs/${project.packId}/documents`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: uploadName,
-          description: uploadDescription,
-          sectionCode: uploadSection || undefined,
-          uploadedBy: "consultant", // In real app, get from auth
-        }),
-      });
-
-      if (response.ok) {
-        setUploadName("");
-        setUploadDescription("");
-        setUploadSection("");
-        setShowUploadForm(false);
-        await loadData();
-      }
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
   const handleStatusChange = async (docId: string, newStatus: string) => {
     if (!project?.packId) return;
     try {
-      await fetch(`/api/packs/${project.packId}/documents`, {
+      await fetch(`/api/authorization-pack/packs/${project.packId}/documents`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -161,7 +135,7 @@ export function DocumentHubClient() {
     }
   };
 
-  const handleGenerateBusinessPlan = async () => {
+  const handleGenerateOpinionPack = async () => {
     if (!project?.packId) {
       setGenerateError("No pack associated with this project.");
       return;
@@ -178,13 +152,13 @@ export function DocumentHubClient() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
-        setGenerateError(errorData.error || "Failed to generate business plan");
+        setGenerateError(errorData.error || "Failed to generate opinion pack");
         return;
       }
 
       // Download the PDF
       const blob = await response.blob();
-      const documentName = response.headers.get("X-Document-Name") || "Business Plan";
+      const documentName = response.headers.get("X-Document-Name") || "Perimeter Opinion Pack";
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -222,7 +196,7 @@ export function DocumentHubClient() {
   if (isLoading) {
     return (
       <Card className="border border-slate-200">
-        <CardContent className="p-8 text-center text-slate-500">Loading document hub...</CardContent>
+        <CardContent className="p-8 text-center text-slate-500">Loading opinion pack...</CardContent>
       </Card>
     );
   }
@@ -231,7 +205,7 @@ export function DocumentHubClient() {
     return (
       <Card className="border border-slate-200">
         <CardHeader>
-          <CardTitle>Document hub unavailable</CardTitle>
+          <CardTitle>Opinion pack unavailable</CardTitle>
           <CardDescription>{loadError || "Project not found."}</CardDescription>
         </CardHeader>
         <CardContent>
@@ -251,219 +225,198 @@ export function DocumentHubClient() {
     <div className="space-y-6">
       <ProjectHeader project={project} active="documents" />
 
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h2 className="text-xl font-semibold text-slate-900">Document Hub</h2>
-          <p className="text-sm text-slate-500">
-            Business plan documents uploaded by Nasara consultants for client review and sign-off.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            className="bg-indigo-600 hover:bg-indigo-700"
-            onClick={handleGenerateBusinessPlan}
-            disabled={isGenerating || !project?.packId}
-          >
-            {isGenerating ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Generating...
-              </>
-            ) : (
-              <>
-                <Sparkles className="mr-2 h-4 w-4" />
-                Generate Business Plan
-              </>
-            )}
-          </Button>
-          <Button
-            variant="outline"
-            className="border-teal-200 text-teal-700 hover:bg-teal-50"
-            onClick={() => setShowUploadForm(!showUploadForm)}
-            disabled={!project?.packId}
-          >
-            {showUploadForm ? (
-              "Cancel"
-            ) : (
-              <>
-                <Upload className="mr-2 h-4 w-4" />
-                Upload Document
-              </>
-            )}
-          </Button>
-        </div>
-      </div>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="flex flex-wrap justify-start">
+          <TabsTrigger value="profile">Phase 1 - Business Plan Profile</TabsTrigger>
+          <TabsTrigger value="documents">Phase 2 - Opinion Pack</TabsTrigger>
+        </TabsList>
 
-      {generateError && (
-        <Card className="border border-red-200 bg-red-50">
-          <CardContent className="p-4">
-            <p className="text-sm text-red-700">{generateError}</p>
-          </CardContent>
-        </Card>
-      )}
+        <TabsContent value="profile" className="space-y-6">
+          <BusinessPlanProfileClient
+            projectId={project.id}
+            permissionCode={project.permissionCode}
+            permissionName={project.permissionName}
+            onNextPhase={() => setActiveTab("documents")}
+          />
+        </TabsContent>
 
-      {isGenerating && (
-        <Card className="border border-indigo-200 bg-indigo-50">
-          <CardContent className="p-6 text-center">
-            <Loader2 className="mx-auto h-8 w-8 animate-spin text-indigo-600" />
-            <p className="mt-3 font-medium text-indigo-900">Generating your business plan...</p>
-            <p className="mt-1 text-sm text-indigo-600">
-              AI is synthesizing your pack narrative into a professional document. This may take a moment.
-            </p>
-          </CardContent>
-        </Card>
-      )}
-
-      {showUploadForm && (
-        <Card className="border border-teal-200 bg-teal-50/50">
-          <CardHeader>
-            <CardTitle className="text-lg">Upload new document</CardTitle>
-            <CardDescription>Add a business plan section or supporting document for client review.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label>Document name *</Label>
-                <Input
-                  value={uploadName}
-                  onChange={(e) => setUploadName(e.target.value)}
-                  placeholder="e.g., Business Model Section v1"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Section (optional)</Label>
-                <select
-                  className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm"
-                  value={uploadSection}
-                  onChange={(e) => setUploadSection(e.target.value)}
-                >
-                  <option value="">Select section...</option>
-                  {Object.entries(sectionLabels).map(([code, label]) => (
-                    <option key={code} value={code}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </div>
+        <TabsContent value="documents" className="space-y-6">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h2 className="text-xl font-semibold text-slate-900">Perimeter Opinion Pack</h2>
+              <p className="text-sm text-slate-500">
+                Auto-generated 5-7 page perimeter opinion based on Phase 1 profile responses.
+              </p>
             </div>
-            <div className="space-y-2">
-              <Label>Description</Label>
-              <Textarea
-                value={uploadDescription}
-                onChange={(e) => setUploadDescription(e.target.value)}
-                placeholder="Brief description of this document..."
-                rows={2}
-              />
-            </div>
-            <div className="flex gap-2">
-              <Button className="bg-teal-600 hover:bg-teal-700" onClick={handleUpload} disabled={!uploadName.trim() || isUploading}>
-                {isUploading ? "Uploading..." : "Upload Document"}
+            <div className="flex flex-wrap gap-2">
+              <Button
+                className="bg-indigo-600 hover:bg-indigo-700"
+                onClick={handleGenerateOpinionPack}
+                disabled={isGenerating || !project?.packId}
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Generate Opinion Pack
+                  </>
+                )}
               </Button>
             </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Document Status Overview */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="border border-slate-200">
-          <CardContent className="p-4">
-            <p className="text-xs uppercase tracking-wide text-slate-400">Draft</p>
-            <p className="mt-1 text-2xl font-semibold text-slate-900">{draftDocs.length}</p>
-            <p className="text-xs text-slate-500">Awaiting review</p>
-          </CardContent>
-        </Card>
-        <Card className="border border-amber-200 bg-amber-50/50">
-          <CardContent className="p-4">
-            <p className="text-xs uppercase tracking-wide text-amber-600">In Review</p>
-            <p className="mt-1 text-2xl font-semibold text-amber-900">{reviewDocs.length}</p>
-            <p className="text-xs text-amber-600">Client reviewing</p>
-          </CardContent>
-        </Card>
-        <Card className="border border-emerald-200 bg-emerald-50/50">
-          <CardContent className="p-4">
-            <p className="text-xs uppercase tracking-wide text-emerald-600">Approved / Signed</p>
-            <p className="mt-1 text-2xl font-semibold text-emerald-900">{approvedDocs.length}</p>
-            <p className="text-xs text-emerald-600">Ready for submission</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Document List */}
-      {documents.length === 0 ? (
-        <Card className="border border-slate-200">
-          <CardContent className="p-8 text-center">
-            <p className="text-slate-500">No documents uploaded yet.</p>
-            <p className="mt-2 text-sm text-slate-400">
-              Nasara consultants will upload business plan sections here for your review.
+          </div>
+          <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">AI workflow</p>
+            <p className="mt-2">
+              After you complete the profile, click Generate Opinion Pack to trigger the AI draft. Review the output
+              here and mark items for review or sign-off. If responses change, regenerate to refresh the opinion pack.
             </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-4">
-          {documents.map((doc) => (
-            <Card key={doc.id} className={`border ${doc.sectionCode === "business-plan" ? "border-indigo-200 bg-indigo-50/30" : "border-slate-200"}`}>
+          </div>
+
+          {docsError && (
+            <Card className="border border-amber-200 bg-amber-50">
               <CardContent className="p-4">
-                <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <FileText className={`h-5 w-5 ${doc.sectionCode === "business-plan" ? "text-indigo-500" : "text-slate-400"}`} />
-                      <h3 className="font-semibold text-slate-900">{doc.name}</h3>
-                      <Badge className={statusColors[doc.status]}>{doc.status}</Badge>
-                      {doc.sectionCode && (
-                        <Badge variant="outline" className="border-slate-200 text-slate-600">
-                          {sectionLabels[doc.sectionCode] || doc.sectionCode}
-                        </Badge>
-                      )}
-                    </div>
-                    {doc.description && <p className="mt-1 text-sm text-slate-500">{doc.description}</p>}
-                    <div className="mt-2 flex flex-wrap gap-3 text-xs text-slate-400">
-                      <span>Version {doc.version}</span>
-                      {doc.uploadedAt && <span>Uploaded {formatDate(doc.uploadedAt)}</span>}
-                      {doc.fileSizeBytes && <span>{formatFileSize(doc.fileSizeBytes)}</span>}
-                      {doc.reviewedAt && <span>Reviewed {formatDate(doc.reviewedAt)}</span>}
-                      {doc.signedAt && <span>Signed {formatDate(doc.signedAt)}</span>}
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {doc.status === "draft" && (
-                      <Button size="sm" variant="outline" onClick={() => handleStatusChange(doc.id, "review")}>
-                        Submit for Review
-                      </Button>
-                    )}
-                    {doc.status === "review" && (
-                      <>
-                        <Button size="sm" variant="outline" onClick={() => handleStatusChange(doc.id, "draft")}>
-                          Request Changes
-                        </Button>
-                        <Button
-                          size="sm"
-                          className="bg-emerald-600 hover:bg-emerald-700"
-                          onClick={() => handleStatusChange(doc.id, "approved")}
-                        >
-                          Approve
-                        </Button>
-                      </>
-                    )}
-                    {doc.status === "approved" && (
-                      <Button
-                        size="sm"
-                        className="bg-teal-600 hover:bg-teal-700"
-                        onClick={() => handleStatusChange(doc.id, "signed")}
-                      >
-                        Sign Off
-                      </Button>
-                    )}
-                    {doc.status === "signed" && (
-                      <Badge className="bg-teal-600 text-white">Signed</Badge>
-                    )}
-                  </div>
-                </div>
+                <p className="text-sm text-amber-700">{docsError}</p>
               </CardContent>
             </Card>
-          ))}
-        </div>
-      )}
+          )}
+
+          {generateError && (
+            <Card className="border border-red-200 bg-red-50">
+              <CardContent className="p-4">
+                <p className="text-sm text-red-700">{generateError}</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {isGenerating && (
+            <Card className="border border-indigo-200 bg-indigo-50">
+              <CardContent className="p-6 text-center">
+                <Loader2 className="mx-auto h-8 w-8 animate-spin text-indigo-600" />
+                <p className="mt-3 font-medium text-indigo-900">Generating your opinion pack...</p>
+                <p className="mt-1 text-sm text-indigo-600">
+                  AI is synthesizing your profile answers into a perimeter opinion. This may take a moment.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          <div className="grid gap-4 md:grid-cols-3">
+            <Card className="border border-slate-200">
+              <CardContent className="p-4">
+                <p className="text-xs uppercase tracking-wide text-slate-400">Draft</p>
+                <p className="mt-1 text-2xl font-semibold text-slate-900">{draftDocs.length}</p>
+                <p className="text-xs text-slate-500">Awaiting review</p>
+              </CardContent>
+            </Card>
+            <Card className="border border-amber-200 bg-amber-50/50">
+              <CardContent className="p-4">
+                <p className="text-xs uppercase tracking-wide text-amber-600">In Review</p>
+                <p className="mt-1 text-2xl font-semibold text-amber-900">{reviewDocs.length}</p>
+                <p className="text-xs text-amber-600">Client reviewing</p>
+              </CardContent>
+            </Card>
+            <Card className="border border-emerald-200 bg-emerald-50/50">
+              <CardContent className="p-4">
+                <p className="text-xs uppercase tracking-wide text-emerald-600">Approved / Signed</p>
+                <p className="mt-1 text-2xl font-semibold text-emerald-900">{approvedDocs.length}</p>
+                <p className="text-xs text-emerald-600">Ready for submission</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {documents.length === 0 ? (
+            <Card className="border border-slate-200">
+              <CardContent className="p-8 text-center">
+                <p className="text-slate-500">No opinion pack generated yet.</p>
+                <p className="mt-2 text-sm text-slate-400">
+                  Generate the opinion pack from Phase 1 answers to review it here.
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-4">
+              {documents.map((doc) => (
+                <Card
+                  key={doc.id}
+                  className={`border ${
+                    doc.sectionCode === "business-plan" || doc.sectionCode === "perimeter-opinion"
+                      ? "border-indigo-200 bg-indigo-50/30"
+                      : "border-slate-200"
+                  }`}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <FileText
+                            className={`h-5 w-5 ${
+                              doc.sectionCode === "business-plan" || doc.sectionCode === "perimeter-opinion"
+                                ? "text-indigo-500"
+                                : "text-slate-400"
+                            }`}
+                          />
+                          <h3 className="font-semibold text-slate-900">{doc.name}</h3>
+                          <Badge className={statusColors[doc.status]}>{doc.status}</Badge>
+                          {doc.sectionCode && (
+                            <Badge variant="outline" className="border-slate-200 text-slate-600">
+                              {sectionLabels[doc.sectionCode] || doc.sectionCode}
+                            </Badge>
+                          )}
+                        </div>
+                        {doc.description && <p className="mt-1 text-sm text-slate-500">{doc.description}</p>}
+                        <div className="mt-2 flex flex-wrap gap-3 text-xs text-slate-400">
+                          <span>Version {doc.version}</span>
+                          {doc.uploadedAt && <span>Uploaded {formatDate(doc.uploadedAt)}</span>}
+                          {doc.fileSizeBytes && <span>{formatFileSize(doc.fileSizeBytes)}</span>}
+                          {doc.reviewedAt && <span>Reviewed {formatDate(doc.reviewedAt)}</span>}
+                          {doc.signedAt && <span>Signed {formatDate(doc.signedAt)}</span>}
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {doc.status === "draft" && (
+                          <Button size="sm" variant="outline" onClick={() => handleStatusChange(doc.id, "review")}>
+                            Submit for Review
+                          </Button>
+                        )}
+                        {doc.status === "review" && (
+                          <>
+                            <Button size="sm" variant="outline" onClick={() => handleStatusChange(doc.id, "draft")}>
+                              Request Changes
+                            </Button>
+                            <Button
+                              size="sm"
+                              className="bg-emerald-600 hover:bg-emerald-700"
+                              onClick={() => handleStatusChange(doc.id, "approved")}
+                            >
+                              Approve
+                            </Button>
+                          </>
+                        )}
+                        {doc.status === "approved" && (
+                          <Button
+                            size="sm"
+                            className="bg-teal-600 hover:bg-teal-700"
+                            onClick={() => handleStatusChange(doc.id, "signed")}
+                          >
+                            Sign Off
+                          </Button>
+                        )}
+                        {doc.status === "signed" && (
+                          <Badge className="bg-teal-600 text-white">Signed</Badge>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

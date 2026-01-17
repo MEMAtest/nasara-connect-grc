@@ -27,7 +27,6 @@ interface PackRow {
 interface ReadinessSummary {
   overall: number;
   narrative: number;
-  evidence: number;
   review: number;
 }
 
@@ -304,7 +303,7 @@ export function ExportClient() {
           </div>
           <div className="rounded-xl border border-slate-100 p-4">
             <p className="text-sm font-semibold text-slate-900">Annex index</p>
-            <p className="text-xs text-slate-500">Create the annex register with evidence mapping.</p>
+            <p className="text-xs text-slate-500">Create the annex register for submission tracking.</p>
             <Button
               className="mt-4 w-full"
               variant="outline"
@@ -313,19 +312,6 @@ export function ExportClient() {
               }
             >
               Download annex index
-            </Button>
-          </div>
-          <div className="rounded-xl border border-slate-100 p-4">
-            <p className="text-sm font-semibold text-slate-900">Evidence bundle</p>
-            <p className="text-xs text-slate-500">Zip all evidence uploads for submission.</p>
-            <Button
-              className="mt-4 w-full"
-              variant="outline"
-              onClick={() =>
-                downloadFile(`/api/authorization-pack/packs/${pack.id}/export/evidence-zip`, `${safeName}-evidence.zip`)
-              }
-            >
-              Download evidence zip
             </Button>
           </div>
         </CardContent>

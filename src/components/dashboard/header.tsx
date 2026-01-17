@@ -34,7 +34,9 @@ const breadcrumbsMap: Record<string, string> = {
   "grc-hub": "GRC Control Panel",
   "authorization-pack": "Authorization Pack",
   "risk-assessment": "Risk Assessment",
-  "compliance-framework": "Compliance Framework",
+  "compliance-framework": "Framework Builder",
+  builder: "Framework Builder",
+  monitoring: "Monitoring Workflows",
   policies: "Policies",
   "payments": "Payments",
   register: "Policy register",
@@ -72,7 +74,7 @@ const UUID_SEGMENT_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f
 function labelForSegment(segment: string, previousSegment?: string) {
   if (UUID_SEGMENT_RE.test(segment)) {
     if (previousSegment === "policies") return "Policy";
-    if (previousSegment === "cmp") return "Control";
+    if (previousSegment === "cmp" || previousSegment === "monitoring") return "Control";
     return "Details";
   }
   return breadcrumbsMap[segment] ?? segment.replace(/-/g, " ");
@@ -95,6 +97,9 @@ export function Header({ onToggleSidebar, isSidebarOpen }: HeaderProps) {
     let cumulativePath = "";
     segments.forEach((segment, index) => {
       const previousSegment = segments[index - 1];
+      if (segment === "builder" && previousSegment === "compliance-framework") {
+        return;
+      }
       cumulativePath += `/${segment}`;
       const label = labelForSegment(segment, previousSegment);
       items.push({ label, href: cumulativePath });

@@ -84,6 +84,54 @@ export const cryptoassetRiskModule: TrainingModule = {
       ],
       correctAnswer: 0,
       explanation: 'Controls must be evidence-based and aligned to the crypto risk assessment.'
+    },
+    {
+      id: 'crypto-q2',
+      question: 'The cryptoasset travel rule requires firms to:',
+      options: [
+        { id: 'a', text: 'Share originator and beneficiary information for qualifying transfers', isCorrect: true },
+        { id: 'b', text: 'Only record transfers internally without sharing', isCorrect: false },
+        { id: 'c', text: 'Exclude transfers between hosted wallets', isCorrect: false },
+        { id: 'd', text: 'Replace sanctions screening requirements', isCorrect: false }
+      ],
+      correctAnswer: 0,
+      explanation: 'Travel rule compliance requires sharing key originator and beneficiary information for qualifying transfers.'
+    },
+    {
+      id: 'crypto-q3',
+      question: 'Which activity most clearly triggers enhanced monitoring?',
+      options: [
+        { id: 'a', text: 'Small local transfers to a known counterparty', isCorrect: false },
+        { id: 'b', text: 'Rapid in-and-out transfers with high-risk jurisdiction exposure', isCorrect: true },
+        { id: 'c', text: 'Monthly salary deposits into a custodial wallet', isCorrect: false },
+        { id: 'd', text: 'Customer updating their profile details', isCorrect: false }
+      ],
+      correctAnswer: 1,
+      explanation: 'Rapid pass-through activity and high-risk jurisdiction exposure are strong crypto typology indicators.'
+    },
+    {
+      id: 'crypto-q4',
+      question: 'Blockchain analytics tools primarily help firms to:',
+      options: [
+        { id: 'a', text: 'Eliminate the need for KYC checks', isCorrect: false },
+        { id: 'b', text: 'Trace transaction flows and flag risky counterparties', isCorrect: true },
+        { id: 'c', text: 'Guarantee transaction reversals', isCorrect: false },
+        { id: 'd', text: 'Bypass regulatory reporting', isCorrect: false }
+      ],
+      correctAnswer: 1,
+      explanation: 'Analytics provide transaction tracing and risk indicators to support monitoring and escalation.'
+    },
+    {
+      id: 'crypto-q5',
+      question: 'FCA registration reviews typically focus on evidence of:',
+      options: [
+        { id: 'a', text: 'High marketing spend', isCorrect: false },
+        { id: 'b', text: 'Documented governance, risk assessment, and MI', isCorrect: true },
+        { id: 'c', text: 'Customer growth targets', isCorrect: false },
+        { id: 'd', text: 'Informal controls without documentation', isCorrect: false }
+      ],
+      correctAnswer: 1,
+      explanation: 'FCA reviews look for documented governance, risk assessment, and monitoring evidence.'
     }
   ],
   summary: {

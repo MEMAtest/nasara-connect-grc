@@ -1004,7 +1004,68 @@ export const amlFundamentalsModule = {
     }
   ],
   practiceScenarios: [],
-  assessmentQuestions: [],
+  assessmentQuestions: [
+    {
+      id: "aml-q1",
+      question: "Which stage of money laundering involves complex transactions to obscure origin?",
+      options: [
+        "Placement",
+        "Layering",
+        "Integration",
+        "Onboarding"
+      ],
+      correctAnswer: 1,
+      explanation: "Layering is the stage where criminals use complex transactions to obscure the money trail."
+    },
+    {
+      id: "aml-q2",
+      question: "When should an internal SAR be raised?",
+      options: [
+        "Only when you have proof of a crime",
+        "As soon as there is reasonable suspicion",
+        "After the customer confirms the activity",
+        "Only after senior management approves"
+      ],
+      correctAnswer: 1,
+      explanation: "The threshold is suspicion, not certainty. Report immediately to the MLRO."
+    },
+    {
+      id: "aml-q3",
+      question: "Which action risks tipping off a customer?",
+      options: [
+        "Explaining that internal checks are underway",
+        "Telling the customer a SAR has been filed",
+        "Requesting standard documentation",
+        "Following an approved escalation process"
+      ],
+      correctAnswer: 1,
+      explanation: "Disclosing a SAR or suspicion to the customer is tipping off and is a criminal offense."
+    },
+    {
+      id: "aml-q4",
+      question: "Which factor most likely increases money laundering risk?",
+      options: [
+        "Transparent ownership and low-risk jurisdiction",
+        "Complex ownership with offshore entities",
+        "Stable salary deposits and local payments only",
+        "Long-term customer with consistent activity"
+      ],
+      correctAnswer: 1,
+      explanation: "Complex ownership and offshore entities increase risk and may trigger enhanced due diligence."
+    },
+    {
+      id: "aml-q5",
+      question: "The MLRO is primarily responsible for:",
+      options: [
+        "Approving all marketing campaigns",
+        "Receiving internal SARs and deciding on external reporting",
+        "Completing customer onboarding paperwork",
+        "Managing product pricing decisions"
+      ],
+      correctAnswer: 1,
+      explanation: "The MLRO is the designated officer who receives internal SARs and determines if a report to the NCA is required."
+    }
+  ],
   summary: {
     keyTakeaways: [
       'Money laundering is a serious crime that enables other serious crimes',

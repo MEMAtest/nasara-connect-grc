@@ -18,7 +18,7 @@ interface ProjectHeaderProps {
 
 export function ProjectHeader({ project, active }: ProjectHeaderProps) {
   const permissionLabel = project.permissionName || project.permissionCode || "Permission";
-  const workspaceHref = project.packId ? `/authorization-pack/sections?packId=${project.packId}` : null;
+  const workspaceHref = project.packId ? `/authorization-pack/workspace?packId=${project.packId}` : null;
 
   return (
     <div className="space-y-4">
@@ -72,7 +72,7 @@ export function ProjectHeader({ project, active }: ProjectHeaderProps) {
           className={active === "documents" ? "bg-slate-900 text-white" : "text-slate-600"}
           asChild
         >
-          <Link href={`/authorization-pack/${project.id}/documents`}>Documents</Link>
+          <Link href={`/authorization-pack/${project.id}/documents`}>Opinion Pack</Link>
         </Button>
         <Button
           variant={active === "ecosystem" ? "default" : "outline"}

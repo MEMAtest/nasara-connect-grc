@@ -21,7 +21,6 @@ interface PackSummary {
 interface ReadinessSummary {
   overall: number;
   narrative: number;
-  evidence: number;
   review: number;
 }
 
@@ -33,8 +32,6 @@ interface WorkspaceHeaderProps {
 
 const navItems = [
   { href: "/authorization-pack/workspace", label: "Workspace" },
-  { href: "/authorization-pack/sections", label: "Sections" },
-  { href: "/authorization-pack/evidence", label: "Evidence" },
   { href: "/authorization-pack/tasks", label: "Tasks" },
   { href: "/authorization-pack/review", label: "Review" },
   { href: "/authorization-pack/export", label: "Export" },
@@ -81,7 +78,7 @@ export function WorkspaceHeader({ pack, readiness, showCTA = true }: WorkspaceHe
             {pack ? pack.name : "Authorisation Pack Workspace"}
           </h1>
           <p className="mt-2 text-sm text-slate-500">
-            Track your regulatory pack against the gold standard spine, evidence, and review gates.
+            Track your regulatory pack against the gold standard spine and review gates.
           </p>
         </div>
         {showCTA && (
@@ -107,8 +104,8 @@ export function WorkspaceHeader({ pack, readiness, showCTA = true }: WorkspaceHe
                 </Badge>
                 <Badge className="bg-slate-900 text-white">{(pack.status || "draft").replace("-", " ")}</Badge>
                 <Button asChild className="bg-teal-600 hover:bg-teal-700">
-                  <Link href={activePackId ? `/authorization-pack/sections?packId=${activePackId}` : "/authorization-pack/sections"}>
-                    Continue Pack
+                  <Link href={activePackId ? `/authorization-pack/tasks?packId=${activePackId}` : "/authorization-pack/tasks"}>
+                    Open Tasks
                   </Link>
                 </Button>
               </>
@@ -132,7 +129,6 @@ export function WorkspaceHeader({ pack, readiness, showCTA = true }: WorkspaceHe
               <Progress value={readiness.overall} className="h-2" />
               <div className="flex items-center justify-between text-xs text-slate-500">
                 <span>Narrative {readiness.narrative}%</span>
-                <span>Evidence {readiness.evidence}%</span>
                 <span>Review {readiness.review}%</span>
               </div>
             </div>

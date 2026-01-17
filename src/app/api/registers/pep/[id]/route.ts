@@ -17,6 +17,17 @@ import {
   PEP_STATUSES,
   APPROVAL_STATUSES,
 } from "@/lib/validation";
+import {
+  authenticateRequest,
+  verifyRecordOwnership,
+  checkRateLimit,
+  rateLimitExceededResponse,
+  badRequestResponse,
+  notFoundResponse,
+  forbiddenResponse,
+  serverErrorResponse,
+} from "@/lib/api-auth";
+import { logError } from "@/lib/logger";
 
 // GET /api/registers/pep/[id] - Get a single PEP record
 export async function GET(
@@ -24,30 +35,42 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Rate limiting
+    const clientIp = request.headers.get("x-forwarded-for") || "anonymous";
+    const rateLimit = checkRateLimit(`pep-get-${clientIp}`);
+    if (!rateLimit.allowed) {
+      return rateLimitExceededResponse(rateLimit.resetIn);
+    }
+
+    // Authentication
+    const authResult = await authenticateRequest(request);
+    if (!authResult.authenticated || !authResult.user) {
+      return authResult.error!;
+    }
+
     await initDatabase();
     const { id } = await params;
 
     // Validate UUID format
     if (!isValidUUID(id)) {
-      return NextResponse.json(
-        { error: "Invalid ID format" },
-        { status: 400 }
-      );
+      return badRequestResponse("Invalid ID format");
     }
 
     const record = await getPEPRecord(id);
 
     if (!record) {
-      return NextResponse.json({ error: "PEP record not found" }, { status: 404 });
+      return notFoundResponse("PEP record not found");
+    }
+
+    // IDOR protection
+    if (!verifyRecordOwnership(record, authResult.user.organizationId)) {
+      return forbiddenResponse("You don't have permission to access this record");
     }
 
     return NextResponse.json({ record });
   } catch (error) {
-    console.error("Error fetching PEP record:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch PEP record" },
-      { status: 500 }
-    );
+    logError(error as Error, "Error fetching PEP record");
+    return serverErrorResponse("Failed to fetch PEP record");
   }
 }
 
@@ -57,15 +80,39 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Rate limiting
+    const clientIp = request.headers.get("x-forwarded-for") || "anonymous";
+    const rateLimit = checkRateLimit(`pep-patch-${clientIp}`, {
+      windowMs: 60000,
+      maxRequests: 30,
+    });
+    if (!rateLimit.allowed) {
+      return rateLimitExceededResponse(rateLimit.resetIn);
+    }
+
+    // Authentication
+    const authResult = await authenticateRequest(request);
+    if (!authResult.authenticated || !authResult.user) {
+      return authResult.error!;
+    }
+
     await initDatabase();
     const { id } = await params;
 
     // Validate UUID format
     if (!isValidUUID(id)) {
-      return NextResponse.json(
-        { error: "Invalid ID format" },
-        { status: 400 }
-      );
+      return badRequestResponse("Invalid ID format");
+    }
+
+    // Fetch record first to verify ownership
+    const existingRecord = await getPEPRecord(id);
+    if (!existingRecord) {
+      return notFoundResponse("PEP record not found");
+    }
+
+    // IDOR protection
+    if (!verifyRecordOwnership(existingRecord, authResult.user.organizationId)) {
+      return forbiddenResponse("You don't have permission to access this record");
     }
 
     const body = await request.json();
@@ -75,10 +122,7 @@ export async function PATCH(
     if (body.full_name !== undefined) {
       const fullName = sanitizeString(body.full_name);
       if (!fullName) {
-        return NextResponse.json(
-          { error: "Full name cannot be empty" },
-          { status: 400 }
-        );
+        return badRequestResponse("Full name cannot be empty");
       }
       updateData.full_name = fullName;
     }
@@ -114,50 +158,35 @@ export async function PATCH(
     // Validate enum fields
     if (body.pep_type !== undefined) {
       if (!isValidEnum(body.pep_type, PEP_TYPES)) {
-        return NextResponse.json(
-          { error: `Invalid PEP type. Must be one of: ${PEP_TYPES.join(", ")}` },
-          { status: 400 }
-        );
+        return badRequestResponse(`Invalid PEP type. Must be one of: ${PEP_TYPES.join(", ")}`);
       }
       updateData.pep_type = body.pep_type;
     }
 
     if (body.pep_category !== undefined) {
       if (!isValidEnum(body.pep_category, PEP_CATEGORIES)) {
-        return NextResponse.json(
-          { error: `Invalid PEP category. Must be one of: ${PEP_CATEGORIES.join(", ")}` },
-          { status: 400 }
-        );
+        return badRequestResponse(`Invalid PEP category. Must be one of: ${PEP_CATEGORIES.join(", ")}`);
       }
       updateData.pep_category = body.pep_category;
     }
 
     if (body.risk_rating !== undefined) {
       if (!isValidEnum(body.risk_rating, RISK_RATINGS)) {
-        return NextResponse.json(
-          { error: `Invalid risk rating. Must be one of: ${RISK_RATINGS.join(", ")}` },
-          { status: 400 }
-        );
+        return badRequestResponse(`Invalid risk rating. Must be one of: ${RISK_RATINGS.join(", ")}`);
       }
       updateData.risk_rating = body.risk_rating;
     }
 
     if (body.status !== undefined) {
       if (!isValidEnum(body.status, PEP_STATUSES)) {
-        return NextResponse.json(
-          { error: `Invalid status. Must be one of: ${PEP_STATUSES.join(", ")}` },
-          { status: 400 }
-        );
+        return badRequestResponse(`Invalid status. Must be one of: ${PEP_STATUSES.join(", ")}`);
       }
       updateData.status = body.status;
     }
 
     if (body.approval_status !== undefined) {
       if (!isValidEnum(body.approval_status, APPROVAL_STATUSES)) {
-        return NextResponse.json(
-          { error: `Invalid approval status. Must be one of: ${APPROVAL_STATUSES.join(", ")}` },
-          { status: 400 }
-        );
+        return badRequestResponse(`Invalid approval status. Must be one of: ${APPROVAL_STATUSES.join(", ")}`);
       }
       updateData.approval_status = body.approval_status;
     }
@@ -179,10 +208,7 @@ export async function PATCH(
         } else {
           const parsedDate = parseValidDate(body[field]);
           if (!parsedDate) {
-            return NextResponse.json(
-              { error: `Invalid date format for ${field}` },
-              { status: 400 }
-            );
+            return badRequestResponse(`Invalid date format for ${field}`);
           }
           updateData[field] = parsedDate;
         }
@@ -195,25 +221,19 @@ export async function PATCH(
     }
 
     if (Object.keys(updateData).length === 0) {
-      return NextResponse.json(
-        { error: "No valid fields to update" },
-        { status: 400 }
-      );
+      return badRequestResponse("No valid fields to update");
     }
 
     const record = await updatePEPRecord(id, updateData);
 
     if (!record) {
-      return NextResponse.json({ error: "PEP record not found" }, { status: 404 });
+      return notFoundResponse("PEP record not found");
     }
 
     return NextResponse.json({ record });
   } catch (error) {
-    console.error("Error updating PEP record:", error);
-    return NextResponse.json(
-      { error: "Failed to update PEP record" },
-      { status: 500 }
-    );
+    logError(error as Error, "Error updating PEP record");
+    return serverErrorResponse("Failed to update PEP record");
   }
 }
 
@@ -223,29 +243,50 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Rate limiting
+    const clientIp = request.headers.get("x-forwarded-for") || "anonymous";
+    const rateLimit = checkRateLimit(`pep-delete-${clientIp}`, {
+      windowMs: 60000,
+      maxRequests: 30,
+    });
+    if (!rateLimit.allowed) {
+      return rateLimitExceededResponse(rateLimit.resetIn);
+    }
+
+    // Authentication
+    const authResult = await authenticateRequest(request);
+    if (!authResult.authenticated || !authResult.user) {
+      return authResult.error!;
+    }
+
     await initDatabase();
     const { id } = await params;
 
     // Validate UUID format
     if (!isValidUUID(id)) {
-      return NextResponse.json(
-        { error: "Invalid ID format" },
-        { status: 400 }
-      );
+      return badRequestResponse("Invalid ID format");
+    }
+
+    // Fetch record first to verify ownership
+    const existingRecord = await getPEPRecord(id);
+    if (!existingRecord) {
+      return notFoundResponse("PEP record not found");
+    }
+
+    // IDOR protection
+    if (!verifyRecordOwnership(existingRecord, authResult.user.organizationId)) {
+      return forbiddenResponse("You don't have permission to access this record");
     }
 
     const deleted = await deletePEPRecord(id);
 
     if (!deleted) {
-      return NextResponse.json({ error: "PEP record not found" }, { status: 404 });
+      return notFoundResponse("PEP record not found");
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Error deleting PEP record:", error);
-    return NextResponse.json(
-      { error: "Failed to delete PEP record" },
-      { status: 500 }
-    );
+    logError(error as Error, "Error deleting PEP record");
+    return serverErrorResponse("Failed to delete PEP record");
   }
 }

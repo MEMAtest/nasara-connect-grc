@@ -20,7 +20,6 @@ interface PackRow {
 interface ReadinessSummary {
   overall: number;
   narrative: number;
-  evidence: number;
   review: number;
 }
 
@@ -33,10 +32,7 @@ interface SectionSummary {
   due_date?: string | null;
   review_state?: string;
   narrativeCompletion: number;
-  evidenceCompletion: number;
   reviewCompletion: number;
-  evidenceUploaded: number;
-  evidenceTotal: number;
 }
 
 export function SectionsClient() {
@@ -48,6 +44,7 @@ export function SectionsClient() {
   const [sections, setSections] = useState<SectionSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [showIncompleteOnly, setShowIncompleteOnly] = useState(true);
 
   useEffect(() => {
     const load = async () => {
@@ -69,7 +66,7 @@ export function SectionsClient() {
         setPack(activePack);
         if (activePack) {
           if (packIdParam !== activePack.id) {
-            router.replace(`/authorization-pack/sections?packId=${activePack.id}`);
+            router.replace(`/authorization-pack/workspace?packId=${activePack.id}`);
           }
           const readinessResponse = await fetchWithTimeout(`/api/authorization-pack/packs/${activePack.id}`).catch(
             () => null
@@ -136,6 +133,9 @@ export function SectionsClient() {
     );
   }
 
+  const remainingSections = sections.filter((section) => section.narrativeCompletion < 100);
+  const visibleSections = showIncompleteOnly ? remainingSections : sections;
+
   return (
     <div className="space-y-6">
       <WorkspaceHeader pack={pack} readiness={readiness} />
@@ -143,34 +143,47 @@ export function SectionsClient() {
         <CardHeader>
           <CardTitle>Sections</CardTitle>
           <CardDescription>
-            {packTypeLabels[pack.template_type]} spine with evidence and review gates.
+            {packTypeLabels[pack.template_type]} spine with review gates.
           </CardDescription>
+          <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-slate-500">
+            <span>{remainingSections.length} sections remaining</span>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 border-slate-200 text-xs text-slate-600"
+              onClick={() => setShowIncompleteOnly((prev) => !prev)}
+            >
+              {showIncompleteOnly ? "Show all sections" : "Show remaining only"}
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-3">
-          {sections.map((section) => (
-            <div key={section.id} className="flex flex-col gap-3 rounded-xl border border-slate-100 p-4 md:flex-row md:items-center md:justify-between">
-              <div>
-                <p className="text-sm font-semibold text-slate-900">{section.title}</p>
-                <p className="text-xs text-slate-500">{section.section_key}</p>
-              </div>
-              <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                <Badge variant="outline">{(section.status || "not-started").replace("-", " ")}</Badge>
-                <Badge variant="outline">Review {(section.review_state || "draft").replace("-", " ")}</Badge>
-                <Badge variant="outline">Narrative {section.narrativeCompletion}%</Badge>
-                <Badge variant="outline">Evidence {section.evidenceCompletion}%</Badge>
-                <Badge variant="outline">Review {section.reviewCompletion}%</Badge>
-                <Badge variant="outline">
-                  Evidence {section.evidenceUploaded}/{section.evidenceTotal}
-                </Badge>
-                {section.due_date ? (
-                  <Badge variant="outline">Due {new Date(section.due_date).toLocaleDateString()}</Badge>
-                ) : null}
-              </div>
-              <Button asChild variant="outline">
-                <Link href={`/authorization-pack/sections/${section.id}?packId=${pack.id}`}>Open Workspace</Link>
-              </Button>
+          {visibleSections.length === 0 ? (
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+              All sections are complete. Switch to review to sign off and export.
             </div>
-          ))}
+          ) : (
+            visibleSections.map((section) => (
+              <div key={section.id} className="flex flex-col gap-3 rounded-xl border border-slate-100 p-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-slate-900">{section.title}</p>
+                  <p className="text-xs text-slate-500">{section.section_key}</p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                  <Badge variant="outline">{(section.status || "not-started").replace("-", " ")}</Badge>
+                  <Badge variant="outline">Review {(section.review_state || "draft").replace("-", " ")}</Badge>
+                  <Badge variant="outline">Narrative {section.narrativeCompletion}%</Badge>
+                  <Badge variant="outline">Review {section.reviewCompletion}%</Badge>
+                  {section.due_date ? (
+                    <Badge variant="outline">Due {new Date(section.due_date).toLocaleDateString()}</Badge>
+                  ) : null}
+                </div>
+                <Button asChild variant="outline">
+                  <Link href={`/authorization-pack/sections/${section.id}?packId=${pack.id}`}>Open Workspace</Link>
+                </Button>
+              </div>
+            ))
+          )}
         </CardContent>
       </Card>
     </div>

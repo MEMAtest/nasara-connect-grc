@@ -18,6 +18,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { MarkdownContent, formatListItem, renderVisual } from "./training-renderer-helpers";
+import { TrainingSlideGallery } from "./TrainingSlideGallery";
 
 type StageKey = "hook" | "content" | "practice" | "assessment" | "summary";
 const STAGE_ORDER: StageKey[] = ["hook", "content", "practice", "assessment", "summary"];
@@ -27,6 +28,7 @@ interface TrainingModuleData {
   description: string;
   duration: number;
   difficulty: string;
+  category?: string;
   hook?: {
     title?: string;
     content?: string;
@@ -421,6 +423,7 @@ export function OperationalRiskTrainingRenderer({
                 <CardDescription>Session {currentLessonIndex + 1} of {content.lessons.length}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
+                <TrainingSlideGallery moduleId={moduleId} category={module.category} />
                 <MarkdownContent content={lessonContent} />
 
                 {keyConcepts.length > 0 && (

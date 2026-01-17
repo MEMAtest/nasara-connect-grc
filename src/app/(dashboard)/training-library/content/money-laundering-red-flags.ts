@@ -1110,6 +1110,42 @@ export const moneyLaunderingRedFlagsModule: TrainingModule = {
       ],
       correctAnswer: 2,
       explanation: "Internal SARs must be factual, evidence-based, and focused on observations and rationale."
+    },
+    {
+      id: "ml-red-flags-q3",
+      question: "Which action best avoids tipping off?",
+      options: [
+        "Tell the customer a SAR has been filed",
+        "Use a neutral explanation for delays and follow internal escalation",
+        "Ask the customer if they are laundering money",
+        "Refuse all service without documenting reasons"
+      ],
+      correctAnswer: 1,
+      explanation: "Neutral communication and internal escalation prevent tipping off."
+    },
+    {
+      id: "ml-red-flags-q4",
+      question: "Which evidence is most useful in escalation?",
+      options: [
+        "Documented transaction pattern and timeline",
+        "A personal opinion of the customer",
+        "Speculation about motives",
+        "Only a single transaction receipt"
+      ],
+      correctAnswer: 0,
+      explanation: "Escalations should be grounded in documented patterns and evidence."
+    },
+    {
+      id: "ml-red-flags-q5",
+      question: "Which scenario is a common red flag?",
+      options: [
+        "Transparent source of funds with verified invoices",
+        "Rapid movement of funds to unrelated offshore accounts",
+        "Regular payroll deposits matching profile",
+        "Long-standing supplier payments with clear contracts"
+      ],
+      correctAnswer: 1,
+      explanation: "Rapid movement to offshore accounts without clear purpose is a common red flag."
     }
   ],
   summary: {

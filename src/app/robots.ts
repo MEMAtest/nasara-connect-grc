@@ -31,6 +31,8 @@ export default function robots(): MetadataRoute.Robots {
           "/risk-assessment",
           "/training-library",
           "/compliance-framework",
+          "/compliance-framework/builder",
+          "/compliance-framework/monitoring",
           "/payments",
           "/settings",
           "/support",

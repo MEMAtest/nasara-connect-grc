@@ -84,6 +84,54 @@ export const insuranceConductModule: TrainingModule = {
       ],
       correctAnswer: 0,
       explanation: 'PROD expects target market definition and ongoing monitoring.'
+    },
+    {
+      id: 'idd-q2',
+      question: 'A target market statement should describe:',
+      options: [
+        { id: 'a', text: 'The customers the product is designed for and those it is not', isCorrect: true },
+        { id: 'b', text: 'Only the product price', isCorrect: false },
+        { id: 'c', text: 'The firm’s internal sales goals', isCorrect: false },
+        { id: 'd', text: 'Competitor pricing details', isCorrect: false }
+      ],
+      correctAnswer: 0,
+      explanation: 'Target market statements define who the product fits and who it does not.'
+    },
+    {
+      id: 'idd-q3',
+      question: 'Outcome monitoring should be reviewed:',
+      options: [
+        { id: 'a', text: 'Only once at product launch', isCorrect: false },
+        { id: 'b', text: 'On a defined cadence with MI and escalations', isCorrect: true },
+        { id: 'c', text: 'Only when complaints exceed thresholds', isCorrect: false },
+        { id: 'd', text: 'Only by distributors', isCorrect: false }
+      ],
+      correctAnswer: 1,
+      explanation: 'PROD expects ongoing monitoring with defined MI and escalation triggers.'
+    },
+    {
+      id: 'idd-q4',
+      question: 'If a distributor delivers poor outcomes, the firm should:',
+      options: [
+        { id: 'a', text: 'Ignore it if sales are strong', isCorrect: false },
+        { id: 'b', text: 'Review distribution strategy and take corrective action', isCorrect: true },
+        { id: 'c', text: 'Change the product name only', isCorrect: false },
+        { id: 'd', text: 'Stop all monitoring', isCorrect: false }
+      ],
+      correctAnswer: 1,
+      explanation: 'Firms must take corrective action when distribution results in poor outcomes.'
+    },
+    {
+      id: 'idd-q5',
+      question: 'Which evidence best supports PROD governance?',
+      options: [
+        { id: 'a', text: 'Board-approved product reviews and MI packs', isCorrect: true },
+        { id: 'b', text: 'Informal email discussions only', isCorrect: false },
+        { id: 'c', text: 'Marketing plans without outcome data', isCorrect: false },
+        { id: 'd', text: 'Sales incentives documentation only', isCorrect: false }
+      ],
+      correctAnswer: 0,
+      explanation: 'Documented product reviews and MI evidence support PROD governance.'
     }
   ],
   summary: {

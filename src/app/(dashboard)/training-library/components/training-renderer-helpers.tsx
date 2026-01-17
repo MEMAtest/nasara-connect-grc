@@ -18,8 +18,26 @@ marked.setOptions({
   gfm: true,
 });
 
-const normalizeMarkdown = (input: string) => {
-  const normalized = input.replace(/\r\n/g, "\n");
+const coerceMarkdownInput = (input: unknown): string => {
+  if (input == null) return "";
+  if (typeof input === "string") return input;
+  if (typeof input === "number" || typeof input === "boolean") return String(input);
+  if (Array.isArray(input)) {
+    return input.map(coerceMarkdownInput).filter(Boolean).join("\n");
+  }
+  if (typeof input === "object") {
+    const record = input as Record<string, unknown>;
+    if (typeof record.mainContent === "string") return record.mainContent;
+    if (typeof record.learningPoint === "string") return record.learningPoint;
+    if (typeof record.content === "string") return record.content;
+  }
+  return "";
+};
+
+const normalizeMarkdown = (input: unknown) => {
+  const normalizedInput = coerceMarkdownInput(input);
+  if (!normalizedInput) return "";
+  const normalized = normalizedInput.replace(/\r\n/g, "\n");
   const trimmed = normalized.replace(/^\s*\n/, "").replace(/\n\s*$/, "");
   const lines = trimmed.split("\n");
   const nonEmpty = lines.filter((line) => line.trim().length > 0);
@@ -47,10 +65,11 @@ const normalizeMarkdown = (input: string) => {
     .join("\n");
 };
 
-export function MarkdownContent({ content, className = "" }: { content: string; className?: string }) {
+export function MarkdownContent({ content, className = "" }: { content: unknown; className?: string }) {
   const html = useMemo(() => {
-    if (!content) return "";
-    return marked.parse(normalizeMarkdown(content), { async: false }) as string;
+    const normalized = normalizeMarkdown(content);
+    if (!normalized) return "";
+    return marked.parse(normalized, { async: false }) as string;
   }, [content]);
 
   return (

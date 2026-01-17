@@ -75,8 +75,8 @@ const coreModules: CoreModule[] = [
   },
   {
     title: "Compliance Framework",
-    description: "Monitor compliance controls, CMP testing schedules, and regulatory requirement tracking",
-    href: "/compliance-framework",
+    description: "Build the framework, tighten mapping, and drive CMP monitoring workflows",
+    href: "/compliance-framework/builder",
     illustration: ComplianceIllustration,
     color: "bg-teal-600",
     glowColor: "rgba(20, 184, 166, 0.3)",

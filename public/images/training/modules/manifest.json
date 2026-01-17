@@ -1,0 +1,328 @@
+{
+  "generatedAt": "2026-01-17T02:32:37.419Z",
+  "outputDir": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules",
+  "modules": {
+    "financial-crime-aml": [
+      {
+        "source": "/Users/adeomosanya/Downloads/ChatGPT Image Jan 7, 2026 at 10_19_00 AM.png",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/financial-crime-aml-01.jpg"
+      },
+      {
+        "source": "/Users/adeomosanya/Downloads/ChatGPT Image Jan 7, 2026, 10_20_46 AM.png",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/financial-crime-aml-02.jpg"
+      },
+      {
+        "source": "/Users/adeomosanya/Downloads/ChatGPT Image Jun 3, 2025 at 11_07_38 AM.png",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/financial-crime-aml-03.jpg"
+      }
+    ],
+    "money-laundering-red-flags": [
+      {
+        "source": "/Users/adeomosanya/Downloads/ChatGPT Image Jun 3, 2025 at 11_08_02 AM.png",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/money-laundering-red-flags-01.jpg"
+      },
+      {
+        "source": "/Users/adeomosanya/Downloads/ChatGPT Image Jun 3, 2025 at 11_08_28 AM.png",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/money-laundering-red-flags-02.jpg"
+      },
+      {
+        "source": "/Users/adeomosanya/Downloads/ChatGPT Image Jun 3, 2025 at 11_10_07 AM.png",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/money-laundering-red-flags-03.jpg"
+      }
+    ],
+    "peps-training": [
+      {
+        "source": "/Users/adeomosanya/Downloads/ChatGPT Image Jun 3, 2025 at 11_50_49 AM.png",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/peps-training-01.jpg"
+      },
+      {
+        "source": "/Users/adeomosanya/Downloads/ChatGPT Image Jun 3, 2025 at 12_45_24 PM.png",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/peps-training-02.jpg"
+      },
+      {
+        "source": "/Users/adeomosanya/Downloads/ChatGPT Image Jun 3, 2025 at 12_48_42 PM.png",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/peps-training-03.jpg"
+      }
+    ],
+    "consumer-duty-implementation": [
+      {
+        "source": "/Users/adeomosanya/Downloads/ChatGPT Image May 23, 2025 at 09_18_17 PM.png",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/consumer-duty-implementation-01.jpg"
+      },
+      {
+        "source": "/Users/adeomosanya/Downloads/ChatGPT Image May 23, 2025 at 09_19_17 PM 2.png",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/consumer-duty-implementation-02.jpg"
+      },
+      {
+        "source": "/Users/adeomosanya/Downloads/ChatGPT Image May 23, 2025 at 09_19_17 PM.png",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/consumer-duty-implementation-03.jpg"
+      }
+    ],
+    "client-categorisation": [
+      {
+        "source": "/Users/adeomosanya/Downloads/DALL·E 2023-10-28 00.58.35 - Flat style illustration of a scene where one hand, made out of particle clouds shaped like pound coins and notes, is passing a torch to another hand, .png",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/client-categorisation-01.jpg"
+      },
+      {
+        "source": "/Users/adeomosanya/Downloads/DALL·E 2023-10-28 01.01.47 - Vector illustration of a diverse group of three business professionals_ a Caucasian woman, an Asian man, and an African man. They are dressed in elega.png",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/client-categorisation-02.jpg"
+      },
+      {
+        "source": "/Users/adeomosanya/Downloads/DALL·E 2023-10-28 01.36.52 - Vector illustration showcasing a cutting-edge compliance monitoring center. Professionals are seated at their desks equipped with state-of-the-art tec.png",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/client-categorisation-03.jpg"
+      }
+    ],
+    "complaints-handling": [
+      {
+        "source": "/Users/adeomosanya/Downloads/DALL·E 2023-10-28 01.39.06 - Vector illustration capturing an interactive session in a cutting-edge compliance monitoring support center. Professionals gather around a high-tech t.png",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/complaints-handling-01.jpg"
+      },
+      {
+        "source": "/Users/adeomosanya/Downloads/DALL·E 2023-11-21 00.28.01 - An intricate network resembling a digital brain, symbolising AI and data processing. The network is filled with various interconnected nodes and pathw.png",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/complaints-handling-02.jpg"
+      },
+      {
+        "source": "/Users/adeomosanya/Downloads/DALL·E 2023-11-21 00.29.47 - A roadmap graphic with key milestones marked along the way, using bright, optimistic colors like yellow and light blue. Each milestone on the roadmap .png",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/complaints-handling-03.jpg"
+      }
+    ],
+    "operational-resilience": [
+      {
+        "source": "/Users/adeomosanya/Downloads/DALL·E 2023-11-21 00.30.28 - A roadmap graphic with key milestones marked along the way. The roadmap is colourful and vibrant, using bright, optimistic colours like yellow and lig.png",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/operational-resilience-01.jpg"
+      },
+      {
+        "source": "/Users/adeomosanya/Downloads/DALL·E 2023-11-21 00.31.55 - A graphic composed of a series of circles or segments, each containing images representing different client sectors. For SMEs, there's a circle with a.png",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/operational-resilience-02.jpg"
+      },
+      {
+        "source": "/Users/adeomosanya/Downloads/DALL·E 2023-11-21 00.32.34 - A series of circles or segments, each containing an image representing different client sectors. One segment features a building to represent SMEs (sm.png",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/operational-resilience-03.jpg"
+      }
+    ],
+    "payments-regulation": [
+      {
+        "source": "/Users/adeomosanya/Downloads/DALL·E 2023-11-21 00.34.11 - A series of circles or segments, each containing images representing different client sectors. One segment shows a building icon to represent SMEs, co.png",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/payments-regulation-01.jpg"
+      },
+      {
+        "source": "/Users/adeomosanya/Downloads/DALL·E 2023-11-21 00.35.18 - A futuristic cityscape or horizon with a rising sun, symbolising the bright future of Nasara. The scene is rendered in forward-looking and bold colour.png",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/payments-regulation-02.jpg"
+      },
+      {
+        "source": "/Users/adeomosanya/Downloads/DALL·E 2023-11-21 00.36.10 - A futuristic cityscape or horizon with a rising sun, symbolizing the bright future of Nasara. The scene includes subtle elements like digital nodes or.png",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/payments-regulation-03.jpg"
+      }
+    ],
+    "mifid-training": [
+      {
+        "source": "/Users/adeomosanya/Downloads/DALL·E 2023-11-21 00.44.28 - A dynamic and visually engaging roadmap, depicting the stages of a product's development. Each stage is represented in bold, distinct boxes, connected.png",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/mifid-training-01.jpg"
+      },
+      {
+        "source": "/Users/adeomosanya/Downloads/DALL·E 2023-11-21 00.44.54 - A graphic showcasing branching paths that represent the product's development stages. Each path is marked with icons relevant to different stages_ a m.png",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/mifid-training-02.jpg"
+      },
+      {
+        "source": "/Users/adeomosanya/Downloads/Gemini_Generated_Image_1igm3i1igm3i1igm.png",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/mifid-training-03.jpg"
+      }
+    ],
+    "consumer-credit-training": [
+      {
+        "source": "/Users/adeomosanya/Downloads/Gemini_Generated_Image_2g6w0i2g6w0i2g6w.png",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/consumer-credit-training-01.jpg"
+      },
+      {
+        "source": "/Users/adeomosanya/Downloads/Gemini_Generated_Image_38hwzc38hwzc38hw (1).png",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/consumer-credit-training-02.jpg"
+      },
+      {
+        "source": "/Users/adeomosanya/Downloads/Gemini_Generated_Image_5x90ha5x90ha5x90.png",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/consumer-credit-training-03.jpg"
+      }
+    ],
+    "insurance-conduct": [
+      {
+        "source": "/Users/adeomosanya/Downloads/Gemini_Generated_Image_695k2g695k2g695k.png",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/insurance-conduct-01.jpg"
+      },
+      {
+        "source": "/Users/adeomosanya/Downloads/Gemini_Generated_Image_6xinnk6xinnk6xin.png",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/insurance-conduct-02.jpg"
+      },
+      {
+        "source": "/Users/adeomosanya/Downloads/Gemini_Generated_Image_7ygvt77ygvt77ygv.png",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/insurance-conduct-03.jpg"
+      }
+    ],
+    "cryptoasset-risk": [
+      {
+        "source": "/Users/adeomosanya/Downloads/Gemini_Generated_Image_8xh3et8xh3et8xh3.png",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/cryptoasset-risk-01.jpg"
+      },
+      {
+        "source": "/Users/adeomosanya/Downloads/Gemini_Generated_Image_91faht91faht91fa.png",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/cryptoasset-risk-02.jpg"
+      },
+      {
+        "source": "/Users/adeomosanya/Downloads/Gemini_Generated_Image_9clp479clp479clp.png",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/cryptoasset-risk-03.jpg"
+      }
+    ],
+    "kyc-fundamentals": [
+      {
+        "source": "/Users/adeomosanya/Downloads/Gemini_Generated_Image_a2arnoa2arnoa2ar.png",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/kyc-fundamentals-01.jpg"
+      },
+      {
+        "source": "/Users/adeomosanya/Downloads/Gemini_Generated_Image_bp3qssbp3qssbp3q.png",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/kyc-fundamentals-02.jpg"
+      },
+      {
+        "source": "/Users/adeomosanya/Downloads/Gemini_Generated_Image_c9lywoc9lywoc9ly (1).png",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/kyc-fundamentals-03.jpg"
+      }
+    ],
+    "aml-fundamentals": [
+      {
+        "source": "public/images/training/aml-ctf-01.jpg",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/aml-fundamentals-01.jpg"
+      },
+      {
+        "source": "public/images/training/aml-ctf-02.jpg",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/aml-fundamentals-02.jpg"
+      },
+      {
+        "source": "public/images/training/aml-ctf-03.jpg",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/aml-fundamentals-03.jpg"
+      }
+    ],
+    "sanctions-training": [
+      {
+        "source": "public/images/training/abc-01.jpg",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/sanctions-training-01.jpg"
+      },
+      {
+        "source": "public/images/training/abc-02.jpg",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/sanctions-training-02.jpg"
+      },
+      {
+        "source": "public/images/training/abc-03.jpg",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/sanctions-training-03.jpg"
+      }
+    ],
+    "sars-training": [
+      {
+        "source": "public/images/training/whistleblowing-01.jpg",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/sars-training-01.jpg"
+      },
+      {
+        "source": "public/images/training/whistleblowing-02.jpg",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/sars-training-02.jpg"
+      },
+      {
+        "source": "public/images/training/whistleblowing-03.jpg",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/sars-training-03.jpg"
+      }
+    ],
+    "smcr-training": [
+      {
+        "source": "public/images/training/smcr-01.jpg",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/smcr-training-01.jpg"
+      },
+      {
+        "source": "public/images/training/smcr-02.jpg",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/smcr-training-02.jpg"
+      },
+      {
+        "source": "public/images/training/smcr-03.jpg",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/smcr-training-03.jpg"
+      }
+    ],
+    "consumer-duty": [
+      {
+        "source": "public/images/training/consumer-duty-01.jpg",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/consumer-duty-01.jpg"
+      },
+      {
+        "source": "public/images/training/consumer-duty-02.jpg",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/consumer-duty-02.jpg"
+      },
+      {
+        "source": "public/images/training/consumer-duty-03.jpg",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/consumer-duty-03.jpg"
+      }
+    ],
+    "vulnerable-customers": [
+      {
+        "source": "public/images/training/vulnerable-customers-01.jpg",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/vulnerable-customers-01.jpg"
+      },
+      {
+        "source": "public/images/training/vulnerable-customers-02.jpg",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/vulnerable-customers-02.jpg"
+      },
+      {
+        "source": "public/images/training/vulnerable-customers-03.jpg",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/vulnerable-customers-03.jpg"
+      }
+    ],
+    "financial-promotions": [
+      {
+        "source": "public/images/training/financial-promotions-01.jpg",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/financial-promotions-01.jpg"
+      },
+      {
+        "source": "public/images/training/financial-promotions-02.jpg",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/financial-promotions-02.jpg"
+      },
+      {
+        "source": "public/images/training/financial-promotions-03.jpg",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/financial-promotions-03.jpg"
+      }
+    ],
+    "outsourcing-third-party": [
+      {
+        "source": "public/images/training/outsourcing-tprm-01.jpg",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/outsourcing-third-party-01.jpg"
+      },
+      {
+        "source": "public/images/training/outsourcing-tprm-02.jpg",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/outsourcing-third-party-02.jpg"
+      },
+      {
+        "source": "public/images/training/outsourcing-tprm-03.jpg",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/outsourcing-third-party-03.jpg"
+      }
+    ],
+    "suitability-appropriateness": [
+      {
+        "source": "public/images/training/conduct-risk-01.jpg",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/suitability-appropriateness-01.jpg"
+      },
+      {
+        "source": "public/images/training/conduct-risk-02.jpg",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/suitability-appropriateness-02.jpg"
+      },
+      {
+        "source": "public/images/training/conduct-risk-03.jpg",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/suitability-appropriateness-03.jpg"
+      }
+    ],
+    "operational-resilience-framework": [
+      {
+        "source": "public/images/training/data-protection-01.jpg",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/operational-resilience-framework-01.jpg"
+      },
+      {
+        "source": "public/images/training/data-protection-02.jpg",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/operational-resilience-framework-02.jpg"
+      },
+      {
+        "source": "public/images/training/data-protection-03.jpg",
+        "output": "/Users/adeomosanya/Documents/nasara-connect-grc/nasara-connect/public/images/training/modules/operational-resilience-framework-03.jpg"
+      }
+    ]
+  }
+}

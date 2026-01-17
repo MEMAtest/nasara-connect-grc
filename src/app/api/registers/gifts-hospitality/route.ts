@@ -12,8 +12,15 @@ import {
   parseValidDate,
   parsePositiveNumber,
   GIFT_ENTRY_TYPES,
-  APPROVAL_STATUSES,
 } from "@/lib/validation";
+import {
+  authenticateRequest,
+  checkRateLimit,
+  rateLimitExceededResponse,
+  badRequestResponse,
+  serverErrorResponse,
+} from "@/lib/api-auth";
+import { logError } from "@/lib/logger";
 
 // Extended approval statuses for gifts
 const GIFT_APPROVAL_STATUSES = ["not_required", "pending", "approved", "rejected"] as const;
@@ -21,34 +28,56 @@ const GIFT_APPROVAL_STATUSES = ["not_required", "pending", "approved", "rejected
 // GET /api/registers/gifts-hospitality - List all Gift/Hospitality records
 export async function GET(request: NextRequest) {
   try {
+    // Rate limiting
+    const clientIp = request.headers.get("x-forwarded-for") || "anonymous";
+    const rateLimit = checkRateLimit(`gifts-hospitality-get-${clientIp}`);
+    if (!rateLimit.allowed) {
+      return rateLimitExceededResponse(rateLimit.resetIn);
+    }
+
+    // Authentication
+    const authResult = await authenticateRequest(request);
+    if (!authResult.authenticated || !authResult.user) {
+      return authResult.error!;
+    }
+
     await initDatabase();
 
     const { searchParams } = new URL(request.url);
-    const organizationId = searchParams.get("organizationId") || "default-org";
     const packId = searchParams.get("packId") || undefined;
 
     if (packId && !isValidUUID(packId)) {
-      return NextResponse.json(
-        { error: "Invalid pack ID format" },
-        { status: 400 }
-      );
+      return badRequestResponse("Invalid pack ID format");
     }
 
-    const records = await getGiftHospitalityRecords(organizationId, packId);
+    const records = await getGiftHospitalityRecords(authResult.user.organizationId, packId);
 
     return NextResponse.json({ records });
   } catch (error) {
-    console.error("Error fetching Gift/Hospitality records:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch Gift/Hospitality records" },
-      { status: 500 }
-    );
+    logError(error as Error, "Error fetching Gift/Hospitality records");
+    return serverErrorResponse("Failed to fetch Gift/Hospitality records");
   }
 }
 
 // POST /api/registers/gifts-hospitality - Create a new Gift/Hospitality record
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting
+    const clientIp = request.headers.get("x-forwarded-for") || "anonymous";
+    const rateLimit = checkRateLimit(`gifts-hospitality-post-${clientIp}`, {
+      windowMs: 60000,
+      maxRequests: 30,
+    });
+    if (!rateLimit.allowed) {
+      return rateLimitExceededResponse(rateLimit.resetIn);
+    }
+
+    // Authentication
+    const authResult = await authenticateRequest(request);
+    if (!authResult.authenticated || !authResult.user) {
+      return authResult.error!;
+    }
+
     await initDatabase();
 
     const body = await request.json();
@@ -56,27 +85,18 @@ export async function POST(request: NextRequest) {
     // Validate required fields
     const description = sanitizeText(body.description);
     if (!description) {
-      return NextResponse.json(
-        { error: "Description is required" },
-        { status: 400 }
-      );
+      return badRequestResponse("Description is required");
     }
 
     // Validate pack_id if provided
     if (body.pack_id && !isValidUUID(body.pack_id)) {
-      return NextResponse.json(
-        { error: "Invalid pack ID format" },
-        { status: 400 }
-      );
+      return badRequestResponse("Invalid pack ID format");
     }
 
     // Validate entry type
     const entryType = body.entry_type || "gift_received";
     if (!isValidEnum(entryType, GIFT_ENTRY_TYPES)) {
-      return NextResponse.json(
-        { error: `Invalid entry type. Must be one of: ${GIFT_ENTRY_TYPES.join(", ")}` },
-        { status: 400 }
-      );
+      return badRequestResponse(`Invalid entry type. Must be one of: ${GIFT_ENTRY_TYPES.join(", ")}`);
     }
 
     // Parse date
@@ -88,10 +108,7 @@ export async function POST(request: NextRequest) {
     if (body.estimated_value_gbp !== undefined && body.estimated_value_gbp !== null && body.estimated_value_gbp !== "") {
       const parsedValue = parsePositiveNumber(body.estimated_value_gbp);
       if (parsedValue === null) {
-        return NextResponse.json(
-          { error: "Invalid estimated value. Must be a positive number" },
-          { status: 400 }
-        );
+        return badRequestResponse("Invalid estimated value. Must be a positive number");
       }
       estimatedValue = parsedValue;
     }
@@ -101,14 +118,11 @@ export async function POST(request: NextRequest) {
     const approvalStatus = body.approval_status || (approvalRequired ? "pending" : "not_required");
 
     if (!GIFT_APPROVAL_STATUSES.includes(approvalStatus)) {
-      return NextResponse.json(
-        { error: `Invalid approval status. Must be one of: ${GIFT_APPROVAL_STATUSES.join(", ")}` },
-        { status: 400 }
-      );
+      return badRequestResponse(`Invalid approval status. Must be one of: ${GIFT_APPROVAL_STATUSES.join(", ")}`);
     }
 
     const recordData = {
-      organization_id: body.organization_id || "default-org",
+      organization_id: authResult.user.organizationId,
       pack_id: body.pack_id,
       entry_type: entryType as typeof GIFT_ENTRY_TYPES[number],
       date_of_event: dateOfEvent,
@@ -133,10 +147,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ record }, { status: 201 });
   } catch (error) {
-    console.error("Error creating Gift/Hospitality record:", error);
-    return NextResponse.json(
-      { error: "Failed to create Gift/Hospitality record" },
-      { status: 500 }
-    );
+    logError(error as Error, "Error creating Gift/Hospitality record");
+    return serverErrorResponse("Failed to create Gift/Hospitality record");
   }
 }

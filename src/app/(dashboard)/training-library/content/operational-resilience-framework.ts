@@ -747,6 +747,42 @@ export const operationalResilienceFrameworkModule: TrainingModule = {
       ],
       correctAnswer: 1,
       explanation: "Scenario testing must be realistic and high impact to demonstrate resilience."
+    },
+    {
+      id: "resilience-q3",
+      question: "What should an IBS mapping include?",
+      options: [
+        "People, processes, technology, and third-party dependencies",
+        "Only the main system owner",
+        "Marketing campaigns",
+        "Historic revenue totals only"
+      ],
+      correctAnswer: 0,
+      explanation: "IBS mapping must capture end-to-end dependencies across people, process, tech, and vendors."
+    },
+    {
+      id: "resilience-q4",
+      question: "When an impact tolerance is breached, firms should:",
+      options: [
+        "Wait until the next review cycle",
+        "Escalate, communicate, and document remediation actions",
+        "Ignore it if recovery was quick",
+        "Only notify internal IT teams"
+      ],
+      correctAnswer: 1,
+      explanation: "Breaches require escalation, communication, and documented remediation."
+    },
+    {
+      id: "resilience-q5",
+      question: "Which outcome best reflects a good resilience test?",
+      options: [
+        "No documentation of lessons learned",
+        "Clear remediation actions with owners and timelines",
+        "Only technical logs without business impact analysis",
+        "A test that avoids customer harm analysis"
+      ],
+      correctAnswer: 1,
+      explanation: "Effective tests produce documented learnings, remediation actions, and ownership."
     }
   ],
   summary: {

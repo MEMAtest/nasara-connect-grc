@@ -61,6 +61,7 @@ import {
   TrendChart,
 } from "@/components/registers/RegisterCharts";
 import { exportToCSV, ExportColumn, transforms } from "@/lib/export-utils";
+import { PaginationControls, usePagination } from "@/components/ui/pagination-controls";
 
 interface ThirdPartyRecord {
   id: string;
@@ -428,6 +429,12 @@ export function ThirdPartyRegisterClient() {
       return matchesSearch && matchesStatus && matchesCriticality && matchesDrillDown;
     });
   }, [records, searchQuery, statusFilter, criticalityFilter, drillDownFilter]);
+
+  // Pagination
+  const {
+    paginatedData,
+    paginationProps,
+  } = usePagination(filteredRecords, { initialLimit: 25 });
 
   // Statistics
   const stats = useMemo(() => {
@@ -1207,16 +1214,19 @@ export function ThirdPartyRegisterClient() {
 
       {/* Table View */}
       {viewMode === "table" && (
-        <RegisterDataTable
-          columns={tableColumns}
-          data={filteredRecords}
-          selectedIds={selectedIds}
-          onSelectionChange={setSelectedIds}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          emptyMessage="No third-party records found"
-          emptyIcon={<Building2 className="h-12 w-12" />}
-        />
+        <>
+          <RegisterDataTable
+            columns={tableColumns}
+            data={paginatedData}
+            selectedIds={selectedIds}
+            onSelectionChange={setSelectedIds}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            emptyMessage="No third-party records found"
+            emptyIcon={<Building2 className="h-12 w-12" />}
+          />
+          <PaginationControls {...paginationProps} />
+        </>
       )}
     </div>
   );

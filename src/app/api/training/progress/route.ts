@@ -65,6 +65,7 @@ export async function PUT(request: NextRequest) {
       totalLessons,
       weeklyGoal,
       weeklyProgress,
+      totalPoints,
       pointsEarned,
       lessonsCompleted,
       timeSpent,
@@ -78,6 +79,7 @@ export async function PUT(request: NextRequest) {
     if (totalLessons !== undefined) updates.total_lessons = totalLessons;
     if (weeklyGoal !== undefined) updates.weekly_goal = weeklyGoal;
     if (weeklyProgress !== undefined) updates.weekly_progress = weeklyProgress;
+    if (totalPoints !== undefined) updates.total_points = totalPoints;
 
     const progress = await updateUserProgress(identity.email, updates);
 

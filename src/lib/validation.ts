@@ -8,6 +8,10 @@ const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12
 // Email validation regex (RFC 5322 simplified)
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// Maximum string length to prevent DoS
+const MAX_STRING_LENGTH = 10000;
+const MAX_TEXT_LENGTH = 50000;
+
 /**
  * Validate that a string is a valid UUID format
  */
@@ -66,40 +70,93 @@ export function parseValidDate(value: unknown): Date | null {
 
 /**
  * Sanitize a string to prevent XSS attacks
- * Removes HTML tags and encodes special characters
+ * Uses multi-layer sanitization for defense in depth
  */
-export function sanitizeString(value: unknown): string {
+export function sanitizeString(value: unknown, maxLength = MAX_STRING_LENGTH): string {
   if (typeof value !== "string") {
     return "";
   }
-  return value
-    .replace(/<[^>]*>/g, "") // Remove HTML tags
-    .replace(/[<>"'&]/g, (char) => {
-      const entities: Record<string, string> = {
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#x27;",
-        "&": "&amp;",
-      };
-      return entities[char] || char;
-    })
-    .trim();
+
+  let sanitized = value;
+
+  // Truncate to max length first (DoS prevention)
+  if (sanitized.length > maxLength) {
+    sanitized = sanitized.slice(0, maxLength);
+  }
+
+  // Remove null bytes (prevents truncation attacks)
+  sanitized = sanitized.replace(/\0/g, "");
+
+  // Remove all script tags and their contents (including variations)
+  sanitized = sanitized.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "");
+  sanitized = sanitized.replace(/<script[^>]*>/gi, "");
+
+  // Remove event handlers (onclick, onerror, etc.)
+  sanitized = sanitized.replace(/\s*on\w+\s*=\s*["'][^"']*["']/gi, "");
+  sanitized = sanitized.replace(/\s*on\w+\s*=\s*[^\s>]*/gi, "");
+
+  // Remove javascript: protocol
+  sanitized = sanitized.replace(/javascript:/gi, "");
+
+  // Remove data: protocol (except safe image types)
+  sanitized = sanitized.replace(/data:(?!image\/(png|jpg|jpeg|gif|webp))/gi, "");
+
+  // Remove all HTML tags
+  sanitized = sanitized.replace(/<[^>]*>/g, "");
+
+  // Encode remaining special characters
+  sanitized = sanitized
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;")
+    .replace(/\//g, "&#x2F;");
+
+  return sanitized.trim();
 }
 
 /**
  * Sanitize a string but allow basic formatting (no HTML)
- * Use for notes and descriptions
+ * Use for notes and descriptions - preserves newlines
  */
-export function sanitizeText(value: unknown): string {
+export function sanitizeText(value: unknown, maxLength = MAX_TEXT_LENGTH): string {
   if (typeof value !== "string") {
     return "";
   }
-  // Remove any HTML/script tags but preserve newlines and basic text
-  return value
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
-    .replace(/<[^>]*>/g, "")
-    .trim();
+
+  let sanitized = value;
+
+  // Truncate to max length first (DoS prevention)
+  if (sanitized.length > maxLength) {
+    sanitized = sanitized.slice(0, maxLength);
+  }
+
+  // Remove null bytes
+  sanitized = sanitized.replace(/\0/g, "");
+
+  // Remove all script tags and their contents
+  sanitized = sanitized.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "");
+
+  // Remove event handlers
+  sanitized = sanitized.replace(/\s*on\w+\s*=\s*["'][^"']*["']/gi, "");
+  sanitized = sanitized.replace(/\s*on\w+\s*=\s*[^\s>]*/gi, "");
+
+  // Remove javascript: protocol
+  sanitized = sanitized.replace(/javascript:/gi, "");
+
+  // Remove all HTML tags but preserve content
+  sanitized = sanitized.replace(/<[^>]*>/g, "");
+
+  return sanitized.trim();
+}
+
+/**
+ * Validate and sanitize a column name for SQL queries
+ * Only allows alphanumeric characters and underscores
+ */
+export function isValidColumnName(name: string): boolean {
+  return /^[a-z][a-z0-9_]*$/i.test(name) && name.length <= 64;
 }
 
 /**

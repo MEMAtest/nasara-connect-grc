@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { TrainingSlideGallery } from './TrainingSlideGallery';
 import {
   Shield,
   Users,
@@ -665,26 +666,40 @@ export function KYCTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
   );
 
   const renderSection = (sectionId: string) => {
+    let content: React.ReactNode = null;
     switch (sectionId) {
       case 'hook':
-        return renderHookSection();
+        content = renderHookSection();
+        break;
       case 'pillars':
-        return renderCDDPillars();
+        content = renderCDDPillars();
+        break;
       case 'risk':
-        return renderRiskAssessment();
+        content = renderRiskAssessment();
+        break;
       case 'monitoring':
-        return renderOngoingMonitoring();
+        content = renderOngoingMonitoring();
+        break;
       case 'summary':
-        return renderSummary();
+        content = renderSummary();
+        break;
       default: {
         if (!sectionId.startsWith('scenario-')) return null;
         const scenarioIndex = Number(sectionId.replace('scenario-', ''));
         if (!Number.isFinite(scenarioIndex)) return null;
         const scenario = kycModule.practiceScenarios[scenarioIndex];
         if (!scenario) return null;
-        return renderScenario(scenario, scenarioIndex);
+        content = renderScenario(scenario, scenarioIndex);
+        break;
       }
     }
+    if (!content) return null;
+    return (
+      <div className="space-y-6">
+        <TrainingSlideGallery moduleId="kyc-fundamentals" category="financial-crime-prevention" />
+        {content}
+      </div>
+    );
   };
 
   useEffect(() => {

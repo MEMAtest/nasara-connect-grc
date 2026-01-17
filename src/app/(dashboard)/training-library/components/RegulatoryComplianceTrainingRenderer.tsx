@@ -17,6 +17,7 @@ import {
   Scale,
 } from "lucide-react";
 import { MarkdownContent, formatListItem, renderVisual } from "./training-renderer-helpers";
+import { TrainingSlideGallery } from "./TrainingSlideGallery";
 
 type StageKey = "hook" | "content" | "practice" | "assessment" | "summary";
 const STAGE_ORDER: StageKey[] = ["hook", "content", "practice", "assessment", "summary"];
@@ -26,6 +27,7 @@ interface TrainingModuleData {
   description: string;
   duration: number;
   difficulty: string;
+  category?: string;
   hook?: {
     title?: string;
     content?: string;
@@ -409,6 +411,7 @@ export function RegulatoryComplianceTrainingRenderer({
                 </Button>
               ))}
             </div>
+            <TrainingSlideGallery moduleId={moduleId} category={module.category} />
             <MarkdownContent content={lessonContent} />
 
             {keyConcepts.length > 0 && (

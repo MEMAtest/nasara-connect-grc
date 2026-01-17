@@ -32,7 +32,7 @@ export function CmpOverviewClient() {
   const closeAction = () => setActionState({ type: null, control: null });
 
   const handleViewControl = (control: CmpControlDetail) => {
-    router.push(`/compliance-framework/cmp/${control.id}`);
+    router.push(`/compliance-framework/monitoring/${control.id}`);
   };
 
   return (
@@ -50,7 +50,7 @@ export function CmpOverviewClient() {
             <Button variant="outline" onClick={() => refresh()}>
               Refresh data
             </Button>
-            <Button onClick={() => router.push("/compliance-framework")}>Framework overview</Button>
+            <Button onClick={() => router.push("/compliance-framework/builder")}>Framework builder</Button>
           </div>
         </div>
       </header>

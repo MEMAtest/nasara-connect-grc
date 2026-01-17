@@ -386,7 +386,7 @@ const smcrMap: Record<string, IntegrationItem> = {
 const baseRegisters: IntegrationItem[] = [
   { key: "policy-register", label: "Policy register", href: "/policies/register" },
   { key: "risk-register", label: "Risk register", href: "/risk-assessment" },
-  { key: "cmp-register", label: "Compliance monitoring plan", href: "/compliance-framework/cmp" },
+  { key: "cmp-register", label: "Compliance monitoring plan", href: "/compliance-framework/monitoring" },
   { key: "smcr-register", label: "SMCR responsibilities", href: "/smcr" },
   { key: "training-log", label: "Training records", href: "/training-library" },
   { key: "pep-register", label: "PEP register", href: "/registers/pep", description: "Politically exposed persons" },

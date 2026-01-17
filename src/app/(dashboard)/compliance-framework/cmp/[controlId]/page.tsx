@@ -1,9 +1,7 @@
 import { use } from "react";
-import { CmpControlDetailClient } from "../CmpControlDetailClient";
-
-export const dynamic = "force-dynamic";
+import { redirect } from "next/navigation";
 
 export default function ControlDetailPage({ params }: { params: Promise<{ controlId: string }> }) {
   const { controlId } = use(params);
-  return <CmpControlDetailClient controlId={controlId} />;
+  redirect(`/compliance-framework/monitoring/${controlId}`);
 }

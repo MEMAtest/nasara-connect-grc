@@ -108,8 +108,8 @@ export function CmpControlDetailClient({ controlId }: CmpControlDetailClientProp
 
   return (
     <div className="space-y-8">
-      <Button variant="ghost" className="text-slate-600" onClick={() => router.push("/compliance-framework/cmp")}>
-        <ArrowLeft className="mr-2 h-4 w-4" /> Back to CMP overview
+      <Button variant="ghost" className="text-slate-600" onClick={() => router.push("/compliance-framework/monitoring")}>
+        <ArrowLeft className="mr-2 h-4 w-4" /> Back to monitoring
       </Button>
 
       <div className="space-y-3 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-8 py-10 text-slate-100 shadow-2xl">

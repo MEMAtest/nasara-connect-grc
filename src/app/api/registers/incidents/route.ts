@@ -15,38 +15,68 @@ import {
   INCIDENT_SEVERITIES,
   INCIDENT_STATUSES,
 } from "@/lib/validation";
+import {
+  authenticateRequest,
+  checkRateLimit,
+  rateLimitExceededResponse,
+  badRequestResponse,
+  serverErrorResponse,
+} from "@/lib/api-auth";
+import { logError } from "@/lib/logger";
 
 // GET /api/registers/incidents - List all Incident records
 export async function GET(request: NextRequest) {
   try {
+    // Rate limiting
+    const clientIp = request.headers.get("x-forwarded-for") || "anonymous";
+    const rateLimit = checkRateLimit(`incidents-get-${clientIp}`);
+    if (!rateLimit.allowed) {
+      return rateLimitExceededResponse(rateLimit.resetIn);
+    }
+
+    // Authentication
+    const authResult = await authenticateRequest(request);
+    if (!authResult.authenticated || !authResult.user) {
+      return authResult.error!;
+    }
+
     await initDatabase();
 
     const { searchParams } = new URL(request.url);
-    const organizationId = searchParams.get("organizationId") || "default-org";
     const packId = searchParams.get("packId") || undefined;
 
     if (packId && !isValidUUID(packId)) {
-      return NextResponse.json(
-        { error: "Invalid pack ID format" },
-        { status: 400 }
-      );
+      return badRequestResponse("Invalid pack ID format");
     }
 
-    const records = await getIncidentRecords(organizationId, packId);
+    const records = await getIncidentRecords(authResult.user.organizationId, packId);
 
     return NextResponse.json({ records });
   } catch (error) {
-    console.error("Error fetching Incident records:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch Incident records" },
-      { status: 500 }
-    );
+    logError(error as Error, "Error fetching Incident records");
+    return serverErrorResponse("Failed to fetch Incident records");
   }
 }
 
 // POST /api/registers/incidents - Create a new Incident record
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting
+    const clientIp = request.headers.get("x-forwarded-for") || "anonymous";
+    const rateLimit = checkRateLimit(`incidents-post-${clientIp}`, {
+      windowMs: 60000,
+      maxRequests: 30,
+    });
+    if (!rateLimit.allowed) {
+      return rateLimitExceededResponse(rateLimit.resetIn);
+    }
+
+    // Authentication
+    const authResult = await authenticateRequest(request);
+    if (!authResult.authenticated || !authResult.user) {
+      return authResult.error!;
+    }
+
     await initDatabase();
 
     const body = await request.json();
@@ -54,43 +84,28 @@ export async function POST(request: NextRequest) {
     // Validate required fields
     const incidentTitle = sanitizeString(body.incident_title);
     if (!incidentTitle) {
-      return NextResponse.json(
-        { error: "Incident title is required" },
-        { status: 400 }
-      );
+      return badRequestResponse("Incident title is required");
     }
 
     // Validate pack_id if provided
     if (body.pack_id && !isValidUUID(body.pack_id)) {
-      return NextResponse.json(
-        { error: "Invalid pack ID format" },
-        { status: 400 }
-      );
+      return badRequestResponse("Invalid pack ID format");
     }
 
     // Validate enum fields
     const incidentType = body.incident_type || "other";
     if (!isValidEnum(incidentType, INCIDENT_TYPES)) {
-      return NextResponse.json(
-        { error: `Invalid incident type. Must be one of: ${INCIDENT_TYPES.join(", ")}` },
-        { status: 400 }
-      );
+      return badRequestResponse(`Invalid incident type. Must be one of: ${INCIDENT_TYPES.join(", ")}`);
     }
 
     const severity = body.severity || "medium";
     if (!isValidEnum(severity, INCIDENT_SEVERITIES)) {
-      return NextResponse.json(
-        { error: `Invalid severity. Must be one of: ${INCIDENT_SEVERITIES.join(", ")}` },
-        { status: 400 }
-      );
+      return badRequestResponse(`Invalid severity. Must be one of: ${INCIDENT_SEVERITIES.join(", ")}`);
     }
 
     const status = body.status || "detected";
     if (!isValidEnum(status, INCIDENT_STATUSES)) {
-      return NextResponse.json(
-        { error: `Invalid status. Must be one of: ${INCIDENT_STATUSES.join(", ")}` },
-        { status: 400 }
-      );
+      return badRequestResponse(`Invalid status. Must be one of: ${INCIDENT_STATUSES.join(", ")}`);
     }
 
     // Parse dates
@@ -105,10 +120,7 @@ export async function POST(request: NextRequest) {
     if (body.financial_impact !== undefined && body.financial_impact !== null && body.financial_impact !== "") {
       const parsedValue = parsePositiveNumber(body.financial_impact);
       if (parsedValue === null) {
-        return NextResponse.json(
-          { error: "Invalid financial impact. Must be a positive number" },
-          { status: 400 }
-        );
+        return badRequestResponse("Invalid financial impact. Must be a positive number");
       }
       financialImpact = parsedValue;
     }
@@ -123,7 +135,7 @@ export async function POST(request: NextRequest) {
     }
 
     const recordData = {
-      organization_id: body.organization_id || "default-org",
+      organization_id: authResult.user.organizationId,
       pack_id: body.pack_id,
       incident_title: incidentTitle,
       incident_type: incidentType as typeof INCIDENT_TYPES[number],
@@ -153,10 +165,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ record }, { status: 201 });
   } catch (error) {
-    console.error("Error creating Incident record:", error);
-    return NextResponse.json(
-      { error: "Failed to create Incident record" },
-      { status: 500 }
-    );
+    logError(error as Error, "Error creating Incident record");
+    return serverErrorResponse("Failed to create Incident record");
   }
 }

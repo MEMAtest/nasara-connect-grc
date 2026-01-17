@@ -1,7 +1,12 @@
-import { SectionsClient } from "../components/workspace/SectionsClient";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
-export default function AuthorizationPackSectionsPage() {
-  return <SectionsClient />;
+export default function AuthorizationPackSectionsPage({
+  searchParams,
+}: {
+  searchParams?: { packId?: string };
+}) {
+  const packId = searchParams?.packId;
+  redirect(packId ? `/authorization-pack/workspace?packId=${packId}` : "/authorization-pack/workspace");
 }

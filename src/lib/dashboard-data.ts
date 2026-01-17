@@ -106,10 +106,10 @@ export const dashboardModules: DashboardModule[] = [
   {
     id: "complianceFramework",
     title: "Compliance Framework",
-    description: "Map controls to risks and regulatory requirements",
+    description: "Build the compliance framework and drive monitoring workflows",
     icon: ClipboardList,
     color: "indigo",
-    route: "/compliance-framework",
+    route: "/compliance-framework/builder",
     progress: 60,
     alerts: 0,
     isLocked: false,

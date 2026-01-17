@@ -1,6 +1,10 @@
-import { redirect } from "next/navigation";
+import RegisterHubClient from "./RegisterHubClient";
 
-// Redirect to PEP register as the default registers page
+export const metadata = {
+  title: "Register Hub | Nasara Connect",
+  description: "Manage your regulatory registers and compliance tracking",
+};
+
 export default function RegistersPage() {
-  redirect("/registers/pep");
+  return <RegisterHubClient />;
 }

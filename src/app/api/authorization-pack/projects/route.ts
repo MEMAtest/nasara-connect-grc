@@ -53,6 +53,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ project }, { status: 201 });
   } catch (error) {
     logError(error, "Failed to create authorization project");
-    return NextResponse.json({ error: "Failed to create project" }, { status: 500 });
+    const message = error instanceof Error ? error.message : String(error);
+    const status = message.includes("Permission ecosystem not found") || message.includes("Template not found") ? 400 : 500;
+    return NextResponse.json(
+      {
+        error: status === 400 ? message : "Failed to create project",
+        details: process.env.NODE_ENV === "production" ? undefined : message,
+      },
+      { status }
+    );
   }
 }

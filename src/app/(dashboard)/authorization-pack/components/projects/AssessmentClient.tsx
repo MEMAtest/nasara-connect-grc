@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 import { ProjectHeader } from "./ProjectHeader";
+import type { BusinessPlanProfile } from "@/lib/business-plan-profile";
 
 type ReadinessStatus = "missing" | "partial" | "complete";
 type TrainingStatus = "missing" | "in-progress" | "complete";
@@ -22,6 +23,7 @@ interface AssessmentData {
   policies?: Record<string, ReadinessStatus>;
   training?: Record<string, TrainingStatus>;
   smcr?: Record<string, SmcrStatus>;
+  businessPlanProfile?: BusinessPlanProfile;
   meta?: Record<string, unknown>;
 }
 

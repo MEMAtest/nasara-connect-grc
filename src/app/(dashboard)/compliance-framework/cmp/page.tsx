@@ -1,7 +1,5 @@
-import { CmpOverviewClient } from "./CmpOverviewClient";
-
-export const dynamic = "force-dynamic";
+import { redirect } from "next/navigation";
 
 export default function ComplianceMonitoringPlanPage() {
-  return <CmpOverviewClient />;
+  redirect("/compliance-framework/monitoring");
 }

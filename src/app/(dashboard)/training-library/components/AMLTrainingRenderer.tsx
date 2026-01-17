@@ -34,6 +34,7 @@ import {
   AlertCircle
 } from "lucide-react";
 import { amlFundamentalsModule } from "../content/aml-fundamentals-complete";
+import { TrainingSlideGallery } from "./TrainingSlideGallery";
 
 type Stage = "hook" | "content" | "practice" | "summary";
 const stageOrder: Stage[] = ["hook", "content", "practice", "summary"];
@@ -58,7 +59,101 @@ export function AMLTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
 
   const [currentStage, setCurrentStage] = useState<Stage>(initialStage);
   const [currentContentSection, setCurrentContentSection] = useState(initialContentSection);
-  const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
+  const [practiceIndex, setPracticeIndex] = useState(0);
+  const [practiceAnswers, setPracticeAnswers] = useState<Record<string, string[]>>({});
+  const [practiceReviewed, setPracticeReviewed] = useState<Record<string, boolean>>({});
+
+  const practiceQuestions = [
+    {
+      id: "red-flags",
+      title: "Identify the red flags",
+      type: "multi" as const,
+      context:
+        'A new corporate client "Global Trading Solutions Ltd" is based in a high-risk jurisdiction, uses a complex shell-company structure, and wants to move large round-sum payments immediately. The director is evasive about the source of wealth.',
+      prompt: "Select all red flags you should document and escalate.",
+      options: [
+        { id: "flag-a", text: "High-risk jurisdiction" },
+        { id: "flag-b", text: "Transparent ownership with clear funding sources" },
+        { id: "flag-c", text: "Complex or opaque corporate structure" },
+        { id: "flag-d", text: "Immediate large round-sum transfers" },
+        { id: "flag-e", text: "Evasive answers about source of wealth" },
+      ],
+      correct: ["flag-a", "flag-c", "flag-d", "flag-e"],
+      explanation:
+        "This is a classic high-risk onboarding scenario: geography, structure, transaction pattern, and evasiveness all point to elevated AML risk.",
+      keyPoints: [
+        "Multiple red flags together trigger enhanced due diligence.",
+        "Evasive source-of-wealth answers require escalation.",
+        "Document every red flag for audit trail and MLRO review.",
+      ],
+    },
+    {
+      id: "next-step",
+      title: "Choose the correct next step",
+      type: "single" as const,
+      context:
+        'You have identified several red flags during onboarding for "Global Trading Solutions Ltd."',
+      prompt: "What is the correct next action?",
+      options: [
+        { id: "step-a", text: "Proceed with standard onboarding and monitor later" },
+        { id: "step-b", text: "Apply Enhanced Due Diligence and escalate to the MLRO before proceeding" },
+        { id: "step-c", text: "Reject the client immediately without documenting the case" },
+        { id: "step-d", text: "Ask the customer directly if they are laundering money" },
+      ],
+      correct: ["step-b"],
+      explanation:
+        "High-risk onboarding requires Enhanced Due Diligence and MLRO review before the relationship can proceed.",
+      keyPoints: [
+        "Never skip EDD when multiple red flags are present.",
+        "MLRO review is required before onboarding.",
+        "Avoid tipping off the customer with accusatory questions.",
+      ],
+    },
+    {
+      id: "activity-change",
+      title: "Spot the suspicious activity",
+      type: "single" as const,
+      context:
+        "A long-standing customer with low balances suddenly receives multiple large international payments and quickly transfers the funds out to unrelated parties.",
+      prompt: "What is your legal obligation?",
+      options: [
+        { id: "change-a", text: "Wait to see if the pattern continues" },
+        { id: "change-b", text: "Contact the customer to ask about the change" },
+        { id: "change-c", text: "Report the suspicion immediately to the MLRO" },
+        { id: "change-d", text: "Freeze the account without escalation" },
+      ],
+      correct: ["change-c"],
+      explanation:
+        "A sudden pattern shift and pass-through transactions are strong indicators of layering. Suspicion must be reported immediately.",
+      keyPoints: [
+        "The threshold is suspicion, not certainty.",
+        "Report immediately; do not investigate yourself.",
+        "Layering often looks like pass-through activity.",
+      ],
+    },
+    {
+      id: "tipping-off",
+      title: "Avoid tipping off",
+      type: "single" as const,
+      context:
+        "A customer complains that their transfer is delayed and presses you for details.",
+      prompt: "Which response is safe and compliant?",
+      options: [
+        { id: "tip-a", text: "We are investigating your account for money laundering" },
+        { id: "tip-b", text: "We are completing standard internal checks and will update you shortly" },
+        { id: "tip-c", text: "Compliance flagged your payment as suspicious" },
+        { id: "tip-d", text: "We submitted a report about your activity" },
+      ],
+      correct: ["tip-b"],
+      explanation:
+        "You must never disclose that a report or investigation is underway. Use neutral, process-based language only.",
+      keyPoints: [
+        "Tipping off is a criminal offence.",
+        "Use standard internal-check wording.",
+        "Escalate internally, not to the customer.",
+      ],
+    },
+  ];
 
   const getStageProgress = () => {
     const currentIndex = stageOrder.indexOf(currentStage);
@@ -103,9 +198,25 @@ export function AMLTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
     setCurrentContentSection(nextIndex);
   }, [currentContentSection, currentStage, deepLink?.section]);
 
+  useEffect(() => {
+    if (currentStage !== "practice") return;
+    setPracticeIndex(0);
+  }, [currentStage]);
+
+  const isPracticeAnswerCorrect = (question: typeof practiceQuestions[number], selected: string[]) => {
+    if (!selected.length) return false;
+    const expected = new Set(question.correct);
+    if (selected.length !== expected.size) return false;
+    return selected.every((id) => expected.has(id));
+  };
+
   const calculatePracticeScore = () => {
-    const totalQuestions = 2;
-    const correctCount = Number(selectedAnswers.corp === "corp_b") + Number(selectedAnswers.change === "change_c");
+    const totalQuestions = practiceQuestions.length;
+    if (!totalQuestions) return 100;
+    const correctCount = practiceQuestions.reduce((count, question) => {
+      const selected = practiceAnswers[question.id] ?? [];
+      return isPracticeAnswerCorrect(question, selected) ? count + 1 : count;
+    }, 0);
     return Math.round((correctCount / totalQuestions) * 100);
   };
 
@@ -231,6 +342,17 @@ export function AMLTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
                 </p>
               </div>
             </div>
+            <figure className="space-y-2">
+              <img
+                src="/images/training/aml-ctf-01.jpg"
+                alt="Compliance analyst reviewing transaction alerts"
+                className="w-full h-56 rounded-xl border border-slate-200 shadow-sm object-cover"
+                loading="lazy"
+              />
+              <figcaption className="text-xs text-slate-500">
+                Early detection relies on focused review and clear escalation paths.
+              </figcaption>
+            </figure>
 
             {/* Three Stages Visualization */}
             <div className="space-y-6">
@@ -358,6 +480,17 @@ export function AMLTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
                 Our firm's AML framework is built upon UK criminal law, not just regulatory rules. Personal liability includes imprisonment and unlimited fines for serious breaches.
               </p>
             </div>
+            <figure className="space-y-2">
+              <img
+                src="/images/training/aml-ctf-02.jpg"
+                alt="Professional compliance review of regulatory documentation"
+                className="w-full h-56 rounded-xl border border-slate-200 shadow-sm object-cover"
+                loading="lazy"
+              />
+              <figcaption className="text-xs text-slate-500">
+                Regulatory frameworks expect documented controls, governance, and evidence.
+              </figcaption>
+            </figure>
 
             <div className="grid gap-6">
               {[
@@ -463,6 +596,17 @@ export function AMLTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
                 We cannot treat every customer and transaction as if it carries the same level of risk. The law requires us to adopt a Risk-Based Approach (RBA) - identifying the biggest risks and focusing our resources where they matter most.
               </p>
             </div>
+            <figure className="space-y-2">
+              <img
+                src="/images/training/aml-ctf-03.jpg"
+                alt="Team monitoring risk dashboards and alerts"
+                className="w-full h-56 rounded-xl border border-slate-200 shadow-sm object-cover"
+                loading="lazy"
+              />
+              <figcaption className="text-xs text-slate-500">
+                Risk-based monitoring focuses effort where exposure is highest.
+              </figcaption>
+            </figure>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[
@@ -728,6 +872,7 @@ export function AMLTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
             <CardTitle className="text-xl">{sections[currentContentSection].title}</CardTitle>
           </CardHeader>
           <CardContent>
+            <TrainingSlideGallery moduleId={amlFundamentalsModule.id} category={amlFundamentalsModule.category} />
             {sections[currentContentSection].content}
           </CardContent>
         </Card>
@@ -742,243 +887,156 @@ export function AMLTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
     );
   };
 
-  const renderPracticeStage = () => (
-    <div className="space-y-6">
-      <div className="text-center">
-        <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100 text-emerald-800 rounded-full text-sm font-medium mb-6">
-          <Target className="h-4 w-4" />
-          Practice - Apply Your Knowledge (3 minutes)
+  const renderPracticeStage = () => {
+    const totalQuestions = practiceQuestions.length;
+    const question = practiceQuestions[practiceIndex];
+    if (!question) {
+      return (
+        <Card className="border border-slate-200">
+          <CardContent className="p-8 text-center text-slate-600">No practice questions configured.</CardContent>
+        </Card>
+      );
+    }
+
+    const selected = practiceAnswers[question.id] ?? [];
+    const isReviewed = practiceReviewed[question.id] ?? false;
+    const isCorrect = isPracticeAnswerCorrect(question, selected);
+    const isMulti = question.type === "multi";
+
+    const toggleOption = (optionId: string) => {
+      if (isReviewed) return;
+      setPracticeAnswers((prev) => {
+        const current = prev[question.id] ?? [];
+        if (!isMulti) {
+          return { ...prev, [question.id]: [optionId] };
+        }
+        if (current.includes(optionId)) {
+          return { ...prev, [question.id]: current.filter((id) => id !== optionId) };
+        }
+        return { ...prev, [question.id]: [...current, optionId] };
+      });
+    };
+
+    const handleCheckAnswer = () => {
+      if (!selected.length) return;
+      setPracticeReviewed((prev) => ({ ...prev, [question.id]: true }));
+    };
+
+    const goNext = () => {
+      if (practiceIndex < totalQuestions - 1) {
+        setPracticeIndex(practiceIndex + 1);
+      } else {
+        nextStage();
+      }
+    };
+
+    const goPrev = () => {
+      if (practiceIndex > 0) {
+        setPracticeIndex(practiceIndex - 1);
+      }
+    };
+
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100 text-emerald-800 rounded-full text-sm font-medium mb-6">
+            <Target className="h-4 w-4" />
+            Practice - Apply Your Knowledge (3 minutes)
+          </div>
+          <p className="text-sm text-slate-500">Question {practiceIndex + 1} of {totalQuestions}</p>
         </div>
-      </div>
 
-      <h2 className="text-2xl font-bold text-slate-900 text-center mb-8">
-        AML Red Flag Detection Practice
-      </h2>
-
-      {/* Scenario 1 */}
-      <Card className="border border-emerald-200">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Building className="h-5 w-5 text-emerald-600" />
-            Scenario 1: The Complex Corporate Client
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="bg-slate-50 border border-slate-200 rounded-lg p-6">
-            <h4 className="font-semibold text-slate-900 mb-3">Situation:</h4>
-            <p className="text-slate-700 mb-4">
-              A new corporate client "Global Trading Solutions Ltd" wants to set up a payment account. They are based in a high-risk jurisdiction and the corporate structure is deliberately complex, involving shell companies. They want to immediately begin moving large, round-sum amounts to various other countries. The director is evasive when you ask for details on the source of their wealth.
-            </p>
-
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <h5 className="font-medium text-slate-800 mb-2">Client Details:</h5>
-                <ul className="space-y-1 text-sm text-slate-600">
-                  <li>• Based in known high-risk jurisdiction</li>
-                  <li>• Multiple shell companies in structure</li>
-                  <li>• Unclear beneficial ownership</li>
-                  <li>• Requests immediate large transfers</li>
-                </ul>
+        <Card className="border border-emerald-200">
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between gap-2">
+              <span>{question.title}</span>
+              <Badge variant="outline" className="text-xs">
+                {isMulti ? "Select all that apply" : "Select one"}
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {question.context ? (
+              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 text-sm text-slate-700">
+                {question.context}
               </div>
-              <div>
-                <h5 className="font-medium text-slate-800 mb-2">Red Flags:</h5>
-                <ul className="space-y-1 text-sm text-red-600">
-                  <li>• High-risk jurisdiction</li>
-                  <li>• Complex/opaque structure</li>
-                  <li>• Evasive about wealth source</li>
-                  <li>• Round sum amounts</li>
-                </ul>
-              </div>
-            </div>
-          </div>
+            ) : null}
 
-          <div>
-            <h4 className="font-semibold text-slate-900 mb-3">What are the red flags here, and what should you do?</h4>
-            <div className="space-y-3">
-              {[
-                { id: "corp_a", text: "Process the application normally - they haven't done anything illegal yet", correct: false },
-                { id: "corp_b", text: "Apply Enhanced Due Diligence (EDD) and escalate concerns to MLRO before proceeding", correct: true },
-                { id: "corp_c", text: "Reject the application immediately due to high risk", correct: false },
-                { id: "corp_d", text: "Accept but monitor closely after onboarding", correct: false }
-              ].map((option) => (
-                <label
-                  key={option.id}
-                  className={`flex items-start gap-3 p-4 border rounded-lg cursor-pointer transition-colors ${
-                    selectedAnswers.corp === option.id
-                      ? option.correct
-                        ? 'border-emerald-500 bg-emerald-50'
-                        : 'border-red-500 bg-red-50'
-                      : 'border-slate-200 hover:border-slate-300'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="corp"
-                    value={option.id}
-                    checked={selectedAnswers.corp === option.id}
-                    onChange={() => setSelectedAnswers(prev => ({ ...prev, corp: option.id }))}
-                    className="mt-1"
-                  />
-                  <span className="text-slate-700">{option.text}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {selectedAnswers.corp && (
-            <div className="p-4 rounded-lg border border-emerald-200 bg-emerald-50">
-              <div className="flex items-center gap-2 mb-2">
-                <CheckCircle2 className="h-5 w-5 text-emerald-600" />
-                <span className="font-semibold text-emerald-900">
-                  {selectedAnswers.corp === 'corp_b' ? 'Excellent!' : 'Learning Opportunity'}
-                </span>
-              </div>
-              <p className="text-sm text-emerald-800 mb-3">
-                {selectedAnswers.corp === 'corp_b'
-                  ? "You've correctly identified multiple red flags: high-risk jurisdiction, complex/opaque structure, immediate large transactions, round amounts, and evasiveness about source of wealth. This requires Enhanced Due Diligence (EDD) and immediate escalation to the MLRO before proceeding."
-                  : "This scenario contains serious red flags requiring immediate action. The combination of high-risk jurisdiction, complex structure, large immediate transfers, and evasive behavior requires Enhanced Due Diligence and MLRO escalation before proceeding."
-                }
-              </p>
-              <div>
-                <h5 className="font-medium text-emerald-800 mb-2">Key Learning Points:</h5>
-                <ul className="space-y-1">
-                  {[
-                    "High-risk jurisdictions require enhanced scrutiny",
-                    "Complex corporate structures can hide beneficial ownership",
-                    "Evasiveness about source of wealth is a major red flag",
-                    "Never proceed with high-risk relationships without MLRO approval"
-                  ].map((point, i) => (
-                    <li key={i} className="text-sm text-emerald-700 flex items-start gap-2">
-                      <Lightbulb className="h-3 w-3 text-emerald-600 mt-0.5 shrink-0" />
-                      {point}
-                    </li>
-                  ))}
-                </ul>
+            <div>
+              <h4 className="font-semibold text-slate-900 mb-3">{question.prompt}</h4>
+              <div className="space-y-3">
+                {question.options.map((option) => {
+                  const isSelected = selected.includes(option.id);
+                  return (
+                    <label
+                      key={option.id}
+                      className={`flex items-start gap-3 p-4 border rounded-lg cursor-pointer transition-colors ${
+                        isSelected
+                          ? "border-emerald-500 bg-emerald-50"
+                          : "border-slate-200 hover:border-slate-300"
+                      } ${isReviewed ? "cursor-default opacity-80" : ""}`}
+                    >
+                      <input
+                        type={isMulti ? "checkbox" : "radio"}
+                        name={question.id}
+                        value={option.id}
+                        checked={isSelected}
+                        onChange={() => toggleOption(option.id)}
+                        disabled={isReviewed}
+                        className="mt-1"
+                      />
+                      <span className="text-slate-700">{option.text}</span>
+                    </label>
+                  );
+                })}
               </div>
             </div>
-          )}
-        </CardContent>
-      </Card>
 
-      {/* Scenario 2 */}
-      <Card className="border border-emerald-200">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5 text-emerald-600" />
-            Scenario 2: Sudden Account Activity Change
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="bg-slate-50 border border-slate-200 rounded-lg p-6">
-            <h4 className="font-semibold text-slate-900 mb-3">Situation:</h4>
-            <p className="text-slate-700 mb-4">
-              Mrs. Sarah Johnson has been your customer for 3 years, maintaining a low account balance (£200-500) with minimal activity. Suddenly, she receives a series of large, unrelated payments from abroad (£15k, £22k, £18k). Almost as soon as the funds arrive, they are transferred out to a different individual.
-            </p>
-
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <h5 className="font-medium text-slate-800 mb-2">Account History:</h5>
-                <ul className="space-y-1 text-sm text-slate-600">
-                  <li>• 3 years as customer</li>
-                  <li>• Low balance (£200-500)</li>
-                  <li>• Minimal activity</li>
-                  <li>• Predictable patterns</li>
-                </ul>
-              </div>
-              <div>
-                <h5 className="font-medium text-slate-800 mb-2">New Pattern:</h5>
-                <ul className="space-y-1 text-sm text-red-600">
-                  <li>• Large international payments</li>
-                  <li>• Multiple foreign countries</li>
-                  <li>• Immediate transfers out</li>
-                  <li>• Pass-through behavior</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <h4 className="font-semibold text-slate-900 mb-3">Why is this activity suspicious, and what is your legal obligation?</h4>
-            <div className="space-y-3">
-              {[
-                { id: "change_a", text: "Wait to see if the pattern continues before taking action", correct: false },
-                { id: "change_b", text: "Contact the customer to ask about the change in activity", correct: false },
-                { id: "change_c", text: "Report the suspicion immediately to the MLRO", correct: true },
-                { id: "change_d", text: "Block the account until more information is obtained", correct: false }
-              ].map((option) => (
-                <label
-                  key={option.id}
-                  className={`flex items-start gap-3 p-4 border rounded-lg cursor-pointer transition-colors ${
-                    selectedAnswers.change === option.id
-                      ? option.correct
-                        ? 'border-emerald-500 bg-emerald-50'
-                        : 'border-red-500 bg-red-50'
-                      : 'border-slate-200 hover:border-slate-300'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="change"
-                    value={option.id}
-                    checked={selectedAnswers.change === option.id}
-                    onChange={() => setSelectedAnswers(prev => ({ ...prev, change: option.id }))}
-                    className="mt-1"
-                  />
-                  <span className="text-slate-700">{option.text}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {selectedAnswers.change && (
-            <div className="p-4 rounded-lg border border-emerald-200 bg-emerald-50">
-              <div className="flex items-center gap-2 mb-2">
-                <CheckCircle2 className="h-5 w-5 text-emerald-600" />
-                <span className="font-semibold text-emerald-900">
-                  {selectedAnswers.change === 'change_c' ? 'Correct!' : 'Learning Opportunity'}
-                </span>
-              </div>
-              <p className="text-sm text-emerald-800 mb-3">
-                {selectedAnswers.change === 'change_c'
-                  ? "This represents a significant and unexplained change from the customer's expected activity pattern. The account appears to be used as a simple pass-through for funds, which is a classic 'layering' technique in money laundering. Your legal obligation is to report this suspicion immediately to the MLRO."
-                  : "This activity shows classic signs of money laundering 'layering' - using the account as a pass-through for funds. The dramatic change from expected activity creates a legal obligation to report your suspicion to the MLRO immediately."
-                }
-              </p>
-              <div className="grid md:grid-cols-2 gap-4">
+            {isReviewed ? (
+              <div className={`p-4 rounded-lg border ${isCorrect ? "border-emerald-200 bg-emerald-50" : "border-amber-200 bg-amber-50"}`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <CheckCircle2 className={`h-5 w-5 ${isCorrect ? "text-emerald-600" : "text-amber-600"}`} />
+                  <span className={`font-semibold ${isCorrect ? "text-emerald-900" : "text-amber-900"}`}>
+                    {isCorrect ? "Correct" : "Not quite"}
+                  </span>
+                </div>
+                <p className={`text-sm mb-3 ${isCorrect ? "text-emerald-800" : "text-amber-800"}`}>
+                  {question.explanation}
+                </p>
                 <div>
-                  <h5 className="font-medium text-emerald-800 mb-2">Learning Points:</h5>
+                  <h5 className={`font-medium mb-2 ${isCorrect ? "text-emerald-800" : "text-amber-800"}`}>Key Learning Points:</h5>
                   <ul className="space-y-1">
-                    {[
-                      "Dramatic changes from expected patterns are suspicious",
-                      "Pass-through accounts are used in layering",
-                      "Report suspicions immediately, don't investigate"
-                    ].map((point, i) => (
-                      <li key={i} className="text-sm text-emerald-700 flex items-start gap-2">
-                        <Lightbulb className="h-3 w-3 text-emerald-600 mt-0.5 shrink-0" />
+                    {question.keyPoints.map((point, i) => (
+                      <li key={i} className={`text-sm flex items-start gap-2 ${isCorrect ? "text-emerald-700" : "text-amber-700"}`}>
+                        <Lightbulb className={`h-3 w-3 mt-0.5 shrink-0 ${isCorrect ? "text-emerald-600" : "text-amber-600"}`} />
                         {point}
                       </li>
                     ))}
                   </ul>
                 </div>
-                <div>
-                  <h5 className="font-medium text-amber-800 mb-2">ML Stage Identified:</h5>
-                  <div className="bg-amber-100 p-3 rounded-lg border border-amber-200">
-                    <div className="flex items-center gap-2">
-                      <Network className="h-4 w-4 text-amber-600" />
-                      <span className="font-medium text-amber-800">Layering</span>
-                    </div>
-                    <p className="text-xs text-amber-700 mt-1">
-                      Creating complex layers to obscure money's origin
-                    </p>
-                  </div>
-                </div>
               </div>
+            ) : null}
+
+            <div className="flex items-center justify-between pt-2">
+              <Button variant="outline" onClick={goPrev} disabled={practiceIndex === 0}>
+                Previous
+              </Button>
+              {!isReviewed ? (
+                <Button onClick={handleCheckAnswer} disabled={!selected.length} className="bg-emerald-600 hover:bg-emerald-700">
+                  Check Answer
+                </Button>
+              ) : (
+                <Button onClick={goNext} className="bg-emerald-600 hover:bg-emerald-700">
+                  {practiceIndex < totalQuestions - 1 ? "Next Question" : "Finish Practice"}
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              )}
             </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  );
+          </CardContent>
+        </Card>
+      </div>
+    );
+  };
 
   const renderSummaryStage = () => (
     <div className="space-y-6">
@@ -1184,7 +1242,7 @@ export function AMLTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
       {renderCurrentStage()}
 
       {/* Navigation */}
-      {currentStage !== 'summary' && currentStage !== 'content' && (
+      {currentStage !== 'summary' && currentStage !== 'content' && currentStage !== 'practice' && (
         <div className="flex justify-center">
           <Button
             onClick={nextStage}

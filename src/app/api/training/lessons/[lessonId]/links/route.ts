@@ -7,8 +7,10 @@ export async function GET(
   { params }: { params: Promise<{ lessonId: string }> },
 ) {
   const { lessonId } = await params;
-  const links = await listBackLinks({ organizationId: DEFAULT_ORGANIZATION_ID, toType: "training", toId: lessonId });
-  const policyLinks = links.filter((link) => link.fromType === "policy");
-  return NextResponse.json({ links: policyLinks });
+  const links = await listBackLinks({
+    organizationId: DEFAULT_ORGANIZATION_ID,
+    toType: "training",
+    toId: lessonId,
+  });
+  return NextResponse.json({ links });
 }
-

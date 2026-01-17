@@ -8,6 +8,7 @@ import {
   PERMISSION_ECOSYSTEMS,
   PermissionCode,
 } from "@/lib/authorization-pack-ecosystems";
+import type { BusinessPlanProfile } from "@/lib/business-plan-profile";
 
 interface PackTemplateRow {
   id: string;
@@ -75,6 +76,9 @@ const coerceJsonObject = <T>(value: unknown): T => {
 
 let templatesSynced = false;
 let ecosystemsSynced = false;
+const EXPECTED_TEMPLATE_COUNT = PACK_TEMPLATES.length;
+const EXPECTED_SECTION_COUNT = PACK_TEMPLATES.reduce((total, template) => total + template.sections.length, 0);
+const EXPECTED_ECOSYSTEM_COUNT = PERMISSION_ECOSYSTEMS.length;
 
 export async function initAuthorizationPackDatabase() {
   const client = await pool.connect();
@@ -269,6 +273,17 @@ export async function initAuthorizationPackDatabase() {
     `);
 
     await client.query(`
+      ALTER TABLE packs
+        ADD COLUMN IF NOT EXISTS template_id UUID REFERENCES pack_templates(id),
+        ADD COLUMN IF NOT EXISTS organization_id VARCHAR(100),
+        ADD COLUMN IF NOT EXISTS name VARCHAR(255),
+        ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'draft',
+        ADD COLUMN IF NOT EXISTS target_submission_date DATE,
+        ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW(),
+        ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT NOW();
+    `);
+
+    await client.query(`
       CREATE TABLE IF NOT EXISTS authorization_projects (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         organization_id VARCHAR(100) NOT NULL,
@@ -282,6 +297,20 @@ export async function initAuthorizationPackDatabase() {
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW()
       )
+    `);
+
+    await client.query(`
+      ALTER TABLE authorization_projects
+        ADD COLUMN IF NOT EXISTS organization_id VARCHAR(100),
+        ADD COLUMN IF NOT EXISTS name VARCHAR(255),
+        ADD COLUMN IF NOT EXISTS permission_code VARCHAR(50),
+        ADD COLUMN IF NOT EXISTS pack_id UUID REFERENCES packs(id) ON DELETE SET NULL,
+        ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'assessment',
+        ADD COLUMN IF NOT EXISTS assessment_data JSONB DEFAULT '{}'::jsonb,
+        ADD COLUMN IF NOT EXISTS project_plan JSONB DEFAULT '{}'::jsonb,
+        ADD COLUMN IF NOT EXISTS target_submission_date DATE,
+        ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW(),
+        ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT NOW();
     `);
 
     await client.query(`
@@ -299,6 +328,20 @@ export async function initAuthorizationPackDatabase() {
         completed_at TIMESTAMP,
         UNIQUE(pack_id, section_template_id)
       )
+    `);
+
+    await client.query(`
+      ALTER TABLE section_instances
+        ADD COLUMN IF NOT EXISTS pack_id UUID REFERENCES packs(id) ON DELETE CASCADE,
+        ADD COLUMN IF NOT EXISTS section_template_id UUID REFERENCES section_templates(id),
+        ADD COLUMN IF NOT EXISTS section_key VARCHAR(150),
+        ADD COLUMN IF NOT EXISTS title VARCHAR(255),
+        ADD COLUMN IF NOT EXISTS display_order INTEGER,
+        ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'not-started',
+        ADD COLUMN IF NOT EXISTS owner_id VARCHAR(100),
+        ADD COLUMN IF NOT EXISTS due_date DATE,
+        ADD COLUMN IF NOT EXISTS review_state VARCHAR(50) DEFAULT 'draft',
+        ADD COLUMN IF NOT EXISTS completed_at TIMESTAMP;
     `);
 
     await client.query(`
@@ -321,7 +364,7 @@ export async function initAuthorizationPackDatabase() {
         required_evidence_id UUID REFERENCES required_evidence(id),
         name VARCHAR(255) NOT NULL,
         description TEXT,
-        status VARCHAR(50) DEFAULT 'missing',
+        status VARCHAR(50) DEFAULT 'required',
         file_path TEXT,
         file_size INTEGER,
         file_type TEXT,
@@ -332,6 +375,25 @@ export async function initAuthorizationPackDatabase() {
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW()
       )
+    `);
+
+    await client.query(`
+      ALTER TABLE evidence_items
+        ADD COLUMN IF NOT EXISTS pack_id UUID REFERENCES packs(id) ON DELETE CASCADE,
+        ADD COLUMN IF NOT EXISTS section_instance_id UUID REFERENCES section_instances(id) ON DELETE CASCADE,
+        ADD COLUMN IF NOT EXISTS required_evidence_id UUID REFERENCES required_evidence(id),
+        ADD COLUMN IF NOT EXISTS name VARCHAR(255),
+        ADD COLUMN IF NOT EXISTS description TEXT,
+        ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'required',
+        ADD COLUMN IF NOT EXISTS file_path TEXT,
+        ADD COLUMN IF NOT EXISTS file_size INTEGER,
+        ADD COLUMN IF NOT EXISTS file_type TEXT,
+        ADD COLUMN IF NOT EXISTS uploaded_at TIMESTAMP,
+        ADD COLUMN IF NOT EXISTS annex_number VARCHAR(50),
+        ADD COLUMN IF NOT EXISTS version INTEGER DEFAULT 0,
+        ADD COLUMN IF NOT EXISTS notes TEXT,
+        ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW(),
+        ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT NOW();
     `);
 
     await client.query(`
@@ -350,6 +412,16 @@ export async function initAuthorizationPackDatabase() {
     `);
 
     await client.query(`
+      ALTER TABLE evidence_items ALTER COLUMN status SET DEFAULT 'required';
+    `);
+
+    await client.query(`
+      UPDATE evidence_items
+      SET status = 'required'
+      WHERE status = 'missing' OR status IS NULL;
+    `);
+
+    await client.query(`
       CREATE TABLE IF NOT EXISTS tasks (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         pack_id UUID REFERENCES packs(id) ON DELETE CASCADE,
@@ -365,6 +437,68 @@ export async function initAuthorizationPackDatabase() {
         created_at TIMESTAMP DEFAULT NOW(),
         completed_at TIMESTAMP
       )
+    `);
+
+    await client.query(`
+      ALTER TABLE tasks
+        ADD COLUMN IF NOT EXISTS pack_id UUID REFERENCES packs(id) ON DELETE CASCADE,
+        ADD COLUMN IF NOT EXISTS section_instance_id UUID REFERENCES section_instances(id) ON DELETE SET NULL,
+        ADD COLUMN IF NOT EXISTS title VARCHAR(255),
+        ADD COLUMN IF NOT EXISTS description TEXT,
+        ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'pending',
+        ADD COLUMN IF NOT EXISTS priority VARCHAR(20) DEFAULT 'medium',
+        ADD COLUMN IF NOT EXISTS owner_id VARCHAR(100),
+        ADD COLUMN IF NOT EXISTS due_date DATE,
+        ADD COLUMN IF NOT EXISTS source VARCHAR(50),
+        ADD COLUMN IF NOT EXISTS dependency_ids UUID[],
+        ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW(),
+        ADD COLUMN IF NOT EXISTS completed_at TIMESTAMP;
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS pack_documents (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        pack_id UUID REFERENCES packs(id) ON DELETE CASCADE,
+        section_code VARCHAR(100),
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        storage_key TEXT,
+        file_size_bytes BIGINT,
+        mime_type VARCHAR(100),
+        checksum VARCHAR(64),
+        version INTEGER DEFAULT 1,
+        status VARCHAR(50) DEFAULT 'draft',
+        uploaded_by VARCHAR(100),
+        uploaded_at TIMESTAMP,
+        reviewed_by VARCHAR(100),
+        reviewed_at TIMESTAMP,
+        signed_by VARCHAR(100),
+        signed_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    await client.query(`
+      ALTER TABLE pack_documents
+        ADD COLUMN IF NOT EXISTS pack_id UUID REFERENCES packs(id) ON DELETE CASCADE,
+        ADD COLUMN IF NOT EXISTS section_code VARCHAR(100),
+        ADD COLUMN IF NOT EXISTS name VARCHAR(255),
+        ADD COLUMN IF NOT EXISTS description TEXT,
+        ADD COLUMN IF NOT EXISTS storage_key TEXT,
+        ADD COLUMN IF NOT EXISTS file_size_bytes BIGINT,
+        ADD COLUMN IF NOT EXISTS mime_type VARCHAR(100),
+        ADD COLUMN IF NOT EXISTS checksum VARCHAR(64),
+        ADD COLUMN IF NOT EXISTS version INTEGER DEFAULT 1,
+        ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'draft',
+        ADD COLUMN IF NOT EXISTS uploaded_by VARCHAR(100),
+        ADD COLUMN IF NOT EXISTS uploaded_at TIMESTAMP,
+        ADD COLUMN IF NOT EXISTS reviewed_by VARCHAR(100),
+        ADD COLUMN IF NOT EXISTS reviewed_at TIMESTAMP,
+        ADD COLUMN IF NOT EXISTS signed_by VARCHAR(100),
+        ADD COLUMN IF NOT EXISTS signed_at TIMESTAMP,
+        ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW(),
+        ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT NOW();
     `);
 
     await client.query(`
@@ -402,6 +536,7 @@ export async function initAuthorizationPackDatabase() {
     await client.query(`CREATE INDEX IF NOT EXISTS idx_prompt_responses_section ON prompt_responses(section_instance_id)`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_evidence_items_pack ON evidence_items(pack_id)`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_tasks_pack ON tasks(pack_id)`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_pack_documents_pack ON pack_documents(pack_id)`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_review_gates_section ON review_gates(section_instance_id)`);
   } finally {
     client.release();
@@ -671,6 +806,20 @@ export async function syncAuthorizationTemplates() {
 
 export async function ensureAuthorizationTemplates() {
   if (templatesSynced) return;
+  await initAuthorizationPackDatabase();
+  const client = await pool.connect();
+  try {
+    const templateResult = await client.query(`SELECT COUNT(*)::int as count FROM pack_templates`);
+    const sectionResult = await client.query(`SELECT COUNT(*)::int as count FROM section_templates`);
+    const templateCount = Number(templateResult.rows[0]?.count || 0);
+    const sectionCount = Number(sectionResult.rows[0]?.count || 0);
+    if (templateCount >= EXPECTED_TEMPLATE_COUNT && sectionCount >= EXPECTED_SECTION_COUNT) {
+      templatesSynced = true;
+      return;
+    }
+  } finally {
+    client.release();
+  }
   await syncAuthorizationTemplates();
 }
 
@@ -722,6 +871,17 @@ export async function syncPermissionEcosystems() {
 export async function ensurePermissionEcosystems() {
   if (ecosystemsSynced) return;
   await ensureAuthorizationTemplates();
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`SELECT COUNT(*)::int as count FROM permission_ecosystems`);
+    const count = Number(result.rows[0]?.count || 0);
+    if (count >= EXPECTED_ECOSYSTEM_COUNT) {
+      ecosystemsSynced = true;
+      return;
+    }
+  } finally {
+    client.release();
+  }
   await syncPermissionEcosystems();
 }
 
@@ -901,8 +1061,8 @@ export async function getAuthorizationProject(projectId: string) {
     const row = result.rows[0];
     if (!row) return null;
 
-    const readiness = row.pack_id ? await getPackReadiness(row.pack_id) : null;
     const sections = row.pack_id ? await getSections(row.pack_id) : [];
+    const readiness = row.pack_id ? buildReadinessFromSections(sections) : null;
 
     return {
       ...row,
@@ -962,6 +1122,7 @@ interface AssessmentData {
   policies?: Record<string, ReadinessStatus>;
   training?: Record<string, TrainingStatus>;
   smcr?: Record<string, SmcrStatus>;
+  businessPlanProfile?: BusinessPlanProfile;
   meta?: Record<string, unknown>;
 }
 
@@ -1330,6 +1491,43 @@ export async function saveAuthorizationAssessment(projectId: string, assessmentD
   }
 }
 
+export async function saveAuthorizationBusinessPlanProfile(projectId: string, profile: BusinessPlanProfile) {
+  await initAuthorizationPackDatabase();
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `SELECT assessment_data FROM authorization_projects WHERE id = $1 LIMIT 1`,
+      [projectId]
+    );
+    if (!result.rows.length) {
+      return null;
+    }
+
+    const assessmentData = coerceJsonObject<Record<string, unknown>>(result.rows[0].assessment_data);
+    const nextProfile: BusinessPlanProfile = {
+      ...profile,
+      updatedAt: new Date().toISOString(),
+    };
+
+    const nextAssessment = {
+      ...assessmentData,
+      businessPlanProfile: nextProfile,
+    };
+
+    await client.query(
+      `UPDATE authorization_projects
+       SET assessment_data = $2,
+           updated_at = NOW()
+       WHERE id = $1`,
+      [projectId, nextAssessment]
+    );
+
+    return nextProfile;
+  } finally {
+    client.release();
+  }
+}
+
 export async function generateAuthorizationProjectPlan(projectId: string) {
   await ensurePermissionEcosystems();
   const client = await pool.connect();
@@ -1563,6 +1761,7 @@ export async function resetAuthorizationPackData() {
         activity_log,
         review_gates,
         tasks,
+        pack_documents,
         evidence_versions,
         evidence_items,
         prompt_responses,
@@ -1759,6 +1958,117 @@ export async function getPack(packId: string) {
   }
 }
 
+export async function getPackDocuments(packId: string) {
+  await initAuthorizationPackDatabase();
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `SELECT id, pack_id, section_code, name, description, storage_key, file_size_bytes, mime_type, checksum,
+              version, status, uploaded_by, uploaded_at, reviewed_by, reviewed_at, signed_by, signed_at,
+              created_at, updated_at
+       FROM pack_documents
+       WHERE pack_id = $1
+       ORDER BY created_at DESC`,
+      [packId]
+    );
+    return result.rows;
+  } finally {
+    client.release();
+  }
+}
+
+export async function createPackDocument(input: {
+  packId: string;
+  name: string;
+  description?: string | null;
+  sectionCode?: string | null;
+  storageKey?: string | null;
+  fileSizeBytes?: number | null;
+  mimeType?: string | null;
+  checksum?: string | null;
+  uploadedBy?: string | null;
+  uploadedAt?: string | null;
+}) {
+  await initAuthorizationPackDatabase();
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `INSERT INTO pack_documents
+        (pack_id, section_code, name, description, storage_key, file_size_bytes, mime_type, checksum,
+         version, status, uploaded_by, uploaded_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 1, 'draft', $9, $10)
+       RETURNING *`,
+      [
+        input.packId,
+        input.sectionCode ?? null,
+        input.name,
+        input.description ?? null,
+        input.storageKey ?? null,
+        input.fileSizeBytes ?? null,
+        input.mimeType ?? null,
+        input.checksum ?? null,
+        input.uploadedBy ?? null,
+        input.uploadedAt ? new Date(input.uploadedAt) : null,
+      ]
+    );
+    return result.rows[0] ?? null;
+  } finally {
+    client.release();
+  }
+}
+
+export async function updatePackDocument(documentId: string, updates: Record<string, unknown>) {
+  await initAuthorizationPackDatabase();
+  const client = await pool.connect();
+  try {
+    const allowed = new Set([
+      "name",
+      "description",
+      "section_code",
+      "storage_key",
+      "file_size_bytes",
+      "mime_type",
+      "checksum",
+      "version",
+      "status",
+      "uploaded_by",
+      "uploaded_at",
+      "reviewed_by",
+      "reviewed_at",
+      "signed_by",
+      "signed_at",
+    ]);
+    const keys = Object.keys(updates).filter((key) => allowed.has(key));
+    if (!keys.length) return null;
+
+    const setClauses = keys.map((key, index) => `${key} = $${index + 1}`);
+    setClauses.push("updated_at = NOW()");
+    const values = keys.map((key) => updates[key]);
+
+    const result = await client.query(
+      `UPDATE pack_documents
+       SET ${setClauses.join(", ")}
+       WHERE id = $${keys.length + 1}
+       RETURNING *`,
+      [...values, documentId]
+    );
+    return result.rows[0] ?? null;
+  } finally {
+    client.release();
+  }
+}
+
+export async function deletePackDocument(documentId: string) {
+  await initAuthorizationPackDatabase();
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`DELETE FROM pack_documents WHERE id = $1 RETURNING id`, [documentId]);
+    return result.rows[0] ?? null;
+  } finally {
+    client.release();
+  }
+}
+
 export async function updatePack(
   packId: string,
   updates: {
@@ -1923,7 +2233,7 @@ export async function getSectionWorkspace(packId: string, sectionId: string) {
     );
 
     const tasks = await client.query(
-      `SELECT id, title, status, priority, owner_id, due_date, source
+      `SELECT id, title, description, status, priority, owner_id, due_date, source
        FROM tasks
        WHERE section_instance_id = $1
        ORDER BY created_at ASC`,
@@ -2018,7 +2328,7 @@ export async function listTasks(packId: string) {
   const client = await pool.connect();
   try {
     const result = await client.query(
-      `SELECT t.id, t.title, t.status, t.priority, t.owner_id, t.due_date, t.source,
+      `SELECT t.id, t.title, t.description, t.status, t.priority, t.owner_id, t.due_date, t.source,
               t.section_instance_id, si.title as section_title
        FROM tasks t
        LEFT JOIN section_instances si ON t.section_instance_id = si.id
@@ -2042,6 +2352,21 @@ export async function updateTaskStatus(taskId: string, status: string) {
            completed_at = CASE WHEN $2::text = 'completed' THEN NOW() ELSE completed_at END
        WHERE id = $1`,
       [taskId, status]
+    );
+  } finally {
+    client.release();
+  }
+}
+
+export async function updateTaskPriority(taskId: string, priority: string) {
+  await initAuthorizationPackDatabase();
+  const client = await pool.connect();
+  try {
+    await client.query(
+      `UPDATE tasks
+       SET priority = $2::text
+       WHERE id = $1`,
+      [taskId, priority]
     );
   } finally {
     client.release();
@@ -2403,8 +2728,9 @@ export async function addEvidenceVersion(input: {
   }
 }
 
-export async function getPackReadiness(packId: string) {
-  const sections = await getSections(packId);
+function buildReadinessFromSections(
+  sections: Array<{ narrativeCompletion: number; evidenceCompletion: number; reviewCompletion: number }>
+) {
   if (!sections.length) {
     return {
       overall: 0,
@@ -2424,6 +2750,11 @@ export async function getPackReadiness(packId: string) {
     evidence: evidenceAvg,
     review: reviewAvg,
   };
+}
+
+export async function getPackReadiness(packId: string) {
+  const sections = await getSections(packId);
+  return buildReadinessFromSections(sections);
 }
 
 function average(values: number[]) {
@@ -2593,6 +2924,7 @@ export interface ProjectAssessmentData {
   policies?: Record<string, "missing" | "partial" | "complete">;
   training?: Record<string, "missing" | "in-progress" | "complete">;
   smcr?: Record<string, "unassigned" | "assigned">;
+  businessPlanProfile?: BusinessPlanProfile;
   meta?: {
     completion?: number;
     updatedAt?: string;

@@ -7,7 +7,6 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,18 +17,11 @@ import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 
 // Constants
 const AUTOSAVE_DELAY_MS = 800;
-const MAX_FILE_SIZE_MB = 50;
-const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
 const PromptEditor = dynamic(
   () => import("./PromptEditor").then((mod) => mod.PromptEditor),
   { ssr: false }
 );
-
-// Sanitize filename to prevent XSS
-function sanitizeFilename(filename: string): string {
-  return filename.replace(/[<>:"\/\\|?*\x00-\x1f]/g, "_").slice(0, 255);
-}
 
 // Icon components for better UX
 function CheckCircleIcon({ className }: { className?: string }) {
@@ -52,14 +44,6 @@ function CircleIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <circle cx="12" cy="12" r="9" />
-    </svg>
-  );
-}
-
-function UploadIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
     </svg>
   );
 }
@@ -98,7 +82,6 @@ interface PackRow {
 interface ReadinessSummary {
   overall: number;
   narrative: number;
-  evidence: number;
   review: number;
 }
 
@@ -120,19 +103,6 @@ interface PromptItem {
   value?: string | null;
 }
 
-interface EvidenceItem {
-  id: string;
-  name: string;
-  description?: string | null;
-  status: string;
-  annex_number?: string | null;
-  file_path?: string | null;
-  file_size?: number | null;
-  file_type?: string | null;
-  uploaded_at?: string | null;
-  version?: number | null;
-}
-
 interface TaskItem {
   id: string;
   title: string;
@@ -141,6 +111,7 @@ interface TaskItem {
   priority: string;
   owner_id?: string | null;
   due_date?: string | null;
+  source?: string | null;
 }
 
 interface ReviewGate {
@@ -167,15 +138,6 @@ const TASK_PRIORITY_OPTIONS = [
   { value: "critical", label: "Critical", color: "bg-red-100 text-red-700" },
 ];
 
-const EVIDENCE_STATUS_OPTIONS = [
-  { value: "required", label: "Required", color: "bg-slate-100 text-slate-700" },
-  { value: "pending", label: "Pending Upload", color: "bg-yellow-100 text-yellow-700" },
-  { value: "uploaded", label: "Uploaded", color: "bg-blue-100 text-blue-700" },
-  { value: "under_review", label: "Under Review", color: "bg-purple-100 text-purple-700" },
-  { value: "approved", label: "Approved", color: "bg-green-100 text-green-700" },
-  { value: "rejected", label: "Rejected", color: "bg-red-100 text-red-700" },
-];
-
 const REVIEW_STATE_OPTIONS = [
   { value: "pending", label: "Pending Review", color: "bg-slate-100 text-slate-700" },
   { value: "in_review", label: "In Review", color: "bg-blue-100 text-blue-700" },
@@ -186,13 +148,6 @@ const REVIEW_STATE_OPTIONS = [
 function getStatusBadgeColor(status: string, options: { value: string; color: string }[]) {
   const option = options.find((opt) => opt.value === status);
   return option?.color || "bg-slate-100 text-slate-700";
-}
-
-function formatFileSize(bytes?: number | null): string {
-  if (!bytes) return "0 KB";
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 export function SectionWorkspaceClient() {
@@ -207,7 +162,6 @@ export function SectionWorkspaceClient() {
   const [sections, setSections] = useState<SectionNavItem[]>([]);
   const [sectionMeta, setSectionMeta] = useState<{ status: string; reviewState: string } | null>(null);
   const [prompts, setPrompts] = useState<PromptItem[]>([]);
-  const [evidence, setEvidence] = useState<EvidenceItem[]>([]);
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [reviewGates, setReviewGates] = useState<ReviewGate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -215,17 +169,8 @@ export function SectionWorkspaceClient() {
   const [mutationError, setMutationError] = useState<string | null>(null);
   const [savingPrompts, setSavingPrompts] = useState<Record<string, boolean | "error">>({});
   const [reviewNotes, setReviewNotes] = useState<Record<string, { notes: string; clientNotes: string }>>({});
-  const [dragActive, setDragActive] = useState<string | null>(null);
-  const [uploadingEvidence, setUploadingEvidence] = useState<Record<string, boolean>>({});
   const [generatingPrompts, setGeneratingPrompts] = useState<Record<string, boolean>>({});
   const [aiError, setAiError] = useState<string | null>(null);
-  const [analyzingGaps, setAnalyzingGaps] = useState(false);
-  const [evidenceGaps, setEvidenceGaps] = useState<{
-    gaps: Array<{ description: string; priority: string; regulatoryBasis: string; suggestedFormat: string }>;
-    completeness: number;
-    suggestions: string[];
-  } | null>(null);
-  const [gapsError, setGapsError] = useState<string | null>(null);
 
   const saveTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   const abortControllers = useRef<Record<string, AbortController>>({});
@@ -289,7 +234,6 @@ export function SectionWorkspaceClient() {
             reviewState: workspaceData.section?.review_state || "draft",
           });
           setPrompts(workspaceData.prompts || []);
-          setEvidence(workspaceData.evidence || []);
           setTasks(workspaceData.tasks || []);
           setReviewGates(workspaceData.reviewGates || []);
         }
@@ -409,98 +353,6 @@ export function SectionWorkspaceClient() {
     },
     [pack, sectionId, currentSection?.title, handlePromptChange]
   );
-
-  // AI-powered evidence gap analysis
-  const analyzeEvidenceGaps = useCallback(async () => {
-    if (!pack || !sectionId) return;
-    setAnalyzingGaps(true);
-    setGapsError(null);
-    try {
-      const response = await fetch(
-        `/api/authorization-pack/packs/${pack.id}/sections/${sectionId}/evidence-gaps`
-      );
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        setGapsError(errorData.error || "Unable to analyze evidence gaps");
-        return;
-      }
-      const data = await response.json();
-      setEvidenceGaps(data);
-    } catch (error) {
-      setGapsError(error instanceof Error ? error.message : "Gap analysis failed");
-    } finally {
-      setAnalyzingGaps(false);
-    }
-  }, [pack, sectionId]);
-
-  const handleEvidenceUpload = async (itemId: string, file: File) => {
-    if (!pack) return;
-    setMutationError(null);
-
-    // Validate file size
-    if (file.size > MAX_FILE_SIZE_BYTES) {
-      setMutationError(`File must be under ${MAX_FILE_SIZE_MB}MB`);
-      return;
-    }
-
-    // Sanitize filename
-    const sanitizedName = sanitizeFilename(file.name);
-
-    setUploadingEvidence((prev) => ({ ...prev, [itemId]: true }));
-
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("evidenceItemId", itemId);
-
-      const response = await fetch(`/api/authorization-pack/packs/${pack.id}/evidence`, {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error("Upload failed");
-      }
-
-      setEvidence((prev) =>
-        prev.map((item) =>
-          item.id === itemId
-            ? { ...item, status: "uploaded", file_path: sanitizedName, file_size: file.size, file_type: file.type }
-            : item
-        )
-      );
-    } catch (error) {
-      setMutationError("Failed to upload file. Please try again.");
-      console.error("Evidence upload error:", error);
-    } finally {
-      setUploadingEvidence((prev) => ({ ...prev, [itemId]: false }));
-    }
-  };
-
-  const handleEvidenceStatusChange = async (itemId: string, status: string) => {
-    if (!pack) return;
-    setMutationError(null);
-    const previousEvidence = [...evidence];
-
-    // Optimistic update
-    setEvidence((prev) => prev.map((item) => (item.id === itemId ? { ...item, status } : item)));
-
-    try {
-      const response = await fetch(`/api/authorization-pack/packs/${pack.id}/evidence/${itemId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to update evidence status");
-      }
-    } catch (error) {
-      setEvidence(previousEvidence); // Rollback
-      setMutationError("Failed to update status. Please try again.");
-      console.error("Evidence status update error:", error);
-    }
-  };
 
   const handleTaskStatus = async (taskId: string, status: string) => {
     if (!pack) return;
@@ -626,25 +478,6 @@ export function SectionWorkspaceClient() {
     }
   };
 
-  const handleDrag = useCallback((e: React.DragEvent, itemId: string, entering: boolean) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(entering ? itemId : null);
-  }, []);
-
-  const handleDrop = useCallback(
-    (e: React.DragEvent, itemId: string) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setDragActive(null);
-      const files = e.dataTransfer.files;
-      if (files && files.length > 0) {
-        handleEvidenceUpload(itemId, files[0]);
-      }
-    },
-    [pack, sectionId]
-  );
-
   // Section completion status helper
   const getSectionStatus = (section: SectionNavItem) => {
     if (section.narrativeCompletion >= 100) return "completed";
@@ -707,6 +540,7 @@ export function SectionWorkspaceClient() {
   const reviewState = sectionMeta?.reviewState ?? "draft";
   const isLocked = ["ready", "in-review", "approved"].includes(reviewState) && !hasChangesRequested;
   const canSubmit = reviewState !== "approved" && !isLocked;
+  const visibleTasks = tasks.filter((task) => task.source !== "auto-evidence");
 
   return (
     <div className="space-y-6">
@@ -724,7 +558,7 @@ export function SectionWorkspaceClient() {
               </div>
               <CardTitle className="text-xl">{currentSection.title}</CardTitle>
               <CardDescription>
-                Complete the narrative prompts and upload required evidence for this section.
+                Complete the narrative prompts and manage review for this section.
               </CardDescription>
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -963,202 +797,8 @@ export function SectionWorkspaceClient() {
           </CardContent>
         </Card>
 
-        {/* RIGHT: Evidence + Review + Tasks */}
+        {/* RIGHT: Review + Tasks */}
         <div className="space-y-6">
-          {/* Evidence Checklist */}
-          <Card className="border border-slate-200">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2 text-base">
-                    <UploadIcon className="h-4 w-4 text-teal-600" />
-                    Evidence Checklist
-                    {evidenceGaps && (
-                      <span className={`ml-2 rounded-full px-2 py-0.5 text-xs font-medium ${
-                        evidenceGaps.completeness >= 80 ? "bg-green-100 text-green-700" :
-                        evidenceGaps.completeness >= 50 ? "bg-amber-100 text-amber-700" :
-                        "bg-red-100 text-red-700"
-                      }`}>
-                        {evidenceGaps.completeness}%
-                      </span>
-                    )}
-                  </CardTitle>
-                  <CardDescription>Upload and manage required documentation.</CardDescription>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={analyzeEvidenceGaps}
-                  disabled={analyzingGaps}
-                  className="gap-1 border-teal-200 text-teal-700 hover:bg-teal-50"
-                >
-                  {analyzingGaps ? (
-                    <>
-                      <span className="h-3 w-3 animate-spin rounded-full border border-teal-500 border-t-transparent" />
-                      Checking...
-                    </>
-                  ) : (
-                    <>
-                      <SparklesIcon className="h-3 w-3" />
-                      Check Gaps
-                    </>
-                  )}
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {/* Evidence Gaps Analysis Results */}
-              {gapsError && (
-                <div className="flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-                  <span>AI: {gapsError}</span>
-                  <button onClick={() => setGapsError(null)} className="text-amber-600 hover:text-amber-800">
-                    &times;
-                  </button>
-                </div>
-              )}
-              {evidenceGaps && evidenceGaps.gaps.length > 0 && (
-                <div className="space-y-2 rounded-lg border border-teal-200 bg-teal-50 p-3">
-                  <div className="flex items-center justify-between">
-                    <span className="flex items-center gap-1 text-xs font-medium text-teal-800">
-                      <SparklesIcon className="h-3 w-3" />
-                      AI Identified Gaps ({evidenceGaps.gaps.length})
-                    </span>
-                    <button onClick={() => setEvidenceGaps(null)} className="text-teal-600 hover:text-teal-800">
-                      &times;
-                    </button>
-                  </div>
-                  <div className="space-y-2">
-                    {evidenceGaps.gaps.slice(0, 5).map((gap, idx) => (
-                      <div key={idx} className="rounded border border-teal-200 bg-white p-2">
-                        <div className="flex items-start justify-between gap-2">
-                          <p className="text-xs font-medium text-slate-800">{gap.description}</p>
-                          <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${
-                            gap.priority === "high" ? "bg-red-100 text-red-700" :
-                            gap.priority === "medium" ? "bg-amber-100 text-amber-700" :
-                            "bg-slate-100 text-slate-600"
-                          }`}>
-                            {gap.priority}
-                          </span>
-                        </div>
-                        <p className="mt-1 text-[10px] text-slate-500">
-                          {gap.regulatoryBasis} • Format: {gap.suggestedFormat}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                  {evidenceGaps.suggestions?.length > 0 && (
-                    <div className="mt-2 border-t border-teal-200 pt-2">
-                      <p className="text-[10px] font-medium text-teal-700">Suggestions:</p>
-                      <ul className="mt-1 space-y-0.5">
-                        {evidenceGaps.suggestions.slice(0, 3).map((suggestion, idx) => (
-                          <li key={idx} className="text-[10px] text-teal-600">• {suggestion}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              )}
-              {evidence.length === 0 ? (
-                <div className="py-4 text-center text-sm text-slate-400">
-                  No evidence requirements for this section.
-                </div>
-              ) : (
-                evidence.map((item) => (
-                  <div
-                    key={item.id}
-                    className={`rounded-lg border p-3 transition-all ${
-                      dragActive === item.id
-                        ? "border-teal-400 bg-teal-50"
-                        : "border-slate-100 hover:border-slate-200"
-                    }`}
-                    onDragEnter={(e) => handleDrag(e, item.id, true)}
-                    onDragLeave={(e) => handleDrag(e, item.id, false)}
-                    onDragOver={(e) => e.preventDefault()}
-                    onDrop={(e) => handleDrop(e, item.id)}
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-slate-900">{item.name}</p>
-                        {item.description && (
-                          <p className="mt-0.5 text-xs text-slate-500">{item.description}</p>
-                        )}
-                      </div>
-                      {item.annex_number && (
-                        <Badge variant="outline" className="text-xs">
-                          {item.annex_number}
-                        </Badge>
-                      )}
-                    </div>
-
-                    {/* Status Dropdown */}
-                    <div className="mt-2">
-                      <Label className="text-xs text-slate-500">Status</Label>
-                      <Select
-                        value={item.status}
-                        onValueChange={(value) => handleEvidenceStatusChange(item.id, value)}
-                        disabled={isLocked}
-                      >
-                        <SelectTrigger className="mt-1 h-8 text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {EVIDENCE_STATUS_OPTIONS.map((opt) => (
-                            <SelectItem key={opt.value} value={opt.value}>
-                              <span className={`inline-flex items-center rounded px-1.5 py-0.5 text-xs ${opt.color}`}>
-                                {opt.label}
-                              </span>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* File Upload Area */}
-                    <div className="mt-3 space-y-2">
-                      {item.file_path ? (
-                        <div className="flex items-center justify-between rounded-md bg-slate-50 px-3 py-2 text-xs">
-                          <div className="flex items-center gap-2">
-                            <DocumentIcon className="h-4 w-4 text-slate-400" />
-                            <span className="text-slate-700">{item.file_path}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-slate-400">v{item.version ?? 1}</span>
-                            <span className="text-slate-400">{formatFileSize(item.file_size)}</span>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="flex items-center justify-center rounded-md border-2 border-dashed border-slate-200 px-3 py-4 text-center text-xs text-slate-400">
-                          <div>
-                            <UploadIcon className="mx-auto h-6 w-6" />
-                            <p className="mt-1">Drop file here or click to upload</p>
-                          </div>
-                        </div>
-                      )}
-                      <Input
-                        type="file"
-                        disabled={isLocked}
-                        className="text-xs"
-                        onChange={(event) => {
-                          const file = event.target.files?.[0];
-                          if (file) handleEvidenceUpload(item.id, file);
-                        }}
-                      />
-                    </div>
-
-                    {/* Download Button */}
-                    {item.file_path && (
-                      <Button asChild size="sm" variant="outline" className="mt-2 w-full text-xs">
-                        <a href={`/api/authorization-pack/packs/${pack.id}/evidence/${item.id}`}>
-                          Download Current Version
-                        </a>
-                      </Button>
-                    )}
-                  </div>
-                ))
-              )}
-            </CardContent>
-          </Card>
-
           {/* Review Gates */}
           <Card className="border border-slate-200">
             <CardHeader className="pb-3">
@@ -1275,12 +915,12 @@ export function SectionWorkspaceClient() {
               <CardDescription>Track tasks specific to this section.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              {tasks.length === 0 ? (
+              {visibleTasks.length === 0 ? (
                 <div className="py-4 text-center text-sm text-slate-400">
                   No tasks for this section.
                 </div>
               ) : (
-                tasks.map((task) => (
+                visibleTasks.map((task) => (
                   <div key={task.id} className="rounded-lg border border-slate-100 p-3">
                     <div className="flex items-start justify-between gap-2">
                       <p className="text-sm font-medium text-slate-900">{task.title}</p>

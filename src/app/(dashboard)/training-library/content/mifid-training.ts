@@ -100,6 +100,42 @@ export const mifidTrainingModule: TrainingModule = {
       ],
       correctAnswer: 1,
       explanation: 'Monitoring should evidence execution quality based on the chosen factors.'
+    },
+    {
+      id: 'mifid-q3',
+      question: 'Suitability assessments require:',
+      options: [
+        { id: 'a', text: 'A documented fact find and risk profile', isCorrect: true },
+        { id: 'b', text: 'Only a brief verbal summary', isCorrect: false },
+        { id: 'c', text: 'No documentation if advice is generic', isCorrect: false },
+        { id: 'd', text: 'An execution-only warning only', isCorrect: false }
+      ],
+      correctAnswer: 0,
+      explanation: 'Suitability relies on documented client objectives and risk profile.'
+    },
+    {
+      id: 'mifid-q4',
+      question: 'Appropriateness checks are required when:',
+      options: [
+        { id: 'a', text: 'Providing advice on a personal recommendation', isCorrect: false },
+        { id: 'b', text: 'Executing complex products on a non-advised basis', isCorrect: true },
+        { id: 'c', text: 'Providing general financial education', isCorrect: false },
+        { id: 'd', text: 'Processing internal HR requests', isCorrect: false }
+      ],
+      correctAnswer: 1,
+      explanation: 'Appropriateness applies to non-advised transactions in complex instruments.'
+    },
+    {
+      id: 'mifid-q5',
+      question: 'Conflicts management should include:',
+      options: [
+        { id: 'a', text: 'A register of conflicts and mitigation actions', isCorrect: true },
+        { id: 'b', text: 'Only a statement that conflicts are rare', isCorrect: false },
+        { id: 'c', text: 'No documentation if conflicts are managed informally', isCorrect: false },
+        { id: 'd', text: 'Only sales incentive documentation', isCorrect: false }
+      ],
+      correctAnswer: 0,
+      explanation: 'MiFID expects documented conflicts identification and mitigation.'
     }
   ],
   summary: {

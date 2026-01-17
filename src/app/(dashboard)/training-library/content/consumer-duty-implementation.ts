@@ -699,6 +699,42 @@ export const consumerDutyImplementationModule: TrainingModule = {
       ],
       correctAnswer: 1,
       explanation: "Consumer Duty is evidenced by outcomes, not just policy changes."
+    },
+    {
+      id: "consumer-duty-q3",
+      question: "Which action best evidences fair value?",
+      options: [
+        "Comparing price to benefits for each target market",
+        "Increasing fees for loyal customers",
+        "Limiting MI to sales volumes only",
+        "Relying on historic pricing decisions"
+      ],
+      correctAnswer: 0,
+      explanation: "Fair value evidence requires price-benefit comparisons for each target market."
+    },
+    {
+      id: "consumer-duty-q4",
+      question: "How should firms prove communications are clear?",
+      options: [
+        "Assume clarity if legal wording is present",
+        "Test comprehension with the target audience",
+        "Only collect staff opinions",
+        "Wait for complaints before revising"
+      ],
+      correctAnswer: 1,
+      explanation: "Testing understanding provides evidence that communications are clear."
+    },
+    {
+      id: "consumer-duty-q5",
+      question: "Which statement best reflects Consumer Duty governance?",
+      options: [
+        "Responsibility sits only with the compliance team",
+        "The board must review outcomes and hold owners accountable",
+        "Duty applies only to new products",
+        "Outcome MI is optional if complaints are low"
+      ],
+      correctAnswer: 1,
+      explanation: "Boards are accountable for reviewing outcomes and ensuring owners take action."
     }
   ],
   summary: {

@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Clock, ArrowRight, CheckCircle2, RotateCcw, Award } from "lucide-react";
+import { Clock, ArrowRight, CheckCircle2, RotateCcw, Award, UserPlus } from "lucide-react";
 
 interface ModuleProgress {
   module_id: string;
@@ -27,6 +27,9 @@ interface PlayfulModuleCardProps {
   difficulty: "beginner" | "intermediate" | "advanced";
   progress?: ModuleProgress;
   certificate?: CertificateDownload;
+  assignmentCount?: number;
+  assignmentNote?: string;
+  onAssign?: (moduleId: string) => void;
   className?: string;
 }
 
@@ -749,6 +752,9 @@ export function PlayfulModuleCard({
   difficulty,
   progress,
   certificate,
+  assignmentCount,
+  assignmentNote,
+  onAssign,
   className,
 }: PlayfulModuleCardProps) {
   const categoryKey = moduleCategoryMap[id] || category || "financial-crime-prevention";
@@ -842,23 +848,43 @@ export function PlayfulModuleCard({
           <Badge variant="secondary" className={cn("text-xs border-0", diffConfig.color)}>
             {diffConfig.label}
           </Badge>
+          {assignmentCount ? (
+            <Badge variant="outline" className="text-xs bg-slate-50 border-slate-200">
+              <UserPlus className="w-3 h-3 mr-1" />
+              {assignmentCount} assigned
+            </Badge>
+          ) : null}
         </div>
+        {assignmentNote ? (
+          <p className="-mt-2 mb-4 text-xs text-slate-500">{assignmentNote}</p>
+        ) : null}
 
         {/* CTA */}
-        <Button
-          asChild
-          className={cn(
-            "w-full font-medium transition-all bg-gradient-to-r",
-            isCompleted
-              ? "bg-slate-100 hover:bg-slate-200 text-slate-700 from-slate-100 to-slate-100"
-              : `${styles.gradient} hover:opacity-90 text-white`
-          )}
-        >
-          <a href={`/training-library/lesson/${id}`} className="flex items-center justify-center gap-2">
-            {actionLabel}
-            <ActionIcon className="w-4 h-4" />
-          </a>
-        </Button>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <Button
+            variant="outline"
+            className="w-full border-slate-200 text-slate-700 hover:bg-slate-100"
+            onClick={() => onAssign?.(id)}
+            disabled={!onAssign}
+          >
+            <UserPlus className="mr-2 h-4 w-4" />
+            Assign
+          </Button>
+          <Button
+            asChild
+            className={cn(
+              "w-full font-medium transition-all bg-gradient-to-r",
+              isCompleted
+                ? "bg-slate-100 hover:bg-slate-200 text-slate-700 from-slate-100 to-slate-100"
+                : `${styles.gradient} hover:opacity-90 text-white`
+            )}
+          >
+            <a href={`/training-library/lesson/${id}`} className="flex items-center justify-center gap-2">
+              {actionLabel}
+              <ActionIcon className="w-4 h-4" />
+            </a>
+          </Button>
+        </div>
       </div>
     </div>
   );

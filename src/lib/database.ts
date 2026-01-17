@@ -828,6 +828,773 @@ export async function initDatabase() {
       CREATE INDEX IF NOT EXISTS idx_gifts_date ON gifts_hospitality_records (date_of_event)
     `);
 
+    // ============================================
+    // REGISTER HUB TABLES
+    // ============================================
+
+    // Register definitions - master list of all available registers
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS register_definitions (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        code VARCHAR(100) UNIQUE NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        short_description VARCHAR(500),
+        category VARCHAR(50) NOT NULL,
+        icon_key VARCHAR(100) DEFAULT 'clipboard',
+        href VARCHAR(255),
+        regulatory_references JSONB DEFAULT '[]',
+        use_cases TEXT[],
+        related_training TEXT[],
+        related_policies TEXT[],
+        is_active BOOLEAN DEFAULT TRUE,
+        is_implemented BOOLEAN DEFAULT FALSE,
+        sort_order INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_register_def_code ON register_definitions (code)
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_register_def_category ON register_definitions (category)
+    `);
+
+    // Register recommendations - maps registers to firm types
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS register_recommendations (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        register_code VARCHAR(100) NOT NULL,
+        firm_type VARCHAR(100) NOT NULL,
+        level VARCHAR(50) NOT NULL,
+        rationale TEXT,
+        regulatory_basis TEXT,
+        created_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(register_code, firm_type)
+      )
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_register_rec_code ON register_recommendations (register_code)
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_register_rec_firm ON register_recommendations (firm_type)
+    `);
+
+    // Organization register subscriptions - tracks enabled registers per org
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS register_subscriptions (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        organization_id VARCHAR(100) NOT NULL,
+        register_code VARCHAR(100) NOT NULL,
+        enabled BOOLEAN DEFAULT TRUE,
+        enabled_at TIMESTAMP DEFAULT NOW(),
+        enabled_by VARCHAR(255),
+        configuration JSONB DEFAULT '{}',
+        UNIQUE(organization_id, register_code)
+      )
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_register_sub_org ON register_subscriptions (organization_id)
+    `);
+
+    // Organization settings - stores firm type and preferences
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS organization_settings (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        organization_id VARCHAR(100) UNIQUE NOT NULL,
+        firm_type VARCHAR(100),
+        additional_permissions TEXT[],
+        register_hub_preferences JSONB DEFAULT '{}',
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    // Add wizard_completed columns to organization_settings
+    await client.query(`
+      ALTER TABLE organization_settings ADD COLUMN IF NOT EXISTS wizard_completed BOOLEAN DEFAULT FALSE;
+      ALTER TABLE organization_settings ADD COLUMN IF NOT EXISTS wizard_completed_at TIMESTAMP;
+      ALTER TABLE organization_settings ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW();
+    `);
+
+    // Add setup_completed columns to register_subscriptions
+    await client.query(`
+      ALTER TABLE register_subscriptions ADD COLUMN IF NOT EXISTS setup_completed BOOLEAN DEFAULT FALSE;
+      ALTER TABLE register_subscriptions ADD COLUMN IF NOT EXISTS setup_completed_at TIMESTAMP;
+    `);
+
+    // Vulnerable Customers Log
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS vulnerable_customers_records (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        organization_id VARCHAR(100) NOT NULL DEFAULT 'default-org',
+        pack_id UUID REFERENCES authorization_packs(id) ON DELETE SET NULL,
+        customer_reference VARCHAR(255) NOT NULL,
+        customer_name VARCHAR(255),
+        vulnerability_type VARCHAR(100) NOT NULL,
+        vulnerability_details TEXT,
+        identified_date TIMESTAMP DEFAULT NOW(),
+        identified_by VARCHAR(255),
+        risk_level VARCHAR(50) DEFAULT 'medium',
+        support_measures TEXT,
+        review_frequency VARCHAR(50) DEFAULT 'quarterly',
+        next_review_date TIMESTAMP,
+        last_review_date TIMESTAMP,
+        status VARCHAR(50) DEFAULT 'active',
+        outcome_notes TEXT,
+        closed_date TIMESTAMP,
+        closed_by VARCHAR(255),
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW(),
+        created_by VARCHAR(255)
+      )
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_vulnerable_customers_org ON vulnerable_customers_records (organization_id)
+    `);
+
+    // Regulatory Breach Log
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS regulatory_breach_records (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        organization_id VARCHAR(100) NOT NULL DEFAULT 'default-org',
+        pack_id UUID REFERENCES authorization_packs(id) ON DELETE SET NULL,
+        breach_reference VARCHAR(255) NOT NULL,
+        breach_title VARCHAR(500) NOT NULL,
+        breach_type VARCHAR(100) NOT NULL,
+        regulatory_rule VARCHAR(255),
+        regulator VARCHAR(100),
+        identified_date TIMESTAMP DEFAULT NOW(),
+        identified_by VARCHAR(255),
+        breach_description TEXT NOT NULL,
+        root_cause TEXT,
+        impact_assessment TEXT,
+        customers_affected INTEGER DEFAULT 0,
+        financial_impact DECIMAL(15, 2),
+        severity VARCHAR(50) DEFAULT 'medium',
+        reported_to_regulator BOOLEAN DEFAULT FALSE,
+        report_date TIMESTAMP,
+        regulator_reference VARCHAR(255),
+        remediation_plan TEXT,
+        remediation_deadline TIMESTAMP,
+        remediation_status VARCHAR(50) DEFAULT 'pending',
+        lessons_learned TEXT,
+        status VARCHAR(50) DEFAULT 'open',
+        closed_date TIMESTAMP,
+        closed_by VARCHAR(255),
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW(),
+        created_by VARCHAR(255)
+      )
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_regulatory_breach_org ON regulatory_breach_records (organization_id)
+    `);
+
+    // Sanctions Screening Log
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS sanctions_screening_records (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        organization_id VARCHAR(100) NOT NULL DEFAULT 'default-org',
+        pack_id UUID REFERENCES authorization_packs(id) ON DELETE SET NULL,
+        screening_reference VARCHAR(255) NOT NULL,
+        entity_type VARCHAR(50) NOT NULL,
+        entity_name VARCHAR(500) NOT NULL,
+        entity_dob DATE,
+        entity_country VARCHAR(100),
+        screening_date TIMESTAMP DEFAULT NOW(),
+        screened_by VARCHAR(255),
+        screening_type VARCHAR(100) NOT NULL,
+        lists_checked TEXT[],
+        match_found BOOLEAN DEFAULT FALSE,
+        match_details TEXT,
+        match_score DECIMAL(5, 2),
+        false_positive BOOLEAN DEFAULT FALSE,
+        false_positive_reason TEXT,
+        escalated BOOLEAN DEFAULT FALSE,
+        escalated_to VARCHAR(255),
+        escalated_date TIMESTAMP,
+        decision VARCHAR(50) DEFAULT 'pending',
+        decision_by VARCHAR(255),
+        decision_date TIMESTAMP,
+        decision_rationale TEXT,
+        status VARCHAR(50) DEFAULT 'pending',
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW(),
+        created_by VARCHAR(255)
+      )
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_sanctions_screening_org ON sanctions_screening_records (organization_id)
+    `);
+
+    // Financial Promotions Tracker
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS fin_prom_records (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        organization_id VARCHAR(100) NOT NULL DEFAULT 'default-org',
+        pack_id UUID REFERENCES authorization_packs(id) ON DELETE SET NULL,
+        promotion_reference VARCHAR(255) NOT NULL,
+        promotion_title VARCHAR(500) NOT NULL,
+        promotion_type VARCHAR(100) NOT NULL,
+        channel VARCHAR(100) NOT NULL,
+        target_audience VARCHAR(255),
+        product_service VARCHAR(255),
+        content_summary TEXT,
+        created_date TIMESTAMP DEFAULT NOW(),
+        created_by VARCHAR(255),
+        approved_by VARCHAR(255),
+        approval_date TIMESTAMP,
+        approval_status VARCHAR(50) DEFAULT 'draft',
+        compliance_reviewer VARCHAR(255),
+        compliance_review_date TIMESTAMP,
+        compliance_notes TEXT,
+        version_number INTEGER DEFAULT 1,
+        live_date TIMESTAMP,
+        expiry_date TIMESTAMP,
+        withdrawn_date TIMESTAMP,
+        withdrawal_reason TEXT,
+        risk_rating VARCHAR(50) DEFAULT 'medium',
+        regulatory_requirements TEXT[],
+        status VARCHAR(50) DEFAULT 'draft',
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_fin_prom_org ON fin_prom_records (organization_id)
+    `);
+
+    // AML CDD Register
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS aml_cdd_records (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        organization_id VARCHAR(100) NOT NULL DEFAULT 'default-org',
+        pack_id UUID REFERENCES authorization_packs(id) ON DELETE SET NULL,
+        customer_reference VARCHAR(255) NOT NULL,
+        customer_name VARCHAR(500) NOT NULL,
+        customer_type VARCHAR(50) NOT NULL,
+        onboarding_date TIMESTAMP,
+        cdd_level VARCHAR(50) NOT NULL DEFAULT 'standard',
+        risk_rating VARCHAR(50) DEFAULT 'medium',
+        id_verification_status VARCHAR(50) DEFAULT 'pending',
+        id_verification_date TIMESTAMP,
+        id_verification_method VARCHAR(100),
+        poa_verification_status VARCHAR(50) DEFAULT 'pending',
+        poa_verification_date TIMESTAMP,
+        source_of_funds VARCHAR(255),
+        source_of_wealth VARCHAR(255),
+        beneficial_owners TEXT,
+        pep_check_status VARCHAR(50) DEFAULT 'pending',
+        pep_check_date TIMESTAMP,
+        sanctions_check_status VARCHAR(50) DEFAULT 'pending',
+        sanctions_check_date TIMESTAMP,
+        adverse_media_status VARCHAR(50) DEFAULT 'pending',
+        adverse_media_date TIMESTAMP,
+        next_review_date TIMESTAMP,
+        last_review_date TIMESTAMP,
+        reviewer VARCHAR(255),
+        overall_status VARCHAR(50) DEFAULT 'in_progress',
+        approval_status VARCHAR(50) DEFAULT 'pending',
+        approved_by VARCHAR(255),
+        approval_date TIMESTAMP,
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW(),
+        created_by VARCHAR(255)
+      )
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_aml_cdd_org ON aml_cdd_records (organization_id)
+    `);
+
+    // EDD Cases Register
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS edd_cases_records (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        organization_id VARCHAR(100) NOT NULL DEFAULT 'default-org',
+        pack_id UUID REFERENCES authorization_packs(id) ON DELETE SET NULL,
+        case_reference VARCHAR(255) NOT NULL,
+        customer_reference VARCHAR(255) NOT NULL,
+        customer_name VARCHAR(500) NOT NULL,
+        edd_trigger VARCHAR(100) NOT NULL,
+        trigger_description TEXT,
+        trigger_date TIMESTAMP DEFAULT NOW(),
+        risk_factors TEXT[],
+        enhanced_measures TEXT[],
+        source_of_wealth_verified BOOLEAN DEFAULT FALSE,
+        source_of_funds_verified BOOLEAN DEFAULT FALSE,
+        ongoing_monitoring_level VARCHAR(50) DEFAULT 'enhanced',
+        senior_management_approval BOOLEAN DEFAULT FALSE,
+        approved_by VARCHAR(255),
+        approval_date TIMESTAMP,
+        approval_rationale TEXT,
+        next_review_date TIMESTAMP,
+        last_review_date TIMESTAMP,
+        review_frequency VARCHAR(50) DEFAULT 'quarterly',
+        status VARCHAR(50) DEFAULT 'open',
+        decision VARCHAR(50) DEFAULT 'pending',
+        decision_rationale TEXT,
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW(),
+        created_by VARCHAR(255)
+      )
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_edd_cases_org ON edd_cases_records (organization_id)
+    `);
+
+    // SAR-NCA Reports Register
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS sar_nca_records (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        organization_id VARCHAR(100) NOT NULL DEFAULT 'default-org',
+        pack_id UUID REFERENCES authorization_packs(id) ON DELETE SET NULL,
+        sar_reference VARCHAR(255) NOT NULL,
+        internal_reference VARCHAR(255),
+        subject_name VARCHAR(500) NOT NULL,
+        subject_type VARCHAR(50) NOT NULL,
+        suspicion_type VARCHAR(100) NOT NULL,
+        suspicion_description TEXT,
+        discovery_date TIMESTAMP,
+        reporter VARCHAR(255),
+        mlro_review_date TIMESTAMP,
+        mlro_decision VARCHAR(50) DEFAULT 'pending',
+        mlro_rationale TEXT,
+        submitted_to_nca BOOLEAN DEFAULT FALSE,
+        nca_submission_date TIMESTAMP,
+        nca_reference VARCHAR(255),
+        consent_required BOOLEAN DEFAULT FALSE,
+        consent_requested_date TIMESTAMP,
+        consent_received BOOLEAN DEFAULT FALSE,
+        consent_received_date TIMESTAMP,
+        consent_expiry_date TIMESTAMP,
+        daml_requested BOOLEAN DEFAULT FALSE,
+        daml_reference VARCHAR(255),
+        status VARCHAR(50) DEFAULT 'draft',
+        outcome VARCHAR(100),
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW(),
+        created_by VARCHAR(255)
+      )
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_sar_nca_org ON sar_nca_records (organization_id)
+    `);
+
+    // TX Monitoring Alerts Register
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS tx_monitoring_records (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        organization_id VARCHAR(100) NOT NULL DEFAULT 'default-org',
+        pack_id UUID REFERENCES authorization_packs(id) ON DELETE SET NULL,
+        alert_reference VARCHAR(255) NOT NULL,
+        alert_date TIMESTAMP DEFAULT NOW(),
+        rule_name VARCHAR(255),
+        rule_id VARCHAR(100),
+        customer_reference VARCHAR(255),
+        customer_name VARCHAR(500),
+        alert_type VARCHAR(100) NOT NULL,
+        alert_severity VARCHAR(50) DEFAULT 'medium',
+        transaction_ids TEXT[],
+        transaction_amount DECIMAL(15, 2),
+        transaction_currency VARCHAR(10),
+        alert_description TEXT,
+        assigned_to VARCHAR(255),
+        assigned_date TIMESTAMP,
+        investigation_notes TEXT,
+        investigation_outcome VARCHAR(100),
+        escalated BOOLEAN DEFAULT FALSE,
+        escalated_to VARCHAR(255),
+        escalated_date TIMESTAMP,
+        sar_raised BOOLEAN DEFAULT FALSE,
+        sar_reference VARCHAR(255),
+        status VARCHAR(50) DEFAULT 'open',
+        closed_date TIMESTAMP,
+        closed_by VARCHAR(255),
+        false_positive BOOLEAN DEFAULT FALSE,
+        false_positive_reason TEXT,
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW(),
+        created_by VARCHAR(255)
+      )
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_tx_monitoring_org ON tx_monitoring_records (organization_id)
+    `);
+
+    // PA Dealing Log Register
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS pa_dealing_records (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        organization_id VARCHAR(100) NOT NULL DEFAULT 'default-org',
+        pack_id UUID REFERENCES authorization_packs(id) ON DELETE SET NULL,
+        request_reference VARCHAR(255) NOT NULL,
+        employee_name VARCHAR(255) NOT NULL,
+        employee_id VARCHAR(100),
+        request_type VARCHAR(50) NOT NULL,
+        instrument_type VARCHAR(100),
+        instrument_name VARCHAR(255),
+        isin VARCHAR(50),
+        quantity INTEGER,
+        estimated_value DECIMAL(15, 2),
+        currency VARCHAR(10) DEFAULT 'GBP',
+        broker_account VARCHAR(255),
+        reason_for_trade TEXT,
+        request_date TIMESTAMP DEFAULT NOW(),
+        pre_clearance_status VARCHAR(50) DEFAULT 'pending',
+        approved_by VARCHAR(255),
+        approval_date TIMESTAMP,
+        approval_conditions TEXT,
+        execution_date TIMESTAMP,
+        execution_price DECIMAL(15, 2),
+        holding_period_end TIMESTAMP,
+        restricted_list_check BOOLEAN DEFAULT FALSE,
+        conflict_check BOOLEAN DEFAULT FALSE,
+        status VARCHAR(50) DEFAULT 'pending',
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW(),
+        created_by VARCHAR(255)
+      )
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_pa_dealing_org ON pa_dealing_records (organization_id)
+    `);
+
+    // Insider List Register
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS insider_list_records (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        organization_id VARCHAR(100) NOT NULL DEFAULT 'default-org',
+        pack_id UUID REFERENCES authorization_packs(id) ON DELETE SET NULL,
+        list_reference VARCHAR(255) NOT NULL,
+        project_name VARCHAR(255) NOT NULL,
+        project_code VARCHAR(100),
+        issuer_name VARCHAR(255),
+        nature_of_information TEXT,
+        insider_name VARCHAR(255) NOT NULL,
+        insider_role VARCHAR(255),
+        insider_company VARCHAR(255),
+        insider_email VARCHAR(255),
+        insider_phone VARCHAR(100),
+        insider_national_id VARCHAR(100),
+        date_added TIMESTAMP DEFAULT NOW(),
+        time_obtained TIMESTAMP,
+        date_removed TIMESTAMP,
+        reason_for_removal TEXT,
+        acknowledgement_received BOOLEAN DEFAULT FALSE,
+        acknowledgement_date TIMESTAMP,
+        list_status VARCHAR(50) DEFAULT 'active',
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW(),
+        created_by VARCHAR(255)
+      )
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_insider_list_org ON insider_list_records (organization_id)
+    `);
+
+    // Outside Business Interests Register
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS outside_business_records (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        organization_id VARCHAR(100) NOT NULL DEFAULT 'default-org',
+        pack_id UUID REFERENCES authorization_packs(id) ON DELETE SET NULL,
+        declaration_reference VARCHAR(255) NOT NULL,
+        employee_name VARCHAR(255) NOT NULL,
+        employee_id VARCHAR(100),
+        employee_role VARCHAR(255),
+        interest_type VARCHAR(100) NOT NULL,
+        organization_name VARCHAR(255) NOT NULL,
+        organization_type VARCHAR(100),
+        role_held VARCHAR(255),
+        remuneration BOOLEAN DEFAULT FALSE,
+        remuneration_amount DECIMAL(15, 2),
+        time_commitment VARCHAR(100),
+        start_date TIMESTAMP,
+        end_date TIMESTAMP,
+        conflict_assessment TEXT,
+        conflict_identified BOOLEAN DEFAULT FALSE,
+        mitigation_measures TEXT,
+        approval_status VARCHAR(50) DEFAULT 'pending',
+        approved_by VARCHAR(255),
+        approval_date TIMESTAMP,
+        next_review_date TIMESTAMP,
+        status VARCHAR(50) DEFAULT 'active',
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW(),
+        created_by VARCHAR(255)
+      )
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_outside_business_org ON outside_business_records (organization_id)
+    `);
+
+    // Data Breach & DSAR Register
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS data_breach_dsar_records (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        organization_id VARCHAR(100) NOT NULL DEFAULT 'default-org',
+        pack_id UUID REFERENCES authorization_packs(id) ON DELETE SET NULL,
+        record_reference VARCHAR(255) NOT NULL,
+        record_type VARCHAR(50) NOT NULL,
+        discovery_date TIMESTAMP DEFAULT NOW(),
+        incident_date TIMESTAMP,
+        reported_by VARCHAR(255),
+        data_subjects_affected INTEGER,
+        data_categories TEXT[],
+        breach_description TEXT,
+        cause_of_breach VARCHAR(100),
+        containment_actions TEXT,
+        ico_notification_required BOOLEAN DEFAULT FALSE,
+        ico_notified BOOLEAN DEFAULT FALSE,
+        ico_notification_date TIMESTAMP,
+        ico_reference VARCHAR(255),
+        individuals_notified BOOLEAN DEFAULT FALSE,
+        notification_date TIMESTAMP,
+        dsar_requester_name VARCHAR(255),
+        dsar_requester_email VARCHAR(255),
+        dsar_request_date TIMESTAMP,
+        dsar_verification_status VARCHAR(50),
+        dsar_deadline TIMESTAMP,
+        dsar_response_date TIMESTAMP,
+        dsar_extension_applied BOOLEAN DEFAULT FALSE,
+        risk_assessment TEXT,
+        root_cause_analysis TEXT,
+        remediation_actions TEXT,
+        status VARCHAR(50) DEFAULT 'open',
+        closed_date TIMESTAMP,
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW(),
+        created_by VARCHAR(255)
+      )
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_data_breach_dsar_org ON data_breach_dsar_records (organization_id)
+    `);
+
+    // Operational Resilience Register
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS op_resilience_records (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        organization_id VARCHAR(100) NOT NULL DEFAULT 'default-org',
+        pack_id UUID REFERENCES authorization_packs(id) ON DELETE SET NULL,
+        service_reference VARCHAR(255) NOT NULL,
+        service_name VARCHAR(255) NOT NULL,
+        service_description TEXT,
+        service_owner VARCHAR(255),
+        is_important_business_service BOOLEAN DEFAULT FALSE,
+        impact_tolerance_defined BOOLEAN DEFAULT FALSE,
+        impact_tolerance_description TEXT,
+        max_tolerable_disruption VARCHAR(100),
+        dependencies TEXT[],
+        third_party_dependencies TEXT[],
+        last_scenario_test_date TIMESTAMP,
+        scenario_test_result VARCHAR(50),
+        scenario_test_findings TEXT,
+        vulnerabilities_identified TEXT,
+        remediation_plan TEXT,
+        remediation_deadline TIMESTAMP,
+        remediation_status VARCHAR(50) DEFAULT 'pending',
+        next_review_date TIMESTAMP,
+        status VARCHAR(50) DEFAULT 'active',
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW(),
+        created_by VARCHAR(255)
+      )
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_op_resilience_org ON op_resilience_records (organization_id)
+    `);
+
+    // T&C Record Register
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS tc_record_records (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        organization_id VARCHAR(100) NOT NULL DEFAULT 'default-org',
+        pack_id UUID REFERENCES authorization_packs(id) ON DELETE SET NULL,
+        employee_reference VARCHAR(255) NOT NULL,
+        employee_name VARCHAR(255) NOT NULL,
+        employee_role VARCHAR(255),
+        department VARCHAR(255),
+        start_date TIMESTAMP,
+        tc_scheme VARCHAR(100),
+        qualification_required VARCHAR(255),
+        qualification_status VARCHAR(50) DEFAULT 'in_progress',
+        qualification_date TIMESTAMP,
+        exam_attempts INTEGER DEFAULT 0,
+        competency_status VARCHAR(50) DEFAULT 'not_assessed',
+        competency_date TIMESTAMP,
+        supervisor_name VARCHAR(255),
+        supervision_level VARCHAR(50) DEFAULT 'standard',
+        supervision_end_date TIMESTAMP,
+        cpd_hours_required INTEGER DEFAULT 0,
+        cpd_hours_completed INTEGER DEFAULT 0,
+        cpd_deadline TIMESTAMP,
+        annual_attestation_date TIMESTAMP,
+        fit_proper_status VARCHAR(50) DEFAULT 'pending',
+        fit_proper_date TIMESTAMP,
+        status VARCHAR(50) DEFAULT 'active',
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW(),
+        created_by VARCHAR(255)
+      )
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_tc_record_org ON tc_record_records (organization_id)
+    `);
+
+    // SM&CR Certification Tracker Register
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS smcr_certification_records (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        organization_id VARCHAR(100) NOT NULL DEFAULT 'default-org',
+        pack_id UUID REFERENCES authorization_packs(id) ON DELETE SET NULL,
+        employee_reference VARCHAR(255) NOT NULL,
+        employee_name VARCHAR(255) NOT NULL,
+        certification_function VARCHAR(255) NOT NULL,
+        function_code VARCHAR(50),
+        department VARCHAR(255),
+        start_date TIMESTAMP,
+        annual_assessment_due TIMESTAMP,
+        last_assessment_date TIMESTAMP,
+        assessment_outcome VARCHAR(50),
+        fit_proper_confirmed BOOLEAN DEFAULT FALSE,
+        conduct_rules_training BOOLEAN DEFAULT FALSE,
+        conduct_rules_date TIMESTAMP,
+        regulatory_references_checked BOOLEAN DEFAULT FALSE,
+        criminal_records_checked BOOLEAN DEFAULT FALSE,
+        credit_checked BOOLEAN DEFAULT FALSE,
+        certification_status VARCHAR(50) DEFAULT 'pending',
+        certified_by VARCHAR(255),
+        certification_date TIMESTAMP,
+        certification_expiry TIMESTAMP,
+        conduct_breaches INTEGER DEFAULT 0,
+        last_breach_date TIMESTAMP,
+        status VARCHAR(50) DEFAULT 'active',
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW(),
+        created_by VARCHAR(255)
+      )
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_smcr_certification_org ON smcr_certification_records (organization_id)
+    `);
+
+    // Regulatory Returns Calendar Register
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS regulatory_returns_records (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        organization_id VARCHAR(100) NOT NULL DEFAULT 'default-org',
+        pack_id UUID REFERENCES authorization_packs(id) ON DELETE SET NULL,
+        return_reference VARCHAR(255) NOT NULL,
+        return_name VARCHAR(255) NOT NULL,
+        regulator VARCHAR(100) NOT NULL,
+        return_type VARCHAR(100),
+        frequency VARCHAR(50),
+        reporting_period_start TIMESTAMP,
+        reporting_period_end TIMESTAMP,
+        due_date TIMESTAMP NOT NULL,
+        reminder_date TIMESTAMP,
+        owner VARCHAR(255),
+        preparer VARCHAR(255),
+        reviewer VARCHAR(255),
+        preparation_status VARCHAR(50) DEFAULT 'not_started',
+        review_status VARCHAR(50) DEFAULT 'pending',
+        submission_status VARCHAR(50) DEFAULT 'pending',
+        submitted_date TIMESTAMP,
+        submitted_by VARCHAR(255),
+        confirmation_reference VARCHAR(255),
+        late_submission BOOLEAN DEFAULT FALSE,
+        late_reason TEXT,
+        status VARCHAR(50) DEFAULT 'upcoming',
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW(),
+        created_by VARCHAR(255)
+      )
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_regulatory_returns_org ON regulatory_returns_records (organization_id)
+    `);
+
+    // Product Governance Register
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS product_governance_records (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        organization_id VARCHAR(100) NOT NULL DEFAULT 'default-org',
+        pack_id UUID REFERENCES authorization_packs(id) ON DELETE SET NULL,
+        product_reference VARCHAR(255) NOT NULL,
+        product_name VARCHAR(255) NOT NULL,
+        product_type VARCHAR(100),
+        manufacturer VARCHAR(255),
+        is_manufacturer BOOLEAN DEFAULT FALSE,
+        target_market TEXT,
+        negative_target_market TEXT,
+        distribution_strategy VARCHAR(100),
+        risk_profile VARCHAR(50) DEFAULT 'medium',
+        fair_value_assessment TEXT,
+        fair_value_confirmed BOOLEAN DEFAULT FALSE,
+        fair_value_date TIMESTAMP,
+        customer_outcomes TEXT,
+        product_testing_completed BOOLEAN DEFAULT FALSE,
+        testing_date TIMESTAMP,
+        testing_results TEXT,
+        approval_status VARCHAR(50) DEFAULT 'pending',
+        approved_by VARCHAR(255),
+        approval_date TIMESTAMP,
+        launch_date TIMESTAMP,
+        last_review_date TIMESTAMP,
+        next_review_date TIMESTAMP,
+        review_frequency VARCHAR(50) DEFAULT 'annual',
+        issues_identified TEXT,
+        remediation_actions TEXT,
+        status VARCHAR(50) DEFAULT 'draft',
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW(),
+        created_by VARCHAR(255)
+      )
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_product_governance_org ON product_governance_records (organization_id)
+    `);
+
     logger.info('Database tables initialized successfully');
   } catch (error) {
     logError(error, 'Failed to initialize database');
@@ -4163,4 +4930,2260 @@ export async function deleteGiftHospitalityRecord(id: string): Promise<boolean> 
   } finally {
     client.release();
   }
+}
+
+// ============================================
+// REGISTER HUB FUNCTIONS
+// ============================================
+
+export interface RegisterDefinitionRecord {
+  id: string;
+  code: string;
+  name: string;
+  description: string | null;
+  short_description: string | null;
+  category: string;
+  icon_key: string;
+  href: string | null;
+  regulatory_references: string[];
+  use_cases: string[];
+  related_training: string[];
+  related_policies: string[];
+  is_active: boolean;
+  is_implemented: boolean;
+  sort_order: number;
+  created_at: Date;
+}
+
+export interface RegisterRecommendationRecord {
+  id: string;
+  register_code: string;
+  firm_type: string;
+  level: string;
+  rationale: string | null;
+  regulatory_basis: string | null;
+  created_at: Date;
+}
+
+export interface RegisterSubscriptionRecord {
+  id: string;
+  organization_id: string;
+  register_code: string;
+  enabled: boolean;
+  enabled_at: Date;
+  enabled_by: string | null;
+  configuration: Record<string, unknown>;
+  setup_completed: boolean;
+  setup_completed_at: Date | null;
+}
+
+export interface OrganizationSettingsRecord {
+  id: string;
+  organization_id: string;
+  firm_type: string | null;
+  additional_permissions: string[] | null;
+  register_hub_preferences: Record<string, unknown>;
+  wizard_completed: boolean;
+  wizard_completed_at: Date | null;
+  created_at: Date;
+  updated_at: Date;
+}
+
+// Get all register definitions
+export async function getRegisterDefinitions(): Promise<RegisterDefinitionRecord[]> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `SELECT * FROM register_definitions WHERE is_active = true ORDER BY sort_order, name`
+    );
+    return result.rows;
+  } finally {
+    client.release();
+  }
+}
+
+// Get single register definition by code
+export async function getRegisterDefinition(code: string): Promise<RegisterDefinitionRecord | null> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `SELECT * FROM register_definitions WHERE code = $1`,
+      [code]
+    );
+    return result.rows[0] || null;
+  } finally {
+    client.release();
+  }
+}
+
+// Upsert register definition (for seeding)
+export async function upsertRegisterDefinition(data: Omit<RegisterDefinitionRecord, 'id' | 'created_at'>): Promise<RegisterDefinitionRecord> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `INSERT INTO register_definitions (
+        code, name, description, short_description, category, icon_key, href,
+        regulatory_references, use_cases, related_training, related_policies,
+        is_active, is_implemented, sort_order
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+      ON CONFLICT (code) DO UPDATE SET
+        name = EXCLUDED.name,
+        description = EXCLUDED.description,
+        short_description = EXCLUDED.short_description,
+        category = EXCLUDED.category,
+        icon_key = EXCLUDED.icon_key,
+        href = EXCLUDED.href,
+        regulatory_references = EXCLUDED.regulatory_references,
+        use_cases = EXCLUDED.use_cases,
+        related_training = EXCLUDED.related_training,
+        related_policies = EXCLUDED.related_policies,
+        is_active = EXCLUDED.is_active,
+        is_implemented = EXCLUDED.is_implemented,
+        sort_order = EXCLUDED.sort_order
+      RETURNING *`,
+      [
+        data.code, data.name, data.description, data.short_description,
+        data.category, data.icon_key, data.href,
+        JSON.stringify(data.regulatory_references), data.use_cases,
+        data.related_training, data.related_policies,
+        data.is_active, data.is_implemented, data.sort_order
+      ]
+    );
+    return result.rows[0];
+  } finally {
+    client.release();
+  }
+}
+
+// Get recommendations for a firm type
+export async function getRegisterRecommendations(firmType?: string): Promise<RegisterRecommendationRecord[]> {
+  const client = await pool.connect();
+  try {
+    if (firmType) {
+      const result = await client.query(
+        `SELECT * FROM register_recommendations WHERE firm_type = $1 OR firm_type = 'all' ORDER BY level`,
+        [firmType]
+      );
+      return result.rows;
+    }
+    const result = await client.query(
+      `SELECT * FROM register_recommendations ORDER BY firm_type, level`
+    );
+    return result.rows;
+  } finally {
+    client.release();
+  }
+}
+
+// Upsert register recommendation (for seeding)
+export async function upsertRegisterRecommendation(
+  data: Omit<RegisterRecommendationRecord, 'id' | 'created_at'>
+): Promise<RegisterRecommendationRecord> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `INSERT INTO register_recommendations (register_code, firm_type, level, rationale, regulatory_basis)
+       VALUES ($1, $2, $3, $4, $5)
+       ON CONFLICT (register_code, firm_type) DO UPDATE SET
+         level = EXCLUDED.level,
+         rationale = EXCLUDED.rationale,
+         regulatory_basis = EXCLUDED.regulatory_basis
+       RETURNING *`,
+      [data.register_code, data.firm_type, data.level, data.rationale, data.regulatory_basis || null]
+    );
+    return result.rows[0];
+  } finally {
+    client.release();
+  }
+}
+
+// Get organization's register subscriptions
+export async function getRegisterSubscriptions(organizationId: string): Promise<RegisterSubscriptionRecord[]> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `SELECT * FROM register_subscriptions WHERE organization_id = $1 ORDER BY enabled_at`,
+      [organizationId]
+    );
+    return result.rows;
+  } finally {
+    client.release();
+  }
+}
+
+// Enable/disable a register for an organization
+export async function setRegisterSubscription(
+  organizationId: string,
+  registerCode: string,
+  enabled: boolean,
+  enabledBy?: string
+): Promise<RegisterSubscriptionRecord> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `INSERT INTO register_subscriptions (organization_id, register_code, enabled, enabled_by, enabled_at)
+       VALUES ($1, $2, $3, $4, NOW())
+       ON CONFLICT (organization_id, register_code) DO UPDATE SET
+         enabled = EXCLUDED.enabled,
+         enabled_by = EXCLUDED.enabled_by,
+         enabled_at = NOW()
+       RETURNING *`,
+      [organizationId, registerCode, enabled, enabledBy || null]
+    );
+    return result.rows[0];
+  } finally {
+    client.release();
+  }
+}
+
+// Get organization settings
+export async function getOrganizationSettings(organizationId: string): Promise<OrganizationSettingsRecord | null> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `SELECT * FROM organization_settings WHERE organization_id = $1`,
+      [organizationId]
+    );
+    return result.rows[0] || null;
+  } finally {
+    client.release();
+  }
+}
+
+// Update organization settings (including firm type)
+export async function updateOrganizationSettings(
+  organizationId: string,
+  data: Partial<Omit<OrganizationSettingsRecord, 'id' | 'organization_id' | 'updated_at' | 'created_at'>>
+): Promise<OrganizationSettingsRecord> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `INSERT INTO organization_settings (organization_id, firm_type, additional_permissions, register_hub_preferences, wizard_completed, wizard_completed_at, updated_at, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+       ON CONFLICT (organization_id) DO UPDATE SET
+         firm_type = COALESCE(EXCLUDED.firm_type, organization_settings.firm_type),
+         additional_permissions = COALESCE(EXCLUDED.additional_permissions, organization_settings.additional_permissions),
+         register_hub_preferences = COALESCE(EXCLUDED.register_hub_preferences, organization_settings.register_hub_preferences),
+         wizard_completed = COALESCE(EXCLUDED.wizard_completed, organization_settings.wizard_completed),
+         wizard_completed_at = CASE WHEN EXCLUDED.wizard_completed = TRUE AND organization_settings.wizard_completed = FALSE
+                                    THEN NOW()
+                                    ELSE COALESCE(EXCLUDED.wizard_completed_at, organization_settings.wizard_completed_at) END,
+         updated_at = NOW()
+       RETURNING *`,
+      [
+        organizationId,
+        data.firm_type || null,
+        data.additional_permissions || null,
+        data.register_hub_preferences ? JSON.stringify(data.register_hub_preferences) : '{}',
+        data.wizard_completed ?? false,
+        data.wizard_completed_at || null
+      ]
+    );
+    return result.rows[0];
+  } finally {
+    client.release();
+  }
+}
+
+// Complete wizard setup - marks wizard as completed and enables selected registers
+export async function completeWizardSetup(
+  organizationId: string,
+  firmType: string,
+  selectedRegisterCodes: string[],
+  enabledBy?: string
+): Promise<{ settings: OrganizationSettingsRecord; subscriptions: RegisterSubscriptionRecord[] }> {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    // Update organization settings with wizard completion
+    const settingsResult = await client.query(
+      `INSERT INTO organization_settings (organization_id, firm_type, wizard_completed, wizard_completed_at, updated_at, created_at)
+       VALUES ($1, $2, TRUE, NOW(), NOW(), NOW())
+       ON CONFLICT (organization_id) DO UPDATE SET
+         firm_type = $2,
+         wizard_completed = TRUE,
+         wizard_completed_at = NOW(),
+         updated_at = NOW()
+       RETURNING *`,
+      [organizationId, firmType]
+    );
+
+    // Enable selected registers
+    const subscriptions: RegisterSubscriptionRecord[] = [];
+    for (const code of selectedRegisterCodes) {
+      const subResult = await client.query(
+        `INSERT INTO register_subscriptions (organization_id, register_code, enabled, enabled_at, enabled_by, setup_completed, setup_completed_at)
+         VALUES ($1, $2, TRUE, NOW(), $3, TRUE, NOW())
+         ON CONFLICT (organization_id, register_code) DO UPDATE SET
+           enabled = TRUE,
+           enabled_at = NOW(),
+           enabled_by = $3,
+           setup_completed = TRUE,
+           setup_completed_at = NOW()
+         RETURNING *`,
+        [organizationId, code, enabledBy || null]
+      );
+      subscriptions.push(subResult.rows[0]);
+    }
+
+    await client.query('COMMIT');
+
+    return {
+      settings: settingsResult.rows[0],
+      subscriptions
+    };
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+// Seed all register definitions from the definitions file
+export async function seedRegisterDefinitions(): Promise<void> {
+  const { REGISTER_DEFINITIONS } = await import('@/lib/register-hub/definitions');
+
+  for (const def of REGISTER_DEFINITIONS) {
+    await upsertRegisterDefinition({
+      code: def.code,
+      name: def.name,
+      description: def.description,
+      short_description: def.shortDescription,
+      category: def.category,
+      icon_key: def.iconKey,
+      href: def.href,
+      regulatory_references: def.regulatoryReferences,
+      use_cases: def.useCases,
+      related_training: def.relatedTraining,
+      related_policies: def.relatedPolicies,
+      is_active: def.isActive,
+      is_implemented: def.isImplemented,
+      sort_order: def.sortOrder,
+    });
+  }
+}
+
+// Seed all register recommendations
+export async function seedRegisterRecommendations(): Promise<void> {
+  const { REGISTER_RECOMMENDATIONS } = await import('@/lib/register-hub/recommendations');
+
+  for (const rec of REGISTER_RECOMMENDATIONS) {
+    await upsertRegisterRecommendation({
+      register_code: rec.registerCode,
+      firm_type: rec.firmType,
+      level: rec.level,
+      rationale: rec.rationale,
+      regulatory_basis: rec.regulatoryBasis || null,
+    });
+  }
+}
+
+// ============================================================================
+// VULNERABLE CUSTOMERS REGISTER
+// ============================================================================
+
+export interface VulnerableCustomerRecord {
+  id: string;
+  organization_id: string;
+  pack_id?: string;
+  customer_reference: string;
+  customer_name?: string;
+  vulnerability_type: string;
+  vulnerability_details?: string;
+  identified_date: Date;
+  identified_by?: string;
+  risk_level: string;
+  support_measures?: string;
+  review_frequency: string;
+  next_review_date?: Date;
+  last_review_date?: Date;
+  status: string;
+  outcome_notes?: string;
+  closed_date?: Date;
+  closed_by?: string;
+  notes?: string;
+  created_at: Date;
+  updated_at: Date;
+  created_by?: string;
+}
+
+export async function getVulnerableCustomerRecords(
+  organizationId: string = 'default-org',
+  packId?: string
+): Promise<VulnerableCustomerRecord[]> {
+  const client = await pool.connect();
+  try {
+    let query = 'SELECT * FROM vulnerable_customers_records WHERE organization_id = $1';
+    const params: (string | undefined)[] = [organizationId];
+
+    if (packId) {
+      query += ' AND pack_id = $2';
+      params.push(packId);
+    }
+
+    query += ' ORDER BY created_at DESC';
+    const result = await client.query(query, params);
+    return result.rows;
+  } finally {
+    client.release();
+  }
+}
+
+export async function getVulnerableCustomerRecord(id: string): Promise<VulnerableCustomerRecord | null> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`SELECT * FROM vulnerable_customers_records WHERE id = $1`, [id]);
+    return result.rows[0] || null;
+  } finally {
+    client.release();
+  }
+}
+
+export async function createVulnerableCustomerRecord(
+  data: Omit<VulnerableCustomerRecord, 'id' | 'created_at' | 'updated_at'>
+): Promise<VulnerableCustomerRecord> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `INSERT INTO vulnerable_customers_records (
+        organization_id, pack_id, customer_reference, customer_name, vulnerability_type,
+        vulnerability_details, identified_date, identified_by, risk_level, support_measures,
+        review_frequency, next_review_date, last_review_date, status, outcome_notes,
+        closed_date, closed_by, notes, created_by
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+      RETURNING *`,
+      [
+        data.organization_id || 'default-org',
+        data.pack_id,
+        data.customer_reference,
+        data.customer_name,
+        data.vulnerability_type,
+        data.vulnerability_details,
+        data.identified_date || new Date(),
+        data.identified_by,
+        data.risk_level || 'medium',
+        data.support_measures,
+        data.review_frequency || 'quarterly',
+        data.next_review_date,
+        data.last_review_date,
+        data.status || 'active',
+        data.outcome_notes,
+        data.closed_date,
+        data.closed_by,
+        data.notes,
+        data.created_by,
+      ]
+    );
+    return result.rows[0];
+  } finally {
+    client.release();
+  }
+}
+
+export async function updateVulnerableCustomerRecord(
+  id: string,
+  data: Partial<VulnerableCustomerRecord>
+): Promise<VulnerableCustomerRecord | null> {
+  const client = await pool.connect();
+  try {
+    const fields: string[] = [];
+    const values: unknown[] = [];
+    let paramIndex = 1;
+
+    const allowedFields = [
+      'customer_reference', 'customer_name', 'vulnerability_type', 'vulnerability_details',
+      'identified_date', 'identified_by', 'risk_level', 'support_measures', 'review_frequency',
+      'next_review_date', 'last_review_date', 'status', 'outcome_notes', 'closed_date',
+      'closed_by', 'notes'
+    ];
+
+    for (const field of allowedFields) {
+      if (field in data) {
+        fields.push(`${field} = $${paramIndex++}`);
+        values.push((data as Record<string, unknown>)[field]);
+      }
+    }
+
+    if (fields.length === 0) return null;
+
+    fields.push(`updated_at = NOW()`);
+    values.push(id);
+
+    const result = await client.query(
+      `UPDATE vulnerable_customers_records SET ${fields.join(', ')} WHERE id = $${paramIndex} RETURNING *`,
+      values
+    );
+    return result.rows[0] || null;
+  } finally {
+    client.release();
+  }
+}
+
+export async function deleteVulnerableCustomerRecord(id: string): Promise<boolean> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query('DELETE FROM vulnerable_customers_records WHERE id = $1', [id]);
+    return result.rowCount !== null && result.rowCount > 0;
+  } finally {
+    client.release();
+  }
+}
+
+// ============================================================================
+// REGULATORY BREACH REGISTER
+// ============================================================================
+
+export interface RegulatoryBreachRecord {
+  id: string;
+  organization_id: string;
+  pack_id?: string;
+  breach_reference: string;
+  breach_title: string;
+  breach_type: string;
+  regulatory_rule?: string;
+  regulator?: string;
+  identified_date: Date;
+  identified_by?: string;
+  breach_description: string;
+  root_cause?: string;
+  impact_assessment?: string;
+  customers_affected: number;
+  financial_impact?: number;
+  severity: string;
+  reported_to_regulator: boolean;
+  report_date?: Date;
+  regulator_reference?: string;
+  remediation_plan?: string;
+  remediation_deadline?: Date;
+  remediation_status: string;
+  lessons_learned?: string;
+  status: string;
+  closed_date?: Date;
+  closed_by?: string;
+  notes?: string;
+  created_at: Date;
+  updated_at: Date;
+  created_by?: string;
+}
+
+export async function getRegulatoryBreachRecords(
+  organizationId: string = 'default-org',
+  packId?: string
+): Promise<RegulatoryBreachRecord[]> {
+  const client = await pool.connect();
+  try {
+    let query = 'SELECT * FROM regulatory_breach_records WHERE organization_id = $1';
+    const params: (string | undefined)[] = [organizationId];
+
+    if (packId) {
+      query += ' AND pack_id = $2';
+      params.push(packId);
+    }
+
+    query += ' ORDER BY created_at DESC';
+    const result = await client.query(query, params);
+    return result.rows;
+  } finally {
+    client.release();
+  }
+}
+
+export async function getRegulatoryBreachRecord(id: string): Promise<RegulatoryBreachRecord | null> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`SELECT * FROM regulatory_breach_records WHERE id = $1`, [id]);
+    return result.rows[0] || null;
+  } finally {
+    client.release();
+  }
+}
+
+export async function createRegulatoryBreachRecord(
+  data: Omit<RegulatoryBreachRecord, 'id' | 'created_at' | 'updated_at'>
+): Promise<RegulatoryBreachRecord> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `INSERT INTO regulatory_breach_records (
+        organization_id, pack_id, breach_reference, breach_title, breach_type, regulatory_rule,
+        regulator, identified_date, identified_by, breach_description, root_cause, impact_assessment,
+        customers_affected, financial_impact, severity, reported_to_regulator, report_date,
+        regulator_reference, remediation_plan, remediation_deadline, remediation_status,
+        lessons_learned, status, closed_date, closed_by, notes, created_by
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27)
+      RETURNING *`,
+      [
+        data.organization_id || 'default-org',
+        data.pack_id,
+        data.breach_reference,
+        data.breach_title,
+        data.breach_type,
+        data.regulatory_rule,
+        data.regulator,
+        data.identified_date || new Date(),
+        data.identified_by,
+        data.breach_description,
+        data.root_cause,
+        data.impact_assessment,
+        data.customers_affected || 0,
+        data.financial_impact,
+        data.severity || 'medium',
+        data.reported_to_regulator || false,
+        data.report_date,
+        data.regulator_reference,
+        data.remediation_plan,
+        data.remediation_deadline,
+        data.remediation_status || 'pending',
+        data.lessons_learned,
+        data.status || 'open',
+        data.closed_date,
+        data.closed_by,
+        data.notes,
+        data.created_by,
+      ]
+    );
+    return result.rows[0];
+  } finally {
+    client.release();
+  }
+}
+
+export async function updateRegulatoryBreachRecord(
+  id: string,
+  data: Partial<RegulatoryBreachRecord>
+): Promise<RegulatoryBreachRecord | null> {
+  const client = await pool.connect();
+  try {
+    const fields: string[] = [];
+    const values: unknown[] = [];
+    let paramIndex = 1;
+
+    const allowedFields = [
+      'breach_reference', 'breach_title', 'breach_type', 'regulatory_rule', 'regulator',
+      'identified_date', 'identified_by', 'breach_description', 'root_cause', 'impact_assessment',
+      'customers_affected', 'financial_impact', 'severity', 'reported_to_regulator', 'report_date',
+      'regulator_reference', 'remediation_plan', 'remediation_deadline', 'remediation_status',
+      'lessons_learned', 'status', 'closed_date', 'closed_by', 'notes'
+    ];
+
+    for (const field of allowedFields) {
+      if (field in data) {
+        fields.push(`${field} = $${paramIndex++}`);
+        values.push((data as Record<string, unknown>)[field]);
+      }
+    }
+
+    if (fields.length === 0) return null;
+
+    fields.push(`updated_at = NOW()`);
+    values.push(id);
+
+    const result = await client.query(
+      `UPDATE regulatory_breach_records SET ${fields.join(', ')} WHERE id = $${paramIndex} RETURNING *`,
+      values
+    );
+    return result.rows[0] || null;
+  } finally {
+    client.release();
+  }
+}
+
+export async function deleteRegulatoryBreachRecord(id: string): Promise<boolean> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query('DELETE FROM regulatory_breach_records WHERE id = $1', [id]);
+    return result.rowCount !== null && result.rowCount > 0;
+  } finally {
+    client.release();
+  }
+}
+
+// ============================================================================
+// SANCTIONS SCREENING REGISTER
+// ============================================================================
+
+export interface SanctionsScreeningRecord {
+  id: string;
+  organization_id: string;
+  pack_id?: string;
+  screening_reference: string;
+  entity_type: string;
+  entity_name: string;
+  entity_dob?: Date;
+  entity_country?: string;
+  screening_date: Date;
+  screened_by?: string;
+  screening_type: string;
+  lists_checked?: string[];
+  match_found: boolean;
+  match_details?: string;
+  match_score?: number;
+  false_positive: boolean;
+  false_positive_reason?: string;
+  escalated: boolean;
+  escalated_to?: string;
+  escalated_date?: Date;
+  decision: string;
+  decision_by?: string;
+  decision_date?: Date;
+  decision_rationale?: string;
+  status: string;
+  notes?: string;
+  created_at: Date;
+  updated_at: Date;
+  created_by?: string;
+}
+
+export async function getSanctionsScreeningRecords(
+  organizationId: string = 'default-org',
+  packId?: string
+): Promise<SanctionsScreeningRecord[]> {
+  const client = await pool.connect();
+  try {
+    let query = 'SELECT * FROM sanctions_screening_records WHERE organization_id = $1';
+    const params: (string | undefined)[] = [organizationId];
+
+    if (packId) {
+      query += ' AND pack_id = $2';
+      params.push(packId);
+    }
+
+    query += ' ORDER BY created_at DESC';
+    const result = await client.query(query, params);
+    return result.rows;
+  } finally {
+    client.release();
+  }
+}
+
+export async function createSanctionsScreeningRecord(
+  data: Omit<SanctionsScreeningRecord, 'id' | 'created_at' | 'updated_at'>
+): Promise<SanctionsScreeningRecord> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `INSERT INTO sanctions_screening_records (
+        organization_id, pack_id, screening_reference, entity_type, entity_name, entity_dob,
+        entity_country, screening_date, screened_by, screening_type, lists_checked, match_found,
+        match_details, match_score, false_positive, false_positive_reason, escalated, escalated_to,
+        escalated_date, decision, decision_by, decision_date, decision_rationale, status, notes, created_by
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26)
+      RETURNING *`,
+      [
+        data.organization_id || 'default-org',
+        data.pack_id,
+        data.screening_reference,
+        data.entity_type,
+        data.entity_name,
+        data.entity_dob,
+        data.entity_country,
+        data.screening_date || new Date(),
+        data.screened_by,
+        data.screening_type,
+        data.lists_checked,
+        data.match_found || false,
+        data.match_details,
+        data.match_score,
+        data.false_positive || false,
+        data.false_positive_reason,
+        data.escalated || false,
+        data.escalated_to,
+        data.escalated_date,
+        data.decision || 'pending',
+        data.decision_by,
+        data.decision_date,
+        data.decision_rationale,
+        data.status || 'pending',
+        data.notes,
+        data.created_by,
+      ]
+    );
+    return result.rows[0];
+  } finally {
+    client.release();
+  }
+}
+
+export async function updateSanctionsScreeningRecord(
+  id: string,
+  data: Partial<SanctionsScreeningRecord>
+): Promise<SanctionsScreeningRecord | null> {
+  const client = await pool.connect();
+  try {
+    const fields: string[] = [];
+    const values: unknown[] = [];
+    let paramIndex = 1;
+
+    const allowedFields = [
+      'screening_reference', 'entity_type', 'entity_name', 'entity_dob', 'entity_country',
+      'screening_date', 'screened_by', 'screening_type', 'lists_checked', 'match_found',
+      'match_details', 'match_score', 'false_positive', 'false_positive_reason', 'escalated',
+      'escalated_to', 'escalated_date', 'decision', 'decision_by', 'decision_date',
+      'decision_rationale', 'status', 'notes'
+    ];
+
+    for (const field of allowedFields) {
+      if (field in data) {
+        fields.push(`${field} = $${paramIndex++}`);
+        values.push((data as Record<string, unknown>)[field]);
+      }
+    }
+
+    if (fields.length === 0) return null;
+
+    fields.push(`updated_at = NOW()`);
+    values.push(id);
+
+    const result = await client.query(
+      `UPDATE sanctions_screening_records SET ${fields.join(', ')} WHERE id = $${paramIndex} RETURNING *`,
+      values
+    );
+    return result.rows[0] || null;
+  } finally {
+    client.release();
+  }
+}
+
+export async function deleteSanctionsScreeningRecord(id: string): Promise<boolean> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query('DELETE FROM sanctions_screening_records WHERE id = $1', [id]);
+    return result.rowCount !== null && result.rowCount > 0;
+  } finally {
+    client.release();
+  }
+}
+
+// ============================================================================
+// FINANCIAL PROMOTIONS REGISTER
+// ============================================================================
+
+export interface FinPromRecord {
+  id: string;
+  organization_id: string;
+  pack_id?: string;
+  promotion_reference: string;
+  promotion_title: string;
+  promotion_type: string;
+  channel: string;
+  target_audience?: string;
+  product_service?: string;
+  content_summary?: string;
+  created_date: Date;
+  created_by?: string;
+  approved_by?: string;
+  approval_date?: Date;
+  approval_status: string;
+  compliance_reviewer?: string;
+  compliance_review_date?: Date;
+  compliance_notes?: string;
+  version_number: number;
+  live_date?: Date;
+  expiry_date?: Date;
+  withdrawn_date?: Date;
+  withdrawal_reason?: string;
+  risk_rating: string;
+  regulatory_requirements?: string[];
+  status: string;
+  notes?: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export async function getFinPromRecords(
+  organizationId: string = 'default-org',
+  packId?: string
+): Promise<FinPromRecord[]> {
+  const client = await pool.connect();
+  try {
+    let query = 'SELECT * FROM fin_prom_records WHERE organization_id = $1';
+    const params: (string | undefined)[] = [organizationId];
+
+    if (packId) {
+      query += ' AND pack_id = $2';
+      params.push(packId);
+    }
+
+    query += ' ORDER BY created_at DESC';
+    const result = await client.query(query, params);
+    return result.rows;
+  } finally {
+    client.release();
+  }
+}
+
+export async function getFinPromRecord(id: string): Promise<FinPromRecord | null> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`SELECT * FROM fin_prom_records WHERE id = $1`, [id]);
+    return result.rows[0] || null;
+  } finally {
+    client.release();
+  }
+}
+
+export async function createFinPromRecord(
+  data: Omit<FinPromRecord, 'id' | 'created_at' | 'updated_at'>
+): Promise<FinPromRecord> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `INSERT INTO fin_prom_records (
+        organization_id, pack_id, promotion_reference, promotion_title, promotion_type, channel,
+        target_audience, product_service, content_summary, created_date, created_by, approved_by,
+        approval_date, approval_status, compliance_reviewer, compliance_review_date, compliance_notes,
+        version_number, live_date, expiry_date, withdrawn_date, withdrawal_reason, risk_rating,
+        regulatory_requirements, status, notes
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26)
+      RETURNING *`,
+      [
+        data.organization_id || 'default-org',
+        data.pack_id,
+        data.promotion_reference,
+        data.promotion_title,
+        data.promotion_type,
+        data.channel,
+        data.target_audience,
+        data.product_service,
+        data.content_summary,
+        data.created_date || new Date(),
+        data.created_by,
+        data.approved_by,
+        data.approval_date,
+        data.approval_status || 'draft',
+        data.compliance_reviewer,
+        data.compliance_review_date,
+        data.compliance_notes,
+        data.version_number || 1,
+        data.live_date,
+        data.expiry_date,
+        data.withdrawn_date,
+        data.withdrawal_reason,
+        data.risk_rating || 'medium',
+        data.regulatory_requirements,
+        data.status || 'draft',
+        data.notes,
+      ]
+    );
+    return result.rows[0];
+  } finally {
+    client.release();
+  }
+}
+
+export async function updateFinPromRecord(
+  id: string,
+  data: Partial<FinPromRecord>
+): Promise<FinPromRecord | null> {
+  const client = await pool.connect();
+  try {
+    const fields: string[] = [];
+    const values: unknown[] = [];
+    let paramIndex = 1;
+
+    const allowedFields = [
+      'promotion_reference', 'promotion_title', 'promotion_type', 'channel', 'target_audience',
+      'product_service', 'content_summary', 'created_date', 'created_by', 'approved_by',
+      'approval_date', 'approval_status', 'compliance_reviewer', 'compliance_review_date',
+      'compliance_notes', 'version_number', 'live_date', 'expiry_date', 'withdrawn_date',
+      'withdrawal_reason', 'risk_rating', 'regulatory_requirements', 'status', 'notes'
+    ];
+
+    for (const field of allowedFields) {
+      if (field in data) {
+        fields.push(`${field} = $${paramIndex++}`);
+        values.push((data as Record<string, unknown>)[field]);
+      }
+    }
+
+    if (fields.length === 0) return null;
+
+    fields.push(`updated_at = NOW()`);
+    values.push(id);
+
+    const result = await client.query(
+      `UPDATE fin_prom_records SET ${fields.join(', ')} WHERE id = $${paramIndex} RETURNING *`,
+      values
+    );
+    return result.rows[0] || null;
+  } finally {
+    client.release();
+  }
+}
+
+export async function deleteFinPromRecord(id: string): Promise<boolean> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query('DELETE FROM fin_prom_records WHERE id = $1', [id]);
+    return result.rowCount !== null && result.rowCount > 0;
+  } finally {
+    client.release();
+  }
+}
+
+// ============================================================================
+// AML CDD REGISTER
+// ============================================================================
+
+export interface AmlCddRecord {
+  id: string;
+  organization_id: string;
+  pack_id?: string;
+  customer_reference: string;
+  customer_name: string;
+  customer_type: string;
+  onboarding_date?: Date;
+  cdd_level: string;
+  risk_rating: string;
+  id_verification_status: string;
+  id_verification_date?: Date;
+  id_verification_method?: string;
+  poa_verification_status: string;
+  poa_verification_date?: Date;
+  source_of_funds?: string;
+  source_of_wealth?: string;
+  beneficial_owners?: string;
+  pep_check_status: string;
+  pep_check_date?: Date;
+  sanctions_check_status: string;
+  sanctions_check_date?: Date;
+  adverse_media_status: string;
+  adverse_media_date?: Date;
+  next_review_date?: Date;
+  last_review_date?: Date;
+  reviewer?: string;
+  overall_status: string;
+  approval_status: string;
+  approved_by?: string;
+  approval_date?: Date;
+  notes?: string;
+  created_at: Date;
+  updated_at: Date;
+  created_by?: string;
+}
+
+export async function getAmlCddRecords(
+  organizationId: string = 'default-org',
+  packId?: string
+): Promise<AmlCddRecord[]> {
+  const client = await pool.connect();
+  try {
+    let query = 'SELECT * FROM aml_cdd_records WHERE organization_id = $1';
+    const params: (string | undefined)[] = [organizationId];
+
+    if (packId) {
+      query += ' AND pack_id = $2';
+      params.push(packId);
+    }
+
+    query += ' ORDER BY created_at DESC';
+    const result = await client.query(query, params);
+    return result.rows;
+  } finally {
+    client.release();
+  }
+}
+
+export async function createAmlCddRecord(
+  data: Omit<AmlCddRecord, 'id' | 'created_at' | 'updated_at'>
+): Promise<AmlCddRecord> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `INSERT INTO aml_cdd_records (
+        organization_id, pack_id, customer_reference, customer_name, customer_type,
+        onboarding_date, cdd_level, risk_rating, id_verification_status, id_verification_date,
+        id_verification_method, poa_verification_status, poa_verification_date, source_of_funds,
+        source_of_wealth, beneficial_owners, pep_check_status, pep_check_date, sanctions_check_status,
+        sanctions_check_date, adverse_media_status, adverse_media_date, next_review_date,
+        last_review_date, reviewer, overall_status, approval_status, approved_by, approval_date, notes, created_by
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31)
+      RETURNING *`,
+      [
+        data.organization_id || 'default-org',
+        data.pack_id,
+        data.customer_reference,
+        data.customer_name,
+        data.customer_type,
+        data.onboarding_date,
+        data.cdd_level || 'standard',
+        data.risk_rating || 'medium',
+        data.id_verification_status || 'pending',
+        data.id_verification_date,
+        data.id_verification_method,
+        data.poa_verification_status || 'pending',
+        data.poa_verification_date,
+        data.source_of_funds,
+        data.source_of_wealth,
+        data.beneficial_owners,
+        data.pep_check_status || 'pending',
+        data.pep_check_date,
+        data.sanctions_check_status || 'pending',
+        data.sanctions_check_date,
+        data.adverse_media_status || 'pending',
+        data.adverse_media_date,
+        data.next_review_date,
+        data.last_review_date,
+        data.reviewer,
+        data.overall_status || 'in_progress',
+        data.approval_status || 'pending',
+        data.approved_by,
+        data.approval_date,
+        data.notes,
+        data.created_by,
+      ]
+    );
+    return result.rows[0];
+  } finally {
+    client.release();
+  }
+}
+
+export async function updateAmlCddRecord(
+  id: string,
+  data: Partial<AmlCddRecord>
+): Promise<AmlCddRecord | null> {
+  const client = await pool.connect();
+  try {
+    const fields: string[] = [];
+    const values: unknown[] = [];
+    let paramIndex = 1;
+
+    const allowedFields = [
+      'customer_reference', 'customer_name', 'customer_type', 'onboarding_date', 'cdd_level',
+      'risk_rating', 'id_verification_status', 'id_verification_date', 'id_verification_method',
+      'poa_verification_status', 'poa_verification_date', 'source_of_funds', 'source_of_wealth',
+      'beneficial_owners', 'pep_check_status', 'pep_check_date', 'sanctions_check_status',
+      'sanctions_check_date', 'adverse_media_status', 'adverse_media_date', 'next_review_date',
+      'last_review_date', 'reviewer', 'overall_status', 'approval_status', 'approved_by',
+      'approval_date', 'notes'
+    ];
+
+    for (const field of allowedFields) {
+      if (field in data) {
+        fields.push(`${field} = $${paramIndex++}`);
+        values.push((data as Record<string, unknown>)[field]);
+      }
+    }
+
+    if (fields.length === 0) return null;
+
+    fields.push(`updated_at = NOW()`);
+    values.push(id);
+
+    const result = await client.query(
+      `UPDATE aml_cdd_records SET ${fields.join(', ')} WHERE id = $${paramIndex} RETURNING *`,
+      values
+    );
+    return result.rows[0] || null;
+  } finally {
+    client.release();
+  }
+}
+
+export async function deleteAmlCddRecord(id: string): Promise<boolean> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query('DELETE FROM aml_cdd_records WHERE id = $1', [id]);
+    return result.rowCount !== null && result.rowCount > 0;
+  } finally {
+    client.release();
+  }
+}
+
+// ============================================================================
+// EDD CASES REGISTER
+// ============================================================================
+
+export interface EddCaseRecord {
+  id: string;
+  organization_id: string;
+  pack_id?: string;
+  case_reference: string;
+  customer_reference: string;
+  customer_name: string;
+  edd_trigger: string;
+  trigger_description?: string;
+  trigger_date: Date;
+  risk_factors?: string[];
+  enhanced_measures?: string[];
+  source_of_wealth_verified: boolean;
+  source_of_funds_verified: boolean;
+  ongoing_monitoring_level: string;
+  senior_management_approval: boolean;
+  approved_by?: string;
+  approval_date?: Date;
+  approval_rationale?: string;
+  next_review_date?: Date;
+  last_review_date?: Date;
+  review_frequency: string;
+  status: string;
+  decision: string;
+  decision_rationale?: string;
+  notes?: string;
+  created_at: Date;
+  updated_at: Date;
+  created_by?: string;
+}
+
+export async function getEddCaseRecords(
+  organizationId: string = 'default-org',
+  packId?: string
+): Promise<EddCaseRecord[]> {
+  const client = await pool.connect();
+  try {
+    let query = 'SELECT * FROM edd_cases_records WHERE organization_id = $1';
+    const params: (string | undefined)[] = [organizationId];
+
+    if (packId) {
+      query += ' AND pack_id = $2';
+      params.push(packId);
+    }
+
+    query += ' ORDER BY created_at DESC';
+    const result = await client.query(query, params);
+    return result.rows;
+  } finally {
+    client.release();
+  }
+}
+
+export async function createEddCaseRecord(
+  data: Omit<EddCaseRecord, 'id' | 'created_at' | 'updated_at'>
+): Promise<EddCaseRecord> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `INSERT INTO edd_cases_records (
+        organization_id, pack_id, case_reference, customer_reference, customer_name,
+        edd_trigger, trigger_description, trigger_date, risk_factors, enhanced_measures,
+        source_of_wealth_verified, source_of_funds_verified, ongoing_monitoring_level,
+        senior_management_approval, approved_by, approval_date, approval_rationale,
+        next_review_date, last_review_date, review_frequency, status, decision, decision_rationale, notes, created_by
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)
+      RETURNING *`,
+      [
+        data.organization_id || 'default-org',
+        data.pack_id,
+        data.case_reference,
+        data.customer_reference,
+        data.customer_name,
+        data.edd_trigger,
+        data.trigger_description,
+        data.trigger_date || new Date(),
+        data.risk_factors,
+        data.enhanced_measures,
+        data.source_of_wealth_verified || false,
+        data.source_of_funds_verified || false,
+        data.ongoing_monitoring_level || 'enhanced',
+        data.senior_management_approval || false,
+        data.approved_by,
+        data.approval_date,
+        data.approval_rationale,
+        data.next_review_date,
+        data.last_review_date,
+        data.review_frequency || 'quarterly',
+        data.status || 'open',
+        data.decision || 'pending',
+        data.decision_rationale,
+        data.notes,
+        data.created_by,
+      ]
+    );
+    return result.rows[0];
+  } finally {
+    client.release();
+  }
+}
+
+export async function updateEddCaseRecord(
+  id: string,
+  data: Partial<EddCaseRecord>
+): Promise<EddCaseRecord | null> {
+  const client = await pool.connect();
+  try {
+    const fields: string[] = [];
+    const values: unknown[] = [];
+    let paramIndex = 1;
+
+    const allowedFields = [
+      'case_reference', 'customer_reference', 'customer_name', 'edd_trigger', 'trigger_description',
+      'trigger_date', 'risk_factors', 'enhanced_measures', 'source_of_wealth_verified',
+      'source_of_funds_verified', 'ongoing_monitoring_level', 'senior_management_approval',
+      'approved_by', 'approval_date', 'approval_rationale', 'next_review_date', 'last_review_date',
+      'review_frequency', 'status', 'decision', 'decision_rationale', 'notes'
+    ];
+
+    for (const field of allowedFields) {
+      if (field in data) {
+        fields.push(`${field} = $${paramIndex++}`);
+        values.push((data as Record<string, unknown>)[field]);
+      }
+    }
+
+    if (fields.length === 0) return null;
+
+    fields.push(`updated_at = NOW()`);
+    values.push(id);
+
+    const result = await client.query(
+      `UPDATE edd_cases_records SET ${fields.join(', ')} WHERE id = $${paramIndex} RETURNING *`,
+      values
+    );
+    return result.rows[0] || null;
+  } finally {
+    client.release();
+  }
+}
+
+export async function deleteEddCaseRecord(id: string): Promise<boolean> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query('DELETE FROM edd_cases_records WHERE id = $1', [id]);
+    return result.rowCount !== null && result.rowCount > 0;
+  } finally {
+    client.release();
+  }
+}
+
+// ============================================================================
+// SAR-NCA REPORTS REGISTER
+// ============================================================================
+
+export interface SarNcaRecord {
+  id: string;
+  organization_id: string;
+  pack_id?: string;
+  sar_reference: string;
+  internal_reference?: string;
+  subject_name: string;
+  subject_type: string;
+  suspicion_type: string;
+  suspicion_description?: string;
+  discovery_date?: Date;
+  reporter?: string;
+  mlro_review_date?: Date;
+  mlro_decision: string;
+  mlro_rationale?: string;
+  submitted_to_nca: boolean;
+  nca_submission_date?: Date;
+  nca_reference?: string;
+  consent_required: boolean;
+  consent_requested_date?: Date;
+  consent_received: boolean;
+  consent_received_date?: Date;
+  consent_expiry_date?: Date;
+  daml_requested: boolean;
+  daml_reference?: string;
+  status: string;
+  outcome?: string;
+  notes?: string;
+  created_at: Date;
+  updated_at: Date;
+  created_by?: string;
+}
+
+export async function getSarNcaRecords(organizationId: string = 'default-org', packId?: string): Promise<SarNcaRecord[]> {
+  const client = await pool.connect();
+  try {
+    let query = 'SELECT * FROM sar_nca_records WHERE organization_id = $1';
+    const params: (string | undefined)[] = [organizationId];
+    if (packId) { query += ' AND pack_id = $2'; params.push(packId); }
+    query += ' ORDER BY created_at DESC';
+    const result = await client.query(query, params);
+    return result.rows;
+  } finally { client.release(); }
+}
+
+export async function createSarNcaRecord(data: Omit<SarNcaRecord, 'id' | 'created_at' | 'updated_at'>): Promise<SarNcaRecord> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `INSERT INTO sar_nca_records (organization_id, pack_id, sar_reference, internal_reference, subject_name, subject_type, suspicion_type, suspicion_description, discovery_date, reporter, mlro_review_date, mlro_decision, mlro_rationale, submitted_to_nca, nca_submission_date, nca_reference, consent_required, consent_requested_date, consent_received, consent_received_date, consent_expiry_date, daml_requested, daml_reference, status, outcome, notes, created_by)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27) RETURNING *`,
+      [data.organization_id || 'default-org', data.pack_id, data.sar_reference, data.internal_reference, data.subject_name, data.subject_type, data.suspicion_type, data.suspicion_description, data.discovery_date, data.reporter, data.mlro_review_date, data.mlro_decision || 'pending', data.mlro_rationale, data.submitted_to_nca || false, data.nca_submission_date, data.nca_reference, data.consent_required || false, data.consent_requested_date, data.consent_received || false, data.consent_received_date, data.consent_expiry_date, data.daml_requested || false, data.daml_reference, data.status || 'draft', data.outcome, data.notes, data.created_by]
+    );
+    return result.rows[0];
+  } finally { client.release(); }
+}
+
+export async function updateSarNcaRecord(id: string, data: Partial<SarNcaRecord>): Promise<SarNcaRecord | null> {
+  const client = await pool.connect();
+  try {
+    const fields: string[] = []; const values: unknown[] = []; let paramIndex = 1;
+    const allowedFields = ['sar_reference', 'internal_reference', 'subject_name', 'subject_type', 'suspicion_type', 'suspicion_description', 'discovery_date', 'reporter', 'mlro_review_date', 'mlro_decision', 'mlro_rationale', 'submitted_to_nca', 'nca_submission_date', 'nca_reference', 'consent_required', 'consent_requested_date', 'consent_received', 'consent_received_date', 'consent_expiry_date', 'daml_requested', 'daml_reference', 'status', 'outcome', 'notes'];
+    for (const field of allowedFields) { if (field in data) { fields.push(`${field} = $${paramIndex++}`); values.push((data as Record<string, unknown>)[field]); } }
+    if (fields.length === 0) return null;
+    fields.push(`updated_at = NOW()`); values.push(id);
+    const result = await client.query(`UPDATE sar_nca_records SET ${fields.join(', ')} WHERE id = $${paramIndex} RETURNING *`, values);
+    return result.rows[0] || null;
+  } finally { client.release(); }
+}
+
+export async function deleteSarNcaRecord(id: string): Promise<boolean> {
+  const client = await pool.connect();
+  try { const result = await client.query('DELETE FROM sar_nca_records WHERE id = $1', [id]); return result.rowCount !== null && result.rowCount > 0; }
+  finally { client.release(); }
+}
+
+// ============================================================================
+// TX MONITORING ALERTS REGISTER
+// ============================================================================
+
+export interface TxMonitoringRecord {
+  id: string;
+  organization_id: string;
+  pack_id?: string;
+  alert_reference: string;
+  alert_date: Date;
+  rule_name?: string;
+  rule_id?: string;
+  customer_reference?: string;
+  customer_name?: string;
+  alert_type: string;
+  alert_severity: string;
+  transaction_ids?: string[];
+  transaction_amount?: number;
+  transaction_currency?: string;
+  alert_description?: string;
+  assigned_to?: string;
+  assigned_date?: Date;
+  investigation_notes?: string;
+  investigation_outcome?: string;
+  escalated: boolean;
+  escalated_to?: string;
+  escalated_date?: Date;
+  sar_raised: boolean;
+  sar_reference?: string;
+  status: string;
+  closed_date?: Date;
+  closed_by?: string;
+  false_positive: boolean;
+  false_positive_reason?: string;
+  notes?: string;
+  created_at: Date;
+  updated_at: Date;
+  created_by?: string;
+}
+
+export async function getTxMonitoringRecords(organizationId: string = 'default-org', packId?: string): Promise<TxMonitoringRecord[]> {
+  const client = await pool.connect();
+  try {
+    let query = 'SELECT * FROM tx_monitoring_records WHERE organization_id = $1';
+    const params: (string | undefined)[] = [organizationId];
+    if (packId) { query += ' AND pack_id = $2'; params.push(packId); }
+    query += ' ORDER BY created_at DESC';
+    const result = await client.query(query, params);
+    return result.rows;
+  } finally { client.release(); }
+}
+
+export async function createTxMonitoringRecord(data: Omit<TxMonitoringRecord, 'id' | 'created_at' | 'updated_at'>): Promise<TxMonitoringRecord> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `INSERT INTO tx_monitoring_records (organization_id, pack_id, alert_reference, alert_date, rule_name, rule_id, customer_reference, customer_name, alert_type, alert_severity, transaction_ids, transaction_amount, transaction_currency, alert_description, assigned_to, assigned_date, investigation_notes, investigation_outcome, escalated, escalated_to, escalated_date, sar_raised, sar_reference, status, closed_date, closed_by, false_positive, false_positive_reason, notes, created_by)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30) RETURNING *`,
+      [data.organization_id || 'default-org', data.pack_id, data.alert_reference, data.alert_date || new Date(), data.rule_name, data.rule_id, data.customer_reference, data.customer_name, data.alert_type, data.alert_severity || 'medium', data.transaction_ids, data.transaction_amount, data.transaction_currency, data.alert_description, data.assigned_to, data.assigned_date, data.investigation_notes, data.investigation_outcome, data.escalated || false, data.escalated_to, data.escalated_date, data.sar_raised || false, data.sar_reference, data.status || 'open', data.closed_date, data.closed_by, data.false_positive || false, data.false_positive_reason, data.notes, data.created_by]
+    );
+    return result.rows[0];
+  } finally { client.release(); }
+}
+
+export async function updateTxMonitoringRecord(id: string, data: Partial<TxMonitoringRecord>): Promise<TxMonitoringRecord | null> {
+  const client = await pool.connect();
+  try {
+    const fields: string[] = []; const values: unknown[] = []; let paramIndex = 1;
+    const allowedFields = ['alert_reference', 'alert_date', 'rule_name', 'rule_id', 'customer_reference', 'customer_name', 'alert_type', 'alert_severity', 'transaction_ids', 'transaction_amount', 'transaction_currency', 'alert_description', 'assigned_to', 'assigned_date', 'investigation_notes', 'investigation_outcome', 'escalated', 'escalated_to', 'escalated_date', 'sar_raised', 'sar_reference', 'status', 'closed_date', 'closed_by', 'false_positive', 'false_positive_reason', 'notes'];
+    for (const field of allowedFields) { if (field in data) { fields.push(`${field} = $${paramIndex++}`); values.push((data as Record<string, unknown>)[field]); } }
+    if (fields.length === 0) return null;
+    fields.push(`updated_at = NOW()`); values.push(id);
+    const result = await client.query(`UPDATE tx_monitoring_records SET ${fields.join(', ')} WHERE id = $${paramIndex} RETURNING *`, values);
+    return result.rows[0] || null;
+  } finally { client.release(); }
+}
+
+export async function deleteTxMonitoringRecord(id: string): Promise<boolean> {
+  const client = await pool.connect();
+  try { const result = await client.query('DELETE FROM tx_monitoring_records WHERE id = $1', [id]); return result.rowCount !== null && result.rowCount > 0; }
+  finally { client.release(); }
+}
+
+// ============================================================================
+// PA DEALING LOG REGISTER
+// ============================================================================
+
+export interface PaDealingRecord {
+  id: string;
+  organization_id: string;
+  pack_id?: string;
+  request_reference: string;
+  employee_name: string;
+  employee_id?: string;
+  request_type: string;
+  instrument_type?: string;
+  instrument_name?: string;
+  isin?: string;
+  quantity?: number;
+  estimated_value?: number;
+  currency?: string;
+  broker_account?: string;
+  reason_for_trade?: string;
+  request_date: Date;
+  pre_clearance_status: string;
+  approved_by?: string;
+  approval_date?: Date;
+  approval_conditions?: string;
+  execution_date?: Date;
+  execution_price?: number;
+  holding_period_end?: Date;
+  restricted_list_check: boolean;
+  conflict_check: boolean;
+  status: string;
+  notes?: string;
+  created_at: Date;
+  updated_at: Date;
+  created_by?: string;
+}
+
+export async function getPaDealingRecords(organizationId: string = 'default-org', packId?: string): Promise<PaDealingRecord[]> {
+  const client = await pool.connect();
+  try {
+    let query = 'SELECT * FROM pa_dealing_records WHERE organization_id = $1';
+    const params: (string | undefined)[] = [organizationId];
+    if (packId) { query += ' AND pack_id = $2'; params.push(packId); }
+    query += ' ORDER BY created_at DESC';
+    const result = await client.query(query, params);
+    return result.rows;
+  } finally { client.release(); }
+}
+
+export async function createPaDealingRecord(data: Omit<PaDealingRecord, 'id' | 'created_at' | 'updated_at'>): Promise<PaDealingRecord> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `INSERT INTO pa_dealing_records (organization_id, pack_id, request_reference, employee_name, employee_id, request_type, instrument_type, instrument_name, isin, quantity, estimated_value, currency, broker_account, reason_for_trade, request_date, pre_clearance_status, approved_by, approval_date, approval_conditions, execution_date, execution_price, holding_period_end, restricted_list_check, conflict_check, status, notes, created_by)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27) RETURNING *`,
+      [data.organization_id || 'default-org', data.pack_id, data.request_reference, data.employee_name, data.employee_id, data.request_type, data.instrument_type, data.instrument_name, data.isin, data.quantity, data.estimated_value, data.currency || 'GBP', data.broker_account, data.reason_for_trade, data.request_date || new Date(), data.pre_clearance_status || 'pending', data.approved_by, data.approval_date, data.approval_conditions, data.execution_date, data.execution_price, data.holding_period_end, data.restricted_list_check || false, data.conflict_check || false, data.status || 'pending', data.notes, data.created_by]
+    );
+    return result.rows[0];
+  } finally { client.release(); }
+}
+
+export async function updatePaDealingRecord(id: string, data: Partial<PaDealingRecord>): Promise<PaDealingRecord | null> {
+  const client = await pool.connect();
+  try {
+    const fields: string[] = []; const values: unknown[] = []; let paramIndex = 1;
+    const allowedFields = ['request_reference', 'employee_name', 'employee_id', 'request_type', 'instrument_type', 'instrument_name', 'isin', 'quantity', 'estimated_value', 'currency', 'broker_account', 'reason_for_trade', 'request_date', 'pre_clearance_status', 'approved_by', 'approval_date', 'approval_conditions', 'execution_date', 'execution_price', 'holding_period_end', 'restricted_list_check', 'conflict_check', 'status', 'notes'];
+    for (const field of allowedFields) { if (field in data) { fields.push(`${field} = $${paramIndex++}`); values.push((data as Record<string, unknown>)[field]); } }
+    if (fields.length === 0) return null;
+    fields.push(`updated_at = NOW()`); values.push(id);
+    const result = await client.query(`UPDATE pa_dealing_records SET ${fields.join(', ')} WHERE id = $${paramIndex} RETURNING *`, values);
+    return result.rows[0] || null;
+  } finally { client.release(); }
+}
+
+export async function deletePaDealingRecord(id: string): Promise<boolean> {
+  const client = await pool.connect();
+  try { const result = await client.query('DELETE FROM pa_dealing_records WHERE id = $1', [id]); return result.rowCount !== null && result.rowCount > 0; }
+  finally { client.release(); }
+}
+
+// ============================================================================
+// INSIDER LIST REGISTER
+// ============================================================================
+
+export interface InsiderListRecord {
+  id: string;
+  organization_id: string;
+  pack_id?: string;
+  list_reference: string;
+  project_name: string;
+  project_code?: string;
+  issuer_name?: string;
+  nature_of_information?: string;
+  insider_name: string;
+  insider_role?: string;
+  insider_company?: string;
+  insider_email?: string;
+  insider_phone?: string;
+  insider_national_id?: string;
+  date_added: Date;
+  time_obtained?: Date;
+  date_removed?: Date;
+  reason_for_removal?: string;
+  acknowledgement_received: boolean;
+  acknowledgement_date?: Date;
+  list_status: string;
+  notes?: string;
+  created_at: Date;
+  updated_at: Date;
+  created_by?: string;
+}
+
+export async function getInsiderListRecords(organizationId: string = 'default-org', packId?: string): Promise<InsiderListRecord[]> {
+  const client = await pool.connect();
+  try {
+    let query = 'SELECT * FROM insider_list_records WHERE organization_id = $1';
+    const params: (string | undefined)[] = [organizationId];
+    if (packId) { query += ' AND pack_id = $2'; params.push(packId); }
+    query += ' ORDER BY created_at DESC';
+    const result = await client.query(query, params);
+    return result.rows;
+  } finally { client.release(); }
+}
+
+export async function getInsiderListRecord(id: string): Promise<InsiderListRecord | null> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`SELECT * FROM insider_list_records WHERE id = $1`, [id]);
+    return result.rows[0] || null;
+  } finally { client.release(); }
+}
+
+export async function createInsiderListRecord(data: Omit<InsiderListRecord, 'id' | 'created_at' | 'updated_at'>): Promise<InsiderListRecord> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `INSERT INTO insider_list_records (organization_id, pack_id, list_reference, project_name, project_code, issuer_name, nature_of_information, insider_name, insider_role, insider_company, insider_email, insider_phone, insider_national_id, date_added, time_obtained, date_removed, reason_for_removal, acknowledgement_received, acknowledgement_date, list_status, notes, created_by)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22) RETURNING *`,
+      [data.organization_id || 'default-org', data.pack_id, data.list_reference, data.project_name, data.project_code, data.issuer_name, data.nature_of_information, data.insider_name, data.insider_role, data.insider_company, data.insider_email, data.insider_phone, data.insider_national_id, data.date_added || new Date(), data.time_obtained, data.date_removed, data.reason_for_removal, data.acknowledgement_received || false, data.acknowledgement_date, data.list_status || 'active', data.notes, data.created_by]
+    );
+    return result.rows[0];
+  } finally { client.release(); }
+}
+
+export async function updateInsiderListRecord(id: string, data: Partial<InsiderListRecord>): Promise<InsiderListRecord | null> {
+  const client = await pool.connect();
+  try {
+    const fields: string[] = []; const values: unknown[] = []; let paramIndex = 1;
+    const allowedFields = ['list_reference', 'project_name', 'project_code', 'issuer_name', 'nature_of_information', 'insider_name', 'insider_role', 'insider_company', 'insider_email', 'insider_phone', 'insider_national_id', 'date_added', 'time_obtained', 'date_removed', 'reason_for_removal', 'acknowledgement_received', 'acknowledgement_date', 'list_status', 'notes'];
+    for (const field of allowedFields) { if (field in data) { fields.push(`${field} = $${paramIndex++}`); values.push((data as Record<string, unknown>)[field]); } }
+    if (fields.length === 0) return null;
+    fields.push(`updated_at = NOW()`); values.push(id);
+    const result = await client.query(`UPDATE insider_list_records SET ${fields.join(', ')} WHERE id = $${paramIndex} RETURNING *`, values);
+    return result.rows[0] || null;
+  } finally { client.release(); }
+}
+
+export async function deleteInsiderListRecord(id: string): Promise<boolean> {
+  const client = await pool.connect();
+  try { const result = await client.query('DELETE FROM insider_list_records WHERE id = $1', [id]); return result.rowCount !== null && result.rowCount > 0; }
+  finally { client.release(); }
+}
+
+// ============================================================================
+// OUTSIDE BUSINESS INTERESTS REGISTER
+// ============================================================================
+
+export interface OutsideBusinessRecord {
+  id: string;
+  organization_id: string;
+  pack_id?: string;
+  declaration_reference: string;
+  employee_name: string;
+  employee_id?: string;
+  employee_role?: string;
+  interest_type: string;
+  organization_name: string;
+  organization_type?: string;
+  role_held?: string;
+  remuneration: boolean;
+  remuneration_amount?: number;
+  time_commitment?: string;
+  start_date?: Date;
+  end_date?: Date;
+  conflict_assessment?: string;
+  conflict_identified: boolean;
+  mitigation_measures?: string;
+  approval_status: string;
+  approved_by?: string;
+  approval_date?: Date;
+  next_review_date?: Date;
+  status: string;
+  notes?: string;
+  created_at: Date;
+  updated_at: Date;
+  created_by?: string;
+}
+
+export async function getOutsideBusinessRecords(organizationId: string = 'default-org', packId?: string): Promise<OutsideBusinessRecord[]> {
+  const client = await pool.connect();
+  try {
+    let query = 'SELECT * FROM outside_business_records WHERE organization_id = $1';
+    const params: (string | undefined)[] = [organizationId];
+    if (packId) { query += ' AND pack_id = $2'; params.push(packId); }
+    query += ' ORDER BY created_at DESC';
+    const result = await client.query(query, params);
+    return result.rows;
+  } finally { client.release(); }
+}
+
+export async function getOutsideBusinessRecord(id: string): Promise<OutsideBusinessRecord | null> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`SELECT * FROM outside_business_records WHERE id = $1`, [id]);
+    return result.rows[0] || null;
+  } finally { client.release(); }
+}
+
+export async function createOutsideBusinessRecord(data: Omit<OutsideBusinessRecord, 'id' | 'created_at' | 'updated_at'>): Promise<OutsideBusinessRecord> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `INSERT INTO outside_business_records (organization_id, pack_id, declaration_reference, employee_name, employee_id, employee_role, interest_type, organization_name, organization_type, role_held, remuneration, remuneration_amount, time_commitment, start_date, end_date, conflict_assessment, conflict_identified, mitigation_measures, approval_status, approved_by, approval_date, next_review_date, status, notes, created_by)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25) RETURNING *`,
+      [data.organization_id || 'default-org', data.pack_id, data.declaration_reference, data.employee_name, data.employee_id, data.employee_role, data.interest_type, data.organization_name, data.organization_type, data.role_held, data.remuneration || false, data.remuneration_amount, data.time_commitment, data.start_date, data.end_date, data.conflict_assessment, data.conflict_identified || false, data.mitigation_measures, data.approval_status || 'pending', data.approved_by, data.approval_date, data.next_review_date, data.status || 'active', data.notes, data.created_by]
+    );
+    return result.rows[0];
+  } finally { client.release(); }
+}
+
+export async function updateOutsideBusinessRecord(id: string, data: Partial<OutsideBusinessRecord>): Promise<OutsideBusinessRecord | null> {
+  const client = await pool.connect();
+  try {
+    const fields: string[] = []; const values: unknown[] = []; let paramIndex = 1;
+    const allowedFields = ['declaration_reference', 'employee_name', 'employee_id', 'employee_role', 'interest_type', 'organization_name', 'organization_type', 'role_held', 'remuneration', 'remuneration_amount', 'time_commitment', 'start_date', 'end_date', 'conflict_assessment', 'conflict_identified', 'mitigation_measures', 'approval_status', 'approved_by', 'approval_date', 'next_review_date', 'status', 'notes'];
+    for (const field of allowedFields) { if (field in data) { fields.push(`${field} = $${paramIndex++}`); values.push((data as Record<string, unknown>)[field]); } }
+    if (fields.length === 0) return null;
+    fields.push(`updated_at = NOW()`); values.push(id);
+    const result = await client.query(`UPDATE outside_business_records SET ${fields.join(', ')} WHERE id = $${paramIndex} RETURNING *`, values);
+    return result.rows[0] || null;
+  } finally { client.release(); }
+}
+
+export async function deleteOutsideBusinessRecord(id: string): Promise<boolean> {
+  const client = await pool.connect();
+  try { const result = await client.query('DELETE FROM outside_business_records WHERE id = $1', [id]); return result.rowCount !== null && result.rowCount > 0; }
+  finally { client.release(); }
+}
+
+// ============================================================================
+// DATA BREACH & DSAR REGISTER
+// ============================================================================
+
+export interface DataBreachDsarRecord {
+  id: string;
+  organization_id: string;
+  pack_id?: string;
+  record_reference: string;
+  record_type: string;
+  discovery_date: Date;
+  incident_date?: Date;
+  reported_by?: string;
+  data_subjects_affected?: number;
+  data_categories?: string[];
+  breach_description?: string;
+  cause_of_breach?: string;
+  containment_actions?: string;
+  ico_notification_required: boolean;
+  ico_notified: boolean;
+  ico_notification_date?: Date;
+  ico_reference?: string;
+  individuals_notified: boolean;
+  notification_date?: Date;
+  dsar_requester_name?: string;
+  dsar_requester_email?: string;
+  dsar_request_date?: Date;
+  dsar_verification_status?: string;
+  dsar_deadline?: Date;
+  dsar_response_date?: Date;
+  dsar_extension_applied: boolean;
+  risk_assessment?: string;
+  root_cause_analysis?: string;
+  remediation_actions?: string;
+  status: string;
+  closed_date?: Date;
+  notes?: string;
+  created_at: Date;
+  updated_at: Date;
+  created_by?: string;
+}
+
+export async function getDataBreachDsarRecords(organizationId: string = 'default-org', packId?: string): Promise<DataBreachDsarRecord[]> {
+  const client = await pool.connect();
+  try {
+    let query = 'SELECT * FROM data_breach_dsar_records WHERE organization_id = $1';
+    const params: (string | undefined)[] = [organizationId];
+    if (packId) { query += ' AND pack_id = $2'; params.push(packId); }
+    query += ' ORDER BY created_at DESC';
+    const result = await client.query(query, params);
+    return result.rows;
+  } finally { client.release(); }
+}
+
+export async function getDataBreachDsarRecord(id: string): Promise<DataBreachDsarRecord | null> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`SELECT * FROM data_breach_dsar_records WHERE id = $1`, [id]);
+    return result.rows[0] || null;
+  } finally { client.release(); }
+}
+
+export async function createDataBreachDsarRecord(data: Omit<DataBreachDsarRecord, 'id' | 'created_at' | 'updated_at'>): Promise<DataBreachDsarRecord> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `INSERT INTO data_breach_dsar_records (organization_id, pack_id, record_reference, record_type, discovery_date, incident_date, reported_by, data_subjects_affected, data_categories, breach_description, cause_of_breach, containment_actions, ico_notification_required, ico_notified, ico_notification_date, ico_reference, individuals_notified, notification_date, dsar_requester_name, dsar_requester_email, dsar_request_date, dsar_verification_status, dsar_deadline, dsar_response_date, dsar_extension_applied, risk_assessment, root_cause_analysis, remediation_actions, status, closed_date, notes, created_by)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32) RETURNING *`,
+      [data.organization_id || 'default-org', data.pack_id, data.record_reference, data.record_type, data.discovery_date || new Date(), data.incident_date, data.reported_by, data.data_subjects_affected, data.data_categories, data.breach_description, data.cause_of_breach, data.containment_actions, data.ico_notification_required || false, data.ico_notified || false, data.ico_notification_date, data.ico_reference, data.individuals_notified || false, data.notification_date, data.dsar_requester_name, data.dsar_requester_email, data.dsar_request_date, data.dsar_verification_status, data.dsar_deadline, data.dsar_response_date, data.dsar_extension_applied || false, data.risk_assessment, data.root_cause_analysis, data.remediation_actions, data.status || 'open', data.closed_date, data.notes, data.created_by]
+    );
+    return result.rows[0];
+  } finally { client.release(); }
+}
+
+export async function updateDataBreachDsarRecord(id: string, data: Partial<DataBreachDsarRecord>): Promise<DataBreachDsarRecord | null> {
+  const client = await pool.connect();
+  try {
+    const fields: string[] = []; const values: unknown[] = []; let paramIndex = 1;
+    const allowedFields = ['record_reference', 'record_type', 'discovery_date', 'incident_date', 'reported_by', 'data_subjects_affected', 'data_categories', 'breach_description', 'cause_of_breach', 'containment_actions', 'ico_notification_required', 'ico_notified', 'ico_notification_date', 'ico_reference', 'individuals_notified', 'notification_date', 'dsar_requester_name', 'dsar_requester_email', 'dsar_request_date', 'dsar_verification_status', 'dsar_deadline', 'dsar_response_date', 'dsar_extension_applied', 'risk_assessment', 'root_cause_analysis', 'remediation_actions', 'status', 'closed_date', 'notes'];
+    for (const field of allowedFields) { if (field in data) { fields.push(`${field} = $${paramIndex++}`); values.push((data as Record<string, unknown>)[field]); } }
+    if (fields.length === 0) return null;
+    fields.push(`updated_at = NOW()`); values.push(id);
+    const result = await client.query(`UPDATE data_breach_dsar_records SET ${fields.join(', ')} WHERE id = $${paramIndex} RETURNING *`, values);
+    return result.rows[0] || null;
+  } finally { client.release(); }
+}
+
+export async function deleteDataBreachDsarRecord(id: string): Promise<boolean> {
+  const client = await pool.connect();
+  try { const result = await client.query('DELETE FROM data_breach_dsar_records WHERE id = $1', [id]); return result.rowCount !== null && result.rowCount > 0; }
+  finally { client.release(); }
+}
+
+// ============================================================================
+// OPERATIONAL RESILIENCE REGISTER
+// ============================================================================
+
+export interface OpResilienceRecord {
+  id: string;
+  organization_id: string;
+  pack_id?: string;
+  service_reference: string;
+  service_name: string;
+  service_description?: string;
+  service_owner?: string;
+  is_important_business_service: boolean;
+  impact_tolerance_defined: boolean;
+  impact_tolerance_description?: string;
+  max_tolerable_disruption?: string;
+  dependencies?: string[];
+  third_party_dependencies?: string[];
+  last_scenario_test_date?: Date;
+  scenario_test_result?: string;
+  scenario_test_findings?: string;
+  vulnerabilities_identified?: string;
+  remediation_plan?: string;
+  remediation_deadline?: Date;
+  remediation_status: string;
+  next_review_date?: Date;
+  status: string;
+  notes?: string;
+  created_at: Date;
+  updated_at: Date;
+  created_by?: string;
+}
+
+export async function getOpResilienceRecords(organizationId: string = 'default-org', packId?: string): Promise<OpResilienceRecord[]> {
+  const client = await pool.connect();
+  try {
+    let query = 'SELECT * FROM op_resilience_records WHERE organization_id = $1';
+    const params: (string | undefined)[] = [organizationId];
+    if (packId) { query += ' AND pack_id = $2'; params.push(packId); }
+    query += ' ORDER BY created_at DESC';
+    const result = await client.query(query, params);
+    return result.rows;
+  } finally { client.release(); }
+}
+
+export async function getOpResilienceRecord(id: string): Promise<OpResilienceRecord | null> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`SELECT * FROM op_resilience_records WHERE id = $1`, [id]);
+    return result.rows[0] || null;
+  } finally { client.release(); }
+}
+
+export async function createOpResilienceRecord(data: Omit<OpResilienceRecord, 'id' | 'created_at' | 'updated_at'>): Promise<OpResilienceRecord> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `INSERT INTO op_resilience_records (organization_id, pack_id, service_reference, service_name, service_description, service_owner, is_important_business_service, impact_tolerance_defined, impact_tolerance_description, max_tolerable_disruption, dependencies, third_party_dependencies, last_scenario_test_date, scenario_test_result, scenario_test_findings, vulnerabilities_identified, remediation_plan, remediation_deadline, remediation_status, next_review_date, status, notes, created_by)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23) RETURNING *`,
+      [data.organization_id || 'default-org', data.pack_id, data.service_reference, data.service_name, data.service_description, data.service_owner, data.is_important_business_service || false, data.impact_tolerance_defined || false, data.impact_tolerance_description, data.max_tolerable_disruption, data.dependencies, data.third_party_dependencies, data.last_scenario_test_date, data.scenario_test_result, data.scenario_test_findings, data.vulnerabilities_identified, data.remediation_plan, data.remediation_deadline, data.remediation_status || 'pending', data.next_review_date, data.status || 'active', data.notes, data.created_by]
+    );
+    return result.rows[0];
+  } finally { client.release(); }
+}
+
+export async function updateOpResilienceRecord(id: string, data: Partial<OpResilienceRecord>): Promise<OpResilienceRecord | null> {
+  const client = await pool.connect();
+  try {
+    const fields: string[] = []; const values: unknown[] = []; let paramIndex = 1;
+    const allowedFields = ['service_reference', 'service_name', 'service_description', 'service_owner', 'is_important_business_service', 'impact_tolerance_defined', 'impact_tolerance_description', 'max_tolerable_disruption', 'dependencies', 'third_party_dependencies', 'last_scenario_test_date', 'scenario_test_result', 'scenario_test_findings', 'vulnerabilities_identified', 'remediation_plan', 'remediation_deadline', 'remediation_status', 'next_review_date', 'status', 'notes'];
+    for (const field of allowedFields) { if (field in data) { fields.push(`${field} = $${paramIndex++}`); values.push((data as Record<string, unknown>)[field]); } }
+    if (fields.length === 0) return null;
+    fields.push(`updated_at = NOW()`); values.push(id);
+    const result = await client.query(`UPDATE op_resilience_records SET ${fields.join(', ')} WHERE id = $${paramIndex} RETURNING *`, values);
+    return result.rows[0] || null;
+  } finally { client.release(); }
+}
+
+export async function deleteOpResilienceRecord(id: string): Promise<boolean> {
+  const client = await pool.connect();
+  try { const result = await client.query('DELETE FROM op_resilience_records WHERE id = $1', [id]); return result.rowCount !== null && result.rowCount > 0; }
+  finally { client.release(); }
+}
+
+// ============================================================================
+// T&C RECORD REGISTER
+// ============================================================================
+
+export interface TcRecordRecord {
+  id: string;
+  organization_id: string;
+  pack_id?: string;
+  employee_reference: string;
+  employee_name: string;
+  employee_role?: string;
+  department?: string;
+  start_date?: Date;
+  tc_scheme?: string;
+  qualification_required?: string;
+  qualification_status: string;
+  qualification_date?: Date;
+  exam_attempts: number;
+  competency_status: string;
+  competency_date?: Date;
+  supervisor_name?: string;
+  supervision_level: string;
+  supervision_end_date?: Date;
+  cpd_hours_required: number;
+  cpd_hours_completed: number;
+  cpd_deadline?: Date;
+  annual_attestation_date?: Date;
+  fit_proper_status: string;
+  fit_proper_date?: Date;
+  status: string;
+  notes?: string;
+  created_at: Date;
+  updated_at: Date;
+  created_by?: string;
+}
+
+export async function getTcRecordRecords(organizationId: string = 'default-org', packId?: string): Promise<TcRecordRecord[]> {
+  const client = await pool.connect();
+  try {
+    let query = 'SELECT * FROM tc_record_records WHERE organization_id = $1';
+    const params: (string | undefined)[] = [organizationId];
+    if (packId) { query += ' AND pack_id = $2'; params.push(packId); }
+    query += ' ORDER BY created_at DESC';
+    const result = await client.query(query, params);
+    return result.rows;
+  } finally { client.release(); }
+}
+
+export async function getTcRecordRecord(id: string): Promise<TcRecordRecord | null> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`SELECT * FROM tc_record_records WHERE id = $1`, [id]);
+    return result.rows[0] || null;
+  } finally { client.release(); }
+}
+
+export async function createTcRecordRecord(data: Omit<TcRecordRecord, 'id' | 'created_at' | 'updated_at'>): Promise<TcRecordRecord> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `INSERT INTO tc_record_records (organization_id, pack_id, employee_reference, employee_name, employee_role, department, start_date, tc_scheme, qualification_required, qualification_status, qualification_date, exam_attempts, competency_status, competency_date, supervisor_name, supervision_level, supervision_end_date, cpd_hours_required, cpd_hours_completed, cpd_deadline, annual_attestation_date, fit_proper_status, fit_proper_date, status, notes, created_by)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26) RETURNING *`,
+      [data.organization_id || 'default-org', data.pack_id, data.employee_reference, data.employee_name, data.employee_role, data.department, data.start_date, data.tc_scheme, data.qualification_required, data.qualification_status || 'in_progress', data.qualification_date, data.exam_attempts || 0, data.competency_status || 'not_assessed', data.competency_date, data.supervisor_name, data.supervision_level || 'standard', data.supervision_end_date, data.cpd_hours_required || 0, data.cpd_hours_completed || 0, data.cpd_deadline, data.annual_attestation_date, data.fit_proper_status || 'pending', data.fit_proper_date, data.status || 'active', data.notes, data.created_by]
+    );
+    return result.rows[0];
+  } finally { client.release(); }
+}
+
+export async function updateTcRecordRecord(id: string, data: Partial<TcRecordRecord>): Promise<TcRecordRecord | null> {
+  const client = await pool.connect();
+  try {
+    const fields: string[] = []; const values: unknown[] = []; let paramIndex = 1;
+    const allowedFields = ['employee_reference', 'employee_name', 'employee_role', 'department', 'start_date', 'tc_scheme', 'qualification_required', 'qualification_status', 'qualification_date', 'exam_attempts', 'competency_status', 'competency_date', 'supervisor_name', 'supervision_level', 'supervision_end_date', 'cpd_hours_required', 'cpd_hours_completed', 'cpd_deadline', 'annual_attestation_date', 'fit_proper_status', 'fit_proper_date', 'status', 'notes'];
+    for (const field of allowedFields) { if (field in data) { fields.push(`${field} = $${paramIndex++}`); values.push((data as Record<string, unknown>)[field]); } }
+    if (fields.length === 0) return null;
+    fields.push(`updated_at = NOW()`); values.push(id);
+    const result = await client.query(`UPDATE tc_record_records SET ${fields.join(', ')} WHERE id = $${paramIndex} RETURNING *`, values);
+    return result.rows[0] || null;
+  } finally { client.release(); }
+}
+
+export async function deleteTcRecordRecord(id: string): Promise<boolean> {
+  const client = await pool.connect();
+  try { const result = await client.query('DELETE FROM tc_record_records WHERE id = $1', [id]); return result.rowCount !== null && result.rowCount > 0; }
+  finally { client.release(); }
+}
+
+// ============================================================================
+// SM&CR CERTIFICATION TRACKER REGISTER
+// ============================================================================
+
+export interface SmcrCertificationRecord {
+  id: string;
+  organization_id: string;
+  pack_id?: string;
+  employee_reference: string;
+  employee_name: string;
+  certification_function: string;
+  function_code?: string;
+  department?: string;
+  start_date?: Date;
+  annual_assessment_due?: Date;
+  last_assessment_date?: Date;
+  assessment_outcome?: string;
+  fit_proper_confirmed: boolean;
+  conduct_rules_training: boolean;
+  conduct_rules_date?: Date;
+  regulatory_references_checked: boolean;
+  criminal_records_checked: boolean;
+  credit_checked: boolean;
+  certification_status: string;
+  certified_by?: string;
+  certification_date?: Date;
+  certification_expiry?: Date;
+  conduct_breaches: number;
+  last_breach_date?: Date;
+  status: string;
+  notes?: string;
+  created_at: Date;
+  updated_at: Date;
+  created_by?: string;
+}
+
+export async function getSmcrCertificationRecords(organizationId: string = 'default-org', packId?: string): Promise<SmcrCertificationRecord[]> {
+  const client = await pool.connect();
+  try {
+    let query = 'SELECT * FROM smcr_certification_records WHERE organization_id = $1';
+    const params: (string | undefined)[] = [organizationId];
+    if (packId) { query += ' AND pack_id = $2'; params.push(packId); }
+    query += ' ORDER BY created_at DESC';
+    const result = await client.query(query, params);
+    return result.rows;
+  } finally { client.release(); }
+}
+
+export async function getSmcrCertificationRecord(id: string): Promise<SmcrCertificationRecord | null> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`SELECT * FROM smcr_certification_records WHERE id = $1`, [id]);
+    return result.rows[0] || null;
+  } finally { client.release(); }
+}
+
+export async function createSmcrCertificationRecord(data: Omit<SmcrCertificationRecord, 'id' | 'created_at' | 'updated_at'>): Promise<SmcrCertificationRecord> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `INSERT INTO smcr_certification_records (organization_id, pack_id, employee_reference, employee_name, certification_function, function_code, department, start_date, annual_assessment_due, last_assessment_date, assessment_outcome, fit_proper_confirmed, conduct_rules_training, conduct_rules_date, regulatory_references_checked, criminal_records_checked, credit_checked, certification_status, certified_by, certification_date, certification_expiry, conduct_breaches, last_breach_date, status, notes, created_by)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26) RETURNING *`,
+      [data.organization_id || 'default-org', data.pack_id, data.employee_reference, data.employee_name, data.certification_function, data.function_code, data.department, data.start_date, data.annual_assessment_due, data.last_assessment_date, data.assessment_outcome, data.fit_proper_confirmed || false, data.conduct_rules_training || false, data.conduct_rules_date, data.regulatory_references_checked || false, data.criminal_records_checked || false, data.credit_checked || false, data.certification_status || 'pending', data.certified_by, data.certification_date, data.certification_expiry, data.conduct_breaches || 0, data.last_breach_date, data.status || 'active', data.notes, data.created_by]
+    );
+    return result.rows[0];
+  } finally { client.release(); }
+}
+
+export async function updateSmcrCertificationRecord(id: string, data: Partial<SmcrCertificationRecord>): Promise<SmcrCertificationRecord | null> {
+  const client = await pool.connect();
+  try {
+    const fields: string[] = []; const values: unknown[] = []; let paramIndex = 1;
+    const allowedFields = ['employee_reference', 'employee_name', 'certification_function', 'function_code', 'department', 'start_date', 'annual_assessment_due', 'last_assessment_date', 'assessment_outcome', 'fit_proper_confirmed', 'conduct_rules_training', 'conduct_rules_date', 'regulatory_references_checked', 'criminal_records_checked', 'credit_checked', 'certification_status', 'certified_by', 'certification_date', 'certification_expiry', 'conduct_breaches', 'last_breach_date', 'status', 'notes'];
+    for (const field of allowedFields) { if (field in data) { fields.push(`${field} = $${paramIndex++}`); values.push((data as Record<string, unknown>)[field]); } }
+    if (fields.length === 0) return null;
+    fields.push(`updated_at = NOW()`); values.push(id);
+    const result = await client.query(`UPDATE smcr_certification_records SET ${fields.join(', ')} WHERE id = $${paramIndex} RETURNING *`, values);
+    return result.rows[0] || null;
+  } finally { client.release(); }
+}
+
+export async function deleteSmcrCertificationRecord(id: string): Promise<boolean> {
+  const client = await pool.connect();
+  try { const result = await client.query('DELETE FROM smcr_certification_records WHERE id = $1', [id]); return result.rowCount !== null && result.rowCount > 0; }
+  finally { client.release(); }
+}
+
+// ============================================================================
+// REGULATORY RETURNS CALENDAR REGISTER
+// ============================================================================
+
+export interface RegulatoryReturnsRecord {
+  id: string;
+  organization_id: string;
+  pack_id?: string;
+  return_reference: string;
+  return_name: string;
+  regulator: string;
+  return_type?: string;
+  frequency?: string;
+  reporting_period_start?: Date;
+  reporting_period_end?: Date;
+  due_date: Date;
+  reminder_date?: Date;
+  owner?: string;
+  preparer?: string;
+  reviewer?: string;
+  preparation_status: string;
+  review_status: string;
+  submission_status: string;
+  submitted_date?: Date;
+  submitted_by?: string;
+  confirmation_reference?: string;
+  late_submission: boolean;
+  late_reason?: string;
+  status: string;
+  notes?: string;
+  created_at: Date;
+  updated_at: Date;
+  created_by?: string;
+}
+
+export async function getRegulatoryReturnsRecords(organizationId: string = 'default-org', packId?: string): Promise<RegulatoryReturnsRecord[]> {
+  const client = await pool.connect();
+  try {
+    let query = 'SELECT * FROM regulatory_returns_records WHERE organization_id = $1';
+    const params: (string | undefined)[] = [organizationId];
+    if (packId) { query += ' AND pack_id = $2'; params.push(packId); }
+    query += ' ORDER BY due_date ASC';
+    const result = await client.query(query, params);
+    return result.rows;
+  } finally { client.release(); }
+}
+
+export async function getRegulatoryReturnsRecord(id: string): Promise<RegulatoryReturnsRecord | null> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`SELECT * FROM regulatory_returns_records WHERE id = $1`, [id]);
+    return result.rows[0] || null;
+  } finally { client.release(); }
+}
+
+export async function createRegulatoryReturnsRecord(data: Omit<RegulatoryReturnsRecord, 'id' | 'created_at' | 'updated_at'>): Promise<RegulatoryReturnsRecord> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `INSERT INTO regulatory_returns_records (organization_id, pack_id, return_reference, return_name, regulator, return_type, frequency, reporting_period_start, reporting_period_end, due_date, reminder_date, owner, preparer, reviewer, preparation_status, review_status, submission_status, submitted_date, submitted_by, confirmation_reference, late_submission, late_reason, status, notes, created_by)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25) RETURNING *`,
+      [data.organization_id || 'default-org', data.pack_id, data.return_reference, data.return_name, data.regulator, data.return_type, data.frequency, data.reporting_period_start, data.reporting_period_end, data.due_date, data.reminder_date, data.owner, data.preparer, data.reviewer, data.preparation_status || 'not_started', data.review_status || 'pending', data.submission_status || 'pending', data.submitted_date, data.submitted_by, data.confirmation_reference, data.late_submission || false, data.late_reason, data.status || 'upcoming', data.notes, data.created_by]
+    );
+    return result.rows[0];
+  } finally { client.release(); }
+}
+
+export async function updateRegulatoryReturnsRecord(id: string, data: Partial<RegulatoryReturnsRecord>): Promise<RegulatoryReturnsRecord | null> {
+  const client = await pool.connect();
+  try {
+    const fields: string[] = []; const values: unknown[] = []; let paramIndex = 1;
+    const allowedFields = ['return_reference', 'return_name', 'regulator', 'return_type', 'frequency', 'reporting_period_start', 'reporting_period_end', 'due_date', 'reminder_date', 'owner', 'preparer', 'reviewer', 'preparation_status', 'review_status', 'submission_status', 'submitted_date', 'submitted_by', 'confirmation_reference', 'late_submission', 'late_reason', 'status', 'notes'];
+    for (const field of allowedFields) { if (field in data) { fields.push(`${field} = $${paramIndex++}`); values.push((data as Record<string, unknown>)[field]); } }
+    if (fields.length === 0) return null;
+    fields.push(`updated_at = NOW()`); values.push(id);
+    const result = await client.query(`UPDATE regulatory_returns_records SET ${fields.join(', ')} WHERE id = $${paramIndex} RETURNING *`, values);
+    return result.rows[0] || null;
+  } finally { client.release(); }
+}
+
+export async function deleteRegulatoryReturnsRecord(id: string): Promise<boolean> {
+  const client = await pool.connect();
+  try { const result = await client.query('DELETE FROM regulatory_returns_records WHERE id = $1', [id]); return result.rowCount !== null && result.rowCount > 0; }
+  finally { client.release(); }
+}
+
+// ============================================================================
+// PRODUCT GOVERNANCE REGISTER
+// ============================================================================
+
+export interface ProductGovernanceRecord {
+  id: string;
+  organization_id: string;
+  pack_id?: string;
+  product_reference: string;
+  product_name: string;
+  product_type?: string;
+  manufacturer?: string;
+  is_manufacturer: boolean;
+  target_market?: string;
+  negative_target_market?: string;
+  distribution_strategy?: string;
+  risk_profile: string;
+  fair_value_assessment?: string;
+  fair_value_confirmed: boolean;
+  fair_value_date?: Date;
+  customer_outcomes?: string;
+  product_testing_completed: boolean;
+  testing_date?: Date;
+  testing_results?: string;
+  approval_status: string;
+  approved_by?: string;
+  approval_date?: Date;
+  launch_date?: Date;
+  last_review_date?: Date;
+  next_review_date?: Date;
+  review_frequency: string;
+  issues_identified?: string;
+  remediation_actions?: string;
+  status: string;
+  notes?: string;
+  created_at: Date;
+  updated_at: Date;
+  created_by?: string;
+}
+
+export async function getProductGovernanceRecords(organizationId: string = 'default-org', packId?: string): Promise<ProductGovernanceRecord[]> {
+  const client = await pool.connect();
+  try {
+    let query = 'SELECT * FROM product_governance_records WHERE organization_id = $1';
+    const params: (string | undefined)[] = [organizationId];
+    if (packId) { query += ' AND pack_id = $2'; params.push(packId); }
+    query += ' ORDER BY created_at DESC';
+    const result = await client.query(query, params);
+    return result.rows;
+  } finally { client.release(); }
+}
+
+export async function getProductGovernanceRecord(id: string): Promise<ProductGovernanceRecord | null> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`SELECT * FROM product_governance_records WHERE id = $1`, [id]);
+    return result.rows[0] || null;
+  } finally { client.release(); }
+}
+
+export async function createProductGovernanceRecord(data: Omit<ProductGovernanceRecord, 'id' | 'created_at' | 'updated_at'>): Promise<ProductGovernanceRecord> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `INSERT INTO product_governance_records (organization_id, pack_id, product_reference, product_name, product_type, manufacturer, is_manufacturer, target_market, negative_target_market, distribution_strategy, risk_profile, fair_value_assessment, fair_value_confirmed, fair_value_date, customer_outcomes, product_testing_completed, testing_date, testing_results, approval_status, approved_by, approval_date, launch_date, last_review_date, next_review_date, review_frequency, issues_identified, remediation_actions, status, notes, created_by)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30) RETURNING *`,
+      [data.organization_id || 'default-org', data.pack_id, data.product_reference, data.product_name, data.product_type, data.manufacturer, data.is_manufacturer || false, data.target_market, data.negative_target_market, data.distribution_strategy, data.risk_profile || 'medium', data.fair_value_assessment, data.fair_value_confirmed || false, data.fair_value_date, data.customer_outcomes, data.product_testing_completed || false, data.testing_date, data.testing_results, data.approval_status || 'pending', data.approved_by, data.approval_date, data.launch_date, data.last_review_date, data.next_review_date, data.review_frequency || 'annual', data.issues_identified, data.remediation_actions, data.status || 'draft', data.notes, data.created_by]
+    );
+    return result.rows[0];
+  } finally { client.release(); }
+}
+
+export async function updateProductGovernanceRecord(id: string, data: Partial<ProductGovernanceRecord>): Promise<ProductGovernanceRecord | null> {
+  const client = await pool.connect();
+  try {
+    const fields: string[] = []; const values: unknown[] = []; let paramIndex = 1;
+    const allowedFields = ['product_reference', 'product_name', 'product_type', 'manufacturer', 'is_manufacturer', 'target_market', 'negative_target_market', 'distribution_strategy', 'risk_profile', 'fair_value_assessment', 'fair_value_confirmed', 'fair_value_date', 'customer_outcomes', 'product_testing_completed', 'testing_date', 'testing_results', 'approval_status', 'approved_by', 'approval_date', 'launch_date', 'last_review_date', 'next_review_date', 'review_frequency', 'issues_identified', 'remediation_actions', 'status', 'notes'];
+    for (const field of allowedFields) { if (field in data) { fields.push(`${field} = $${paramIndex++}`); values.push((data as Record<string, unknown>)[field]); } }
+    if (fields.length === 0) return null;
+    fields.push(`updated_at = NOW()`); values.push(id);
+    const result = await client.query(`UPDATE product_governance_records SET ${fields.join(', ')} WHERE id = $${paramIndex} RETURNING *`, values);
+    return result.rows[0] || null;
+  } finally { client.release(); }
+}
+
+export async function deleteProductGovernanceRecord(id: string): Promise<boolean> {
+  const client = await pool.connect();
+  try { const result = await client.query('DELETE FROM product_governance_records WHERE id = $1', [id]); return result.rowCount !== null && result.rowCount > 0; }
+  finally { client.release(); }
 }

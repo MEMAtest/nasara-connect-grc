@@ -101,6 +101,42 @@ export const paymentsRegulationModule: TrainingModule = {
       ],
       correctAnswer: 0,
       explanation: 'Permissions mapping ensures new products remain within the authorized scope.'
+    },
+    {
+      id: 'payments-reg-q3',
+      question: 'Safeguarding reconciliations should be:',
+      options: [
+        { id: 'a', text: 'Regular, documented, and reviewed by oversight', isCorrect: true },
+        { id: 'b', text: 'Performed only after audit requests', isCorrect: false },
+        { id: 'c', text: 'Optional for low-volume firms', isCorrect: false },
+        { id: 'd', text: 'Replaced by customer confirmations', isCorrect: false }
+      ],
+      correctAnswer: 0,
+      explanation: 'FCA expects regular reconciliations with evidence and oversight.'
+    },
+    {
+      id: 'payments-reg-q4',
+      question: 'Agent and distributor oversight should include:',
+      options: [
+        { id: 'a', text: 'Ongoing monitoring and periodic reviews', isCorrect: true },
+        { id: 'b', text: 'Only initial due diligence', isCorrect: false },
+        { id: 'c', text: 'No oversight if contracts are signed', isCorrect: false },
+        { id: 'd', text: 'Marketing reporting only', isCorrect: false }
+      ],
+      correctAnswer: 0,
+      explanation: 'Oversight requires ongoing monitoring of agents and distributors.'
+    },
+    {
+      id: 'payments-reg-q5',
+      question: 'Regulatory reporting should be:',
+      options: [
+        { id: 'a', text: 'Ad-hoc and informal', isCorrect: false },
+        { id: 'b', text: 'Timely and owned with a clear schedule', isCorrect: true },
+        { id: 'c', text: 'Only when major incidents occur', isCorrect: false },
+        { id: 'd', text: 'Delegated without accountability', isCorrect: false }
+      ],
+      correctAnswer: 1,
+      explanation: 'Timely reporting with clear ownership is an FCA expectation.'
     }
   ],
   summary: {

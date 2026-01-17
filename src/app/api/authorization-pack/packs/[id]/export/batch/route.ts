@@ -5,7 +5,7 @@ import { promises as fs } from "fs";
 import archiver from "archiver";
 import { AlignmentType, Document, HeadingLevel, Packer, Paragraph, TextRun } from "docx";
 import { PDFDocument, StandardFonts, rgb, PDFFont } from "pdf-lib";
-import { isValidUUID } from "@/lib/auth-utils";
+import { isValidUUID, requireAuth } from "@/lib/auth-utils";
 import { logError } from "@/lib/logger";
 import { buildNarrativeBlocks } from "@/lib/authorization-pack-export";
 import {
@@ -210,6 +210,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
+
     const { id } = await params;
 
     if (!isValidUUID(id)) {
@@ -219,6 +222,9 @@ export async function GET(
     const pack = await getPack(id);
     if (!pack) {
       return NextResponse.json({ error: "Pack not found" }, { status: 404 });
+    }
+    if (pack.organization_id !== auth.organizationId) {
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
     const rows = await getNarrativeExportRows(id);

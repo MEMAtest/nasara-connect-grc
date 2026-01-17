@@ -146,6 +146,21 @@ export async function initTrainingDatabase() {
       )
     `);
 
+    // Training assignments table (admin assignments to learners)
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS training_assignments (
+        id VARCHAR(255) PRIMARY KEY,
+        assigned_by VARCHAR(255) NOT NULL,
+        assigned_to VARCHAR(255) NOT NULL,
+        module_id VARCHAR(255) NOT NULL,
+        due_date DATE,
+        notes TEXT,
+        status VARCHAR(50) DEFAULT 'assigned' CHECK (status IN ('assigned', 'in_progress', 'completed', 'revoked')),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
     // Create indexes
     await client.query(`CREATE INDEX IF NOT EXISTS idx_training_progress_user ON training_progress(user_email)`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_training_module_progress_user ON training_module_progress(user_id)`);
@@ -153,6 +168,8 @@ export async function initTrainingDatabase() {
     await client.query(`CREATE INDEX IF NOT EXISTS idx_training_badges_user ON training_badges(user_id)`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_training_certificates_user ON training_certificate_events(user_id)`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_training_activity_log_user ON training_activity_log(user_id, activity_date)`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_training_assignments_assigned_by ON training_assignments(assigned_by)`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_training_assignments_module ON training_assignments(module_id)`);
 
     logger.info('Training database tables initialized successfully');
   } catch (error) {
@@ -380,6 +397,74 @@ export async function updateModuleProgress(
   );
 
   logDbOperation('update', 'training_module_progress', Date.now() - startTime);
+  return result.rows[0];
+}
+
+// =====================================================
+// Training Assignment Operations
+// =====================================================
+
+export interface TrainingAssignment {
+  id: string;
+  assigned_by: string;
+  assigned_to: string;
+  module_id: string;
+  due_date: Date | null;
+  notes: string | null;
+  status: 'assigned' | 'in_progress' | 'completed' | 'revoked';
+  created_at: Date;
+  updated_at: Date;
+}
+
+export type TrainingAssignmentScope = "assigned_by" | "assigned_to" | "all";
+
+export async function listTrainingAssignments(
+  userEmail: string,
+  scope: TrainingAssignmentScope = "assigned_by"
+): Promise<TrainingAssignment[]> {
+  const startTime = Date.now();
+  const whereClause =
+    scope === "assigned_to"
+      ? "assigned_to = $1"
+      : scope === "all"
+      ? "(assigned_by = $1 OR assigned_to = $1)"
+      : "assigned_by = $1";
+  const result = await pool.query<TrainingAssignment>(
+    `SELECT * FROM training_assignments WHERE ${whereClause} ORDER BY created_at DESC`,
+    [userEmail]
+  );
+  logDbOperation('query', 'training_assignments', Date.now() - startTime);
+  return result.rows;
+}
+
+export async function createTrainingAssignment(
+  assignedBy: string,
+  payload: {
+    moduleId: string;
+    assignedTo: string;
+    dueDate?: string | null;
+    notes?: string | null;
+    status?: TrainingAssignment['status'];
+  }
+): Promise<TrainingAssignment> {
+  const startTime = Date.now();
+  const id = `assignment-${crypto.randomUUID()}`;
+  const status = payload.status ?? 'assigned';
+  const result = await pool.query<TrainingAssignment>(
+    `INSERT INTO training_assignments (
+      id, assigned_by, assigned_to, module_id, due_date, notes, status
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+    [
+      id,
+      assignedBy,
+      payload.assignedTo,
+      payload.moduleId,
+      payload.dueDate || null,
+      payload.notes || null,
+      status,
+    ]
+  );
+  logDbOperation('insert', 'training_assignments', Date.now() - startTime);
   return result.rows[0];
 }
 

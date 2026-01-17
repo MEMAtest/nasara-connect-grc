@@ -587,6 +587,72 @@ Over the past 6 weeks, the monitoring system has flagged:
         'Immediate overseas transfers after cash deposits require investigation',
         'Never confront customers directly about suspected money laundering'
       ]
+    },
+    {
+      id: 'pep-source-of-wealth-scenario',
+      title: 'PEP Onboarding and Source of Wealth',
+      context: 'A relationship manager is onboarding a politically exposed person',
+      situation: `Dr. Amina Rahman has been appointed as deputy minister in Country Z within the past year. She wants to open a personal account and a holding company account for investment purposes.
+
+She expects monthly inbound transfers of GBP 150,000 from consulting work and dividends. The holding company is registered in the British Virgin Islands and will invest in UK property. She requests expedited onboarding and provides limited detail on the source of her wealth.`,
+      challenge: 'What is the correct KYC approach in this case?',
+      options: [
+        'Apply Standard Due Diligence because the customer is a public official',
+        'Apply Enhanced Due Diligence, verify PEP status, confirm source of wealth and funds, and obtain senior management approval',
+        'Decline the relationship because PEPs cannot be onboarded',
+        'Apply Standard Due Diligence and rely on transaction monitoring for ongoing risk'
+      ],
+      correctAnswer: 1,
+      explanation: 'PEPs require Enhanced Due Diligence. This includes PEP screening, senior management approval, detailed source of wealth and source of funds checks, and enhanced ongoing monitoring. The offshore holding company adds additional complexity and risk.',
+      learningPoints: [
+        'PEP onboarding requires EDD and senior management sign-off',
+        'Source of wealth and source of funds must be verified, not just stated',
+        'Offshore structures increase risk and require deeper verification'
+      ]
+    },
+    {
+      id: 'digital-onboarding-scenario',
+      title: 'Remote Onboarding with Identity Anomalies',
+      context: 'A digital onboarding case is flagged by identity controls',
+      situation: `A new customer applies online for a current account. The selfie match passes, but the document chip read fails. The address on the application does not match the address on the document, and the IP address is from a high-risk jurisdiction.
+
+The same device fingerprint has been used for two previous failed onboarding attempts. The customer refuses to provide additional verification documents.`,
+      challenge: 'What should you do?',
+      options: [
+        'Proceed with Standard Due Diligence because the selfie matched the document',
+        'Pause onboarding, request additional verification, and decline if the evidence is not provided',
+        'Approve the account but set low transaction limits',
+        'Reject the application without recording the reasons or risk indicators'
+      ],
+      correctAnswer: 1,
+      explanation: 'Multiple identity anomalies require stronger verification. The correct response is to pause onboarding, request additional evidence, and decline if the customer cannot provide it. Decisions should be documented for audit purposes.',
+      learningPoints: [
+        'Non-face-to-face onboarding increases fraud risk',
+        'Multiple weak signals should trigger enhanced verification',
+        'Document all decisions and risk indicators for audit'
+      ]
+    },
+    {
+      id: 'trigger-review-scenario',
+      title: 'Material Change Trigger Review',
+      context: 'A periodic review is triggered by a corporate restructure',
+      situation: `Brightline Logistics Ltd has been a low-risk customer for 4 years. The firm has been acquired by a new parent company based in a high-risk jurisdiction. The new ownership introduces a complex group structure and plans to triple international payment volumes within 6 months.
+
+The account manager asks if the next scheduled review in 3 years can remain unchanged to avoid disruption.`,
+      challenge: 'What is the correct action?',
+      options: [
+        'Keep the existing risk rating and wait until the next scheduled review',
+        'Refresh KYC, update beneficial ownership details, reassess risk, and consider EDD',
+        'Close the account immediately to avoid exposure',
+        'Only update the director list and keep the same monitoring settings'
+      ],
+      correctAnswer: 1,
+      explanation: 'Material changes in ownership and expected activity require an immediate refresh of KYC. The relationship risk rating should be updated and EDD considered due to the high-risk jurisdiction and higher expected transaction volumes.',
+      learningPoints: [
+        'Material change events trigger immediate KYC refresh',
+        'Risk ratings must be updated when ownership or activity changes',
+        'Higher transaction volumes require stronger monitoring controls'
+      ]
     }
   ],
 
@@ -651,6 +717,40 @@ Over the past 6 weeks, the monitoring system has flagged:
       ],
       correctAnswer: 0,
       explanation: 'Yes, the beneficial ownership threshold is 25% or more. A person holding exactly 25% meets this requirement and must be identified and verified.'
+    },
+    {
+      id: 'kyc-q6',
+      type: 'multiple_choice',
+      question: 'Which of the following is generally acceptable as proof of address?',
+      options: [
+        'Utility bill issued within the last 3 months',
+        'Email from an employer confirming address',
+        'Photo of a mailbox with the customer name',
+        'Bank statement that is more than 12 months old'
+      ],
+      correctAnswer: 0,
+      explanation: 'A recent utility bill is commonly accepted as proof of address. Other sources must be reliable, independent, and current.'
+    },
+    {
+      id: 'kyc-q7',
+      type: 'multiple_choice',
+      question: 'Which factor most clearly triggers Enhanced Due Diligence?',
+      options: [
+        'Customer receives a stable UK salary and has a low-risk product',
+        'Complex ownership involving an offshore trust in a high-risk jurisdiction',
+        'Small balance account with no cross-border activity',
+        'Long-standing customer with consistent activity and no alerts'
+      ],
+      correctAnswer: 1,
+      explanation: 'Complex ownership structures and high-risk jurisdictions are key EDD triggers. The other examples indicate lower risk.'
+    },
+    {
+      id: 'kyc-q8',
+      type: 'true_false',
+      question: 'It is acceptable to complete KYC without identifying all beneficial owners if ownership is layered through trusts.',
+      options: ['True', 'False'],
+      correctAnswer: 1,
+      explanation: 'False. Firms must identify and verify beneficial owners even when ownership is layered through trusts or other structures.'
     }
   ],
 

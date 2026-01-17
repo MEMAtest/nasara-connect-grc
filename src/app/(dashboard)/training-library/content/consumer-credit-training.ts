@@ -97,6 +97,42 @@ export const consumerCreditTrainingModule: TrainingModule = {
       ],
       correctAnswer: 0,
       explanation: 'Forbearance should be offered early when customers show signs of difficulty.'
+    },
+    {
+      id: 'cc-q3',
+      question: 'Which is a key creditworthiness indicator?',
+      options: [
+        { id: 'a', text: 'Verified income stability and existing commitments', isCorrect: true },
+        { id: 'b', text: 'Only marketing channel used', isCorrect: false },
+        { id: 'c', text: 'Customer preference for monthly payments', isCorrect: false },
+        { id: 'd', text: 'Internal sales targets', isCorrect: false }
+      ],
+      correctAnswer: 0,
+      explanation: 'Creditworthiness relies on evidence of income stability and existing obligations.'
+    },
+    {
+      id: 'cc-q4',
+      question: 'What should be documented for an affordability decision?',
+      options: [
+        { id: 'a', text: 'Income and expenditure sources with decision rationale', isCorrect: true },
+        { id: 'b', text: 'Only the approved credit limit', isCorrect: false },
+        { id: 'c', text: 'Customer social media profile', isCorrect: false },
+        { id: 'd', text: 'A generic affordability statement', isCorrect: false }
+      ],
+      correctAnswer: 0,
+      explanation: 'Firms must document data sources and the rationale supporting the decision.'
+    },
+    {
+      id: 'cc-q5',
+      question: 'Which action best supports fair arrears handling?',
+      options: [
+        { id: 'a', text: 'Escalate immediately to collections without review', isCorrect: false },
+        { id: 'b', text: 'Offer tailored forbearance and monitor outcomes', isCorrect: true },
+        { id: 'c', text: 'Apply the same script regardless of circumstances', isCorrect: false },
+        { id: 'd', text: 'Suspend communication until payment resumes', isCorrect: false }
+      ],
+      correctAnswer: 1,
+      explanation: 'Tailored forbearance and monitoring outcomes are core FCA expectations.'
     }
   ],
   summary: {

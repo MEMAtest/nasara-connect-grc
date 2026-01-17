@@ -45,10 +45,11 @@ marked.setOptions({
 });
 
 // Simple markdown renderer component
-function MarkdownContent({ content, className = "" }: { content: string; className?: string }) {
+function MarkdownContent({ content, className = "" }: { content: unknown; className?: string }) {
   const html = useMemo(() => {
-    if (!content) return "";
-    return marked.parse(normalizeMarkdown(content), { async: false }) as string;
+    const normalized = normalizeMarkdown(content);
+    if (!normalized) return "";
+    return marked.parse(normalized, { async: false }) as string;
   }, [content]);
 
   return (

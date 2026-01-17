@@ -14,6 +14,17 @@ import {
   parsePositiveNumber,
   GIFT_ENTRY_TYPES,
 } from "@/lib/validation";
+import {
+  authenticateRequest,
+  verifyRecordOwnership,
+  checkRateLimit,
+  rateLimitExceededResponse,
+  badRequestResponse,
+  notFoundResponse,
+  forbiddenResponse,
+  serverErrorResponse,
+} from "@/lib/api-auth";
+import { logError } from "@/lib/logger";
 
 const GIFT_APPROVAL_STATUSES = ["not_required", "pending", "approved", "rejected"] as const;
 
@@ -23,23 +34,41 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Rate limiting
+    const clientIp = request.headers.get("x-forwarded-for") || "anonymous";
+    const rateLimit = checkRateLimit(`gifts-hospitality-get-${clientIp}`);
+    if (!rateLimit.allowed) {
+      return rateLimitExceededResponse(rateLimit.resetIn);
+    }
+
+    // Authentication
+    const authResult = await authenticateRequest(request);
+    if (!authResult.authenticated || !authResult.user) {
+      return authResult.error!;
+    }
+
     await initDatabase();
     const { id } = await params;
 
     if (!isValidUUID(id)) {
-      return NextResponse.json({ error: "Invalid ID format" }, { status: 400 });
+      return badRequestResponse("Invalid ID format");
     }
 
     const record = await getGiftHospitalityRecord(id);
 
     if (!record) {
-      return NextResponse.json({ error: "Record not found" }, { status: 404 });
+      return notFoundResponse("Record not found");
+    }
+
+    // IDOR protection
+    if (!verifyRecordOwnership(record, authResult.user.organizationId)) {
+      return forbiddenResponse("You don't have permission to access this record");
     }
 
     return NextResponse.json({ record });
   } catch (error) {
-    console.error("Error fetching Gift/Hospitality record:", error);
-    return NextResponse.json({ error: "Failed to fetch record" }, { status: 500 });
+    logError(error as Error, "Error fetching Gift/Hospitality record");
+    return serverErrorResponse("Failed to fetch record");
   }
 }
 
@@ -49,11 +78,38 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Rate limiting
+    const clientIp = request.headers.get("x-forwarded-for") || "anonymous";
+    const rateLimit = checkRateLimit(`gifts-hospitality-patch-${clientIp}`, {
+      windowMs: 60000,
+      maxRequests: 30,
+    });
+    if (!rateLimit.allowed) {
+      return rateLimitExceededResponse(rateLimit.resetIn);
+    }
+
+    // Authentication
+    const authResult = await authenticateRequest(request);
+    if (!authResult.authenticated || !authResult.user) {
+      return authResult.error!;
+    }
+
     await initDatabase();
     const { id } = await params;
 
     if (!isValidUUID(id)) {
-      return NextResponse.json({ error: "Invalid ID format" }, { status: 400 });
+      return badRequestResponse("Invalid ID format");
+    }
+
+    // Fetch record first to verify ownership
+    const existingRecord = await getGiftHospitalityRecord(id);
+    if (!existingRecord) {
+      return notFoundResponse("Record not found");
+    }
+
+    // IDOR protection
+    if (!verifyRecordOwnership(existingRecord, authResult.user.organizationId)) {
+      return forbiddenResponse("You don't have permission to access this record");
     }
 
     const body = await request.json();
@@ -63,7 +119,7 @@ export async function PATCH(
     if (body.description !== undefined) {
       const desc = sanitizeText(body.description);
       if (!desc) {
-        return NextResponse.json({ error: "Description cannot be empty" }, { status: 400 });
+        return badRequestResponse("Description cannot be empty");
       }
       updateData.description = desc;
     }
@@ -86,10 +142,7 @@ export async function PATCH(
     // Entry type
     if (body.entry_type !== undefined) {
       if (!isValidEnum(body.entry_type, GIFT_ENTRY_TYPES)) {
-        return NextResponse.json(
-          { error: `Invalid entry type. Must be one of: ${GIFT_ENTRY_TYPES.join(", ")}` },
-          { status: 400 }
-        );
+        return badRequestResponse(`Invalid entry type. Must be one of: ${GIFT_ENTRY_TYPES.join(", ")}`);
       }
       updateData.entry_type = body.entry_type;
     }
@@ -97,10 +150,7 @@ export async function PATCH(
     // Approval status
     if (body.approval_status !== undefined) {
       if (!GIFT_APPROVAL_STATUSES.includes(body.approval_status)) {
-        return NextResponse.json(
-          { error: `Invalid approval status. Must be one of: ${GIFT_APPROVAL_STATUSES.join(", ")}` },
-          { status: 400 }
-        );
+        return badRequestResponse(`Invalid approval status. Must be one of: ${GIFT_APPROVAL_STATUSES.join(", ")}`);
       }
       updateData.approval_status = body.approval_status;
     }
@@ -112,7 +162,7 @@ export async function PATCH(
       } else {
         const parsedDate = parseValidDate(body.date_of_event);
         if (!parsedDate) {
-          return NextResponse.json({ error: "Invalid date format for date_of_event" }, { status: 400 });
+          return badRequestResponse("Invalid date format for date_of_event");
         }
         updateData.date_of_event = parsedDate;
       }
@@ -124,7 +174,7 @@ export async function PATCH(
       } else {
         const parsedDate = parseValidDate(body.approved_at);
         if (!parsedDate) {
-          return NextResponse.json({ error: "Invalid date format for approved_at" }, { status: 400 });
+          return badRequestResponse("Invalid date format for approved_at");
         }
         updateData.approved_at = parsedDate;
       }
@@ -138,7 +188,7 @@ export async function PATCH(
       } else {
         const parsed = parsePositiveNumber(body.estimated_value_gbp);
         if (parsed === null) {
-          return NextResponse.json({ error: "Invalid estimated value" }, { status: 400 });
+          return badRequestResponse("Invalid estimated value");
         }
         updateData.estimated_value_gbp = parsed;
         updateData.approval_required = parsed >= 50;
@@ -155,19 +205,19 @@ export async function PATCH(
     }
 
     if (Object.keys(updateData).length === 0) {
-      return NextResponse.json({ error: "No valid fields to update" }, { status: 400 });
+      return badRequestResponse("No valid fields to update");
     }
 
     const record = await updateGiftHospitalityRecord(id, updateData);
 
     if (!record) {
-      return NextResponse.json({ error: "Record not found" }, { status: 404 });
+      return notFoundResponse("Record not found");
     }
 
     return NextResponse.json({ record });
   } catch (error) {
-    console.error("Error updating Gift/Hospitality record:", error);
-    return NextResponse.json({ error: "Failed to update record" }, { status: 500 });
+    logError(error as Error, "Error updating Gift/Hospitality record");
+    return serverErrorResponse("Failed to update record");
   }
 }
 
@@ -177,22 +227,49 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Rate limiting
+    const clientIp = request.headers.get("x-forwarded-for") || "anonymous";
+    const rateLimit = checkRateLimit(`gifts-hospitality-delete-${clientIp}`, {
+      windowMs: 60000,
+      maxRequests: 30,
+    });
+    if (!rateLimit.allowed) {
+      return rateLimitExceededResponse(rateLimit.resetIn);
+    }
+
+    // Authentication
+    const authResult = await authenticateRequest(request);
+    if (!authResult.authenticated || !authResult.user) {
+      return authResult.error!;
+    }
+
     await initDatabase();
     const { id } = await params;
 
     if (!isValidUUID(id)) {
-      return NextResponse.json({ error: "Invalid ID format" }, { status: 400 });
+      return badRequestResponse("Invalid ID format");
+    }
+
+    // Fetch record first to verify ownership
+    const existingRecord = await getGiftHospitalityRecord(id);
+    if (!existingRecord) {
+      return notFoundResponse("Record not found");
+    }
+
+    // IDOR protection
+    if (!verifyRecordOwnership(existingRecord, authResult.user.organizationId)) {
+      return forbiddenResponse("You don't have permission to access this record");
     }
 
     const deleted = await deleteGiftHospitalityRecord(id);
 
     if (!deleted) {
-      return NextResponse.json({ error: "Record not found" }, { status: 404 });
+      return notFoundResponse("Record not found");
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Error deleting Gift/Hospitality record:", error);
-    return NextResponse.json({ error: "Failed to delete record" }, { status: 500 });
+    logError(error as Error, "Error deleting Gift/Hospitality record");
+    return serverErrorResponse("Failed to delete record");
   }
 }

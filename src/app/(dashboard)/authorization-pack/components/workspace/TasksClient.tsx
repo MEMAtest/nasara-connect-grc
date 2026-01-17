@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -63,7 +64,6 @@ interface PackRow {
 interface ReadinessSummary {
   overall: number;
   narrative: number;
-  evidence: number;
   review: number;
 }
 
@@ -76,6 +76,7 @@ interface TaskItem {
   owner_id?: string | null;
   due_date?: string | null;
   section_title?: string | null;
+  sectionInstanceId?: string | null;
   source?: string | null;
 }
 
@@ -94,25 +95,24 @@ const TASK_PRIORITY_OPTIONS = [
   { value: "critical", label: "Critical", color: "bg-red-100 text-red-700", dotColor: "bg-red-500" },
 ];
 
-const FILTER_STATUS_OPTIONS = [
-  { value: "all", label: "All Statuses" },
-  ...TASK_STATUS_OPTIONS,
-];
-
 const FILTER_PRIORITY_OPTIONS = [
   { value: "all", label: "All Priorities" },
   ...TASK_PRIORITY_OPTIONS,
 ];
 
-function getStatusIcon(status: string) {
-  const option = TASK_STATUS_OPTIONS.find((opt) => opt.value === status);
-  return option?.icon || CircleIcon;
-}
+const PRIORITY_RANK: Record<string, number> = {
+  critical: 0,
+  high: 1,
+  medium: 2,
+  low: 3,
+};
 
-function getStatusColor(status: string) {
-  const option = TASK_STATUS_OPTIONS.find((opt) => opt.value === status);
-  return option?.color || "bg-slate-100 text-slate-700";
-}
+const STATUS_COLUMNS = [
+  { key: "pending", label: "Queued", description: "Ready to start", tone: "text-slate-600" },
+  { key: "in_progress", label: "In Progress", description: "Work underway", tone: "text-blue-600" },
+  { key: "blocked", label: "Blocked", description: "Needs resolution", tone: "text-red-600" },
+  { key: "completed", label: "Completed", description: "Closed out", tone: "text-green-600" },
+] as const;
 
 function getPriorityColor(priority: string) {
   const option = TASK_PRIORITY_OPTIONS.find((opt) => opt.value === priority);
@@ -136,9 +136,9 @@ export function TasksClient() {
   const [mutationError, setMutationError] = useState<string | null>(null);
 
   // Filter states
-  const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [showCompleted, setShowCompleted] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -236,10 +236,12 @@ export function TasksClient() {
     }
   };
 
+  const visibleTasks = tasks.filter((task) => task.source !== "auto-evidence");
+
   // Filter tasks
-  const filteredTasks = tasks.filter((task) => {
-    if (statusFilter !== "all" && task.status !== statusFilter) return false;
+  const filteredTasks = visibleTasks.filter((task) => {
     if (priorityFilter !== "all" && task.priority !== priorityFilter) return false;
+    if (!showCompleted && task.status === "completed") return false;
     if (searchQuery && !task.title.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     return true;
   });
@@ -252,12 +254,21 @@ export function TasksClient() {
     completed: filteredTasks.filter((t) => t.status === "completed"),
   };
 
+  const focusTasks = [...filteredTasks]
+    .filter((task) => task.status !== "completed")
+    .sort((a, b) => {
+      const priorityDiff = (PRIORITY_RANK[a.priority] ?? 2) - (PRIORITY_RANK[b.priority] ?? 2);
+      if (priorityDiff !== 0) return priorityDiff;
+      return a.title.localeCompare(b.title);
+    })
+    .slice(0, 5);
+
   // Summary stats
   const stats = {
-    total: tasks.length,
-    completed: tasks.filter((t) => t.status === "completed").length,
-    inProgress: tasks.filter((t) => t.status === "in_progress").length,
-    blocked: tasks.filter((t) => t.status === "blocked").length,
+    total: visibleTasks.length,
+    completed: visibleTasks.filter((t) => t.status === "completed").length,
+    inProgress: visibleTasks.filter((t) => t.status === "in_progress").length,
+    blocked: visibleTasks.filter((t) => t.status === "blocked").length,
   };
 
   if (isLoading) {
@@ -383,21 +394,6 @@ export function TasksClient() {
               />
             </div>
             <div className="flex items-center gap-2">
-              <Label className="text-xs text-slate-500">Status</Label>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[150px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {FILTER_STATUS_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex items-center gap-2">
               <Label className="text-xs text-slate-500">Priority</Label>
               <Select value={priorityFilter} onValueChange={setPriorityFilter}>
                 <SelectTrigger className="w-[150px]">
@@ -412,129 +408,159 @@ export function TasksClient() {
                 </SelectContent>
               </Select>
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 border-slate-200 text-xs text-slate-600"
+              onClick={() => setShowCompleted((prev) => !prev)}
+            >
+              {showCompleted ? "Hide completed" : "Show completed"}
+            </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Task List */}
+      {mutationError && (
+        <div className="flex items-center justify-between gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+          <span>{mutationError}</span>
+          <button
+            onClick={() => setMutationError(null)}
+            className="text-red-600 hover:text-red-800"
+            aria-label="Dismiss error"
+          >
+            &times;
+          </button>
+        </div>
+      )}
+
       <Card className="border border-slate-200">
         <CardHeader>
-          <CardTitle>Project Tasks</CardTitle>
+          <CardTitle>Action Focus</CardTitle>
           <CardDescription>
-            Manage tasks across the authorization pack. {filteredTasks.length} of {tasks.length} tasks shown.
+            Highest priority items across the pack. {filteredTasks.length} tasks match your filters.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
-          {mutationError && (
-            <div className="flex items-center justify-between gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-              <span>{mutationError}</span>
-              <button
-                onClick={() => setMutationError(null)}
-                className="text-red-600 hover:text-red-800"
-                aria-label="Dismiss error"
-              >
-                &times;
-              </button>
-            </div>
-          )}
-          {filteredTasks.length === 0 ? (
-            <div className="py-8 text-center text-slate-400">
-              {tasks.length === 0 ? "No tasks created yet." : "No tasks match your filters."}
-            </div>
-          ) : (
-            filteredTasks.map((task) => {
-              const StatusIcon = getStatusIcon(task.status);
-              return (
-                <div
-                  key={task.id}
-                  className="rounded-xl border border-slate-100 p-4 transition-all hover:border-slate-200 hover:shadow-sm"
-                >
-                  <div className="flex flex-wrap items-start justify-between gap-4">
-                    <div className="flex items-start gap-3">
-                      <div
-                        className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ${getStatusColor(
-                          task.status
-                        )}`}
-                      >
-                        <StatusIcon className="h-4 w-4" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-slate-900">{task.title}</p>
-                        {task.description && (
-                          <p className="mt-0.5 text-sm text-slate-500">{task.description}</p>
-                        )}
-                        <div className="mt-2 flex flex-wrap items-center gap-2">
-                          {task.section_title && (
-                            <Badge variant="outline" className="text-xs">
-                              {task.section_title}
-                            </Badge>
-                          )}
-                          {task.source && (
-                            <Badge variant="outline" className="text-xs text-slate-400">
-                              {task.source}
-                            </Badge>
-                          )}
-                          {task.due_date && (
-                            <span className="text-xs text-slate-400">
-                              Due: {new Date(task.due_date).toLocaleDateString()}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <span className={`h-2 w-2 rounded-full ${getPriorityDot(task.priority)}`} />
-                      <span className="text-xs text-slate-500 capitalize">{task.priority}</span>
-                    </div>
-                  </div>
-
-                  {/* Status and Priority Dropdowns */}
-                  <div className="mt-4 grid gap-3 md:grid-cols-2">
-                    <div>
-                      <Label className="text-xs text-slate-500">Status</Label>
-                      <Select value={task.status} onValueChange={(value) => handleStatusChange(task.id, value)}>
-                        <SelectTrigger className="mt-1">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {TASK_STATUS_OPTIONS.map((opt) => (
-                            <SelectItem key={opt.value} value={opt.value}>
-                              <span
-                                className={`inline-flex items-center gap-1.5 rounded px-2 py-0.5 text-xs ${opt.color}`}
-                              >
-                                <opt.icon className="h-3 w-3" />
-                                {opt.label}
-                              </span>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label className="text-xs text-slate-500">Priority</Label>
-                      <Select value={task.priority} onValueChange={(value) => handlePriorityChange(task.id, value)}>
-                        <SelectTrigger className="mt-1">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {TASK_PRIORITY_OPTIONS.map((opt) => (
-                            <SelectItem key={opt.value} value={opt.value}>
-                              <span className={`inline-flex items-center gap-1.5 rounded px-2 py-0.5 text-xs ${opt.color}`}>
-                                <span className={`h-2 w-2 rounded-full ${opt.dotColor}`} />
-                                {opt.label}
-                              </span>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+          {focusTasks.length ? (
+            focusTasks.map((task) => (
+              <div key={task.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-100 bg-white px-3 py-2">
+                <div className="flex items-center gap-2">
+                  <span className={`h-2 w-2 rounded-full ${getPriorityDot(task.priority)}`} />
+                  <div>
+                    <p className="text-sm font-medium text-slate-900">{task.title}</p>
+                    <p className="text-xs text-slate-500">{task.section_title ?? "General"}</p>
                   </div>
                 </div>
-              );
-            })
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge className={getPriorityColor(task.priority)}>{task.priority}</Badge>
+                  <Badge variant="outline" className="text-xs">
+                    {task.status.replace(/_/g, " ")}
+                  </Badge>
+                  {task.sectionInstanceId && pack ? (
+                    <Button size="sm" variant="outline" asChild>
+                      <Link href={`/authorization-pack/sections/${task.sectionInstanceId}?packId=${pack.id}`}>
+                        Open section
+                      </Link>
+                    </Button>
+                  ) : null}
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="py-6 text-center text-sm text-slate-400">
+              {visibleTasks.length === 0 ? "No tasks created yet." : "No tasks match your filters."}
+            </div>
           )}
         </CardContent>
       </Card>
+
+      <div className="grid gap-4 xl:grid-cols-4">
+        {STATUS_COLUMNS.filter((col) => showCompleted || col.key !== "completed").map((column) => {
+          const columnTasks = tasksByStatus[column.key] || [];
+          return (
+            <Card key={column.key} className="border border-slate-200">
+              <CardHeader className="pb-3">
+                <CardTitle className={`text-base ${column.tone}`}>{column.label}</CardTitle>
+                <CardDescription>
+                  {column.description} ({columnTasks.length})
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {columnTasks.length ? (
+                  columnTasks.map((task) => (
+                    <div key={task.id} className="rounded-lg border border-slate-200 bg-white p-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-semibold text-slate-900">{task.title}</p>
+                          {task.description && (
+                            <p className="mt-1 text-xs text-slate-500">{task.description}</p>
+                          )}
+                        </div>
+                        <Badge className={getPriorityColor(task.priority)}>{task.priority}</Badge>
+                      </div>
+                      <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                        {task.section_title && (
+                          <Badge variant="outline" className="text-[11px]">
+                            {task.section_title}
+                          </Badge>
+                        )}
+                        {task.due_date && (
+                          <span>Due {new Date(task.due_date).toLocaleDateString()}</span>
+                        )}
+                      </div>
+                      <div className="mt-3 grid gap-2">
+                        <div className="grid gap-2 sm:grid-cols-2">
+                          <Select value={task.status} onValueChange={(value) => handleStatusChange(task.id, value)}>
+                            <SelectTrigger className="h-8">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {TASK_STATUS_OPTIONS.map((opt) => (
+                                <SelectItem key={opt.value} value={opt.value}>
+                                  <span className={`inline-flex items-center gap-1.5 rounded px-2 py-0.5 text-xs ${opt.color}`}>
+                                    <opt.icon className="h-3 w-3" />
+                                    {opt.label}
+                                  </span>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <Select value={task.priority} onValueChange={(value) => handlePriorityChange(task.id, value)}>
+                            <SelectTrigger className="h-8">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {TASK_PRIORITY_OPTIONS.map((opt) => (
+                                <SelectItem key={opt.value} value={opt.value}>
+                                  <span className={`inline-flex items-center gap-1.5 rounded px-2 py-0.5 text-xs ${opt.color}`}>
+                                    <span className={`h-2 w-2 rounded-full ${opt.dotColor}`} />
+                                    {opt.label}
+                                  </span>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        {task.sectionInstanceId && pack ? (
+                          <Button size="sm" variant="outline" asChild>
+                            <Link href={`/authorization-pack/sections/${task.sectionInstanceId}?packId=${pack.id}`}>
+                              Open section
+                            </Link>
+                          </Button>
+                        ) : null}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="rounded-lg border border-dashed border-slate-200 px-3 py-6 text-center text-xs text-slate-400">
+                    No tasks in this column.
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
     </div>
   );
 }

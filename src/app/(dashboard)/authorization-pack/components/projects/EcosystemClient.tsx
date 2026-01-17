@@ -139,7 +139,7 @@ export function EcosystemClient() {
             </div>
             {project.packId ? (
               <Button asChild className="bg-teal-600 hover:bg-teal-700">
-                <Link href={`/authorization-pack/sections?packId=${project.packId}`}>Open workspace sections</Link>
+                <Link href={`/authorization-pack/workspace?packId=${project.packId}`}>Open workspace</Link>
               </Button>
             ) : null}
           </div>

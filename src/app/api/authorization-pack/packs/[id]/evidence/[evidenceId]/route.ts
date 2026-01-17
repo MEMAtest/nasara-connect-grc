@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import path from "path";
 import { promises as fs } from "fs";
-import { isValidUUID } from "@/lib/auth-utils";
+import { isValidUUID, requireAuth } from "@/lib/auth-utils";
 import { getEvidenceItem, getPack, updateEvidenceStatus } from "@/lib/authorization-pack-db";
 
 const storageRoot = path.resolve(process.cwd(), "storage", "authorization-pack");
@@ -11,6 +11,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string; evidenceId: string }> }
 ) {
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
+
     const { id, evidenceId } = await params;
 
     if (!isValidUUID(id)) {
@@ -23,6 +26,9 @@ export async function GET(
     const pack = await getPack(id);
     if (!pack) {
       return NextResponse.json({ error: "Pack not found" }, { status: 404 });
+    }
+    if (pack.organization_id !== auth.organizationId) {
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
     const evidence = await getEvidenceItem({ packId: id, evidenceId });
@@ -68,6 +74,9 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string; evidenceId: string }> }
 ) {
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
+
     const { id, evidenceId } = await params;
 
     if (!isValidUUID(id)) {
@@ -75,6 +84,14 @@ export async function PATCH(
     }
     if (!isValidUUID(evidenceId)) {
       return NextResponse.json({ error: "Invalid evidence ID format" }, { status: 400 });
+    }
+
+    const pack = await getPack(id);
+    if (!pack) {
+      return NextResponse.json({ error: "Pack not found" }, { status: 404 });
+    }
+    if (pack.organization_id !== auth.organizationId) {
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
     const body = await request.json();

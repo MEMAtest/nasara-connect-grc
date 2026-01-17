@@ -250,6 +250,7 @@ export function PermissionSelectorClient() {
   const [companySearchError, setCompanySearchError] = useState<string | null>(null);
   const [isCompanySearching, setIsCompanySearching] = useState(false);
   const [isCompanyLookup, setIsCompanyLookup] = useState(false);
+  const [showEcosystemDetails, setShowEcosystemDetails] = useState(false);
 
   const selected = useMemo(
     () => ecosystems.find((item) => item.permission_code === data.permissionType) || null,
@@ -273,16 +274,40 @@ export function PermissionSelectorClient() {
   );
 
   const loadEcosystems = async () => {
-    setIsLoading(true);
     setLoadError(null);
+    let hadCache = false;
+    if (typeof window !== "undefined") {
+      const cached = window.sessionStorage.getItem("permissionEcosystems");
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed)) {
+            setEcosystems(parsed);
+            hadCache = true;
+            setIsLoading(false);
+          }
+        } catch {
+          window.sessionStorage.removeItem("permissionEcosystems");
+        }
+      }
+    }
+    if (!hadCache) {
+      setIsLoading(true);
+    }
     try {
       const response = await fetchWithTimeout("/api/authorization-pack/ecosystems").catch(() => null);
       if (!response || !response.ok) {
-        setLoadError("Unable to load permission ecosystems. Please try again.");
+        if (!hadCache) {
+          setLoadError("Unable to load permission ecosystems. Please try again.");
+        }
         return;
       }
       const ecosystemData = await response.json();
-      setEcosystems(ecosystemData.ecosystems || []);
+      const nextEcosystems = ecosystemData.ecosystems || [];
+      setEcosystems(nextEcosystems);
+      if (typeof window !== "undefined") {
+        window.sessionStorage.setItem("permissionEcosystems", JSON.stringify(nextEcosystems));
+      }
     } finally {
       setIsLoading(false);
     }
@@ -301,6 +326,10 @@ export function PermissionSelectorClient() {
       }));
     }
   }, [data.permissionType, data.projectName, selected]);
+
+  useEffect(() => {
+    setShowEcosystemDetails(false);
+  }, [data.permissionType]);
 
   // Companies House name search (debounced)
   useEffect(() => {
@@ -497,7 +526,8 @@ export function PermissionSelectorClient() {
         }
       } else {
         const errorData = await response.json().catch(() => ({}));
-        setLoadError(errorData.error || "Unable to create project. Please try again.");
+        const detail = errorData.details ? ` (${errorData.details})` : "";
+        setLoadError((errorData.error || "Unable to create project. Please try again.") + detail);
       }
     } finally {
       setIsSubmitting(false);
@@ -581,32 +611,49 @@ export function PermissionSelectorClient() {
                 <p className="text-xs text-teal-600">Required modules</p>
               </div>
             </div>
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-teal-500">
-                  Policies ({policyItems.length})
-                </p>
-                {renderIntegrationList(policyItems, "Policies to be confirmed after assessment.")}
-              </div>
-              <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-teal-500">
-                  Training ({trainingItems.length})
-                </p>
-                {renderIntegrationList(trainingItems, "Training plan to be finalised once roles are assigned.")}
-              </div>
-              <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-teal-500">
-                  Key Persons / PSD Roles ({smcrItems.length})
-                </p>
-                {renderIntegrationList(smcrItems, "Role holders to be confirmed.")}
-              </div>
-              <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-teal-500">
-                  Registers & Trackers ({registerItems.length})
-                </p>
-                {renderIntegrationList(registerItems, "Registers will populate once the pack is created.")}
-              </div>
+            <div className="flex items-center justify-between">
+              <p className="text-xs uppercase tracking-[0.2em] text-teal-500">Ecosystem details</p>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="text-xs text-teal-700 hover:text-teal-900"
+                onClick={() => setShowEcosystemDetails((prev) => !prev)}
+              >
+                {showEcosystemDetails ? "Hide details" : "View details"}
+              </Button>
             </div>
+            {showEcosystemDetails ? (
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.2em] text-teal-500">
+                    Policies ({policyItems.length})
+                  </p>
+                  {renderIntegrationList(policyItems, "Policies to be confirmed after assessment.")}
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-[0.2em] text-teal-500">
+                    Training ({trainingItems.length})
+                  </p>
+                  {renderIntegrationList(trainingItems, "Training plan to be finalised once roles are assigned.")}
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-[0.2em] text-teal-500">
+                    Key Persons / PSD Roles ({smcrItems.length})
+                  </p>
+                  {renderIntegrationList(smcrItems, "Role holders to be confirmed.")}
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-[0.2em] text-teal-500">
+                    Registers & Trackers ({registerItems.length})
+                  </p>
+                  {renderIntegrationList(registerItems, "Registers will populate once the pack is created.")}
+                </div>
+              </div>
+            ) : (
+              <div className="text-xs text-teal-600">
+                Details load on demand to keep setup fast.
+              </div>
+            )}
             {selected.typical_timeline_weeks && (
               <div className="rounded-md border border-teal-100 bg-white px-3 py-2 text-xs text-teal-700">
                 Typical timeline: {selected.typical_timeline_weeks} weeks

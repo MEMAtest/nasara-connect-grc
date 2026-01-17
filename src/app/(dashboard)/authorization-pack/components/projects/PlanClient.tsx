@@ -133,6 +133,12 @@ const defaultPhaseConfig = {
   dot: "bg-slate-500",
 };
 
+const PHASE_LABELS: Record<string, string> = {
+  "Policies & Evidence": "Policies & Controls",
+};
+
+const getPhaseLabel = (phase: string) => PHASE_LABELS[phase] || phase;
+
 // ============================================================================
 // HELPER FUNCTIONS
 // ============================================================================
@@ -239,7 +245,7 @@ function MilestoneTooltip({
     >
       <div className="mb-2 flex items-center gap-2">
         <div className={`h-3 w-3 rounded-full ${config.dot}`} />
-        <span className={`text-sm font-semibold ${config.text}`}>{milestone.phase}</span>
+        <span className={`text-sm font-semibold ${config.text}`}>{getPhaseLabel(milestone.phase)}</span>
       </div>
       <p className="mb-1 font-medium text-slate-900">{milestone.title}</p>
       <p className="mb-2 text-xs text-slate-500">{milestone.description}</p>
@@ -312,7 +318,7 @@ function MilestoneListView({
             <CardHeader className={`py-3 ${config.bg}`}>
               <div className="flex items-center gap-2">
                 <div className={`h-3 w-3 rounded-full ${config.dot}`} />
-                <CardTitle className={`text-sm ${config.text}`}>{phase}</CardTitle>
+                <CardTitle className={`text-sm ${config.text}`}>{getPhaseLabel(phase)}</CardTitle>
                 <Badge variant="outline" className="ml-auto text-xs">
                   {items.length} milestone{items.length !== 1 ? "s" : ""}
                 </Badge>
@@ -815,7 +821,7 @@ export function PlanClient() {
             </Button>
             {project.packId && (
               <Button asChild size="sm" className="bg-teal-600 hover:bg-teal-700">
-                <Link href={`/authorization-pack/sections?packId=${project.packId}`}>Open workspace</Link>
+                <Link href={`/authorization-pack/workspace?packId=${project.packId}`}>Open workspace</Link>
               </Button>
             )}
           </div>
@@ -894,7 +900,7 @@ export function PlanClient() {
                         >
                           <div className="flex items-center gap-2">
                             <div className={`h-3 w-3 rounded-full ${config.dot}`} />
-                            <span className={`text-sm font-semibold ${config.text}`}>{phase}</span>
+                            <span className={`text-sm font-semibold ${config.text}`}>{getPhaseLabel(phase)}</span>
                           </div>
                           <div className="mt-1 text-xs text-slate-500">
                             {items.length} milestone{items.length !== 1 ? "s" : ""}
@@ -959,7 +965,7 @@ export function PlanClient() {
                                 <div
                                   role="button"
                                   tabIndex={0}
-                                  aria-label={`${milestone.title}: ${milestone.phase}, Week ${milestone.startWeek} to ${milestone.endWeek}, Status: ${milestone.status.replace(/-/g, " ")}`}
+                                  aria-label={`${milestone.title}: ${getPhaseLabel(milestone.phase)}, Week ${milestone.startWeek} to ${milestone.endWeek}, Status: ${milestone.status.replace(/-/g, " ")}`}
                                   onKeyDown={(e) => {
                                     if (e.key === "Enter" || e.key === " ") {
                                       e.preventDefault();
@@ -1049,7 +1055,7 @@ export function PlanClient() {
                     return (
                       <div key={phase} className="flex items-center gap-1">
                         <div className={`h-2.5 w-2.5 rounded-full ${config.dot}`} />
-                        <span className="text-[10px] text-slate-500">{phase.split(" ")[0]}</span>
+                        <span className="text-[10px] text-slate-500">{getPhaseLabel(phase).split(" ")[0]}</span>
                       </div>
                     );
                   })}
@@ -1074,7 +1080,7 @@ export function PlanClient() {
                 <div key={phase}>
                   <div className="mb-3 flex items-center gap-2">
                     <div className={`h-3 w-3 rounded-full ${config.dot}`} />
-                    <h3 className={`text-sm font-semibold ${config.text}`}>{phase}</h3>
+                    <h3 className={`text-sm font-semibold ${config.text}`}>{getPhaseLabel(phase)}</h3>
                   </div>
                   <div className="space-y-2 pl-5">
                     {items.map((milestone) => (

@@ -17,39 +17,69 @@ import {
   PEP_STATUSES,
   APPROVAL_STATUSES,
 } from "@/lib/validation";
+import {
+  authenticateRequest,
+  checkRateLimit,
+  rateLimitExceededResponse,
+  badRequestResponse,
+  serverErrorResponse,
+} from "@/lib/api-auth";
+import { logError } from "@/lib/logger";
 
 // GET /api/registers/pep - List all PEP records
 export async function GET(request: NextRequest) {
   try {
+    // Rate limiting
+    const clientIp = request.headers.get("x-forwarded-for") || "anonymous";
+    const rateLimit = checkRateLimit(`pep-get-${clientIp}`);
+    if (!rateLimit.allowed) {
+      return rateLimitExceededResponse(rateLimit.resetIn);
+    }
+
+    // Authentication
+    const authResult = await authenticateRequest(request);
+    if (!authResult.authenticated || !authResult.user) {
+      return authResult.error!;
+    }
+
     await initDatabase();
 
     const { searchParams } = new URL(request.url);
-    const organizationId = searchParams.get("organizationId") || "default-org";
     const packId = searchParams.get("packId") || undefined;
 
     // Validate packId if provided
     if (packId && !isValidUUID(packId)) {
-      return NextResponse.json(
-        { error: "Invalid pack ID format" },
-        { status: 400 }
-      );
+      return badRequestResponse("Invalid pack ID format");
     }
 
-    const records = await getPEPRecords(organizationId, packId);
+    const records = await getPEPRecords(authResult.user.organizationId, packId);
 
     return NextResponse.json({ records });
   } catch (error) {
-    console.error("Error fetching PEP records:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch PEP records" },
-      { status: 500 }
-    );
+    logError(error as Error, "Error fetching PEP records");
+    return serverErrorResponse("Failed to fetch PEP records");
   }
 }
 
 // POST /api/registers/pep - Create a new PEP record
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting
+    const clientIp = request.headers.get("x-forwarded-for") || "anonymous";
+    const rateLimit = checkRateLimit(`pep-post-${clientIp}`, {
+      windowMs: 60000,
+      maxRequests: 30,
+    });
+    if (!rateLimit.allowed) {
+      return rateLimitExceededResponse(rateLimit.resetIn);
+    }
+
+    // Authentication
+    const authResult = await authenticateRequest(request);
+    if (!authResult.authenticated || !authResult.user) {
+      return authResult.error!;
+    }
+
     await initDatabase();
 
     const body = await request.json();
@@ -57,59 +87,38 @@ export async function POST(request: NextRequest) {
     // Validate required fields
     const fullName = sanitizeString(body.full_name);
     if (!fullName) {
-      return NextResponse.json(
-        { error: "Full name is required" },
-        { status: 400 }
-      );
+      return badRequestResponse("Full name is required");
     }
 
     // Validate pack_id if provided
     if (body.pack_id && !isValidUUID(body.pack_id)) {
-      return NextResponse.json(
-        { error: "Invalid pack ID format" },
-        { status: 400 }
-      );
+      return badRequestResponse("Invalid pack ID format");
     }
 
     // Validate enum fields
     const pepType = body.pep_type || "customer";
     if (!isValidEnum(pepType, PEP_TYPES)) {
-      return NextResponse.json(
-        { error: `Invalid PEP type. Must be one of: ${PEP_TYPES.join(", ")}` },
-        { status: 400 }
-      );
+      return badRequestResponse(`Invalid PEP type. Must be one of: ${PEP_TYPES.join(", ")}`);
     }
 
     const pepCategory = body.pep_category || "pep";
     if (!isValidEnum(pepCategory, PEP_CATEGORIES)) {
-      return NextResponse.json(
-        { error: `Invalid PEP category. Must be one of: ${PEP_CATEGORIES.join(", ")}` },
-        { status: 400 }
-      );
+      return badRequestResponse(`Invalid PEP category. Must be one of: ${PEP_CATEGORIES.join(", ")}`);
     }
 
     const riskRating = body.risk_rating || "high";
     if (!isValidEnum(riskRating, RISK_RATINGS)) {
-      return NextResponse.json(
-        { error: `Invalid risk rating. Must be one of: ${RISK_RATINGS.join(", ")}` },
-        { status: 400 }
-      );
+      return badRequestResponse(`Invalid risk rating. Must be one of: ${RISK_RATINGS.join(", ")}`);
     }
 
     const status = body.status || "active";
     if (!isValidEnum(status, PEP_STATUSES)) {
-      return NextResponse.json(
-        { error: `Invalid status. Must be one of: ${PEP_STATUSES.join(", ")}` },
-        { status: 400 }
-      );
+      return badRequestResponse(`Invalid status. Must be one of: ${PEP_STATUSES.join(", ")}`);
     }
 
     const approvalStatus = body.approval_status || "pending";
     if (!isValidEnum(approvalStatus, APPROVAL_STATUSES)) {
-      return NextResponse.json(
-        { error: `Invalid approval status. Must be one of: ${APPROVAL_STATUSES.join(", ")}` },
-        { status: 400 }
-      );
+      return badRequestResponse(`Invalid approval status. Must be one of: ${APPROVAL_STATUSES.join(", ")}`);
     }
 
     // Parse and validate dates
@@ -121,7 +130,7 @@ export async function POST(request: NextRequest) {
     const approvedAt = parseValidDate(body.approved_at);
 
     const recordData: Omit<PEPRecord, "id" | "created_at" | "updated_at"> = {
-      organization_id: body.organization_id || "default-org",
+      organization_id: authResult.user.organizationId,
       pack_id: body.pack_id,
       pep_type: pepType,
       full_name: fullName,
@@ -150,10 +159,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ record }, { status: 201 });
   } catch (error) {
-    console.error("Error creating PEP record:", error);
-    return NextResponse.json(
-      { error: "Failed to create PEP record" },
-      { status: 500 }
-    );
+    logError(error as Error, "Error creating PEP record");
+    return serverErrorResponse("Failed to create PEP record");
   }
 }

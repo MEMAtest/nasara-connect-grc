@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -73,7 +74,6 @@ interface PackRow {
 interface ReadinessSummary {
   overall: number;
   narrative: number;
-  evidence: number;
   review: number;
 }
 
@@ -98,25 +98,22 @@ const REVIEW_STATE_OPTIONS = [
   { value: "approved", label: "Approved", color: "bg-green-100 text-green-700", icon: CheckCircleIcon },
 ];
 
-const FILTER_STATE_OPTIONS = [
-  { value: "all", label: "All States" },
-  ...REVIEW_STATE_OPTIONS,
-];
-
 const REVIEWER_ROLE_OPTIONS = [
   { value: "all", label: "All Roles" },
   { value: "client", label: "Client Review" },
   { value: "consultant", label: "Consultant Review" },
 ];
 
+const REVIEW_COLUMNS = [
+  { key: "pending", label: "Pending", description: "Awaiting review", tone: "text-slate-600" },
+  { key: "in-review", label: "In Review", description: "Currently being reviewed", tone: "text-blue-600" },
+  { key: "changes_requested", label: "Changes", description: "Updates required", tone: "text-orange-600" },
+  { key: "approved", label: "Approved", description: "Ready to sign off", tone: "text-green-600" },
+] as const;
+
 function getStateColor(state: string) {
   const option = REVIEW_STATE_OPTIONS.find((opt) => opt.value === state);
   return option?.color || "bg-slate-100 text-slate-700";
-}
-
-function getStateIcon(state: string) {
-  const option = REVIEW_STATE_OPTIONS.find((opt) => opt.value === state);
-  return option?.icon || ClockIcon;
 }
 
 export function ReviewClient() {
@@ -131,7 +128,6 @@ export function ReviewClient() {
   const [loadError, setLoadError] = useState<string | null>(null);
 
   // Filter states
-  const [stateFilter, setStateFilter] = useState("all");
   const [roleFilter, setRoleFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -213,11 +209,25 @@ export function ReviewClient() {
 
   // Filter review items
   const filteredReview = review.filter((item) => {
-    if (stateFilter !== "all" && item.state !== stateFilter) return false;
     if (roleFilter !== "all" && item.reviewer_role !== roleFilter) return false;
     if (searchQuery && !item.section_title.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     return true;
   });
+
+  const reviewByState = useMemo(() => {
+    return {
+      pending: filteredReview.filter((item) => item.state === "pending"),
+      "in-review": filteredReview.filter((item) => item.state === "in-review"),
+      changes_requested: filteredReview.filter((item) => item.state === "changes_requested"),
+      approved: filteredReview.filter((item) => item.state === "approved"),
+    };
+  }, [filteredReview]);
+
+  const attentionQueue = useMemo(() => {
+    return filteredReview
+      .filter((item) => ["pending", "changes_requested"].includes(item.state))
+      .slice(0, 6);
+  }, [filteredReview]);
 
   // Summary stats
   const stats = useMemo(() => {
@@ -346,26 +356,11 @@ export function ReviewClient() {
             </div>
             <div className="flex-1">
               <Input
-                placeholder="Search sections..."
+                placeholder="Search review items..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="max-w-xs"
               />
-            </div>
-            <div className="flex items-center gap-2">
-              <Label className="text-xs text-slate-500">State</Label>
-              <Select value={stateFilter} onValueChange={setStateFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {FILTER_STATE_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
             <div className="flex items-center gap-2">
               <Label className="text-xs text-slate-500">Role</Label>
@@ -399,148 +394,184 @@ export function ReviewClient() {
         </div>
       )}
 
-      {/* Review Queue */}
       <Card className="border border-slate-200">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <EyeIcon className="h-5 w-5 text-teal-600" />
-            Review Queue
-          </CardTitle>
+          <CardTitle>Review Focus</CardTitle>
           <CardDescription>
-            Manage client and consultant review flows across sections.{" "}
-            {filteredReview.length} of {review.length} items shown.
+            Items that need attention first. {filteredReview.length} of {review.length} items shown.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {filteredReview.length === 0 ? (
-            <div className="py-8 text-center text-slate-400">
-              {review.length === 0 ? "No review items available." : "No items match your filters."}
-            </div>
-          ) : (
-            filteredReview.map((gate) => {
-              const StateIcon = getStateIcon(gate.state);
-              return (
-                <div key={gate.id} className="rounded-xl border border-slate-100 p-4 transition-all hover:border-slate-200 hover:shadow-sm">
-                  <div className="flex flex-wrap items-start justify-between gap-4">
-                    <div className="flex items-start gap-3">
-                      <div
-                        className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg ${getStateColor(
-                          gate.state
-                        )}`}
-                      >
-                        <StateIcon className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-slate-900">{gate.section_title}</p>
-                        <div className="mt-1 flex flex-wrap items-center gap-2">
-                          <Badge variant="outline" className="text-xs">
-                            {gate.stage.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
-                          </Badge>
-                          <span className="flex items-center gap-1 text-xs text-slate-500">
-                            <UserIcon className="h-3 w-3" />
-                            {gate.reviewer_role === "client" ? "Client Review" : "Consultant Review"}
-                          </span>
-                          {gate.reviewed_at && (
-                            <span className="text-xs text-slate-400">
-                              Reviewed: {new Date(gate.reviewed_at).toLocaleDateString("en-GB")}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Status Dropdown */}
-                  <div className="mt-4">
-                    <Label className="text-xs text-slate-500">Review Status</Label>
-                    <Select
-                      value={gate.state}
-                      onValueChange={(value) => handleUpdate(gate.id, value)}
-                    >
-                      <SelectTrigger className="mt-1 w-[200px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {REVIEW_STATE_OPTIONS.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            <span
-                              className={`inline-flex items-center gap-1.5 rounded px-2 py-0.5 text-xs ${opt.color}`}
-                            >
-                              <opt.icon className="h-3 w-3" />
-                              {opt.label}
-                            </span>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Notes */}
-                  <div className="mt-4 grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label className="text-xs text-slate-500">Internal Notes (Consultant Only)</Label>
-                      <Textarea
-                        className="text-sm"
-                        rows={3}
-                        placeholder="Internal notes not visible to client..."
-                        value={notes[gate.id]?.notes ?? gate.notes ?? ""}
-                        onChange={(event) =>
-                          setNotes((prev) => ({
-                            ...prev,
-                            [gate.id]: {
-                              notes: event.target.value,
-                              clientNotes: prev[gate.id]?.clientNotes ?? gate.client_notes ?? "",
-                            },
-                          }))
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs text-slate-500">Client Notes (Visible to Client)</Label>
-                      <Textarea
-                        className="text-sm"
-                        rows={3}
-                        placeholder="Notes visible to the client..."
-                        value={notes[gate.id]?.clientNotes ?? gate.client_notes ?? ""}
-                        onChange={(event) =>
-                          setNotes((prev) => ({
-                            ...prev,
-                            [gate.id]: {
-                              notes: prev[gate.id]?.notes ?? gate.notes ?? "",
-                              clientNotes: event.target.value,
-                            },
-                          }))
-                        }
-                      />
-                    </div>
-                  </div>
-
-                  {/* Quick Action Buttons */}
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="text-orange-600 hover:bg-orange-50"
-                      onClick={() => handleUpdate(gate.id, "changes_requested")}
-                    >
-                      <ExclamationIcon className="mr-1.5 h-3 w-3" />
-                      Request Changes
-                    </Button>
-                    <Button
-                      size="sm"
-                      className="bg-green-600 hover:bg-green-700"
-                      onClick={() => handleUpdate(gate.id, "approved")}
-                    >
-                      <CheckCircleIcon className="mr-1.5 h-3 w-3" />
-                      Approve
-                    </Button>
+        <CardContent className="space-y-3">
+          {attentionQueue.length ? (
+            attentionQueue.map((gate) => (
+              <div key={gate.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-100 bg-white px-3 py-2">
+                <div className="flex items-center gap-2">
+                  <span className={`h-2 w-2 rounded-full ${gate.state === "changes_requested" ? "bg-orange-500" : "bg-slate-400"}`} />
+                  <div>
+                    <p className="text-sm font-medium text-slate-900">{gate.section_title}</p>
+                    <p className="text-xs text-slate-500">
+                      {gate.reviewer_role === "client" ? "Client review" : "Consultant review"} - {gate.stage.replace(/-/g, " ")}
+                    </p>
                   </div>
                 </div>
-              );
-            })
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge className={getStateColor(gate.state)}>{gate.state.replace(/[_-]/g, " ")}</Badge>
+                  {gate.section_instance_id && pack ? (
+                    <Button size="sm" variant="outline" asChild>
+                      <Link href={`/authorization-pack/sections/${gate.section_instance_id}?packId=${pack.id}`}>
+                        Open section
+                      </Link>
+                    </Button>
+                  ) : null}
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="py-6 text-center text-sm text-slate-400">
+              {review.length === 0 ? "No review items available." : "No items need attention right now."}
+            </div>
           )}
         </CardContent>
       </Card>
+
+      <div className="grid gap-4 xl:grid-cols-4">
+        {REVIEW_COLUMNS.map((column) => {
+          const columnItems = reviewByState[column.key] || [];
+          return (
+            <Card key={column.key} className="border border-slate-200">
+              <CardHeader className="pb-3">
+                <CardTitle className={`text-base ${column.tone}`}>{column.label}</CardTitle>
+                <CardDescription>
+                  {column.description} ({columnItems.length})
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {columnItems.length ? (
+                  columnItems.map((gate) => (
+                    <div key={gate.id} className="rounded-lg border border-slate-200 bg-white p-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-semibold text-slate-900">{gate.section_title}</p>
+                          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                            <Badge variant="outline" className="text-[10px]">
+                              {gate.stage.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                            </Badge>
+                            <span className="flex items-center gap-1">
+                              <UserIcon className="h-3 w-3" />
+                              {gate.reviewer_role === "client" ? "Client Review" : "Consultant Review"}
+                            </span>
+                          </div>
+                          {gate.reviewed_at && (
+                            <p className="mt-1 text-[11px] text-slate-400">
+                              Reviewed {new Date(gate.reviewed_at).toLocaleDateString("en-GB")}
+                            </p>
+                          )}
+                        </div>
+                        <Badge className={getStateColor(gate.state)}>{gate.state.replace(/[_-]/g, " ")}</Badge>
+                      </div>
+                      <div className="mt-3 flex flex-wrap items-center gap-2">
+                        {gate.section_instance_id && pack ? (
+                          <Button size="sm" variant="outline" asChild>
+                            <Link href={`/authorization-pack/sections/${gate.section_instance_id}?packId=${pack.id}`}>
+                              Open section
+                            </Link>
+                          </Button>
+                        ) : null}
+                      </div>
+                      <details className="mt-3">
+                        <summary className="cursor-pointer text-xs text-slate-500">Notes and actions</summary>
+                        <div className="mt-3 grid gap-3">
+                          <div className="space-y-2">
+                            <Label className="text-xs text-slate-500">Internal Notes (Consultant Only)</Label>
+                            <Textarea
+                              className="text-sm"
+                              rows={3}
+                              placeholder="Internal notes not visible to client..."
+                              value={notes[gate.id]?.notes ?? gate.notes ?? ""}
+                              onChange={(event) =>
+                                setNotes((prev) => ({
+                                  ...prev,
+                                  [gate.id]: {
+                                    notes: event.target.value,
+                                    clientNotes: prev[gate.id]?.clientNotes ?? gate.client_notes ?? "",
+                                  },
+                                }))
+                              }
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs text-slate-500">Client Notes (Visible to Client)</Label>
+                            <Textarea
+                              className="text-sm"
+                              rows={3}
+                              placeholder="Notes visible to the client..."
+                              value={notes[gate.id]?.clientNotes ?? gate.client_notes ?? ""}
+                              onChange={(event) =>
+                                setNotes((prev) => ({
+                                  ...prev,
+                                  [gate.id]: {
+                                    notes: prev[gate.id]?.notes ?? gate.notes ?? "",
+                                    clientNotes: event.target.value,
+                                  },
+                                }))
+                              }
+                            />
+                          </div>
+                        </div>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          <Select value={gate.state} onValueChange={(value) => handleUpdate(gate.id, value)}>
+                            <SelectTrigger className="h-8 w-[180px]">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {REVIEW_STATE_OPTIONS.map((opt) => (
+                                <SelectItem key={opt.value} value={opt.value}>
+                                  <span className={`inline-flex items-center gap-1.5 rounded px-2 py-0.5 text-xs ${opt.color}`}>
+                                    <opt.icon className="h-3 w-3" />
+                                    {opt.label}
+                                  </span>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <Button size="sm" variant="outline" onClick={() => handleUpdate(gate.id, gate.state)}>
+                            Save notes
+                          </Button>
+                          {gate.state !== "changes_requested" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-orange-600 hover:bg-orange-50"
+                              onClick={() => handleUpdate(gate.id, "changes_requested")}
+                            >
+                              <ExclamationIcon className="mr-1.5 h-3 w-3" />
+                              Request Changes
+                            </Button>
+                          )}
+                          {gate.state !== "approved" && (
+                            <Button
+                              size="sm"
+                              className="bg-green-600 hover:bg-green-700"
+                              onClick={() => handleUpdate(gate.id, "approved")}
+                            >
+                              <CheckCircleIcon className="mr-1.5 h-3 w-3" />
+                              Approve
+                            </Button>
+                          )}
+                        </div>
+                      </details>
+                    </div>
+                  ))
+                ) : (
+                  <div className="rounded-lg border border-dashed border-slate-200 px-3 py-6 text-center text-xs text-slate-400">
+                    No items in this column.
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
     </div>
   );
 }

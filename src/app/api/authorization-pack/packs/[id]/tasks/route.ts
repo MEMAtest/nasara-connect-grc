@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPack, listTasks, updateTaskStatus } from "@/lib/authorization-pack-db";
+import { getPack, listTasks, updateTaskPriority, updateTaskStatus } from "@/lib/authorization-pack-db";
 import { requireAuth, isValidUUID } from "@/lib/auth-utils";
 
 export async function GET(
@@ -37,6 +37,7 @@ export async function GET(
       owner_id: t.owner_id,
       due_date: t.due_date,
       section_title: t.section_title || null,
+      sectionInstanceId: t.section_instance_id || null,
       source: t.source,
     }));
 
@@ -75,22 +76,37 @@ export async function PATCH(
     const body = await request.json();
     const taskId = body.taskId as string | undefined;
     const status = body.status as string | undefined;
+    const priority = body.priority as string | undefined;
 
-    if (!taskId || !status) {
-      return NextResponse.json({ error: "taskId and status are required" }, { status: 400 });
+    if (!taskId || (!status && !priority)) {
+      return NextResponse.json({ error: "taskId and status or priority are required" }, { status: 400 });
     }
 
     if (!isValidUUID(taskId)) {
       return NextResponse.json({ error: "Invalid task ID format" }, { status: 400 });
     }
 
-    // Validate status value
-    const validStatuses = ["pending", "in_progress", "completed", "blocked"] as const;
-    if (!validStatuses.includes(status as typeof validStatuses[number])) {
-      return NextResponse.json({ error: "Invalid status value" }, { status: 400 });
+    if (status) {
+      const validStatuses = ["pending", "in_progress", "completed", "blocked"] as const;
+      if (!validStatuses.includes(status as typeof validStatuses[number])) {
+        return NextResponse.json({ error: "Invalid status value" }, { status: 400 });
+      }
     }
 
-    await updateTaskStatus(taskId, status as typeof validStatuses[number]);
+    if (priority) {
+      const validPriorities = ["low", "medium", "high", "critical"] as const;
+      if (!validPriorities.includes(priority as typeof validPriorities[number])) {
+        return NextResponse.json({ error: "Invalid priority value" }, { status: 400 });
+      }
+    }
+
+    if (status) {
+      await updateTaskStatus(taskId, status);
+    }
+    if (priority) {
+      await updateTaskPriority(taskId, priority);
+    }
+
     return NextResponse.json({ status: "ok" });
   } catch (error) {
     return NextResponse.json(

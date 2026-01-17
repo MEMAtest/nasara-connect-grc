@@ -15,38 +15,68 @@ import {
   RISK_RATINGS,
   REVIEW_FREQUENCIES,
 } from "@/lib/validation";
+import {
+  authenticateRequest,
+  checkRateLimit,
+  rateLimitExceededResponse,
+  badRequestResponse,
+  serverErrorResponse,
+} from "@/lib/api-auth";
+import { logError } from "@/lib/logger";
 
 // GET /api/registers/conflicts - List all COI records
 export async function GET(request: NextRequest) {
   try {
+    // Rate limiting
+    const clientIp = request.headers.get("x-forwarded-for") || "anonymous";
+    const rateLimit = checkRateLimit(`conflicts-get-${clientIp}`);
+    if (!rateLimit.allowed) {
+      return rateLimitExceededResponse(rateLimit.resetIn);
+    }
+
+    // Authentication
+    const authResult = await authenticateRequest(request);
+    if (!authResult.authenticated || !authResult.user) {
+      return authResult.error!;
+    }
+
     await initDatabase();
 
     const { searchParams } = new URL(request.url);
-    const organizationId = searchParams.get("organizationId") || "default-org";
     const packId = searchParams.get("packId") || undefined;
 
     if (packId && !isValidUUID(packId)) {
-      return NextResponse.json(
-        { error: "Invalid pack ID format" },
-        { status: 400 }
-      );
+      return badRequestResponse("Invalid pack ID format");
     }
 
-    const records = await getCOIRecords(organizationId, packId);
+    const records = await getCOIRecords(authResult.user.organizationId, packId);
 
     return NextResponse.json({ records });
   } catch (error) {
-    console.error("Error fetching COI records:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch COI records" },
-      { status: 500 }
-    );
+    logError(error as Error, "Error fetching COI records");
+    return serverErrorResponse("Failed to fetch COI records");
   }
 }
 
 // POST /api/registers/conflicts - Create a new COI record
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting
+    const clientIp = request.headers.get("x-forwarded-for") || "anonymous";
+    const rateLimit = checkRateLimit(`conflicts-post-${clientIp}`, {
+      windowMs: 60000,
+      maxRequests: 30,
+    });
+    if (!rateLimit.allowed) {
+      return rateLimitExceededResponse(rateLimit.resetIn);
+    }
+
+    // Authentication
+    const authResult = await authenticateRequest(request);
+    if (!authResult.authenticated || !authResult.user) {
+      return authResult.error!;
+    }
+
     await initDatabase();
 
     const body = await request.json();
@@ -54,59 +84,38 @@ export async function POST(request: NextRequest) {
     // Validate required fields
     const declarantName = sanitizeString(body.declarant_name);
     if (!declarantName) {
-      return NextResponse.json(
-        { error: "Declarant name is required" },
-        { status: 400 }
-      );
+      return badRequestResponse("Declarant name is required");
     }
 
     const description = sanitizeText(body.description);
     if (!description) {
-      return NextResponse.json(
-        { error: "Description is required" },
-        { status: 400 }
-      );
+      return badRequestResponse("Description is required");
     }
 
     // Validate pack_id if provided
     if (body.pack_id && !isValidUUID(body.pack_id)) {
-      return NextResponse.json(
-        { error: "Invalid pack ID format" },
-        { status: 400 }
-      );
+      return badRequestResponse("Invalid pack ID format");
     }
 
     // Validate enum fields
     const conflictType = body.conflict_type || "other";
     if (!isValidEnum(conflictType, CONFLICT_TYPES)) {
-      return NextResponse.json(
-        { error: `Invalid conflict type. Must be one of: ${CONFLICT_TYPES.join(", ")}` },
-        { status: 400 }
-      );
+      return badRequestResponse(`Invalid conflict type. Must be one of: ${CONFLICT_TYPES.join(", ")}`);
     }
 
     const riskRating = body.risk_rating || "medium";
     if (!isValidEnum(riskRating, RISK_RATINGS)) {
-      return NextResponse.json(
-        { error: `Invalid risk rating. Must be one of: ${RISK_RATINGS.join(", ")}` },
-        { status: 400 }
-      );
+      return badRequestResponse(`Invalid risk rating. Must be one of: ${RISK_RATINGS.join(", ")}`);
     }
 
     const status = body.status || "active";
     if (!isValidEnum(status, COI_STATUSES)) {
-      return NextResponse.json(
-        { error: `Invalid status. Must be one of: ${COI_STATUSES.join(", ")}` },
-        { status: 400 }
-      );
+      return badRequestResponse(`Invalid status. Must be one of: ${COI_STATUSES.join(", ")}`);
     }
 
     const reviewFrequency = body.review_frequency || "annual";
     if (!isValidEnum(reviewFrequency, REVIEW_FREQUENCIES)) {
-      return NextResponse.json(
-        { error: `Invalid review frequency. Must be one of: ${REVIEW_FREQUENCIES.join(", ")}` },
-        { status: 400 }
-      );
+      return badRequestResponse(`Invalid review frequency. Must be one of: ${REVIEW_FREQUENCIES.join(", ")}`);
     }
 
     // Parse dates
@@ -116,7 +125,7 @@ export async function POST(request: NextRequest) {
     const approvedAt = parseValidDate(body.approved_at);
 
     const recordData = {
-      organization_id: body.organization_id || "default-org",
+      organization_id: authResult.user.organizationId,
       pack_id: body.pack_id,
       declarant_name: declarantName,
       declarant_role: sanitizeString(body.declarant_role) || undefined,
@@ -141,10 +150,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ record }, { status: 201 });
   } catch (error) {
-    console.error("Error creating COI record:", error);
-    return NextResponse.json(
-      { error: "Failed to create COI record" },
-      { status: 500 }
-    );
+    logError(error as Error, "Error creating COI record");
+    return serverErrorResponse("Failed to create COI record");
   }
 }

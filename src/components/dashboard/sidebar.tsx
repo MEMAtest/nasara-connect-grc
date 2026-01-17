@@ -101,14 +101,14 @@ const navigationGroups: NavigationGroup[] = [
     defaultOpen: true,
     items: [
       {
-        label: "Compliance Framework",
+        label: "Framework Builder",
         icon: ClipboardList,
-        href: "/compliance-framework",
+        href: "/compliance-framework/builder",
       },
       {
-        label: "CMP Monitoring",
+        label: "Monitoring Workflows",
         icon: Globe,
-        href: "/compliance-framework/cmp",
+        href: "/compliance-framework/monitoring",
         badge: { text: "NEW", variant: "success" },
       },
       {
@@ -146,29 +146,10 @@ const navigationGroups: NavigationGroup[] = [
     defaultOpen: true,
     items: [
       {
-        label: "PEP Register",
-        icon: Users,
-        href: "/registers/pep",
-      },
-      {
-        label: "Third-Party Register",
-        icon: Building2,
-        href: "/registers/third-party",
-      },
-      {
-        label: "Incident Register",
-        icon: FileWarning,
-        href: "/registers/incidents",
-      },
-      {
-        label: "Conflicts of Interest",
-        icon: Scale,
-        href: "/registers/conflicts",
-      },
-      {
-        label: "Gifts & Hospitality",
-        icon: Gift,
-        href: "/registers/gifts-hospitality",
+        label: "Register Hub",
+        icon: FolderOpen,
+        href: "/registers",
+        badge: { text: "22+", variant: "info" },
       },
     ],
   },
@@ -233,13 +214,15 @@ const glowByPath: Record<string, string> = {
   "/risk-assessment": "shadow-[0_0_18px_rgba(244,63,94,0.45)]",
   "/smcr": "shadow-[0_0_18px_rgba(34,197,94,0.45)]",
   "/policies": "shadow-[0_0_18px_rgba(79,70,229,0.45)]",
-  "/compliance-framework": "shadow-[0_0_18px_rgba(99,102,241,0.45)]",
-  "/compliance-framework/cmp": "shadow-[0_0_18px_rgba(20,184,166,0.45)]",
+  "/compliance-framework/builder": "shadow-[0_0_18px_rgba(99,102,241,0.45)]",
+  "/compliance-framework/monitoring": "shadow-[0_0_18px_rgba(20,184,166,0.45)]",
   "/training-library": "shadow-[0_0_18px_rgba(249,115,22,0.45)]",
   "/regulatory-news": "shadow-[0_0_18px_rgba(244,63,94,0.45)]",
   "/payments": "shadow-[0_0_18px_rgba(34,197,94,0.45)]",
   "/ai-chat": "shadow-[0_0_18px_rgba(20,184,166,0.45)]",
-  // Register paths
+  // Register Hub
+  "/registers": "shadow-[0_0_18px_rgba(20,184,166,0.45)]",
+  // Individual register paths
   "/registers/pep": "shadow-[0_0_18px_rgba(168,85,247,0.45)]",
   "/registers/third-party": "shadow-[0_0_18px_rgba(59,130,246,0.45)]",
   "/registers/complaints": "shadow-[0_0_18px_rgba(234,179,8,0.45)]",

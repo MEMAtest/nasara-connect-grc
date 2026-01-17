@@ -15,7 +15,6 @@ import { CheckCircle2, Circle } from "lucide-react";
 interface ReadinessSummary {
   overall: number;
   narrative: number;
-  evidence: number;
   review: number;
 }
 
@@ -23,7 +22,6 @@ interface SectionSummary {
   id: string;
   title: string;
   narrativeCompletion: number;
-  evidenceCompletion: number;
   reviewCompletion: number;
 }
 
@@ -120,7 +118,7 @@ export function ProjectDashboardClient() {
       steps.push({ label: "Generate project plan", href: `/authorization-pack/${project.id}/plan` });
     }
     if (project.packId) {
-      steps.push({ label: "Open pack workspace", href: `/authorization-pack/sections?packId=${project.packId}` });
+      steps.push({ label: "Open pack workspace", href: `/authorization-pack/workspace?packId=${project.packId}` });
     }
     return steps.slice(0, 3);
   }, [project]);
@@ -153,9 +151,9 @@ export function ProjectDashboardClient() {
       {
         key: "workspace",
         label: "Build the pack narrative",
-        description: "Draft sections, attach evidence, and move into review.",
+        description: "Draft sections and move into review.",
         done: narrativeStarted,
-        href: project.packId ? `/authorization-pack/sections?packId=${project.packId}` : undefined,
+        href: project.packId ? `/authorization-pack/workspace?packId=${project.packId}` : undefined,
         disabled: !project.packId,
       },
     ];
@@ -194,7 +192,7 @@ export function ProjectDashboardClient() {
           <CardHeader>
             <CardTitle>Readiness snapshot</CardTitle>
             <CardDescription>
-              Track overall completion across narrative, evidence, and review gates.
+              Track overall completion across narrative and review gates.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -210,7 +208,6 @@ export function ProjectDashboardClient() {
             {readiness ? (
               <div className="flex flex-wrap gap-3 text-xs text-slate-500">
                 <span>Narrative {readiness.narrative}%</span>
-                <span>Evidence {readiness.evidence}%</span>
                 <span>Review {readiness.review}%</span>
               </div>
             ) : null}
@@ -299,7 +296,7 @@ export function ProjectDashboardClient() {
                 </Button>
               </div>
             </TooltipTrigger>
-            <TooltipContent>Templates your permission type must evidence in the submission pack.</TooltipContent>
+            <TooltipContent>Templates your permission type must include in the submission pack.</TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -335,7 +332,7 @@ export function ProjectDashboardClient() {
                 </Button>
               </div>
             </TooltipTrigger>
-            <TooltipContent>Live logs and trackers required for audit-ready evidence.</TooltipContent>
+            <TooltipContent>Live logs and trackers required for audit-ready operations.</TooltipContent>
           </Tooltip>
         </CardContent>
       </Card>

@@ -6,6 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   BookOpen,
   Play,
@@ -14,12 +18,17 @@ import {
   Award,
   TrendingUp,
   Users,
+  UserPlus,
   Brain,
+  Search,
   Zap,
   CheckCircle2,
   AlertCircle,
   Star,
   Trophy,
+  LayoutGrid,
+  List,
+  RotateCcw,
   Gamepad2,
   MessageSquare,
   Crown,
@@ -61,6 +70,17 @@ interface CertificateDownload {
   score?: number | null;
 }
 
+interface TrainingAssignment {
+  id: string;
+  module_id: string;
+  assigned_to: string;
+  assigned_by: string;
+  due_date?: string | null;
+  notes?: string | null;
+  status?: string | null;
+  created_at?: string | null;
+}
+
 const defaultProgress: UserProgress = {
   completed_pathways: 0,
   total_pathways: 6,
@@ -77,15 +97,63 @@ const defaultProgress: UserProgress = {
 export function TrainingLibraryClient() {
   const [selectedPersona, setSelectedPersona] = useState<string>("all");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
   const [userProgress, setUserProgress] = useState<UserProgress>(defaultProgress);
   const [moduleProgress, setModuleProgress] = useState<Record<string, ModuleProgress>>({});
   const [certificateDownloads, setCertificateDownloads] = useState<Record<string, CertificateDownload>>({});
+  const [assignments, setAssignments] = useState<TrainingAssignment[]>([]);
+  const [assignmentViewerEmail, setAssignmentViewerEmail] = useState<string | null>(null);
+  const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
+  const [assignmentModule, setAssignmentModule] = useState<{ id: string; title: string } | null>(null);
+  const [assignee, setAssignee] = useState("");
+  const [assignmentDueDate, setAssignmentDueDate] = useState("");
+  const [assignmentNotes, setAssignmentNotes] = useState("");
+  const [assignError, setAssignError] = useState<string | null>(null);
+  const [isAssigning, setIsAssigning] = useState(false);
+  const [selectedModuleIds, setSelectedModuleIds] = useState<string[]>([]);
+  const [isResetting, setIsResetting] = useState(false);
+  const [resetError, setResetError] = useState<string | null>(null);
 
   const pathways = learningPathways;
   const allModules = getAllTrainingModules();
-  const filteredModules = selectedPersona === "all"
-    ? allModules
-    : allModules.filter((module) => Array.isArray(module.targetPersonas) && module.targetPersonas.includes(selectedPersona));
+  const moduleMatchesQuery = (module: { id?: string; title?: string; description?: string; category?: string; difficulty?: string; targetPersonas?: string[] }) => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return true;
+    const haystack = [
+      module.id,
+      module.title,
+      module.description,
+      module.category,
+      module.difficulty,
+      ...(module.targetPersonas || []),
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+    return haystack.includes(query);
+  };
+
+  const filteredModules = useMemo(() => {
+    return allModules.filter((module) => {
+      const personaMatch = selectedPersona === "all"
+        ? true
+        : Array.isArray(module.targetPersonas) && module.targetPersonas.includes(selectedPersona);
+      return personaMatch && moduleMatchesQuery(module);
+    });
+  }, [allModules, selectedPersona, searchQuery]);
+
+  const filteredFeaturedModules = useMemo(() => {
+    if (!searchQuery.trim()) return featuredModules.slice(0, 3);
+    return featuredModules.filter((module) => moduleMatchesQuery(module)).slice(0, 3);
+  }, [searchQuery]);
+
+  const visibleModuleIds = useMemo(() => filteredModules.map((module) => module.id), [filteredModules]);
+  const weeklyGoal = Math.max(userProgress.weekly_goal, 0);
+  const weeklyProgress = Math.max(userProgress.weekly_progress, 0);
+  const weeklyPercent = weeklyGoal > 0 ? Math.round((weeklyProgress / weeklyGoal) * 100) : 0;
+  const weeklyPercentDisplay = Math.min(weeklyPercent, 100);
+  const weeklyProgressValue = weeklyGoal > 0 ? Math.min((weeklyProgress / weeklyGoal) * 100, 100) : 0;
 
   // Fetch user progress from API
   useEffect(() => {
@@ -156,6 +224,22 @@ export function TrainingLibraryClient() {
     loadCertificateDownloads();
   }, []);
 
+  useEffect(() => {
+    async function loadAssignments() {
+      try {
+        const response = await fetch("/api/training/assignments?scope=all");
+        if (!response.ok) return;
+        const data = await response.json();
+        setAssignments(Array.isArray(data.assignments) ? data.assignments : []);
+        setAssignmentViewerEmail(typeof data.viewerEmail === "string" ? data.viewerEmail : null);
+      } catch (error) {
+        console.error("Failed to load training assignments:", error);
+      }
+    }
+
+    loadAssignments();
+  }, []);
+
   const { continueModuleId, continueLabel } = useMemo(() => {
     const inProgress = Object.values(moduleProgress)
       .filter((module) => module.status === "in_progress")
@@ -169,6 +253,160 @@ export function TrainingLibraryClient() {
     }
     return { continueModuleId: "aml-fundamentals", continueLabel: "Continue Learning" };
   }, [moduleProgress]);
+
+  const moduleTitleById = useMemo(() => {
+    const entries = allModules.map((module) => [module.id, module.title] as const);
+    return Object.fromEntries(entries);
+  }, [allModules]);
+
+  const assignmentCounts = useMemo(() => {
+    return assignments.reduce<Record<string, number>>((acc, assignment) => {
+      if (!assignment.module_id) return acc;
+      acc[assignment.module_id] = (acc[assignment.module_id] || 0) + 1;
+      return acc;
+    }, {});
+  }, [assignments]);
+
+  const assignmentsAssignedBy = useMemo(() => {
+    if (!assignmentViewerEmail) return assignments;
+    return assignments.filter((assignment) => assignment.assigned_by === assignmentViewerEmail);
+  }, [assignments, assignmentViewerEmail]);
+
+  const assignmentsAssignedTo = useMemo(() => {
+    if (!assignmentViewerEmail) return [];
+    return assignments.filter((assignment) => assignment.assigned_to === assignmentViewerEmail);
+  }, [assignments, assignmentViewerEmail]);
+
+  const assignmentContextByModule = useMemo(() => {
+    const context: Record<string, { assignedToYou: boolean; assignees: string[] }> = {};
+    assignments.forEach((assignment) => {
+      if (!assignment.module_id) return;
+      const entry = context[assignment.module_id] || { assignedToYou: false, assignees: [] };
+      if (assignmentViewerEmail && assignment.assigned_to === assignmentViewerEmail) {
+        entry.assignedToYou = true;
+      }
+      if (assignmentViewerEmail && assignment.assigned_by === assignmentViewerEmail && assignment.assigned_to) {
+        if (!entry.assignees.includes(assignment.assigned_to)) {
+          entry.assignees.push(assignment.assigned_to);
+        }
+      }
+      context[assignment.module_id] = entry;
+    });
+    return context;
+  }, [assignments, assignmentViewerEmail]);
+
+  const getAssignmentNote = (moduleId: string) => {
+    const context = assignmentContextByModule[moduleId];
+    if (!context) return undefined;
+    const assigneeCount = context.assignees.length;
+    if (context.assignedToYou && assigneeCount) {
+      const extra = assigneeCount > 1 ? ` +${assigneeCount - 1}` : "";
+      return `Assigned to you · Assigned to ${context.assignees[0]}${extra}`;
+    }
+    if (context.assignedToYou) return "Assigned to you";
+    if (assigneeCount) {
+      const extra = assigneeCount > 1 ? ` +${assigneeCount - 1}` : "";
+      return `Assigned to ${context.assignees[0]}${extra}`;
+    }
+    return undefined;
+  };
+
+  const toggleModuleSelection = (moduleId: string) => {
+    setResetError(null);
+    setSelectedModuleIds((prev) => (
+      prev.includes(moduleId) ? prev.filter((id) => id !== moduleId) : [...prev, moduleId]
+    ));
+  };
+
+  const allVisibleSelected = visibleModuleIds.length > 0 && visibleModuleIds.every((id) => selectedModuleIds.includes(id));
+
+  const toggleAllVisibleModules = () => {
+    if (!visibleModuleIds.length) return;
+    setResetError(null);
+    setSelectedModuleIds((prev) => {
+      if (allVisibleSelected) {
+        return prev.filter((id) => !visibleModuleIds.includes(id));
+      }
+      const merged = new Set([...prev, ...visibleModuleIds]);
+      return Array.from(merged);
+    });
+  };
+
+  const handleResetSelected = async () => {
+    if (!selectedModuleIds.length) return;
+    setIsResetting(true);
+    setResetError(null);
+    const resetIds = [...selectedModuleIds];
+    try {
+      await Promise.all(resetIds.map(async (moduleId) => {
+        const response = await fetch("/api/training/modules", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            moduleId,
+            status: "not_started",
+            progressPercentage: 0,
+            score: null,
+            maxScore: null,
+            timeSpent: 0,
+            attempts: 0,
+          }),
+        });
+        if (!response.ok) {
+          throw new Error("Failed to reset modules.");
+        }
+      }));
+
+      const nextProgressMap: Record<string, ModuleProgress> = { ...moduleProgress };
+      const nowIso = new Date().toISOString();
+      resetIds.forEach((moduleId) => {
+        nextProgressMap[moduleId] = {
+          module_id: moduleId,
+          status: "not_started",
+          progress_percentage: 0,
+          score: null,
+          updated_at: nowIso,
+        };
+      });
+
+      const completedEntries = Object.values(nextProgressMap).filter((entry) => entry.status === "completed");
+      const completedLessons = completedEntries.length;
+      const totalPoints = completedEntries.reduce((sum, entry) => sum + (typeof entry.score === "number" ? entry.score : 10), 0);
+      const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      const weeklyProgress = completedEntries.reduce((sum, entry) => {
+        const updatedAt = entry.updated_at ? Date.parse(entry.updated_at) : 0;
+        if (!updatedAt || updatedAt < weekAgo) return sum;
+        return sum + (typeof entry.score === "number" ? entry.score : 10);
+      }, 0);
+
+      setModuleProgress(nextProgressMap);
+      setUserProgress((prev) => ({
+        ...prev,
+        completed_lessons: completedLessons,
+        total_points: totalPoints,
+        weekly_progress: weeklyProgress,
+      }));
+      await fetch("/api/training/progress", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          completedLessons,
+          totalPoints,
+          weeklyProgress,
+        }),
+      }).then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to update training progress.");
+        }
+        return response;
+      });
+      setSelectedModuleIds([]);
+    } catch (error) {
+      setResetError(error instanceof Error ? error.message : "Failed to reset modules.");
+    } finally {
+      setIsResetting(false);
+    }
+  };
 
   const microLessons = sampleMicroLessons;
 
@@ -212,6 +450,66 @@ export function TrainingLibraryClient() {
     }
   };
 
+  const formatModuleCategory = (category?: string) => {
+    const labels: Record<string, string> = {
+      "financial-crime-prevention": "Financial Crime",
+      "regulatory-compliance": "Regulatory",
+      "customer-protection": "Customer Protection",
+      "operational-risk": "Operational Risk",
+    };
+    if (!category) return "General";
+    return labels[category] || category.replace(/-/g, " ");
+  };
+
+  const formatAssignmentDueDate = (dueDate?: string | null) => {
+    if (!dueDate) return "No due date";
+    const parsed = new Date(dueDate);
+    if (Number.isNaN(parsed.getTime())) return "No due date";
+    return parsed.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+  };
+
+  const openAssignDialog = (moduleId: string) => {
+    const module = allModules.find((item) => item.id === moduleId) || featuredModules.find((item) => item.id === moduleId);
+    setAssignmentModule({ id: moduleId, title: module?.title || "Training Module" });
+    setAssignee("");
+    setAssignmentDueDate("");
+    setAssignmentNotes("");
+    setAssignError(null);
+    setIsAssignDialogOpen(true);
+  };
+
+  const handleAssign = async () => {
+    if (!assignmentModule) return;
+    if (!assignee.trim()) {
+      setAssignError("Assignee is required.");
+      return;
+    }
+    setIsAssigning(true);
+    setAssignError(null);
+    try {
+      const response = await fetch("/api/training/assignments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          moduleId: assignmentModule.id,
+          assignedTo: assignee.trim(),
+          dueDate: assignmentDueDate || null,
+          notes: assignmentNotes.trim() || null,
+        }),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to assign training.");
+      }
+      const assignment = (await response.json()) as TrainingAssignment;
+      setAssignments((prev) => [assignment, ...prev]);
+      setIsAssignDialogOpen(false);
+    } catch (error) {
+      setAssignError(error instanceof Error ? error.message : "Failed to assign training.");
+    } finally {
+      setIsAssigning(false);
+    }
+  };
+
   const filteredPathways = Object.values(pathways).filter(pathway => {
     const categoryMatch = selectedCategory === "all" || pathway.category === selectedCategory;
     const personaMatch = selectedPersona === "all" || pathway.targetRoles.includes(selectedPersona);
@@ -235,7 +533,7 @@ export function TrainingLibraryClient() {
         <div className="flex items-center gap-3">
           <Badge variant="outline" className="text-teal-600 border-teal-200 bg-teal-50">
             <TrendingUp className="mr-1 h-3 w-3" />
-            {userProgress.weekly_progress}% Weekly Goal
+            {weeklyProgress} pts this week
           </Badge>
           <Button className="bg-teal-600 hover:bg-teal-700" asChild>
             <a href={`/training-library/lesson/${continueModuleId}`}>
@@ -320,15 +618,15 @@ export function TrainingLibraryClient() {
               <CardDescription>Track your weekly learning progress</CardDescription>
             </div>
             <Badge className="bg-teal-600 hover:bg-teal-700">
-              {userProgress.weekly_progress}% Complete
+              {weeklyPercentDisplay}% Complete
             </Badge>
           </div>
         </CardHeader>
         <CardContent>
-          <Progress value={Math.min((userProgress.weekly_progress / userProgress.weekly_goal) * 100, 100)} className="h-3" />
+          <Progress value={weeklyProgressValue} className="h-3" />
           <div className="flex justify-between text-sm text-slate-500 mt-2">
-            <span>{userProgress.weekly_progress} points this week</span>
-            <span>Goal: {userProgress.weekly_goal} points</span>
+            <span>{weeklyProgress} points this week</span>
+            <span>Goal: {weeklyGoal} points</span>
           </div>
         </CardContent>
       </Card>
@@ -382,6 +680,93 @@ export function TrainingLibraryClient() {
                     <option value="specialization">Specialization</option>
                   </select>
                 </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">Search:</span>
+                  <div className="relative">
+                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-slate-400" />
+                    <Input
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search modules"
+                      className="h-9 w-56 pl-8 text-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Assignments */}
+          <Card className="border border-slate-100">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg">Training Assignments</CardTitle>
+                  <CardDescription>Track who is assigned each module and what’s assigned to you.</CardDescription>
+                </div>
+                <Badge variant="outline" className="text-slate-600 border-slate-200">
+                  {assignments.length} total
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <p className="text-sm font-semibold text-slate-800">Assigned by me</p>
+                  {assignmentsAssignedBy.length ? (
+                    assignmentsAssignedBy.slice(0, 5).map((assignment) => (
+                      <div key={assignment.id} className="flex items-start justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+                        <div className="min-w-0">
+                          <a
+                            href={`/training-library/lesson/${assignment.module_id}`}
+                            className="block truncate text-sm font-medium text-slate-800 hover:underline"
+                          >
+                            {moduleTitleById[assignment.module_id] || assignment.module_id}
+                          </a>
+                          <p className="text-xs text-slate-500">
+                            Assigned to {assignment.assigned_to} · {formatAssignmentDueDate(assignment.due_date)}
+                          </p>
+                        </div>
+                        <Badge variant="outline" className="text-[11px] capitalize">
+                          {assignment.status || "assigned"}
+                        </Badge>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-slate-500">No assignments created yet.</p>
+                  )}
+                  {assignmentsAssignedBy.length > 5 ? (
+                    <p className="text-xs text-slate-500">Showing 5 of {assignmentsAssignedBy.length} assignments.</p>
+                  ) : null}
+                </div>
+                <div className="space-y-3">
+                  <p className="text-sm font-semibold text-slate-800">Assigned to me</p>
+                  {assignmentsAssignedTo.length ? (
+                    assignmentsAssignedTo.slice(0, 5).map((assignment) => (
+                      <div key={assignment.id} className="flex items-start justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+                        <div className="min-w-0">
+                          <a
+                            href={`/training-library/lesson/${assignment.module_id}`}
+                            className="block truncate text-sm font-medium text-slate-800 hover:underline"
+                          >
+                            {moduleTitleById[assignment.module_id] || assignment.module_id}
+                          </a>
+                          <p className="text-xs text-slate-500">
+                            Assigned by {assignment.assigned_by} · {formatAssignmentDueDate(assignment.due_date)}
+                          </p>
+                        </div>
+                        <Badge variant="outline" className="text-[11px] capitalize">
+                          {assignment.status || "assigned"}
+                        </Badge>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-slate-500">No assignments due for you yet.</p>
+                  )}
+                  {assignmentsAssignedTo.length > 5 ? (
+                    <p className="text-xs text-slate-500">Showing 5 of {assignmentsAssignedTo.length} assignments.</p>
+                  ) : null}
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -399,7 +784,7 @@ export function TrainingLibraryClient() {
               </Badge>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {featuredModules.slice(0, 3).map((module) => (
+              {filteredFeaturedModules.map((module) => (
                 <PlayfulModuleCard
                   key={module.id}
                   id={module.id}
@@ -410,6 +795,9 @@ export function TrainingLibraryClient() {
                   difficulty={(module.difficulty as "beginner" | "intermediate" | "advanced") || "beginner"}
                   progress={moduleProgress[module.id]}
                   certificate={certificateDownloads[module.id]}
+                  assignmentCount={assignmentCounts[module.id]}
+                  assignmentNote={getAssignmentNote(module.id)}
+                  onAssign={openAssignDialog}
                 />
               ))}
             </div>
@@ -422,22 +810,165 @@ export function TrainingLibraryClient() {
                 <h2 className="text-lg font-semibold text-slate-900">All Modules</h2>
                 <p className="text-sm text-slate-500">{filteredModules.length} training modules available</p>
               </div>
+              <div className="flex items-center gap-2">
+                {viewMode === "table" ? (
+                  <Badge variant="outline" className="text-slate-600 border-slate-200">
+                    {selectedModuleIds.length} selected
+                  </Badge>
+                ) : null}
+                <div className="flex items-center rounded-lg border border-slate-200 bg-white p-1">
+                  <Button
+                    size="sm"
+                    variant={viewMode === "cards" ? "default" : "ghost"}
+                    className="h-8"
+                    onClick={() => setViewMode("cards")}
+                  >
+                    <LayoutGrid className="mr-1 h-4 w-4" />
+                    Cards
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={viewMode === "table" ? "default" : "ghost"}
+                    className="h-8"
+                    onClick={() => setViewMode("table")}
+                  >
+                    <List className="mr-1 h-4 w-4" />
+                    Table
+                  </Button>
+                </div>
+                {viewMode === "table" ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8"
+                    onClick={handleResetSelected}
+                    disabled={!selectedModuleIds.length || isResetting}
+                  >
+                    {isResetting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Restarting...
+                      </>
+                    ) : (
+                      <>
+                        <RotateCcw className="mr-2 h-4 w-4" />
+                        Restart Selected
+                      </>
+                    )}
+                  </Button>
+                ) : null}
+              </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {filteredModules.map((module) => (
-                <PlayfulModuleCard
-                  key={module.id}
-                  id={module.id}
-                  title={module.title}
-                  description={module.description}
-                  category={module.category || ""}
-                  duration={module.duration}
-                  difficulty={(module.difficulty as "beginner" | "intermediate" | "advanced") || "beginner"}
-                  progress={moduleProgress[module.id]}
-                  certificate={certificateDownloads[module.id]}
-                />
-              ))}
-            </div>
+            {filteredModules.length ? (
+              viewMode === "cards" ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {filteredModules.map((module) => (
+                    <PlayfulModuleCard
+                      key={module.id}
+                      id={module.id}
+                      title={module.title}
+                      description={module.description}
+                      category={module.category || ""}
+                      duration={module.duration}
+                      difficulty={(module.difficulty as "beginner" | "intermediate" | "advanced") || "beginner"}
+                      progress={moduleProgress[module.id]}
+                      certificate={certificateDownloads[module.id]}
+                      assignmentCount={assignmentCounts[module.id]}
+                      assignmentNote={getAssignmentNote(module.id)}
+                      onAssign={openAssignDialog}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-xl border border-slate-200 bg-white">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+                        <tr>
+                          <th className="px-3 py-3 text-left">
+                            <input
+                              type="checkbox"
+                              checked={allVisibleSelected}
+                              onChange={toggleAllVisibleModules}
+                              className="h-4 w-4"
+                            />
+                          </th>
+                          <th className="px-3 py-3 text-left">Module</th>
+                          <th className="px-3 py-3 text-left">Category</th>
+                          <th className="px-3 py-3 text-left">Duration</th>
+                          <th className="px-3 py-3 text-left">Difficulty</th>
+                          <th className="px-3 py-3 text-left">Progress</th>
+                          <th className="px-3 py-3 text-left">Assignments</th>
+                          <th className="px-3 py-3 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredModules.map((module) => {
+                          const progress = moduleProgress[module.id];
+                          const progressPercent = progress?.progress_percentage ?? 0;
+                          const status = progress?.status ?? "not_started";
+                          const statusLabel = status.replace("_", " ");
+                          const actionLabel = status === "completed" ? "Review" : status === "in_progress" ? "Continue" : "Start";
+                          const assignedLabel = getAssignmentNote(module.id) || (assignmentCounts[module.id] ? `${assignmentCounts[module.id]} assigned` : "—");
+
+                          return (
+                            <tr key={module.id} className="border-t border-slate-100">
+                              <td className="px-3 py-4 align-top">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedModuleIds.includes(module.id)}
+                                  onChange={() => toggleModuleSelection(module.id)}
+                                  className="h-4 w-4"
+                                />
+                              </td>
+                              <td className="px-3 py-4">
+                                <div className="font-medium text-slate-900">{module.title}</div>
+                                <div className="text-xs text-slate-500 line-clamp-1">{module.description}</div>
+                              </td>
+                              <td className="px-3 py-4 text-slate-600">
+                                {formatModuleCategory(module.category)}
+                              </td>
+                              <td className="px-3 py-4 text-slate-600">{module.duration} min</td>
+                              <td className="px-3 py-4">
+                                <Badge variant="secondary" className="text-xs">
+                                  {module.difficulty || "Beginner"}
+                                </Badge>
+                              </td>
+                              <td className="px-3 py-4">
+                                <div className="text-xs capitalize text-slate-500">{statusLabel}</div>
+                                <Progress value={progressPercent} className="mt-2 h-1.5" />
+                              </td>
+                              <td className="px-3 py-4 text-xs text-slate-500">{assignedLabel}</td>
+                              <td className="px-3 py-4 text-right">
+                                <div className="flex items-center justify-end gap-2">
+                                  <Button size="sm" variant="outline" onClick={() => openAssignDialog(module.id)}>
+                                    Assign
+                                  </Button>
+                                  <Button size="sm" asChild className="bg-teal-600 hover:bg-teal-700">
+                                    <a href={`/training-library/lesson/${module.id}`}>{actionLabel}</a>
+                                  </Button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                  {resetError ? (
+                    <div className="border-t border-slate-100 px-4 py-3 text-sm text-rose-600">
+                      {resetError}
+                    </div>
+                  ) : null}
+                </div>
+              )
+            ) : (
+              <Card className="border border-slate-100">
+                <CardContent className="p-6 text-sm text-slate-500">
+                  No modules match "{searchQuery.trim() || "your filters"}".
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Learning Pathways Grid */}
@@ -696,6 +1227,66 @@ export function TrainingLibraryClient() {
           <ProgressTracker />
         </TabsContent>
       </Tabs>
+
+      <Dialog open={isAssignDialogOpen} onOpenChange={setIsAssignDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Assign Training</DialogTitle>
+            <DialogDescription>
+              {assignmentModule?.title ? `Assign “${assignmentModule.title}” to a learner.` : "Assign this training module."}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="training-assignee">Assignee</Label>
+              <Input
+                id="training-assignee"
+                value={assignee}
+                onChange={(e) => setAssignee(e.target.value)}
+                placeholder="Name or email"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="training-due-date">Due date</Label>
+              <Input
+                id="training-due-date"
+                type="date"
+                value={assignmentDueDate}
+                onChange={(e) => setAssignmentDueDate(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="training-notes">Notes</Label>
+              <Textarea
+                id="training-notes"
+                value={assignmentNotes}
+                onChange={(e) => setAssignmentNotes(e.target.value)}
+                placeholder="Optional context or priority"
+                rows={3}
+              />
+            </div>
+            {assignError ? <p className="text-sm text-rose-600">{assignError}</p> : null}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAssignDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleAssign} disabled={!assignee.trim() || isAssigning}>
+              {isAssigning ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Assigning...
+                </>
+              ) : (
+                <>
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  Assign
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

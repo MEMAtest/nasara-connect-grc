@@ -1,7 +1,5 @@
-import { ComplianceFrameworkClient } from "./ComplianceFrameworkClient";
-
-export const dynamic = "force-dynamic";
+import { redirect } from "next/navigation";
 
 export default function ComplianceFrameworkPage() {
-  return <ComplianceFrameworkClient />;
+  redirect("/compliance-framework/builder");
 }

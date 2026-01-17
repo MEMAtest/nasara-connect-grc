@@ -6,6 +6,7 @@ import {
   getFullPackSectionsWithResponses,
   FullSectionData,
   getProjectByPackId,
+  createPackDocument,
 } from "@/lib/authorization-pack-db";
 import { initDatabase, createProjectDocument } from "@/lib/database";
 import { sectionOutlines } from "@/lib/authorization-pack-templates";
@@ -179,6 +180,9 @@ export async function POST(
     if (!pack) {
       return NextResponse.json({ error: "Pack not found" }, { status: 404 });
     }
+    if (pack.organization_id !== auth.organizationId) {
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
+    }
 
     // Get project assessment data (firm basics, readiness signals)
     const project = await getProjectByPackId(packId);
@@ -270,19 +274,30 @@ export async function POST(
 
     // Save document record
     const timestamp = new Date().toISOString().split("T")[0];
-    const documentName = `Business Plan - ${pack.name} - ${timestamp}`;
+    const documentName = `Perimeter Opinion Pack - ${pack.name} - ${timestamp}`;
 
     const document = await createProjectDocument({
       pack_id: packId,
       name: documentName,
-      description: `Gold standard business plan with all ${businessPlanSections.length} sections. Readiness: ${readiness.overall}% overall, ${readiness.narrative}% narrative, ${readiness.evidence}% evidence.`,
-      section_code: "business-plan",
+      description: `Perimeter opinion pack with ${businessPlanSections.length} sections. Readiness: ${readiness.overall}% overall, ${readiness.narrative}% narrative, ${readiness.evidence}% evidence.`,
+      section_code: "perimeter-opinion",
       uploaded_by: auth.userId ?? undefined,
       mime_type: "application/pdf",
       file_size_bytes: pdfBytes.length,
     });
 
-    const filename = `${sanitizeFilename(pack.name)}-business-plan-${timestamp}.pdf`;
+    await createPackDocument({
+      packId,
+      name: documentName,
+      description: `Perimeter opinion pack with ${businessPlanSections.length} sections. Readiness: ${readiness.overall}% overall, ${readiness.narrative}% narrative, ${readiness.evidence}% evidence.`,
+      sectionCode: "perimeter-opinion",
+      mimeType: "application/pdf",
+      fileSizeBytes: pdfBytes.length,
+      uploadedBy: auth.userId ?? null,
+      uploadedAt: new Date().toISOString(),
+    });
+
+    const filename = `${sanitizeFilename(pack.name)}-perimeter-opinion-${timestamp}.pdf`;
 
     return new NextResponse(Buffer.from(pdfBytes), {
       status: 200,
@@ -299,7 +314,7 @@ export async function POST(
     console.error("Business plan generation error:", error);
     return NextResponse.json(
       {
-        error: "Failed to generate business plan",
+        error: "Failed to generate opinion pack",
         details: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }

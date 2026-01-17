@@ -25,6 +25,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { MarkdownContent, formatListItem, renderVisual } from "./training-renderer-helpers";
+import { TrainingSlideGallery } from "./TrainingSlideGallery";
 import { ContentCard, ContentCardGrid } from "./ContentCards";
 
 type StageKey = "hook" | "content" | "practice" | "assessment" | "summary";
@@ -35,6 +36,7 @@ interface TrainingModuleData {
   description: string;
   duration: number;
   difficulty: string;
+  category?: string;
   hook?: {
     title?: string;
     content?: string;
@@ -494,19 +496,20 @@ export function FinancialCrimeTrainingRenderer({
 
           <div className="space-y-6">
             <Card className="border border-slate-200">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <BookOpen className="h-5 w-5 text-red-600" />
-                  {currentLesson.title}
-                </CardTitle>
-                <CardDescription>Session {currentLessonIndex + 1} of {content.lessons.length}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Render card-based content if available, otherwise markdown */}
-                {lessonCards ? (
-                  <ContentCardGrid cards={lessonCards} />
-                ) : (
-                  (() => {
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <BookOpen className="h-5 w-5 text-red-600" />
+                {currentLesson.title}
+              </CardTitle>
+              <CardDescription>Session {currentLessonIndex + 1} of {content.lessons.length}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <TrainingSlideGallery moduleId={moduleId} category={module.category} />
+              {/* Render card-based content if available, otherwise markdown */}
+              {lessonCards ? (
+                <ContentCardGrid cards={lessonCards} />
+              ) : (
+                (() => {
                     const sections = parseContentSections(lessonContent);
                     if (sections.length <= 1) {
                       // If no sections or just one, render normally

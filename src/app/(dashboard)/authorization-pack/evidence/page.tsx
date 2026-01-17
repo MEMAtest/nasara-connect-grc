@@ -1,7 +1,7 @@
-import { EvidenceClient } from "../components/workspace/EvidenceClient";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
 export default function AuthorizationPackEvidencePage() {
-  return <EvidenceClient />;
+  redirect("/authorization-pack/workspace");
 }

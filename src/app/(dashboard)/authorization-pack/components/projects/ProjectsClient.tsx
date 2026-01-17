@@ -22,7 +22,6 @@ import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 interface ReadinessSummary {
   overall: number;
   narrative: number;
-  evidence: number;
   review: number;
 }
 
@@ -204,7 +203,6 @@ export function ProjectsClient() {
                       {readiness ? (
                         <div className="mt-2 flex flex-wrap gap-3 text-xs text-slate-500">
                           <span>Narrative {readiness.narrative}%</span>
-                          <span>Evidence {readiness.evidence}%</span>
                           <span>Review {readiness.review}%</span>
                         </div>
                       ) : null}
@@ -221,7 +219,7 @@ export function ProjectsClient() {
                     </Button>
                     {project.pack_id ? (
                       <Button variant="outline" asChild className="border-slate-200 text-slate-700">
-                        <Link href={`/authorization-pack/sections?packId=${project.pack_id}`}>Open Workspace</Link>
+                        <Link href={`/authorization-pack/workspace?packId=${project.pack_id}`}>Open Workspace</Link>
                       </Button>
                     ) : (
                       <Button variant="outline" className="border-slate-200 text-slate-400" disabled>
@@ -250,7 +248,7 @@ export function ProjectsClient() {
             <AlertDialogTitle>Delete authorization project?</AlertDialogTitle>
             <AlertDialogDescription>
               This will permanently delete <strong>{deleteTarget?.name}</strong> and all associated pack data,
-              sections, evidence, and review comments. This action cannot be undone.
+              sections, and review comments. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

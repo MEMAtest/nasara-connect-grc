@@ -74,7 +74,7 @@ export function LessonClient({ params }: LessonClientProps) {
     }
     const nextQuery = nextParams.toString();
     if (nextQuery !== searchParamsString) {
-      router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname);
+      router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
     }
   }, [pathname, router, searchParamsString]);
 

@@ -93,7 +93,6 @@ interface PackRow {
 interface ReadinessSummary {
   overall: number;
   narrative: number;
-  evidence: number;
   review: number;
 }
 
@@ -102,10 +101,7 @@ interface SectionSummary {
   title: string;
   section_key: string;
   narrativeCompletion: number;
-  evidenceCompletion: number;
   reviewCompletion: number;
-  evidenceUploaded: number;
-  evidenceTotal: number;
   reviewApproved: number;
   reviewTotal: number;
   status?: string;
@@ -118,6 +114,7 @@ interface TaskItem {
   priority: string;
   section_title?: string | null;
   due_date?: string | null;
+  source?: string | null;
 }
 
 interface TemplateSummary {
@@ -281,32 +278,21 @@ export function OverviewClient() {
   }, [sections]);
 
   // Task statistics
+  const visibleTasks = useMemo(() => tasks.filter((task) => task.source !== "auto-evidence"), [tasks]);
   const taskStats = useMemo(() => {
-    if (!tasks.length) return { total: 0, completed: 0, pending: 0, blocked: 0, highPriority: 0 };
+    if (!visibleTasks.length) return { total: 0, completed: 0, pending: 0, blocked: 0, highPriority: 0 };
     return {
-      total: tasks.length,
-      completed: tasks.filter((t) => t.status === "completed").length,
-      pending: tasks.filter((t) => ["pending", "in_progress"].includes(t.status)).length,
-      blocked: tasks.filter((t) => t.status === "blocked").length,
-      highPriority: tasks.filter((t) => ["high", "critical"].includes(t.priority) && t.status !== "completed").length,
+      total: visibleTasks.length,
+      completed: visibleTasks.filter((t) => t.status === "completed").length,
+      pending: visibleTasks.filter((t) => ["pending", "in_progress"].includes(t.status)).length,
+      blocked: visibleTasks.filter((t) => t.status === "blocked").length,
+      highPriority: visibleTasks.filter((t) => ["high", "critical"].includes(t.priority) && t.status !== "completed").length,
     };
-  }, [tasks]);
+  }, [visibleTasks]);
 
   const blockers = useMemo(() => {
     if (!sections.length) return [];
     const items: { type: string; label: string; severity: "warning" | "error" }[] = [];
-
-    // Missing evidence
-    sections
-      .filter((section) => section.evidenceTotal > section.evidenceUploaded)
-      .slice(0, 3)
-      .forEach((section) => {
-        items.push({
-          type: "evidence",
-          label: `${section.title}: ${section.evidenceTotal - section.evidenceUploaded} evidence items pending`,
-          severity: "warning",
-        });
-      });
 
     // Pending reviews
     sections
@@ -321,7 +307,7 @@ export function OverviewClient() {
       });
 
     // Blocked tasks
-    tasks
+    visibleTasks
       .filter((t) => t.status === "blocked")
       .slice(0, 2)
       .forEach((task) => {
@@ -333,10 +319,10 @@ export function OverviewClient() {
       });
 
     return items;
-  }, [sections, tasks]);
+  }, [sections, visibleTasks]);
 
   const nextActions = useMemo(() => {
-    return tasks
+    return visibleTasks
       .filter((task) => task.status !== "completed")
       .sort((a, b) => {
         // Sort by priority (critical > high > medium > low)
@@ -344,7 +330,7 @@ export function OverviewClient() {
         return (priorityOrder[a.priority] ?? 2) - (priorityOrder[b.priority] ?? 2);
       })
       .slice(0, 5);
-  }, [tasks]);
+  }, [visibleTasks]);
 
   // Days until target
   const daysUntilTarget = useMemo(() => {
@@ -464,7 +450,7 @@ export function OverviewClient() {
               Start a New Authorisation Pack
             </CardTitle>
             <CardDescription>
-              Build a structured workspace to track your FCA business plan, evidence, and review gates.
+              Build a structured workspace to track your FCA business plan and review gates.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -536,7 +522,7 @@ export function OverviewClient() {
                   <DocumentIcon className="h-5 w-5 text-teal-600" />
                 </div>
                 <div>
-                  <p className="font-medium text-slate-900">27 Gold Standard Sections</p>
+                  <p className="font-medium text-slate-900">27 Gold Standard Topics</p>
                   <p className="mt-1 text-sm text-slate-500">
                     Complete narrative prompts for each FCA requirement
                   </p>
@@ -553,7 +539,7 @@ export function OverviewClient() {
                 <div>
                   <p className="font-medium text-slate-900">Real-time Progress</p>
                   <p className="mt-1 text-sm text-slate-500">
-                    Track narrative, evidence, and review completion
+                    Track narrative and review completion
                   </p>
                 </div>
               </div>
@@ -667,7 +653,7 @@ export function OverviewClient() {
               <ChartIcon className="h-5 w-5 text-teal-600" />
               Readiness Overview
             </CardTitle>
-            <CardDescription>Track your progress across narrative, evidence, and review gates.</CardDescription>
+            <CardDescription>Track your progress across narrative and review gates.</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap items-center justify-around gap-8">
@@ -683,15 +669,6 @@ export function OverviewClient() {
                   </div>
                   <div className="w-32">
                     <Progress value={readiness?.narrative ?? 0} className="h-2" />
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="w-24">
-                    <p className="text-xs text-slate-500">Evidence</p>
-                    <p className="text-lg font-semibold text-blue-600">{readiness?.evidence ?? 0}%</p>
-                  </div>
-                  <div className="w-32">
-                    <Progress value={readiness?.evidence ?? 0} className="h-2 [&>div]:bg-blue-500" />
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
@@ -712,7 +689,7 @@ export function OverviewClient() {
         <div className="space-y-4">
           <Card className="border border-slate-200">
             <CardContent className="p-4">
-              <p className="text-xs text-slate-500">Sections</p>
+              <p className="text-xs text-slate-500">Draft coverage</p>
               <div className="mt-2 flex items-center gap-2">
                 <span className="flex items-center gap-1 text-sm">
                   <CheckCircleIcon className="h-4 w-4 text-green-500" />
@@ -838,18 +815,8 @@ export function OverviewClient() {
       {/* Section Progress */}
       <Card className="border border-slate-200">
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Section Progress</CardTitle>
-              <CardDescription>Track completion across all business plan sections.</CardDescription>
-            </div>
-            <Button asChild variant="outline" size="sm">
-              <Link href={pack ? `/authorization-pack/sections?packId=${pack.id}` : "/authorization-pack/sections"}>
-                View All Sections
-                <ArrowRightIcon className="ml-1.5 h-3 w-3" />
-              </Link>
-            </Button>
-          </div>
+          <CardTitle>Draft Coverage</CardTitle>
+          <CardDescription>Snapshot of narrative readiness across the pack.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
@@ -861,9 +828,8 @@ export function OverviewClient() {
                   ? "in-progress"
                   : "not-started";
               return (
-                <Link
+                <div
                   key={section.id}
-                  href={`/authorization-pack/sections/${section.id}?packId=${pack.id}`}
                   className="group flex items-center gap-4 rounded-lg border border-slate-100 p-3 transition-all hover:border-slate-200 hover:shadow-sm"
                 >
                   <div className="flex-shrink-0">
@@ -897,11 +863,7 @@ export function OverviewClient() {
                       </span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-slate-400">
-                    <span>{section.evidenceUploaded}/{section.evidenceTotal} evidence</span>
-                    <ArrowRightIcon className="h-3 w-3 opacity-0 transition-opacity group-hover:opacity-100" />
-                  </div>
-                </Link>
+                </div>
               );
             })}
             {sections.length > 8 && (
