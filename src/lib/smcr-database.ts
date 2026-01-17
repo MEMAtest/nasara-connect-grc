@@ -6,12 +6,16 @@
 import { Pool } from 'pg';
 import { logger, logError, logDbOperation } from '@/lib/logger';
 
-const connectionString = process.env.DATABASE_URL || "postgresql://neondb_owner:npg_Vtu9NK8ThRbB@ep-royal-queen-abitcphb-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require";
+const connectionString = process.env.DATABASE_URL;
+
+if (!connectionString) {
+  throw new Error('DATABASE_URL environment variable is required');
+}
 
 const pool = new Pool({
   connectionString,
   ssl: {
-    rejectUnauthorized: false,
+    rejectUnauthorized: process.env.NODE_ENV === 'production',
   },
   max: 10,
   idleTimeoutMillis: 30000,

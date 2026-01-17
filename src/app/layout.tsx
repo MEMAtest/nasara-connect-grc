@@ -5,6 +5,7 @@ import "./globals.css";
 import { SessionProvider } from "@/components/session-provider";
 import { SiteStructuredData } from "@/components/seo/SiteStructuredData";
 import { ToastProvider } from "@/components/toast-provider";
+import { EnvironmentBanner } from "@/components/environment-banner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -49,6 +50,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <EnvironmentBanner />
         <SiteStructuredData />
         <SessionProvider>
           <ToastProvider>
