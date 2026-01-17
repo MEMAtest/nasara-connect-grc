@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
+import { generateTrendData } from "@/lib/chart-utils";
+import { useToast } from "@/components/toast-provider";
 import { Plus, Loader2, User, Shield, AlertTriangle, CheckCircle, Clock, FileCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +16,7 @@ import { RegisterToolbar, ViewMode } from "@/components/registers/RegisterToolba
 import { RegisterDataTable, Column, renderBadge, renderDate } from "@/components/registers/RegisterDataTable";
 import { StatCard, DonutChart, BarChart, TrendChart } from "@/components/registers/RegisterCharts";
 import { exportToCSV, transforms } from "@/lib/export-utils";
+import { PaginationControls, usePagination } from "@/components/ui/pagination-controls";
 
 interface PEPRecord {
   id: string;
@@ -81,6 +84,7 @@ const riskChartColors: Record<string, string> = {
 export function PEPRegisterClient() {
   const searchParams = useSearchParams();
   const packId = searchParams.get("packId");
+  const toast = useToast();
   const [records, setRecords] = useState<PEPRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [viewMode, setViewMode] = useState<ViewMode>("dashboard");
@@ -151,7 +155,7 @@ export function PEPRegisterClient() {
 
   const handleSave = async () => {
     if (!formData.full_name.trim()) {
-      alert("Full name required");
+      toast.error("Full name required");
       return;
     }
     setIsSaving(true);
@@ -169,7 +173,7 @@ export function PEPRegisterClient() {
       resetForm();
       loadRecords();
     } catch {
-      alert("Failed to save");
+      toast.error("Failed to save");
     } finally {
       setIsSaving(false);
     }
@@ -181,7 +185,7 @@ export function PEPRegisterClient() {
       await fetch(`/api/registers/pep/${id}`, { method: "DELETE" });
       loadRecords();
     } catch {
-      alert("Failed to delete");
+      toast.error("Failed to delete");
     }
   };
 
@@ -228,7 +232,7 @@ export function PEPRegisterClient() {
     );
 
     const failed = results.filter((r) => r.status === "rejected").length;
-    if (failed > 0) alert(`${failed} records failed to import`);
+    if (failed > 0) toast.error(`${failed} records failed to import`);
     loadRecords();
   };
 
@@ -250,6 +254,12 @@ export function PEPRegisterClient() {
       return matchesSearch && matchesStatus && matchesRisk && matchesDrillDown;
     });
   }, [records, searchQuery, filterValues, drillDownFilter]);
+
+  // Pagination
+  const {
+    paginatedData,
+    paginationProps,
+  } = usePagination(filteredRecords, { initialLimit: 25 });
 
   // Statistics
   const stats = useMemo(
@@ -286,12 +296,8 @@ export function PEPRegisterClient() {
   }, [records]);
 
   const trendData = useMemo(() => {
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
-    return months.map((label) => ({
-      label,
-      value: Math.floor(Math.random() * 5) + 1,
-    }));
-  }, []);
+    return generateTrendData(records, 6, 'created_at');
+  }, [records]);
 
   // Table columns
   const columns: Column<PEPRecord>[] = [
@@ -542,19 +548,22 @@ export function PEPRegisterClient() {
 
       {/* Table View */}
       {viewMode === "table" && (
-        <RegisterDataTable
-          columns={columns}
-          data={filteredRecords}
-          selectedIds={selectedIds}
-          onSelectionChange={setSelectedIds}
-          onEdit={openEdit}
-          onDelete={handleDelete}
-          rowClassName={(row) =>
-            row.risk_rating === "critical" ? "bg-red-50/50" : row.risk_rating === "high" ? "bg-orange-50/50" : ""
-          }
-          emptyMessage="No PEP records found"
-          emptyIcon={<User className="h-12 w-12" />}
-        />
+        <>
+          <RegisterDataTable
+            columns={columns}
+            data={paginatedData}
+            selectedIds={selectedIds}
+            onSelectionChange={setSelectedIds}
+            onEdit={openEdit}
+            onDelete={handleDelete}
+            rowClassName={(row) =>
+              row.risk_rating === "critical" ? "bg-red-50/50" : row.risk_rating === "high" ? "bg-orange-50/50" : ""
+            }
+            emptyMessage="No PEP records found"
+            emptyIcon={<User className="h-12 w-12" />}
+          />
+          <PaginationControls {...paginationProps} />
+        </>
       )}
 
       {/* Add/Edit Dialog */}

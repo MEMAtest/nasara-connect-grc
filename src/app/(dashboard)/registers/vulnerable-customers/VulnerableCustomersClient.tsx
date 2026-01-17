@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { generateTrendData } from "@/lib/chart-utils";
 import { useToast } from "@/components/toast-provider";
-import { Plus, Loader2, Scale, AlertTriangle, CheckCircle, Clock } from "lucide-react";
+import { Plus, Loader2, Heart, AlertTriangle, CheckCircle, Clock, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,41 +17,39 @@ import { StatCard, DonutChart, BarChart, TrendChart } from "@/components/registe
 import { exportToCSV, transforms } from "@/lib/export-utils";
 import { PaginationControls, usePagination } from "@/components/ui/pagination-controls";
 
-interface COIRecord {
+interface VulnerableCustomerRecord {
   id: string;
-  declarant_name: string;
-  declarant_role?: string;
-  declaration_date: string;
-  conflict_type: string;
-  description: string;
-  parties_involved?: string;
-  potential_impact?: string;
-  mitigation_measures?: string;
+  customer_reference: string;
+  customer_name?: string;
+  vulnerability_type: string;
+  vulnerability_details?: string;
+  identified_date: string;
+  identified_by?: string;
+  risk_level: string;
+  support_measures?: string;
   review_frequency: string;
-  last_review_date?: string;
   next_review_date?: string;
-  risk_rating: string;
+  last_review_date?: string;
   status: string;
-  approved_by?: string;
+  outcome_notes?: string;
   notes?: string;
 }
 
 const typeLabels: Record<string, string> = {
-  personal_interest: "Personal Interest",
-  family_relationship: "Family Relationship",
-  outside_employment: "Outside Employment",
-  financial_interest: "Financial Interest",
-  gift_hospitality: "Gift/Hospitality",
-  board_membership: "Board Membership",
-  shareholder: "Shareholder",
+  health: "Health Condition",
+  life_events: "Life Events",
+  capability: "Capability",
+  financial: "Financial Difficulty",
+  age: "Age-Related",
+  mental_health: "Mental Health",
   other: "Other",
 };
 
 const statusColors: Record<string, string> = {
   active: "bg-amber-100 text-amber-700",
-  mitigated: "bg-blue-100 text-blue-700",
+  monitoring: "bg-blue-100 text-blue-700",
   resolved: "bg-emerald-100 text-emerald-700",
-  archived: "bg-slate-100 text-slate-700",
+  closed: "bg-slate-100 text-slate-700",
 };
 
 const riskColors: Record<string, string> = {
@@ -63,47 +61,39 @@ const riskColors: Record<string, string> = {
 
 const chartColors = {
   active: "#f59e0b",
-  mitigated: "#3b82f6",
+  monitoring: "#3b82f6",
   resolved: "#10b981",
-  archived: "#64748b",
+  closed: "#64748b",
 };
 
-const riskChartColors: Record<string, string> = {
-  low: "#10b981",
-  medium: "#f59e0b",
-  high: "#f97316",
-  critical: "#ef4444",
-};
-
-export function ConflictsRegisterClient() {
+export function VulnerableCustomersClient() {
   const searchParams = useSearchParams();
   const packId = searchParams.get("packId");
   const toast = useToast();
-  const [records, setRecords] = useState<COIRecord[]>([]);
+  const [records, setRecords] = useState<VulnerableCustomerRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [viewMode, setViewMode] = useState<ViewMode>("dashboard");
   const [searchQuery, setSearchQuery] = useState("");
   const [filterValues, setFilterValues] = useState<Record<string, string>>({
     status: "all",
-    risk_rating: "all",
+    risk_level: "all",
   });
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [drillDownFilter, setDrillDownFilter] = useState<{ key: string; value: string } | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const [editingRecord, setEditingRecord] = useState<COIRecord | null>(null);
+  const [editingRecord, setEditingRecord] = useState<VulnerableCustomerRecord | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   const [formData, setFormData] = useState({
-    declarant_name: "",
-    declarant_role: "",
-    declaration_date: new Date().toISOString().split("T")[0],
-    conflict_type: "other",
-    description: "",
-    parties_involved: "",
-    potential_impact: "",
-    mitigation_measures: "",
-    review_frequency: "annual",
-    risk_rating: "medium",
+    customer_reference: "",
+    customer_name: "",
+    vulnerability_type: "other",
+    vulnerability_details: "",
+    identified_date: new Date().toISOString().split("T")[0],
+    identified_by: "",
+    risk_level: "medium",
+    support_measures: "",
+    review_frequency: "quarterly",
     status: "active",
     notes: "",
   });
@@ -111,7 +101,7 @@ export function ConflictsRegisterClient() {
   const loadRecords = async () => {
     setIsLoading(true);
     try {
-      const url = packId ? `/api/registers/conflicts?packId=${packId}` : "/api/registers/conflicts";
+      const url = packId ? `/api/registers/vulnerable-customers?packId=${packId}` : "/api/registers/vulnerable-customers";
       const res = await fetch(url);
       if (!res.ok) throw new Error("Failed");
       const data = await res.json();
@@ -129,29 +119,28 @@ export function ConflictsRegisterClient() {
 
   const resetForm = () =>
     setFormData({
-      declarant_name: "",
-      declarant_role: "",
-      declaration_date: new Date().toISOString().split("T")[0],
-      conflict_type: "other",
-      description: "",
-      parties_involved: "",
-      potential_impact: "",
-      mitigation_measures: "",
-      review_frequency: "annual",
-      risk_rating: "medium",
+      customer_reference: "",
+      customer_name: "",
+      vulnerability_type: "other",
+      vulnerability_details: "",
+      identified_date: new Date().toISOString().split("T")[0],
+      identified_by: "",
+      risk_level: "medium",
+      support_measures: "",
+      review_frequency: "quarterly",
       status: "active",
       notes: "",
     });
 
   const handleSave = async () => {
-    if (!formData.declarant_name.trim() || !formData.description.trim()) {
-      toast.error("Declarant name and description required");
+    if (!formData.customer_reference.trim()) {
+      toast.error("Customer reference is required");
       return;
     }
     setIsSaving(true);
     try {
       const payload = { ...formData, pack_id: packId || undefined };
-      const url = editingRecord ? `/api/registers/conflicts/${editingRecord.id}` : "/api/registers/conflicts";
+      const url = editingRecord ? `/api/registers/vulnerable-customers/${editingRecord.id}` : "/api/registers/vulnerable-customers";
       const res = await fetch(url, {
         method: editingRecord ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
@@ -172,26 +161,25 @@ export function ConflictsRegisterClient() {
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this record?")) return;
     try {
-      await fetch(`/api/registers/conflicts/${id}`, { method: "DELETE" });
+      await fetch(`/api/registers/vulnerable-customers/${id}`, { method: "DELETE" });
       loadRecords();
     } catch {
       toast.error("Failed to delete");
     }
   };
 
-  const openEdit = (r: COIRecord) => {
+  const openEdit = (r: VulnerableCustomerRecord) => {
     setEditingRecord(r);
     setFormData({
-      declarant_name: r.declarant_name,
-      declarant_role: r.declarant_role || "",
-      declaration_date: r.declaration_date?.split("T")[0] || "",
-      conflict_type: r.conflict_type,
-      description: r.description,
-      parties_involved: r.parties_involved || "",
-      potential_impact: r.potential_impact || "",
-      mitigation_measures: r.mitigation_measures || "",
+      customer_reference: r.customer_reference,
+      customer_name: r.customer_name || "",
+      vulnerability_type: r.vulnerability_type,
+      vulnerability_details: r.vulnerability_details || "",
+      identified_date: r.identified_date?.split("T")[0] || "",
+      identified_by: r.identified_by || "",
+      risk_level: r.risk_level,
+      support_measures: r.support_measures || "",
       review_frequency: r.review_frequency,
-      risk_rating: r.risk_rating,
       status: r.status,
       notes: r.notes || "",
     });
@@ -201,17 +189,17 @@ export function ConflictsRegisterClient() {
   const handleBulkImport = async (data: Record<string, unknown>[]) => {
     const results = await Promise.allSettled(
       data.map((row) =>
-        fetch("/api/registers/conflicts", {
+        fetch("/api/registers/vulnerable-customers", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            declarant_name: row.declarant_name || row["Declarant Name"],
-            declarant_role: row.declarant_role || row["Role"] || "",
-            conflict_type: row.conflict_type || row["Type"] || "other",
-            description: row.description || row["Description"] || "",
-            declaration_date: row.declaration_date || row["Declaration Date"] || new Date().toISOString(),
+            customer_reference: row.customer_reference || row["Customer Reference"],
+            customer_name: row.customer_name || row["Customer Name"] || "",
+            vulnerability_type: row.vulnerability_type || row["Vulnerability Type"] || "other",
+            vulnerability_details: row.vulnerability_details || row["Details"] || "",
+            identified_date: row.identified_date || row["Identified Date"] || new Date().toISOString(),
             status: row.status || row["Status"] || "active",
-            risk_rating: row.risk_rating || row["Risk Rating"] || "medium",
+            risk_level: row.risk_level || row["Risk Level"] || "medium",
             pack_id: packId || undefined,
           }),
         })
@@ -226,14 +214,16 @@ export function ConflictsRegisterClient() {
   // Filter records
   const filteredRecords = useMemo(() => {
     return records.filter((r) => {
-      const matchesSearch = r.declarant_name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesSearch =
+        r.customer_reference.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (r.customer_name?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
       const matchesStatus = filterValues.status === "all" || r.status === filterValues.status;
-      const matchesRisk = filterValues.risk_rating === "all" || r.risk_rating === filterValues.risk_rating;
+      const matchesRisk = filterValues.risk_level === "all" || r.risk_level === filterValues.risk_level;
       const matchesDrillDown =
         !drillDownFilter ||
         (drillDownFilter.key === "status" && r.status === drillDownFilter.value) ||
-        (drillDownFilter.key === "risk" && r.risk_rating === drillDownFilter.value) ||
-        (drillDownFilter.key === "type" && r.conflict_type === drillDownFilter.value);
+        (drillDownFilter.key === "risk" && r.risk_level === drillDownFilter.value) ||
+        (drillDownFilter.key === "type" && r.vulnerability_type === drillDownFilter.value);
       return matchesSearch && matchesStatus && matchesRisk && matchesDrillDown;
     });
   }, [records, searchQuery, filterValues, drillDownFilter]);
@@ -249,9 +239,9 @@ export function ConflictsRegisterClient() {
     () => ({
       total: records.length,
       active: records.filter((r) => r.status === "active").length,
-      mitigated: records.filter((r) => r.status === "mitigated").length,
+      monitoring: records.filter((r) => r.status === "monitoring").length,
       resolved: records.filter((r) => r.status === "resolved").length,
-      highRisk: records.filter((r) => r.risk_rating === "high" || r.risk_rating === "critical").length,
+      highRisk: records.filter((r) => r.risk_level === "high" || r.risk_level === "critical").length,
     }),
     [records]
   );
@@ -260,7 +250,7 @@ export function ConflictsRegisterClient() {
   const statusChartData = useMemo(
     () => [
       { label: "Active", value: stats.active, color: chartColors.active },
-      { label: "Mitigated", value: stats.mitigated, color: chartColors.mitigated },
+      { label: "Monitoring", value: stats.monitoring, color: chartColors.monitoring },
       { label: "Resolved", value: stats.resolved, color: chartColors.resolved },
     ],
     [stats]
@@ -269,7 +259,7 @@ export function ConflictsRegisterClient() {
   const typeChartData = useMemo(() => {
     const counts: Record<string, number> = {};
     records.forEach((r) => {
-      counts[r.conflict_type] = (counts[r.conflict_type] || 0) + 1;
+      counts[r.vulnerability_type] = (counts[r.vulnerability_type] || 0) + 1;
     });
     return Object.entries(counts).map(([type, count]) => ({
       label: typeLabels[type] || type,
@@ -282,20 +272,20 @@ export function ConflictsRegisterClient() {
   }, [records]);
 
   // Table columns
-  const columns: Column<COIRecord>[] = [
+  const columns: Column<VulnerableCustomerRecord>[] = [
     {
-      key: "declarant_name",
-      header: "Declarant",
+      key: "customer_reference",
+      header: "Customer",
       sortable: true,
       render: (value, row) => (
         <div>
           <span className="font-medium text-slate-900">{value as string}</span>
-          {row.declarant_role && <p className="text-xs text-slate-500">{row.declarant_role}</p>}
+          {row.customer_name && <p className="text-xs text-slate-500">{row.customer_name}</p>}
         </div>
       ),
     },
     {
-      key: "conflict_type",
+      key: "vulnerability_type",
       header: "Type",
       sortable: true,
       render: (value) => typeLabels[value as string] || value,
@@ -307,14 +297,14 @@ export function ConflictsRegisterClient() {
       render: (value) => renderBadge(value as string, statusColors),
     },
     {
-      key: "risk_rating",
+      key: "risk_level",
       header: "Risk",
       sortable: true,
       render: (value) => renderBadge(value as string, riskColors),
     },
     {
-      key: "declaration_date",
-      header: "Declared",
+      key: "identified_date",
+      header: "Identified",
       sortable: true,
       render: (value) => renderDate(value as string),
     },
@@ -332,16 +322,15 @@ export function ConflictsRegisterClient() {
     exportToCSV(
       selectedRecords,
       [
-        { key: "declarant_name", header: "Declarant Name" },
-        { key: "declarant_role", header: "Role" },
-        { key: "conflict_type", header: "Conflict Type", transform: (v) => typeLabels[v as string] || String(v) },
+        { key: "customer_reference", header: "Customer Reference" },
+        { key: "customer_name", header: "Customer Name" },
+        { key: "vulnerability_type", header: "Vulnerability Type", transform: (v) => typeLabels[v as string] || String(v) },
         { key: "status", header: "Status", transform: transforms.titleCase },
-        { key: "risk_rating", header: "Risk Rating", transform: transforms.titleCase },
-        { key: "declaration_date", header: "Declaration Date", transform: transforms.date },
-        { key: "description", header: "Description" },
-        { key: "mitigation_measures", header: "Mitigation Measures" },
+        { key: "risk_level", header: "Risk Level", transform: transforms.titleCase },
+        { key: "identified_date", header: "Identified Date", transform: transforms.date },
+        { key: "support_measures", header: "Support Measures" },
       ],
-      "conflicts_selected"
+      "vulnerable_customers_selected"
     );
   };
 
@@ -349,18 +338,17 @@ export function ConflictsRegisterClient() {
     exportToCSV(
       filteredRecords,
       [
-        { key: "declarant_name", header: "Declarant Name" },
-        { key: "declarant_role", header: "Role" },
-        { key: "conflict_type", header: "Conflict Type", transform: (v) => typeLabels[v as string] || String(v) },
+        { key: "customer_reference", header: "Customer Reference" },
+        { key: "customer_name", header: "Customer Name" },
+        { key: "vulnerability_type", header: "Vulnerability Type", transform: (v) => typeLabels[v as string] || String(v) },
+        { key: "vulnerability_details", header: "Details" },
         { key: "status", header: "Status", transform: transforms.titleCase },
-        { key: "risk_rating", header: "Risk Rating", transform: transforms.titleCase },
-        { key: "declaration_date", header: "Declaration Date", transform: transforms.date },
-        { key: "description", header: "Description" },
-        { key: "parties_involved", header: "Parties Involved" },
-        { key: "potential_impact", header: "Potential Impact" },
-        { key: "mitigation_measures", header: "Mitigation Measures" },
+        { key: "risk_level", header: "Risk Level", transform: transforms.titleCase },
+        { key: "identified_date", header: "Identified Date", transform: transforms.date },
+        { key: "support_measures", header: "Support Measures" },
+        { key: "review_frequency", header: "Review Frequency" },
       ],
-      "conflicts_register"
+      "vulnerable_customers_register"
     );
   };
 
@@ -385,8 +373,11 @@ export function ConflictsRegisterClient() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Conflicts of Interest</h1>
-          <p className="text-sm text-slate-500">Track and manage COI declarations</p>
+          <h1 className="flex items-center gap-2 text-2xl font-bold text-slate-900">
+            <Heart className="h-6 w-6 text-pink-600" />
+            Vulnerable Customers Log
+          </h1>
+          <p className="text-sm text-slate-500">Track and support customers with vulnerabilities (Consumer Duty)</p>
         </div>
         <Button
           onClick={() => {
@@ -395,7 +386,7 @@ export function ConflictsRegisterClient() {
             setShowAddDialog(true);
           }}
         >
-          <Plus className="mr-2 h-4 w-4" /> New Declaration
+          <Plus className="mr-2 h-4 w-4" /> Add Customer
         </Button>
       </div>
 
@@ -411,13 +402,13 @@ export function ConflictsRegisterClient() {
             label: "Status",
             options: [
               { value: "active", label: "Active" },
-              { value: "mitigated", label: "Mitigated" },
+              { value: "monitoring", label: "Monitoring" },
               { value: "resolved", label: "Resolved" },
-              { value: "archived", label: "Archived" },
+              { value: "closed", label: "Closed" },
             ],
           },
           {
-            key: "risk_rating",
+            key: "risk_level",
             label: "Risk",
             options: [
               { value: "low", label: "Low" },
@@ -434,19 +425,19 @@ export function ConflictsRegisterClient() {
         onExportAll={handleExportAll}
         onBulkImport={handleBulkImport}
         importTemplate={{
-          headers: ["Declarant Name", "Role", "Type", "Description", "Declaration Date", "Risk Rating", "Status"],
-          sampleRow: ["John Smith", "Director", "financial_interest", "Shares in competitor company", "2024-01-15", "high", "active"],
+          headers: ["Customer Reference", "Customer Name", "Vulnerability Type", "Details", "Identified Date", "Risk Level", "Status"],
+          sampleRow: ["CUST-001", "Jane Doe", "health", "Long-term illness affecting communication", "2024-01-15", "high", "active"],
         }}
-        registerName="Conflicts of Interest"
+        registerName="Vulnerable Customers Log"
       />
 
       {/* Drill-down indicator */}
       {drillDownFilter && (
-        <div className="flex items-center gap-2 rounded-lg bg-violet-50 px-4 py-2">
-          <span className="text-sm text-violet-700">
+        <div className="flex items-center gap-2 rounded-lg bg-pink-50 px-4 py-2">
+          <span className="text-sm text-pink-700">
             Filtered by {drillDownFilter.key}: <strong>{drillDownFilter.value}</strong>
           </span>
-          <Button variant="ghost" size="sm" onClick={() => setDrillDownFilter(null)} className="h-6 text-violet-600 hover:text-violet-700">
+          <Button variant="ghost" size="sm" onClick={() => setDrillDownFilter(null)} className="h-6 text-pink-600 hover:text-pink-700">
             Clear filter
           </Button>
         </div>
@@ -458,15 +449,15 @@ export function ConflictsRegisterClient() {
           {/* Stat Cards */}
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             <StatCard
-              title="Total Declarations"
+              title="Total Customers"
               value={stats.total}
-              icon={<Scale className="h-5 w-5" />}
+              icon={<Users className="h-5 w-5" />}
               color="slate"
               onClick={() => setDrillDownFilter(null)}
               isActive={!drillDownFilter}
             />
             <StatCard
-              title="Active"
+              title="Active Cases"
               value={stats.active}
               icon={<Clock className="h-5 w-5" />}
               color="amber"
@@ -474,12 +465,12 @@ export function ConflictsRegisterClient() {
               isActive={drillDownFilter?.key === "status" && drillDownFilter?.value === "active"}
             />
             <StatCard
-              title="Mitigated"
-              value={stats.mitigated}
+              title="Monitoring"
+              value={stats.monitoring}
               icon={<CheckCircle className="h-5 w-5" />}
               color="blue"
-              onClick={() => handleDrillDown("status", "mitigated")}
-              isActive={drillDownFilter?.key === "status" && drillDownFilter?.value === "mitigated"}
+              onClick={() => handleDrillDown("status", "monitoring")}
+              isActive={drillDownFilter?.key === "status" && drillDownFilter?.value === "monitoring"}
             />
             <StatCard
               title="High Risk"
@@ -495,13 +486,13 @@ export function ConflictsRegisterClient() {
           <div className="grid gap-6 lg:grid-cols-2">
             <DonutChart
               data={statusChartData}
-              title="Declarations by Status"
+              title="Customers by Status"
               onSegmentClick={(label) => handleDrillDown("status", label.toLowerCase())}
               activeSegment={drillDownFilter?.key === "status" ? drillDownFilter.value : undefined}
             />
             <BarChart
               data={typeChartData}
-              title="Declarations by Type"
+              title="Customers by Vulnerability Type"
               onBarClick={(label) => {
                 const typeKey = Object.entries(typeLabels).find(([, v]) => v === label)?.[0];
                 if (typeKey) handleDrillDown("type", typeKey);
@@ -510,7 +501,7 @@ export function ConflictsRegisterClient() {
             />
           </div>
 
-          <TrendChart data={trendData} title="Declarations Trend (6 Months)" color="#8b5cf6" />
+          <TrendChart data={trendData} title="New Cases Trend (6 Months)" color="#ec4899" />
         </div>
       )}
 
@@ -525,10 +516,10 @@ export function ConflictsRegisterClient() {
             onEdit={openEdit}
             onDelete={handleDelete}
             rowClassName={(row) =>
-              row.risk_rating === "critical" ? "bg-red-50/50" : row.risk_rating === "high" ? "bg-orange-50/50" : ""
+              row.risk_level === "critical" ? "bg-red-50/50" : row.risk_level === "high" ? "bg-orange-50/50" : ""
             }
-            emptyMessage="No declarations found"
-            emptyIcon={<Scale className="h-12 w-12" />}
+            emptyMessage="No vulnerable customers recorded"
+            emptyIcon={<Heart className="h-12 w-12" />}
           />
           <PaginationControls {...paginationProps} />
         </>
@@ -538,29 +529,30 @@ export function ConflictsRegisterClient() {
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingRecord ? "Edit" : "New"} Declaration</DialogTitle>
+            <DialogTitle>{editingRecord ? "Edit" : "Add"} Vulnerable Customer</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label>Declarant Name *</Label>
+                <Label>Customer Reference *</Label>
                 <Input
-                  value={formData.declarant_name}
-                  onChange={(e) => setFormData({ ...formData, declarant_name: e.target.value })}
+                  value={formData.customer_reference}
+                  onChange={(e) => setFormData({ ...formData, customer_reference: e.target.value })}
+                  placeholder="e.g., CUST-001"
                 />
               </div>
               <div className="space-y-2">
-                <Label>Role</Label>
+                <Label>Customer Name</Label>
                 <Input
-                  value={formData.declarant_role}
-                  onChange={(e) => setFormData({ ...formData, declarant_role: e.target.value })}
+                  value={formData.customer_name}
+                  onChange={(e) => setFormData({ ...formData, customer_name: e.target.value })}
                 />
               </div>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label>Conflict Type</Label>
-                <Select value={formData.conflict_type} onValueChange={(v) => setFormData({ ...formData, conflict_type: v })}>
+                <Label>Vulnerability Type</Label>
+                <Select value={formData.vulnerability_type} onValueChange={(v) => setFormData({ ...formData, vulnerability_type: v })}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -574,49 +566,36 @@ export function ConflictsRegisterClient() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Declaration Date</Label>
+                <Label>Identified Date</Label>
                 <Input
                   type="date"
-                  value={formData.declaration_date}
-                  onChange={(e) => setFormData({ ...formData, declaration_date: e.target.value })}
+                  value={formData.identified_date}
+                  onChange={(e) => setFormData({ ...formData, identified_date: e.target.value })}
                 />
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Description *</Label>
+              <Label>Vulnerability Details</Label>
               <Textarea
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                value={formData.vulnerability_details}
+                onChange={(e) => setFormData({ ...formData, vulnerability_details: e.target.value })}
                 rows={3}
+                placeholder="Describe the nature of the vulnerability..."
               />
             </div>
             <div className="space-y-2">
-              <Label>Parties Involved</Label>
-              <Input
-                value={formData.parties_involved}
-                onChange={(e) => setFormData({ ...formData, parties_involved: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Potential Impact</Label>
+              <Label>Support Measures</Label>
               <Textarea
-                value={formData.potential_impact}
-                onChange={(e) => setFormData({ ...formData, potential_impact: e.target.value })}
-                rows={2}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Mitigation Measures</Label>
-              <Textarea
-                value={formData.mitigation_measures}
-                onChange={(e) => setFormData({ ...formData, mitigation_measures: e.target.value })}
-                rows={2}
+                value={formData.support_measures}
+                onChange={(e) => setFormData({ ...formData, support_measures: e.target.value })}
+                rows={3}
+                placeholder="What support measures are in place?"
               />
             </div>
             <div className="grid gap-4 sm:grid-cols-3">
               <div className="space-y-2">
-                <Label>Risk Rating</Label>
-                <Select value={formData.risk_rating} onValueChange={(v) => setFormData({ ...formData, risk_rating: v })}>
+                <Label>Risk Level</Label>
+                <Select value={formData.risk_level} onValueChange={(v) => setFormData({ ...formData, risk_level: v })}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -636,9 +615,9 @@ export function ConflictsRegisterClient() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="mitigated">Mitigated</SelectItem>
+                    <SelectItem value="monitoring">Monitoring</SelectItem>
                     <SelectItem value="resolved">Resolved</SelectItem>
-                    <SelectItem value="archived">Archived</SelectItem>
+                    <SelectItem value="closed">Closed</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -649,14 +628,21 @@ export function ConflictsRegisterClient() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="annual">Annual</SelectItem>
-                    <SelectItem value="semi_annual">Semi-Annual</SelectItem>
-                    <SelectItem value="quarterly">Quarterly</SelectItem>
                     <SelectItem value="monthly">Monthly</SelectItem>
+                    <SelectItem value="quarterly">Quarterly</SelectItem>
+                    <SelectItem value="semi_annual">Semi-Annual</SelectItem>
+                    <SelectItem value="annual">Annual</SelectItem>
                     <SelectItem value="ad_hoc">Ad-hoc</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Identified By</Label>
+              <Input
+                value={formData.identified_by}
+                onChange={(e) => setFormData({ ...formData, identified_by: e.target.value })}
+              />
             </div>
             <div className="space-y-2">
               <Label>Notes</Label>

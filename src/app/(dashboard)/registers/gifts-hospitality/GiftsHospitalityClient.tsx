@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
+import { generateTrendData } from "@/lib/chart-utils";
+import { useToast } from "@/components/toast-provider";
 import { Plus, Loader2, Gift, ArrowDownLeft, ArrowUpRight, Clock, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +16,7 @@ import { RegisterToolbar, ViewMode } from "@/components/registers/RegisterToolba
 import { RegisterDataTable, Column, renderBadge, renderDate, renderCurrency } from "@/components/registers/RegisterDataTable";
 import { StatCard, DonutChart, BarChart, TrendChart } from "@/components/registers/RegisterCharts";
 import { exportToCSV, transforms } from "@/lib/export-utils";
+import { PaginationControls, usePagination } from "@/components/ui/pagination-controls";
 
 interface GiftRecord {
   id: string;
@@ -65,6 +68,7 @@ const chartColors = {
 export function GiftsHospitalityClient() {
   const searchParams = useSearchParams();
   const packId = searchParams.get("packId");
+  const toast = useToast();
   const [records, setRecords] = useState<GiftRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [viewMode, setViewMode] = useState<ViewMode>("dashboard");
@@ -131,7 +135,7 @@ export function GiftsHospitalityClient() {
 
   const handleSave = async () => {
     if (!formData.description.trim()) {
-      alert("Description required");
+      toast.error("Description required");
       return;
     }
     setIsSaving(true);
@@ -153,7 +157,7 @@ export function GiftsHospitalityClient() {
       resetForm();
       loadRecords();
     } catch {
-      alert("Failed to save");
+      toast.error("Failed to save");
     } finally {
       setIsSaving(false);
     }
@@ -165,7 +169,7 @@ export function GiftsHospitalityClient() {
       await fetch(`/api/registers/gifts-hospitality/${id}`, { method: "DELETE" });
       loadRecords();
     } catch {
-      alert("Failed to delete");
+      toast.error("Failed to delete");
     }
   };
 
@@ -208,7 +212,7 @@ export function GiftsHospitalityClient() {
     );
 
     const failed = results.filter((r) => r.status === "rejected").length;
-    if (failed > 0) alert(`${failed} records failed to import`);
+    if (failed > 0) toast.error(`${failed} records failed to import`);
     loadRecords();
   };
 
@@ -228,6 +232,12 @@ export function GiftsHospitalityClient() {
       return matchesSearch && matchesType && matchesApproval && matchesDrillDown;
     });
   }, [records, searchQuery, filterValues, drillDownFilter]);
+
+  // Pagination
+  const {
+    paginatedData,
+    paginationProps,
+  } = usePagination(filteredRecords, { initialLimit: 25 });
 
   // Statistics
   const stats = useMemo(
@@ -264,12 +274,8 @@ export function GiftsHospitalityClient() {
   }, [records]);
 
   const trendData = useMemo(() => {
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
-    return months.map((label) => ({
-      label,
-      value: Math.floor(Math.random() * 10) + 2,
-    }));
-  }, []);
+    return generateTrendData(records, 6, 'created_at');
+  }, [records]);
 
   const isReceived = formData.entry_type.includes("received");
 
@@ -506,17 +512,20 @@ export function GiftsHospitalityClient() {
 
       {/* Table View */}
       {viewMode === "table" && (
-        <RegisterDataTable
-          columns={columns}
-          data={filteredRecords}
-          selectedIds={selectedIds}
-          onSelectionChange={setSelectedIds}
-          onEdit={openEdit}
-          onDelete={handleDelete}
-          rowClassName={(row) => (row.declined ? "bg-red-50/50" : row.approval_status === "pending" ? "bg-amber-50/50" : "")}
-          emptyMessage="No entries found"
-          emptyIcon={<Gift className="h-12 w-12" />}
-        />
+        <>
+          <RegisterDataTable
+            columns={columns}
+            data={paginatedData}
+            selectedIds={selectedIds}
+            onSelectionChange={setSelectedIds}
+            onEdit={openEdit}
+            onDelete={handleDelete}
+            rowClassName={(row) => (row.declined ? "bg-red-50/50" : row.approval_status === "pending" ? "bg-amber-50/50" : "")}
+            emptyMessage="No entries found"
+            emptyIcon={<Gift className="h-12 w-12" />}
+          />
+          <PaginationControls {...paginationProps} />
+        </>
       )}
 
       {/* Add/Edit Dialog */}

@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import { generateTrendData } from "@/lib/chart-utils";
 import { useSearchParams, useRouter } from "next/navigation";
+import { useToast } from "@/components/toast-provider";
 import {
   Plus,
   Loader2,
@@ -35,6 +37,7 @@ import { RegisterToolbar, ViewMode } from "@/components/registers/RegisterToolba
 import { RegisterDataTable, Column, renderBadge, renderDate, renderCurrency } from "@/components/registers/RegisterDataTable";
 import { StatCard, DonutChart, BarChart, TrendChart } from "@/components/registers/RegisterCharts";
 import { exportToCSV, transforms } from "@/lib/export-utils";
+import { PaginationControls, usePagination } from "@/components/ui/pagination-controls";
 
 interface ComplaintRecord {
   id: string;
@@ -102,6 +105,7 @@ export function ComplaintsRegisterClient() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const packId = searchParams.get("packId");
+  const toast = useToast();
 
   const [records, setRecords] = useState<ComplaintRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -174,7 +178,7 @@ export function ComplaintsRegisterClient() {
 
   const handleSave = async () => {
     if (!formData.complainant_name.trim()) {
-      alert("Complainant name is required");
+      toast.error("Complainant name is required");
       return;
     }
 
@@ -206,7 +210,7 @@ export function ComplaintsRegisterClient() {
       resetForm();
       loadRecords();
     } catch (err) {
-      alert("Failed to save complaint");
+      toast.error("Failed to save complaint");
     } finally {
       setIsSaving(false);
     }
@@ -219,7 +223,7 @@ export function ComplaintsRegisterClient() {
       if (!res.ok) throw new Error("Failed to delete");
       loadRecords();
     } catch (err) {
-      alert("Failed to delete complaint");
+      toast.error("Failed to delete complaint");
     }
   };
 
@@ -269,7 +273,7 @@ export function ComplaintsRegisterClient() {
 
     const failed = results.filter((r) => r.status === "rejected").length;
     if (failed > 0) {
-      alert(`${failed} records failed to import`);
+      toast.error(`${failed} records failed to import`);
     }
     loadRecords();
   };
@@ -289,6 +293,12 @@ export function ComplaintsRegisterClient() {
       return matchesSearch && matchesStatus && matchesPriority && matchesDrillDown;
     });
   }, [records, searchQuery, filterValues, drillDownFilter]);
+
+  // Pagination
+  const {
+    paginatedData,
+    paginationProps,
+  } = usePagination(filteredRecords, { initialLimit: 25 });
 
   // Statistics
   const stats = useMemo(() => ({
@@ -320,12 +330,8 @@ export function ComplaintsRegisterClient() {
   }, [records]);
 
   const trendData = useMemo(() => {
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
-    return months.map((label) => ({
-      label,
-      value: Math.floor(Math.random() * 20) + 5, // Placeholder - replace with real data
-    }));
-  }, []);
+    return generateTrendData(records, 6, 'date_received');
+  }, [records]);
 
   // Table columns
   const columns: Column<ComplaintRecord>[] = [
@@ -593,21 +599,24 @@ export function ComplaintsRegisterClient() {
 
       {/* Table View */}
       {viewMode === "table" && (
-        <RegisterDataTable
-          columns={columns}
-          data={filteredRecords}
-          selectedIds={selectedIds}
-          onSelectionChange={setSelectedIds}
-          onView={handleViewDetail}
-          onEdit={openEditDialog}
-          onDelete={handleDelete}
-          rowClassName={(row) =>
-            row.priority === "urgent" ? "bg-red-50/50" :
-            row.priority === "high" ? "bg-orange-50/50" : ""
-          }
-          emptyMessage="No complaints found"
-          emptyIcon={<MessageSquareWarning className="h-12 w-12" />}
-        />
+        <>
+          <RegisterDataTable
+            columns={columns}
+            data={paginatedData}
+            selectedIds={selectedIds}
+            onSelectionChange={setSelectedIds}
+            onView={handleViewDetail}
+            onEdit={openEditDialog}
+            onDelete={handleDelete}
+            rowClassName={(row) =>
+              row.priority === "urgent" ? "bg-red-50/50" :
+              row.priority === "high" ? "bg-orange-50/50" : ""
+            }
+            emptyMessage="No complaints found"
+            emptyIcon={<MessageSquareWarning className="h-12 w-12" />}
+          />
+          <PaginationControls {...paginationProps} />
+        </>
       )}
 
       {/* Add/Edit Dialog */}
