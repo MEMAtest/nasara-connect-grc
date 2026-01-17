@@ -111,7 +111,7 @@ export function ComplianceFrameworkClient() {
 
   const mappingCoverage = useMemo(() => {
     const total = coverage.length || 0;
-    const countBy = (key: keyof (typeof coverage)[number]["counts"]) =>
+    const countBy = (key: "control" | "risk" | "training" | "evidence") =>
       coverage.filter((row) => row.counts[key] > 0).length;
     return {
       total,

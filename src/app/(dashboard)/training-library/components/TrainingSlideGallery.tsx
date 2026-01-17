@@ -6,405 +6,148 @@ type Slide = {
   caption?: string;
 };
 
-const moduleSlides: Record<string, Slide[]> = {
-  "aml-fundamentals": [
-    {
-      src: "/images/training/aml-ctf-01.jpg",
-      alt: "Compliance analyst reviewing transaction alerts",
-      caption: "Frontline review and escalation keeps money laundering risk in check.",
-    },
-    {
-      src: "/images/training/aml-ctf-02.jpg",
-      alt: "Regulatory documentation review",
-      caption: "Clear evidence and audit trails support AML compliance.",
-    },
-    {
-      src: "/images/training/aml-ctf-03.jpg",
-      alt: "Team monitoring risk dashboards",
-      caption: "Risk-based monitoring focuses resources on higher-risk activity.",
-    },
+const fallbackSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450" role="img" aria-label="Training image unavailable">
+  <rect width="800" height="450" fill="#f1f5f9"/>
+  <rect x="40" y="40" width="720" height="370" rx="24" fill="#e2e8f0"/>
+  <text x="400" y="230" text-anchor="middle" fill="#64748b" font-size="22" font-family="Arial, sans-serif">Image unavailable</text>
+</svg>`;
+
+const fallbackImage = `data:image/svg+xml;utf8,${encodeURIComponent(fallbackSvg)}`;
+
+const moduleMeta: Record<string, { title: string; category: string }> = {
+  "aml-fundamentals": {
+    title: "Anti-Money Laundering Fundamentals",
+    category: "financial-crime-prevention",
+  },
+  "financial-crime-aml": {
+    title: "Financial Crime and Anti-Money Laundering",
+    category: "financial-crime-prevention",
+  },
+  "money-laundering-red-flags": {
+    title: "Money Laundering Red Flags",
+    category: "financial-crime-prevention",
+  },
+  "sanctions-training": {
+    title: "Sanctions and Financial Crime Prevention",
+    category: "financial-crime-prevention",
+  },
+  "peps-training": {
+    title: "Politically Exposed Persons Identification",
+    category: "financial-crime-prevention",
+  },
+  "sars-training": {
+    title: "Suspicious Activity Reporting",
+    category: "financial-crime-prevention",
+  },
+  "cryptoasset-risk": {
+    title: "Cryptoasset Financial Crime Risk",
+    category: "financial-crime-prevention",
+  },
+  "kyc-fundamentals": {
+    title: "Know Your Customer and Due Diligence",
+    category: "financial-crime-prevention",
+  },
+  "consumer-duty": {
+    title: "Consumer Duty",
+    category: "customer-protection",
+  },
+  "consumer-duty-implementation": {
+    title: "Consumer Duty Implementation",
+    category: "customer-protection",
+  },
+  "consumer-credit-training": {
+    title: "Consumer Credit and Affordability",
+    category: "customer-protection",
+  },
+  "vulnerable-customers": {
+    title: "Vulnerable Customers",
+    category: "customer-protection",
+  },
+  "client-categorisation": {
+    title: "Client Categorisation",
+    category: "regulatory-compliance",
+  },
+  "suitability-appropriateness": {
+    title: "Suitability and Appropriateness",
+    category: "regulatory-compliance",
+  },
+  "complaints-handling": {
+    title: "Complaints Handling",
+    category: "regulatory-compliance",
+  },
+  "financial-promotions": {
+    title: "Financial Promotions and Communications",
+    category: "regulatory-compliance",
+  },
+  "mifid-training": {
+    title: "MiFID Permissions and Conduct",
+    category: "regulatory-compliance",
+  },
+  "insurance-conduct": {
+    title: "Insurance Distribution Conduct",
+    category: "regulatory-compliance",
+  },
+  "payments-regulation": {
+    title: "Payment Services and E-Money Regulations",
+    category: "regulatory-compliance",
+  },
+  "smcr-training": {
+    title: "Senior Managers and Certification Regime",
+    category: "regulatory-compliance",
+  },
+  "outsourcing-third-party": {
+    title: "Outsourcing and Third-Party Risk",
+    category: "operational-risk",
+  },
+  "operational-resilience": {
+    title: "Operational Resilience and Incident Management",
+    category: "operational-risk",
+  },
+  "operational-resilience-framework": {
+    title: "Operational Resilience Framework",
+    category: "operational-risk",
+  },
+};
+
+const defaultCaptions = [
+  "Core concepts and key responsibilities.",
+  "Controls, monitoring, and practical steps.",
+  "Evidence, governance, and escalation.",
+];
+
+const categoryCaptions: Record<string, string[]> = {
+  "financial-crime-prevention": [
+    "Key typologies and risk signals to watch for.",
+    "Controls, screening, and escalation workflows.",
+    "Evidence, reporting, and governance expectations.",
   ],
-  "financial-promotions": [
-    {
-      src: "/images/training/financial-promotions-01.jpg",
-      alt: "Marketing team reviewing financial promotion materials",
-      caption: "Clear disclosures support fair, not misleading communications.",
-    },
-    {
-      src: "/images/training/financial-promotions-02.jpg",
-      alt: "Compliance review of digital advertising assets",
-      caption: "Risk warnings should be as prominent as benefits.",
-    },
-    {
-      src: "/images/training/financial-promotions-03.jpg",
-      alt: "Team alignment on approval workflow for promotions",
-      caption: "Approval and audit trails protect the firm and customers.",
-    },
+  "regulatory-compliance": [
+    "Core regulatory requirements and obligations.",
+    "Governance, controls, and monitoring practices.",
+    "Documentation, approvals, and oversight.",
   ],
-  "consumer-duty": [
-    {
-      src: "/images/training/consumer-duty-01.jpg",
-      alt: "Adviser supporting a customer during a review",
-      caption: "Outcomes-led conversations build better customer results.",
-    },
-    {
-      src: "/images/training/consumer-duty-02.jpg",
-      alt: "Team workshop on customer journey improvements",
-      caption: "Mapping journeys reveals friction and poor value.",
-    },
-    {
-      src: "/images/training/consumer-duty-03.jpg",
-      alt: "Team reviewing feedback and metrics",
-      caption: "Evidence and MI demonstrate good outcomes.",
-    },
+  "customer-protection": [
+    "Customer outcomes and duty of care focus.",
+    "Communications, support, and fair value evidence.",
+    "Ongoing monitoring and remediation actions.",
   ],
-  "vulnerable-customers": [
-    {
-      src: "/images/training/vulnerable-customers-01.jpg",
-      alt: "Support agent listening to a customer",
-      caption: "Spotting vulnerability cues is a frontline skill.",
-    },
-    {
-      src: "/images/training/vulnerable-customers-02.jpg",
-      alt: "Customer service team collaborating on support plans",
-      caption: "Tailored support improves customer resilience.",
-    },
-    {
-      src: "/images/training/vulnerable-customers-03.jpg",
-      alt: "Team reviewing accessibility adjustments",
-      caption: "Inclusive design protects vulnerable customers.",
-    },
-  ],
-  "consumer-duty-implementation": [
-    {
-      src: "/images/training/consumer-duty-01.jpg",
-      alt: "Adviser supporting a customer during a review",
-      caption: "Implementation starts with evidence of real customer outcomes.",
-    },
-    {
-      src: "/images/training/consumer-duty-02.jpg",
-      alt: "Team workshop on customer journey improvements",
-      caption: "Journey reviews reveal friction and value gaps.",
-    },
-    {
-      src: "/images/training/consumer-duty-03.jpg",
-      alt: "Team reviewing feedback and metrics",
-      caption: "Outcome-led MI proves ongoing compliance.",
-    },
-  ],
-  "consumer-credit-training": [
-    {
-      src: "/images/training/vulnerable-customers-01.jpg",
-      alt: "Support agent listening to a customer",
-      caption: "Affordability checks must protect customers from harm.",
-    },
-    {
-      src: "/images/training/vulnerable-customers-02.jpg",
-      alt: "Customer service team collaborating on support plans",
-      caption: "Forbearance and tailored support reduce arrears harm.",
-    },
-    {
-      src: "/images/training/vulnerable-customers-03.jpg",
-      alt: "Team reviewing accessibility adjustments",
-      caption: "Vulnerability awareness improves credit outcomes.",
-    },
-  ],
-  "smcr-training": [
-    {
-      src: "/images/training/smcr-01.jpg",
-      alt: "Senior manager reviewing accountability documents",
-      caption: "Clear responsibilities reduce conduct risk.",
-    },
-    {
-      src: "/images/training/smcr-02.jpg",
-      alt: "Leadership team reviewing certification updates",
-      caption: "Certification evidence supports fit and proper assessments.",
-    },
-    {
-      src: "/images/training/smcr-03.jpg",
-      alt: "Board-level review session",
-      caption: "Governance oversight strengthens accountability.",
-    },
-  ],
-  "outsourcing-third-party": [
-    {
-      src: "/images/training/outsourcing-tprm-01.jpg",
-      alt: "Vendor management review meeting",
-      caption: "Third-party risk reviews keep services resilient.",
-    },
-    {
-      src: "/images/training/outsourcing-tprm-02.jpg",
-      alt: "Operations team monitoring outsourced service performance",
-      caption: "Service quality metrics protect customers.",
-    },
-    {
-      src: "/images/training/outsourcing-tprm-03.jpg",
-      alt: "Analyst reviewing third-party risk documentation",
-      caption: "Contract controls and oversight reduce operational risk.",
-    },
-  ],
-  "operational-resilience": [
-    {
-      src: "/images/training/outsourcing-tprm-01.jpg",
-      alt: "Vendor management review meeting",
-      caption: "Resilience depends on documented third-party controls.",
-    },
-    {
-      src: "/images/training/outsourcing-tprm-02.jpg",
-      alt: "Operations team monitoring outsourced service performance",
-      caption: "Monitoring and testing validate resilience plans.",
-    },
-    {
-      src: "/images/training/outsourcing-tprm-03.jpg",
-      alt: "Analyst reviewing third-party risk documentation",
-      caption: "Evidence and governance drive response readiness.",
-    },
-  ],
-  "operational-resilience-framework": [
-    {
-      src: "/images/training/data-protection-01.jpg",
-      alt: "Data protection and system monitoring",
-      caption: "Mapping critical services starts with people, process, and tech.",
-    },
-    {
-      src: "/images/training/data-protection-02.jpg",
-      alt: "Security controls review",
-      caption: "Impact tolerances guide testing and investment.",
-    },
-    {
-      src: "/images/training/data-protection-03.jpg",
-      alt: "Team reviewing controls and incident plans",
-      caption: "Scenario testing turns plans into evidence.",
-    },
-  ],
-  "financial-crime-aml": [
-    {
-      src: "/images/training/aml-ctf-01.jpg",
-      alt: "Compliance analyst reviewing transaction alerts",
-      caption: "Monitoring alerts and escalation decisions drive detection.",
-    },
-    {
-      src: "/images/training/aml-ctf-02.jpg",
-      alt: "Regulatory documentation review",
-      caption: "Clear evidence supports compliance obligations.",
-    },
-    {
-      src: "/images/training/aml-ctf-03.jpg",
-      alt: "Team monitoring risk dashboards",
-      caption: "Risk-based monitoring focuses resources effectively.",
-    },
-  ],
-  "money-laundering-red-flags": [
-    {
-      src: "/images/training/aml-ctf-01.jpg",
-      alt: "Compliance analyst reviewing transaction alerts",
-      caption: "Pattern recognition turns alerts into defensible decisions.",
-    },
-    {
-      src: "/images/training/aml-ctf-02.jpg",
-      alt: "Regulatory documentation review",
-      caption: "Evidence and rationale are essential for escalation.",
-    },
-    {
-      src: "/images/training/aml-ctf-03.jpg",
-      alt: "Team monitoring risk dashboards",
-      caption: "Risk monitoring highlights unusual behavior quickly.",
-    },
-  ],
-  "sanctions-training": [
-    {
-      src: "/images/training/abc-01.jpg",
-      alt: "Compliance review and escalation meeting",
-      caption: "Screening hits require fast, well-documented decisions.",
-    },
-    {
-      src: "/images/training/abc-02.jpg",
-      alt: "Risk review of third-party relationships",
-      caption: "Ownership and jurisdiction checks are core controls.",
-    },
-    {
-      src: "/images/training/abc-03.jpg",
-      alt: "Team aligning on compliance controls",
-      caption: "Clear governance keeps sanctions compliance consistent.",
-    },
-  ],
-  "peps-training": [
-    {
-      src: "/images/training/conduct-risk-01.jpg",
-      alt: "Risk review meeting",
-      caption: "PEP risk decisions must be consistent and documented.",
-    },
-    {
-      src: "/images/training/conduct-risk-02.jpg",
-      alt: "Compliance team reviewing customer files",
-      caption: "Source of wealth evidence supports defensible onboarding.",
-    },
-    {
-      src: "/images/training/conduct-risk-03.jpg",
-      alt: "Team assessing governance controls",
-      caption: "Senior management approval is a core PEP safeguard.",
-    },
-  ],
-  "sars-training": [
-    {
-      src: "/images/training/whistleblowing-01.jpg",
-      alt: "Compliance officer reviewing a report",
-      caption: "Clear, factual reporting protects the firm and staff.",
-    },
-    {
-      src: "/images/training/whistleblowing-02.jpg",
-      alt: "Team discussing escalation paths",
-      caption: "Strong escalation routes prevent delay and risk.",
-    },
-    {
-      src: "/images/training/whistleblowing-03.jpg",
-      alt: "Governance meeting reviewing case notes",
-      caption: "Evidence-driven SARs stand up to scrutiny.",
-    },
-  ],
-  "cryptoasset-risk": [
-    {
-      src: "/images/training/data-protection-01.jpg",
-      alt: "Data protection and system monitoring",
-      caption: "Crypto risk controls must align to documented assessments.",
-    },
-    {
-      src: "/images/training/data-protection-02.jpg",
-      alt: "Security controls review",
-      caption: "Monitoring tools help trace and flag risky activity.",
-    },
-    {
-      src: "/images/training/data-protection-03.jpg",
-      alt: "Team reviewing controls and incident plans",
-      caption: "Governance evidence supports FCA expectations.",
-    },
-  ],
-  "kyc-fundamentals": [
-    {
-      src: "/images/training/data-protection-01.jpg",
-      alt: "Data protection and system monitoring",
-      caption: "Customer files must be accurate, secure, and complete.",
-    },
-    {
-      src: "/images/training/data-protection-02.jpg",
-      alt: "Security controls review",
-      caption: "Verification controls reduce onboarding risk.",
-    },
-    {
-      src: "/images/training/data-protection-03.jpg",
-      alt: "Team reviewing controls and incident plans",
-      caption: "Audit-ready records support defensible decisions.",
-    },
-  ],
-  "client-categorisation": [
-    {
-      src: "/images/training/conduct-risk-01.jpg",
-      alt: "Risk review meeting",
-      caption: "Client categorisation shapes the correct protections.",
-    },
-    {
-      src: "/images/training/conduct-risk-02.jpg",
-      alt: "Compliance team reviewing customer files",
-      caption: "Document evidence for professional client assessments.",
-    },
-    {
-      src: "/images/training/conduct-risk-03.jpg",
-      alt: "Team assessing governance controls",
-      caption: "Governance prevents mis-categorisation risk.",
-    },
-  ],
-  "suitability-appropriateness": [
-    {
-      src: "/images/training/conduct-risk-01.jpg",
-      alt: "Risk review meeting",
-      caption: "Suitability relies on clear fact finds and evidence.",
-    },
-    {
-      src: "/images/training/conduct-risk-02.jpg",
-      alt: "Compliance team reviewing customer files",
-      caption: "Appropriateness checks protect customers from harm.",
-    },
-    {
-      src: "/images/training/conduct-risk-03.jpg",
-      alt: "Team assessing governance controls",
-      caption: "Controls and MI ensure consistent advice standards.",
-    },
-  ],
-  "complaints-handling": [
-    {
-      src: "/images/training/whistleblowing-01.jpg",
-      alt: "Compliance officer reviewing a report",
-      caption: "Consistent complaint logging reduces conduct risk.",
-    },
-    {
-      src: "/images/training/whistleblowing-02.jpg",
-      alt: "Team discussing escalation paths",
-      caption: "Timely escalation improves customer outcomes.",
-    },
-    {
-      src: "/images/training/whistleblowing-03.jpg",
-      alt: "Governance meeting reviewing case notes",
-      caption: "Root cause analysis prevents repeat issues.",
-    },
-  ],
-  "mifid-training": [
-    {
-      src: "/images/training/conduct-risk-01.jpg",
-      alt: "Risk review meeting",
-      caption: "Permissions and conduct requirements must be mapped clearly.",
-    },
-    {
-      src: "/images/training/conduct-risk-02.jpg",
-      alt: "Compliance team reviewing customer files",
-      caption: "Best execution evidence protects client outcomes.",
-    },
-    {
-      src: "/images/training/conduct-risk-03.jpg",
-      alt: "Team assessing governance controls",
-      caption: "Monitoring and governance keep MiFID controls effective.",
-    },
-  ],
-  "payments-regulation": [
-    {
-      src: "/images/training/data-protection-01.jpg",
-      alt: "Data protection and system monitoring",
-      caption: "Safeguarding depends on clear controls and evidence.",
-    },
-    {
-      src: "/images/training/data-protection-02.jpg",
-      alt: "Security controls review",
-      caption: "Reconciliations verify funds are protected.",
-    },
-    {
-      src: "/images/training/data-protection-03.jpg",
-      alt: "Team reviewing controls and incident plans",
-      caption: "Reporting and oversight reduce regulatory risk.",
-    },
-  ],
-  "insurance-conduct": [
-    {
-      src: "/images/training/conduct-risk-01.jpg",
-      alt: "Risk review meeting",
-      caption: "Distribution oversight protects the target market.",
-    },
-    {
-      src: "/images/training/conduct-risk-02.jpg",
-      alt: "Compliance team reviewing customer files",
-      caption: "Outcome monitoring is a core PROD requirement.",
-    },
-    {
-      src: "/images/training/conduct-risk-03.jpg",
-      alt: "Team assessing governance controls",
-      caption: "Governance evidence supports PROD compliance.",
-    },
+  "operational-risk": [
+    "Resilience and dependency mapping insights.",
+    "Testing, monitoring, and contingency planning.",
+    "Governance, remediation, and accountability.",
   ],
 };
 
-const categorySlides: Record<string, Slide[]> = {
-  "financial-crime-prevention": moduleSlides["financial-crime-aml"],
-  "customer-protection": moduleSlides["consumer-duty"],
-  "regulatory-compliance": moduleSlides["smcr-training"],
-  "operational-risk": moduleSlides["outsourcing-third-party"],
+const buildSlides = (moduleId: string, title: string, category?: string): Slide[] => {
+  const captions = (category && categoryCaptions[category]) || defaultCaptions;
+  return [0, 1, 2].map((index) => {
+    const number = String(index + 1).padStart(2, "0");
+    return {
+      src: `/images/training/modules/${moduleId}-${number}.jpg`,
+      alt: `${title} training visual ${index + 1}`,
+      caption: captions[index],
+    };
+  });
 };
 
 export function TrainingSlideGallery({
@@ -416,7 +159,9 @@ export function TrainingSlideGallery({
   category?: string;
   className?: string;
 }) {
-  const slides = moduleSlides[moduleId] ?? (category ? categorySlides[category] : undefined);
+  const meta = moduleMeta[moduleId];
+  if (!meta) return null;
+  const slides = buildSlides(moduleId, meta.title, meta.category || category);
   if (!slides?.length) return null;
 
   return (
@@ -432,6 +177,12 @@ export function TrainingSlideGallery({
               alt={slide.alt}
               className="h-44 w-full rounded-xl border border-slate-200 object-cover shadow-sm"
               loading="lazy"
+              onError={(event) => {
+                const target = event.currentTarget;
+                if (target.dataset.fallback === "1") return;
+                target.dataset.fallback = "1";
+                target.src = fallbackImage;
+              }}
             />
             {slide.caption ? (
               <figcaption className="text-xs text-slate-500">{slide.caption}</figcaption>
