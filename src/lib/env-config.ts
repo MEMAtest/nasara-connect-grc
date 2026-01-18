@@ -5,18 +5,23 @@
 
 export type EnvironmentName = 'development' | 'uat' | 'production' | 'local';
 
+// Check URL-based detection as fallback
+const nextAuthUrl = process.env.NEXTAUTH_URL || '';
+const isDevUrl = nextAuthUrl.includes('dev.nasaraconnect');
+const isUatUrl = nextAuthUrl.includes('uat.nasaraconnect');
+
 export const ENV_CONFIG = {
   /**
    * True if running in development environment (dev branch on Vercel)
    */
-  isDev: process.env.VERCEL_ENV === 'preview' &&
-         process.env.VERCEL_GIT_COMMIT_REF === 'dev',
+  isDev: (process.env.VERCEL_ENV === 'preview' &&
+         process.env.VERCEL_GIT_COMMIT_REF === 'dev') || isDevUrl,
 
   /**
    * True if running in UAT environment (uat branch on Vercel)
    */
-  isUat: process.env.VERCEL_ENV === 'preview' &&
-         process.env.VERCEL_GIT_COMMIT_REF === 'uat',
+  isUat: (process.env.VERCEL_ENV === 'preview' &&
+         process.env.VERCEL_GIT_COMMIT_REF === 'uat') || isUatUrl,
 
   /**
    * True if running in production environment (main branch on Vercel)
@@ -26,16 +31,16 @@ export const ENV_CONFIG = {
   /**
    * True if running locally (not on Vercel)
    */
-  isLocal: !process.env.VERCEL,
+  isLocal: !process.env.VERCEL && !isDevUrl && !isUatUrl,
 
   /**
    * Current environment name
    */
   envName: ((): EnvironmentName => {
-    if (!process.env.VERCEL) return 'local';
-    if (process.env.VERCEL_GIT_COMMIT_REF === 'dev') return 'development';
-    if (process.env.VERCEL_GIT_COMMIT_REF === 'uat') return 'uat';
+    if (process.env.VERCEL_GIT_COMMIT_REF === 'dev' || isDevUrl) return 'development';
+    if (process.env.VERCEL_GIT_COMMIT_REF === 'uat' || isUatUrl) return 'uat';
     if (process.env.VERCEL_ENV === 'production') return 'production';
+    if (!process.env.VERCEL) return 'local';
     return 'local';
   })(),
 
