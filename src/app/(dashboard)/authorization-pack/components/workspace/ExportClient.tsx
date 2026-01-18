@@ -17,6 +17,30 @@ function SparklesIcon({ className }: { className?: string }) {
   );
 }
 
+function DocumentIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+    </svg>
+  );
+}
+
+function DownloadIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+    </svg>
+  );
+}
+
+function ShieldCheckIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+    </svg>
+  );
+}
+
 interface PackRow {
   id: string;
   name: string;
@@ -55,7 +79,6 @@ export function ExportClient() {
   const [isValidating, setIsValidating] = useState(false);
   const [validation, setValidation] = useState<ValidationResult | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
-  const [isBatchExporting, setIsBatchExporting] = useState(false);
   const [downloadingFormat, setDownloadingFormat] = useState<string | null>(null);
   const [downloadError, setDownloadError] = useState<string | null>(null);
   const [downloadSuccess, setDownloadSuccess] = useState<string | null>(null);
@@ -114,23 +137,6 @@ export function ExportClient() {
 
   const safeName = pack?.name ? pack.name.replace(/[^a-z0-9-_]+/gi, "-").replace(/-+/g, "-") : "pack";
 
-  const downloadBatchExport = async () => {
-    if (!pack) return;
-    setIsBatchExporting(true);
-    setDownloadError(null);
-    setDownloadSuccess(null);
-    try {
-      const timestamp = new Date().toISOString().split("T")[0];
-      await downloadFile(
-        `/api/authorization-pack/packs/${pack.id}/export/batch`,
-        `${safeName}-complete-${timestamp}.zip`,
-        "Complete Pack"
-      );
-    } finally {
-      setIsBatchExporting(false);
-    }
-  };
-
   useEffect(() => {
     const load = async () => {
       setIsLoading(true);
@@ -167,14 +173,19 @@ export function ExportClient() {
       }
     };
     load();
-  }, [packIdParam]);
+  }, [packIdParam, router]);
 
   if (isLoading) {
     return (
       <div className="space-y-6">
         <WorkspaceHeader pack={pack} readiness={readiness} />
         <Card className="border border-slate-200">
-          <CardContent className="p-8 text-center text-slate-500">Loading export tools...</CardContent>
+          <CardContent className="p-8 text-center text-slate-500">
+            <div className="flex items-center justify-center gap-2">
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-teal-500 border-t-transparent" />
+              Loading export tools...
+            </div>
+          </CardContent>
         </Card>
       </div>
     );
@@ -213,6 +224,7 @@ export function ExportClient() {
   return (
     <div className="space-y-6">
       <WorkspaceHeader pack={pack} readiness={readiness} />
+
       {/* Status notifications */}
       {downloadError && (
         <div className="flex items-center justify-between rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
@@ -236,86 +248,86 @@ export function ExportClient() {
           Downloading {downloadingFormat}...
         </div>
       )}
-      <Card className="border border-slate-200">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0">
-          <div>
-            <CardTitle>Export Center</CardTitle>
-            <CardDescription>Generate business plan outputs and annex packs.</CardDescription>
-          </div>
-          <Button
-            onClick={downloadBatchExport}
-            disabled={isBatchExporting}
-            className="gap-2 bg-teal-600 hover:bg-teal-700"
-          >
-            {isBatchExporting ? (
-              <>
-                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                Generating...
-              </>
-            ) : (
-              <>
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-                Download All
-              </>
-            )}
-          </Button>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-xl border border-slate-100 p-4">
-            <p className="text-sm font-semibold text-slate-900">Business plan narrative</p>
-            <p className="text-xs text-slate-500">Merge section narratives into a single document.</p>
-            <div className="mt-4 space-y-2">
-              <Button
-                className="w-full bg-teal-600 hover:bg-teal-700"
-                onClick={() =>
-                  downloadFile(`/api/authorization-pack/packs/${pack.id}/export/narrative`, `${safeName}-narrative.md`)
-                }
-              >
-                Download Markdown
-              </Button>
-              <Button
-                className="w-full"
-                variant="outline"
-                onClick={() =>
-                  downloadFile(
-                    `/api/authorization-pack/packs/${pack.id}/export/narrative-docx`,
-                    `${safeName}-narrative.docx`
-                  )
-                }
-              >
-                Download DOCX
-              </Button>
-              <Button
-                className="w-full"
-                variant="outline"
-                onClick={() =>
-                  downloadFile(
-                    `/api/authorization-pack/packs/${pack.id}/export/narrative-pdf`,
-                    `${safeName}-narrative.pdf`
-                  )
-                }
-              >
-                Download PDF
-              </Button>
+
+      {/* Main Export Options - 2 column grid */}
+      <div className="grid gap-4 md:grid-cols-2">
+        {/* Business Plan Narrative */}
+        <Card className="border border-slate-200">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-100">
+                <DocumentIcon className="h-4 w-4 text-teal-600" />
+              </div>
+              <div>
+                <CardTitle className="text-sm">Business Plan Narrative</CardTitle>
+                <CardDescription className="text-xs">Complete business plan for FCA submission</CardDescription>
+              </div>
             </div>
-          </div>
-          <div className="rounded-xl border border-slate-100 p-4">
-            <p className="text-sm font-semibold text-slate-900">Annex index</p>
-            <p className="text-xs text-slate-500">Create the annex register for submission tracking.</p>
+          </CardHeader>
+          <CardContent className="space-y-2">
             <Button
-              className="mt-4 w-full"
-              variant="outline"
+              className="w-full bg-teal-600 hover:bg-teal-700"
               onClick={() =>
-                downloadFile(`/api/authorization-pack/packs/${pack.id}/export/annex-index`, `${safeName}-annex-index.csv`)
+                downloadFile(
+                  `/api/authorization-pack/packs/${pack.id}/export/narrative-pdf`,
+                  `${safeName}-business-plan.pdf`,
+                  "PDF"
+                )
               }
             >
-              Download annex index
+              <DownloadIcon className="mr-2 h-4 w-4" />
+              Download PDF
             </Button>
-          </div>
-        </CardContent>
-      </Card>
+            <Button
+              className="w-full"
+              variant="outline"
+              onClick={() =>
+                downloadFile(
+                  `/api/authorization-pack/packs/${pack.id}/export/narrative-docx`,
+                  `${safeName}-business-plan.docx`,
+                  "DOCX"
+                )
+              }
+            >
+              Download DOCX
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Perimeter Opinion Pack */}
+        <Card className="border border-purple-200 bg-gradient-to-br from-purple-50/50 to-white">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-100">
+                <ShieldCheckIcon className="h-4 w-4 text-purple-600" />
+              </div>
+              <div>
+                <CardTitle className="text-sm">Perimeter Opinion Pack</CardTitle>
+                <CardDescription className="text-xs">Regulatory scope opinion with rationale</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <Button
+              className="w-full bg-purple-600 hover:bg-purple-700"
+              onClick={() =>
+                downloadFile(
+                  `/api/authorization-pack/packs/${pack.id}/generate-business-plan`,
+                  `${safeName}-opinion-pack.pdf`,
+                  "Opinion PDF"
+                )
+              }
+            >
+              <DownloadIcon className="mr-2 h-4 w-4" />
+              Download Opinion PDF
+            </Button>
+            <p className="text-center text-xs text-purple-600">
+              5-7 page perimeter opinion based on your profile
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Quality Check Card */}
       <Card className="border border-slate-200">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -383,7 +395,7 @@ export function ExportClient() {
               {validation.issues.length > 0 ? (
                 <div className="space-y-2">
                   <p className="text-sm font-medium text-slate-700">Issues Found ({validation.issues.length})</p>
-                  <div className="max-h-64 space-y-2 overflow-y-auto">
+                  <div className="max-h-48 space-y-2 overflow-y-auto">
                     {validation.issues.map((issue, idx) => (
                       <div
                         key={idx}
@@ -425,6 +437,35 @@ export function ExportClient() {
               Click &quot;Check Quality&quot; to validate your pack before exporting.
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Additional Exports - Secondary */}
+      <Card className="border border-slate-100">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm text-slate-600">Additional Exports</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                downloadFile(`/api/authorization-pack/packs/${pack.id}/export/narrative`, `${safeName}-narrative.md`, "Markdown")
+              }
+            >
+              Markdown
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                downloadFile(`/api/authorization-pack/packs/${pack.id}/export/annex-index`, `${safeName}-annex-index.csv`, "Annex CSV")
+              }
+            >
+              Annex Index CSV
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>

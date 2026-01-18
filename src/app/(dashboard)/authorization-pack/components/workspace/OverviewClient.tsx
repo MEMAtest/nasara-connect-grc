@@ -803,8 +803,8 @@ export function OverviewClient() {
               <div className="py-4 text-center text-sm text-slate-400">No pending tasks.</div>
             )}
             <Button asChild variant="outline" className="mt-2 w-full" size="sm">
-              <Link href={pack ? `/authorization-pack/tasks?packId=${pack.id}` : "/authorization-pack/tasks"}>
-                View All Tasks
+              <Link href={pack ? `/authorization-pack/review?packId=${pack.id}` : "/authorization-pack/review"}>
+                View Review Queue
                 <ArrowRightIcon className="ml-1.5 h-3 w-3" />
               </Link>
             </Button>

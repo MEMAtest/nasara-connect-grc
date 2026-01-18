@@ -571,6 +571,55 @@ const PROFILE_QUESTIONS: ProfileQuestion[] = [
     appliesTo: ["payments"],
   },
   {
+    id: "pay-headcount",
+    sectionId: "payments",
+    prompt: "Planned headcount at launch",
+    description: "Indicate the expected number of employees at launch. This impacts own funds requirements.",
+    type: "single-choice",
+    required: true,
+    weight: 2,
+    regulatoryRefs: ["PSR 2017 - Own funds calculation"],
+    options: [
+      { value: "1-5", label: "1-5 employees", score: 1 },
+      { value: "6-10", label: "6-10 employees", score: 2 },
+      { value: "11-25", label: "11-25 employees", score: 2 },
+      { value: "26-50", label: "26-50 employees", score: 3 },
+      { value: "50+", label: "50+ employees", score: 3 },
+    ],
+    packSectionKeys: ["financials", "governance"],
+    appliesTo: ["payments"],
+  },
+  {
+    id: "pay-monthly-opex",
+    sectionId: "payments",
+    prompt: "Estimated monthly operating expenditure (GBP)",
+    description: "Enter your projected monthly operating costs. Used to calculate own funds requirement under Method A.",
+    type: "number",
+    required: true,
+    weight: 2,
+    regulatoryRefs: ["PSR 2017 - Own funds requirement", "EMRs 2011 - Capital requirements"],
+    packSectionKeys: ["financials"],
+    appliesTo: ["payments"],
+  },
+  {
+    id: "pay-capital-method",
+    sectionId: "payments",
+    prompt: "Capital calculation method",
+    description: "Select the own funds calculation method you intend to use for regulatory capital.",
+    type: "single-choice",
+    required: true,
+    weight: 2,
+    regulatoryRefs: ["PSR 2017 - Own funds calculation", "FCA Approach to Payment Services and E-Money (2017)"],
+    options: [
+      { value: "method-a", label: "Method A - Fixed overheads", score: 2 },
+      { value: "method-b", label: "Method B - Scalable method", score: 2 },
+      { value: "method-c", label: "Method C - Hybrid", score: 2 },
+      { value: "unsure", label: "Not yet determined", score: 0 },
+    ],
+    packSectionKeys: ["financials"],
+    appliesTo: ["payments"],
+  },
+  {
     id: "cc-activities",
     sectionId: "consumer-credit",
     prompt: "Consumer credit activities in scope",
@@ -877,7 +926,7 @@ const isAnswered = (question: ProfileQuestion, value: ProfileResponse | undefine
     return String(value).trim().length > 0;
   }
   if (question.type === "number") {
-    return String(value).trim().length > 0;
+    return typeof value === "number" && !isNaN(value);
   }
   if (question.type === "boolean") {
     return typeof value === "boolean";

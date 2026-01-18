@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 import { ProjectHeader } from "./ProjectHeader";
-import { BarChart3, List, LayoutGrid } from "lucide-react";
+import { BarChart3, List, LayoutGrid, ChevronDown, ChevronRight } from "lucide-react";
 
 // ============================================================================
 // CONSTANTS - Extracted magic numbers for maintainability
@@ -422,6 +422,7 @@ export function PlanClient() {
   const [draftPlan, setDraftPlan] = useState<ProjectPlan | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [expandedPhases, setExpandedPhases] = useState<Set<string>>(new Set());
 
   // Ref to track if component is mounted (prevents memory leaks)
   const isMountedRef = useRef(true);
@@ -885,132 +886,195 @@ export function PlanClient() {
                     </div>
                   </div>
 
-                  {/* Phase Rows */}
+                  {/* Phase Rows - Collapsible */}
                   {phaseGroups.map(([phase, items], phaseIdx) => {
                     const config = phaseConfig[phase] || defaultPhaseConfig;
+                    const isExpanded = expandedPhases.has(phase);
+                    const togglePhase = () => {
+                      setExpandedPhases((prev) => {
+                        const next = new Set(prev);
+                        if (next.has(phase)) {
+                          next.delete(phase);
+                        } else {
+                          next.add(phase);
+                        }
+                        return next;
+                      });
+                    };
+
+                    // Calculate phase summary bar (collapsed view)
+                    const phaseStartWeek = Math.min(...items.map((m) => m.startWeek));
+                    const phaseEndWeek = Math.max(...items.map((m) => m.endWeek));
+                    const phaseDuration = phaseEndWeek - phaseStartWeek + 1;
+                    const completedCount = items.filter((m) => m.status === "complete").length;
+                    const inProgressCount = items.filter((m) => m.status === "in-progress").length;
+
                     return (
                       <div
                         key={phase}
-                        className={`flex ${phaseIdx < phaseGroups.length - 1 ? "border-b border-slate-100" : ""}`}
+                        className={`${phaseIdx < phaseGroups.length - 1 ? "border-b border-slate-100" : ""}`}
                       >
-                        {/* Phase label */}
-                        <div
-                          className={`flex-shrink-0 border-r border-slate-200 px-4 py-4 ${config.bg}`}
-                          style={{ width: `${GANTT_CONFIG.PHASE_LABEL_WIDTH}px` }}
-                        >
-                          <div className="flex items-center gap-2">
-                            <div className={`h-3 w-3 rounded-full ${config.dot}`} />
-                            <span className={`text-sm font-semibold ${config.text}`}>{getPhaseLabel(phase)}</span>
-                          </div>
-                          <div className="mt-1 text-xs text-slate-500">
-                            {items.length} milestone{items.length !== 1 ? "s" : ""}
-                          </div>
-                        </div>
+                        {/* Phase header - clickable to expand/collapse */}
+                        <div className="flex">
+                          <button
+                            onClick={togglePhase}
+                            className={`flex-shrink-0 border-r border-slate-200 px-4 py-3 text-left transition-colors hover:bg-opacity-80 ${config.bg}`}
+                            style={{ width: `${GANTT_CONFIG.PHASE_LABEL_WIDTH}px` }}
+                          >
+                            <div className="flex items-center gap-2">
+                              {isExpanded ? (
+                                <ChevronDown className="h-4 w-4 text-slate-400" />
+                              ) : (
+                                <ChevronRight className="h-4 w-4 text-slate-400" />
+                              )}
+                              <div className={`h-3 w-3 rounded-full ${config.dot}`} />
+                              <span className={`text-sm font-semibold ${config.text}`}>{getPhaseLabel(phase)}</span>
+                            </div>
+                            <div className="mt-1 flex items-center gap-2 pl-6 text-xs text-slate-500">
+                              <span>{items.length} task{items.length !== 1 ? "s" : ""}</span>
+                              {completedCount > 0 && (
+                                <Badge className="h-4 bg-green-100 px-1 text-[10px] text-green-700">
+                                  {completedCount} done
+                                </Badge>
+                              )}
+                              {inProgressCount > 0 && (
+                                <Badge className="h-4 bg-blue-100 px-1 text-[10px] text-blue-700">
+                                  {inProgressCount} active
+                                </Badge>
+                              )}
+                            </div>
+                          </button>
 
-                        {/* Timeline area */}
-                        <div
-                          className="relative flex-1 py-3"
-                          style={{
-                            minHeight: `${Math.max(
-                              GANTT_CONFIG.MILESTONE_MIN_HEIGHT,
-                              items.length * GANTT_CONFIG.MILESTONE_ROW_HEIGHT
-                            )}px`,
-                          }}
-                        >
-                          {/* Grid lines */}
-                          <div className="pointer-events-none absolute inset-0 flex">
-                            {weekColumns.map((col, idx) => (
+                          {/* Timeline area - collapsed summary bar */}
+                          {!isExpanded && (
+                            <div className="relative flex-1 py-3" style={{ minHeight: `${GANTT_CONFIG.MILESTONE_MIN_HEIGHT}px` }}>
+                              {/* Grid lines */}
+                              <div className="pointer-events-none absolute inset-0 flex">
+                                {weekColumns.map((col, idx) => (
+                                  <div
+                                    key={col.week}
+                                    className={`flex-1 border-r border-slate-50 ${idx === weekColumns.length - 1 ? "border-r-0" : ""}`}
+                                    style={{ minWidth: `${GANTT_CONFIG.WEEK_COLUMN_MIN_WIDTH}px` }}
+                                  />
+                                ))}
+                              </div>
+                              {/* Today marker line */}
+                              {currentWeek > 0 && currentWeek <= totalWeeks && (
+                                <div className="absolute bottom-0 top-0 z-10 w-0.5 bg-red-400" style={{ left: `${todayPosition}%` }} />
+                              )}
+                              {/* Collapsed phase summary bar */}
                               <div
-                                key={col.week}
-                                className={`flex-1 border-r border-slate-50 ${
-                                  idx === weekColumns.length - 1 ? "border-r-0" : ""
-                                }`}
-                                style={{ minWidth: `${GANTT_CONFIG.WEEK_COLUMN_MIN_WIDTH}px` }}
-                              />
-                            ))}
-                          </div>
-
-                          {/* Today marker line */}
-                          {currentWeek > 0 && currentWeek <= totalWeeks && (
-                            <div
-                              className="absolute bottom-0 top-0 z-10 w-0.5 bg-red-400"
-                              style={{ left: `${todayPosition}%` }}
-                            />
-                          )}
-
-                          {/* Milestone bars */}
-                          {items.map((milestone, milestoneIdx) => {
-                            const left = totalWeeks > 0 ? ((milestone.startWeek - 1) / totalWeeks) * 100 : 0;
-                            const width = totalWeeks > 0 ? (milestone.durationWeeks / totalWeeks) * 100 : 0;
-                            const status = statusStyles[milestone.status] || statusStyles.pending;
-
-                            // Determine tooltip position to prevent clipping
-                            const tooltipPosition: "left" | "center" | "right" =
-                              left < GANTT_CONFIG.TOOLTIP_EDGE_THRESHOLD
-                                ? "left"
-                                : left + width > 100 - GANTT_CONFIG.TOOLTIP_EDGE_THRESHOLD
-                                ? "right"
-                                : "center";
-
-                            return (
-                              <div
-                                key={milestone.id}
-                                className="group absolute px-1"
+                                className="absolute px-1"
                                 style={{
-                                  left: `${left}%`,
-                                  width: `${Math.max(width, 5)}%`,
-                                  top: `${milestoneIdx * GANTT_CONFIG.MILESTONE_ROW_HEIGHT + GANTT_CONFIG.MILESTONE_VERTICAL_PADDING}px`,
+                                  left: `${totalWeeks > 0 ? ((phaseStartWeek - 1) / totalWeeks) * 100 : 0}%`,
+                                  width: `${Math.max(totalWeeks > 0 ? (phaseDuration / totalWeeks) * 100 : 0, 5)}%`,
+                                  top: `${GANTT_CONFIG.MILESTONE_VERTICAL_PADDING}px`,
                                 }}
                               >
                                 <div
-                                  role="button"
-                                  tabIndex={0}
-                                  aria-label={`${milestone.title}: ${getPhaseLabel(milestone.phase)}, Week ${milestone.startWeek} to ${milestone.endWeek}, Status: ${milestone.status.replace(/-/g, " ")}`}
-                                  onKeyDown={(e) => {
-                                    if (e.key === "Enter" || e.key === " ") {
-                                      e.preventDefault();
-                                      // Could open a detail modal in the future
-                                    }
-                                  }}
-                                  className={`relative flex h-8 cursor-pointer items-center justify-between overflow-hidden rounded-md border-2 px-2 shadow-sm transition-all hover:shadow-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-1 ${config.bg} ${config.border} ${status.opacity} ${status.className}`}
+                                  className={`flex h-8 cursor-pointer items-center justify-between rounded-md border-2 px-3 shadow-sm ${config.bg} ${config.border}`}
+                                  onClick={togglePhase}
                                 >
-                                  {/* Progress fill for completed */}
-                                  {milestone.status === "complete" && (
-                                    <div className={`absolute inset-0 ${config.bgSolid} opacity-20`} />
-                                  )}
-                                  {/* In-progress stripes */}
-                                  {milestone.status === "in-progress" && (
-                                    <div
-                                      className="absolute inset-0 opacity-10"
-                                      style={{
-                                        backgroundImage: `repeating-linear-gradient(
-                                          45deg,
-                                          transparent,
-                                          transparent 4px,
-                                          currentColor 4px,
-                                          currentColor 8px
-                                        )`,
-                                      }}
-                                    />
-                                  )}
-
-                                  {/* Content */}
-                                  <span className={`relative z-10 truncate text-xs font-medium ${config.text}`}>
-                                    {milestone.title}
+                                  <span className={`text-xs font-medium ${config.text}`}>
+                                    W{phaseStartWeek}-{phaseEndWeek}
                                   </span>
-                                  <span
-                                    className={`relative z-10 ml-1 flex-shrink-0 text-[10px] ${config.text} opacity-70`}
-                                  >
-                                    {milestone.durationWeeks}w
+                                  <span className={`text-[10px] ${config.text} opacity-70`}>
+                                    {phaseDuration}w · {items.length} tasks
                                   </span>
-
-                                  {/* Tooltip with smart positioning */}
-                                  <MilestoneTooltip milestone={milestone} config={config} position={tooltipPosition} />
                                 </div>
                               </div>
-                            );
-                          })}
+                            </div>
+                          )}
                         </div>
+
+                        {/* Expanded milestone rows */}
+                        {isExpanded && (
+                          <div className="flex">
+                            <div
+                              className={`flex-shrink-0 border-r border-slate-200 ${config.bg} opacity-50`}
+                              style={{ width: `${GANTT_CONFIG.PHASE_LABEL_WIDTH}px` }}
+                            />
+                            <div
+                              className="relative flex-1 py-3"
+                              style={{
+                                minHeight: `${Math.max(
+                                  GANTT_CONFIG.MILESTONE_MIN_HEIGHT,
+                                  items.length * GANTT_CONFIG.MILESTONE_ROW_HEIGHT
+                                )}px`,
+                              }}
+                            >
+                              {/* Grid lines */}
+                              <div className="pointer-events-none absolute inset-0 flex">
+                                {weekColumns.map((col, idx) => (
+                                  <div
+                                    key={col.week}
+                                    className={`flex-1 border-r border-slate-50 ${idx === weekColumns.length - 1 ? "border-r-0" : ""}`}
+                                    style={{ minWidth: `${GANTT_CONFIG.WEEK_COLUMN_MIN_WIDTH}px` }}
+                                  />
+                                ))}
+                              </div>
+                              {/* Today marker line */}
+                              {currentWeek > 0 && currentWeek <= totalWeeks && (
+                                <div className="absolute bottom-0 top-0 z-10 w-0.5 bg-red-400" style={{ left: `${todayPosition}%` }} />
+                              )}
+                              {/* Milestone bars */}
+                              {items.map((milestone, milestoneIdx) => {
+                                const left = totalWeeks > 0 ? ((milestone.startWeek - 1) / totalWeeks) * 100 : 0;
+                                const width = totalWeeks > 0 ? (milestone.durationWeeks / totalWeeks) * 100 : 0;
+                                const status = statusStyles[milestone.status] || statusStyles.pending;
+                                const tooltipPosition: "left" | "center" | "right" =
+                                  left < GANTT_CONFIG.TOOLTIP_EDGE_THRESHOLD
+                                    ? "left"
+                                    : left + width > 100 - GANTT_CONFIG.TOOLTIP_EDGE_THRESHOLD
+                                    ? "right"
+                                    : "center";
+
+                                return (
+                                  <div
+                                    key={milestone.id}
+                                    className="group absolute px-1"
+                                    style={{
+                                      left: `${left}%`,
+                                      width: `${Math.max(width, 5)}%`,
+                                      top: `${milestoneIdx * GANTT_CONFIG.MILESTONE_ROW_HEIGHT + GANTT_CONFIG.MILESTONE_VERTICAL_PADDING}px`,
+                                    }}
+                                  >
+                                    <div
+                                      role="button"
+                                      tabIndex={0}
+                                      aria-label={`${milestone.title}: ${getPhaseLabel(milestone.phase)}, Week ${milestone.startWeek} to ${milestone.endWeek}, Status: ${milestone.status.replace(/-/g, " ")}`}
+                                      onKeyDown={(e) => {
+                                        if (e.key === "Enter" || e.key === " ") {
+                                          e.preventDefault();
+                                        }
+                                      }}
+                                      className={`relative flex h-8 cursor-pointer items-center justify-between overflow-hidden rounded-md border-2 px-2 shadow-sm transition-all hover:shadow-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-1 ${config.bg} ${config.border} ${status.opacity} ${status.className}`}
+                                    >
+                                      {milestone.status === "complete" && (
+                                        <div className={`absolute inset-0 ${config.bgSolid} opacity-20`} />
+                                      )}
+                                      {milestone.status === "in-progress" && (
+                                        <div
+                                          className="absolute inset-0 opacity-10"
+                                          style={{
+                                            backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 4px, currentColor 4px, currentColor 8px)`,
+                                          }}
+                                        />
+                                      )}
+                                      <span className={`relative z-10 truncate text-xs font-medium ${config.text}`}>
+                                        {milestone.title}
+                                      </span>
+                                      <span className={`relative z-10 ml-1 flex-shrink-0 text-[10px] ${config.text} opacity-70`}>
+                                        {milestone.durationWeeks}w
+                                      </span>
+                                      <MilestoneTooltip milestone={milestone} config={config} position={tooltipPosition} />
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     );
                   })}

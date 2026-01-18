@@ -318,8 +318,8 @@ export function OpinionPackClient() {
           <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">AI workflow</p>
             <p className="mt-2">
-              After you complete the profile, click Generate Opinion Pack to trigger the AI draft. Review the output
-              here and mark items for review or sign-off. If responses change, regenerate to refresh the opinion pack.
+              Complete the Business Plan Profile in Phase 1 first. Then click Generate Opinion Pack to create your 5-7 page
+              perimeter opinion. The AI will synthesize your answers into regulatory narrative. Regenerate anytime after updates.
             </p>
           </div>
 

@@ -32,7 +32,6 @@ interface WorkspaceHeaderProps {
 
 const navItems = [
   { href: "/authorization-pack/workspace", label: "Workspace" },
-  { href: "/authorization-pack/tasks", label: "Tasks" },
   { href: "/authorization-pack/review", label: "Review" },
   { href: "/authorization-pack/export", label: "Export" },
 ];
@@ -104,8 +103,8 @@ export function WorkspaceHeader({ pack, readiness, showCTA = true }: WorkspaceHe
                 </Badge>
                 <Badge className="bg-slate-900 text-white">{(pack.status || "draft").replace("-", " ")}</Badge>
                 <Button asChild className="bg-teal-600 hover:bg-teal-700">
-                  <Link href={activePackId ? `/authorization-pack/tasks?packId=${activePackId}` : "/authorization-pack/tasks"}>
-                    Open Tasks
+                  <Link href={activePackId ? `/authorization-pack/review?packId=${activePackId}` : "/authorization-pack/review"}>
+                    Open Review
                   </Link>
                 </Button>
               </>

@@ -56,10 +56,18 @@ function FilterIcon({ className }: { className?: string }) {
   );
 }
 
-function UserIcon({ className }: { className?: string }) {
+function ChevronDownIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+    </svg>
+  );
+}
+
+function ChevronRightIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
     </svg>
   );
 }
@@ -104,16 +112,238 @@ const REVIEWER_ROLE_OPTIONS = [
   { value: "consultant", label: "Consultant Review" },
 ];
 
-const REVIEW_COLUMNS = [
-  { key: "pending", label: "Pending", description: "Awaiting review", tone: "text-slate-600" },
-  { key: "in-review", label: "In Review", description: "Currently being reviewed", tone: "text-blue-600" },
-  { key: "changes_requested", label: "Changes", description: "Updates required", tone: "text-orange-600" },
-  { key: "approved", label: "Approved", description: "Ready to sign off", tone: "text-green-600" },
-] as const;
-
 function getStateColor(state: string) {
   const option = REVIEW_STATE_OPTIONS.find((opt) => opt.value === state);
   return option?.color || "bg-slate-100 text-slate-700";
+}
+
+function getStateIcon(state: string) {
+  const option = REVIEW_STATE_OPTIONS.find((opt) => opt.value === state);
+  return option?.icon || ClockIcon;
+}
+
+// Section group component with collapsible functionality
+function ReviewSectionGroup({
+  sectionTitle,
+  items,
+  pack,
+  notes,
+  setNotes,
+  onUpdate,
+  onBulkApprove,
+  isApproving,
+}: {
+  sectionTitle: string;
+  items: ReviewGate[];
+  pack: PackRow;
+  notes: Record<string, { notes: string; clientNotes: string }>;
+  setNotes: React.Dispatch<React.SetStateAction<Record<string, { notes: string; clientNotes: string }>>>;
+  onUpdate: (gateId: string, state: string) => Promise<void>;
+  onBulkApprove: (ids: string[]) => Promise<void>;
+  isApproving: boolean;
+}) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const stats = useMemo(() => {
+    return {
+      pending: items.filter((item) => item.state === "pending").length,
+      inReview: items.filter((item) => item.state === "in-review").length,
+      changes: items.filter((item) => item.state === "changes_requested").length,
+      approved: items.filter((item) => item.state === "approved").length,
+    };
+  }, [items]);
+
+  const pendingIds = items.filter((item) => item.state !== "approved").map((item) => item.id);
+  const allApproved = stats.approved === items.length;
+
+  return (
+    <div className="rounded-lg border border-slate-200 bg-white overflow-hidden">
+      {/* Collapsible Header */}
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-50 transition-colors"
+      >
+        <div className="flex items-center gap-3">
+          {isExpanded ? (
+            <ChevronDownIcon className="h-4 w-4 text-slate-400" />
+          ) : (
+            <ChevronRightIcon className="h-4 w-4 text-slate-400" />
+          )}
+          <span className="font-medium text-slate-900">{sectionTitle}</span>
+          <Badge variant="outline" className="text-xs">
+            {items.length} item{items.length !== 1 ? "s" : ""}
+          </Badge>
+        </div>
+        <div className="flex items-center gap-2">
+          {stats.approved > 0 && (
+            <Badge className="bg-green-100 text-green-700 text-xs">
+              {stats.approved} approved
+            </Badge>
+          )}
+          {stats.pending > 0 && (
+            <Badge className="bg-slate-100 text-slate-700 text-xs">
+              {stats.pending} pending
+            </Badge>
+          )}
+          {stats.changes > 0 && (
+            <Badge className="bg-orange-100 text-orange-700 text-xs">
+              {stats.changes} changes
+            </Badge>
+          )}
+          {allApproved && (
+            <CheckCircleIcon className="h-5 w-5 text-green-500" />
+          )}
+        </div>
+      </button>
+
+      {/* Expanded Content */}
+      {isExpanded && (
+        <div className="border-t border-slate-100 p-4 space-y-3">
+          {/* Bulk Approve Button */}
+          {!allApproved && pendingIds.length > 0 && (
+            <div className="flex justify-end">
+              <Button
+                size="sm"
+                className="bg-green-600 hover:bg-green-700"
+                onClick={() => onBulkApprove(pendingIds)}
+                disabled={isApproving}
+              >
+                {isApproving ? (
+                  <>
+                    <span className="h-3 w-3 animate-spin rounded-full border border-white border-t-transparent mr-2" />
+                    Approving...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircleIcon className="h-3 w-3 mr-1" />
+                    Approve All ({pendingIds.length})
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
+
+          {/* Individual Items */}
+          {items.map((gate) => {
+            const StateIcon = getStateIcon(gate.state);
+            return (
+              <div key={gate.id} className="rounded-lg border border-slate-100 bg-slate-50 p-3">
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <StateIcon className="h-4 w-4 text-slate-500" />
+                      <span className="font-medium text-sm text-slate-900">
+                        {gate.stage.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                      </span>
+                      <Badge className={`text-xs ${getStateColor(gate.state)}`}>
+                        {gate.state.replace(/[_-]/g, " ")}
+                      </Badge>
+                    </div>
+                    <p className="mt-1 text-xs text-slate-500">
+                      {gate.reviewer_role === "client" ? "Client review" : "Consultant review"}
+                      {gate.reviewed_at && ` - Reviewed ${new Date(gate.reviewed_at).toLocaleDateString("en-GB")}`}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {gate.section_instance_id && (
+                      <Button size="sm" variant="outline" asChild className="text-xs h-7">
+                        <Link href={`/authorization-pack/sections/${gate.section_instance_id}?packId=${pack.id}`}>
+                          Open
+                        </Link>
+                      </Button>
+                    )}
+                    <Select value={gate.state} onValueChange={(value) => onUpdate(gate.id, value)}>
+                      <SelectTrigger className="h-7 w-[130px] text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {REVIEW_STATE_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            <span className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs ${opt.color}`}>
+                              <opt.icon className="h-3 w-3" />
+                              {opt.label}
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {gate.state !== "approved" && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 text-xs text-green-600 hover:bg-green-50 hover:text-green-700"
+                        onClick={() => onUpdate(gate.id, "approved")}
+                      >
+                        Approve
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Notes section (collapsed by default) */}
+                <details className="mt-2">
+                  <summary className="cursor-pointer text-xs text-slate-400 hover:text-slate-600">
+                    Notes & details
+                  </summary>
+                  <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                    <div className="space-y-1">
+                      <Label className="text-xs text-slate-500">Internal Notes</Label>
+                      <Textarea
+                        className="text-xs h-16"
+                        placeholder="Internal notes..."
+                        value={notes[gate.id]?.notes ?? gate.notes ?? ""}
+                        onChange={(e) =>
+                          setNotes((prev) => ({
+                            ...prev,
+                            [gate.id]: {
+                              notes: e.target.value,
+                              clientNotes: prev[gate.id]?.clientNotes ?? gate.client_notes ?? "",
+                            },
+                          }))
+                        }
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-slate-500">Client Notes</Label>
+                      <Textarea
+                        className="text-xs h-16"
+                        placeholder="Client-visible notes..."
+                        value={notes[gate.id]?.clientNotes ?? gate.client_notes ?? ""}
+                        onChange={(e) =>
+                          setNotes((prev) => ({
+                            ...prev,
+                            [gate.id]: {
+                              notes: prev[gate.id]?.notes ?? gate.notes ?? "",
+                              clientNotes: e.target.value,
+                            },
+                          }))
+                        }
+                      />
+                    </div>
+                  </div>
+                  <div className="mt-2 flex gap-2">
+                    <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => onUpdate(gate.id, gate.state)}>
+                      Save notes
+                    </Button>
+                    {gate.state !== "changes_requested" && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-xs h-7 text-orange-600 hover:bg-orange-50"
+                        onClick={() => onUpdate(gate.id, "changes_requested")}
+                      >
+                        Request Changes
+                      </Button>
+                    )}
+                  </div>
+                </details>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function ReviewClient() {
@@ -126,6 +356,7 @@ export function ReviewClient() {
   const [notes, setNotes] = useState<Record<string, { notes: string; clientNotes: string }>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [isApproving, setIsApproving] = useState(false);
 
   // Filter states
   const [roleFilter, setRoleFilter] = useState("all");
@@ -184,10 +415,7 @@ export function ReviewClient() {
     if (!pack) return;
     setMutationError(null);
 
-    // Store previous state for rollback
     const previousReview = [...review];
-
-    // Optimistic update
     setReview((prev) => prev.map((item) => (item.id === gateId ? { ...item, state } : item)));
 
     try {
@@ -201,9 +429,57 @@ export function ReviewClient() {
         throw new Error("Failed to update review status");
       }
     } catch (error) {
-      // Rollback on error
       setReview(previousReview);
       setMutationError(error instanceof Error ? error.message : "Failed to update review. Please try again.");
+    }
+  };
+
+  const handleBulkApprove = async (ids: string[]) => {
+    if (!pack || ids.length === 0) return;
+    setIsApproving(true);
+    setMutationError(null);
+
+    const previousReview = [...review];
+    setReview((prev) => prev.map((item) => (ids.includes(item.id) ? { ...item, state: "approved" } : item)));
+
+    try {
+      const results = await Promise.allSettled(
+        ids.map((gateId) =>
+          fetch(`/api/authorization-pack/packs/${pack.id}/review`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ gateId, state: "approved" }),
+          }).then((res) => {
+            if (!res.ok) throw new Error(`Failed to approve ${gateId}`);
+            return gateId;
+          })
+        )
+      );
+
+      const failed = results.filter((r) => r.status === "rejected");
+      if (failed.length > 0) {
+        // Partial failure - rollback only failed items
+        const failedIds = new Set(
+          results
+            .map((r, i) => (r.status === "rejected" ? ids[i] : null))
+            .filter((id): id is string => id !== null)
+        );
+        setReview((prev) =>
+          prev.map((item) => {
+            if (failedIds.has(item.id)) {
+              const original = previousReview.find((p) => p.id === item.id);
+              return original || item;
+            }
+            return item;
+          })
+        );
+        setMutationError(`${failed.length} of ${ids.length} items failed to approve.`);
+      }
+    } catch (error) {
+      setReview(previousReview);
+      setMutationError(error instanceof Error ? error.message : "Failed to bulk approve. Please try again.");
+    } finally {
+      setIsApproving(false);
     }
   };
 
@@ -214,19 +490,16 @@ export function ReviewClient() {
     return true;
   });
 
-  const reviewByState = useMemo(() => {
-    return {
-      pending: filteredReview.filter((item) => item.state === "pending"),
-      "in-review": filteredReview.filter((item) => item.state === "in-review"),
-      changes_requested: filteredReview.filter((item) => item.state === "changes_requested"),
-      approved: filteredReview.filter((item) => item.state === "approved"),
-    };
-  }, [filteredReview]);
-
-  const attentionQueue = useMemo(() => {
-    return filteredReview
-      .filter((item) => ["pending", "changes_requested"].includes(item.state))
-      .slice(0, 6);
+  // Group by section title
+  const groupedBySectionTitle = useMemo(() => {
+    const groups = new Map<string, ReviewGate[]>();
+    filteredReview.forEach((item) => {
+      const key = item.section_title || "Other";
+      const existing = groups.get(key) || [];
+      existing.push(item);
+      groups.set(key, existing);
+    });
+    return Array.from(groups.entries()).sort((a, b) => a[0].localeCompare(b[0]));
   }, [filteredReview]);
 
   // Summary stats
@@ -239,6 +512,8 @@ export function ReviewClient() {
       approved: review.filter((r) => r.state === "approved").length,
     };
   }, [review]);
+
+  const completionPercent = stats.total > 0 ? Math.round((stats.approved / stats.total) * 100) : 0;
 
   if (isLoading) {
     return (
@@ -290,93 +565,76 @@ export function ReviewClient() {
     <div className="space-y-6">
       <WorkspaceHeader pack={pack} readiness={readiness} />
 
-      {/* Summary Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
+      {/* Summary Stats - Compact */}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <Card className="border border-slate-200">
-          <CardContent className="p-4">
+          <CardContent className="p-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-slate-500">Pending</p>
-                <p className="text-2xl font-semibold text-slate-900">{stats.pending}</p>
+                <p className="text-xs text-slate-500">Total Items</p>
+                <p className="text-xl font-semibold text-slate-900">{stats.total}</p>
               </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100">
-                <ClockIcon className="h-5 w-5 text-slate-600" />
+              <div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center">
+                <span className="text-xs font-medium text-slate-600">{completionPercent}%</span>
               </div>
             </div>
           </CardContent>
         </Card>
         <Card className="border border-slate-200">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-slate-500">In Review</p>
-                <p className="text-2xl font-semibold text-blue-600">{stats.inReview}</p>
-              </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
-                <EyeIcon className="h-5 w-5 text-blue-600" />
-              </div>
-            </div>
+          <CardContent className="p-3">
+            <p className="text-xs text-slate-500">Pending</p>
+            <p className="text-xl font-semibold text-slate-700">{stats.pending}</p>
           </CardContent>
         </Card>
-        <Card className="border border-slate-200">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-slate-500">Changes Requested</p>
-                <p className="text-2xl font-semibold text-orange-600">{stats.changesRequested}</p>
-              </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-100">
-                <ExclamationIcon className="h-5 w-5 text-orange-600" />
-              </div>
-            </div>
+        <Card className="border border-blue-200 bg-blue-50/50">
+          <CardContent className="p-3">
+            <p className="text-xs text-blue-600">In Review</p>
+            <p className="text-xl font-semibold text-blue-700">{stats.inReview}</p>
           </CardContent>
         </Card>
-        <Card className="border border-slate-200">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-slate-500">Approved</p>
-                <p className="text-2xl font-semibold text-green-600">{stats.approved}</p>
-              </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
-                <CheckCircleIcon className="h-5 w-5 text-green-600" />
-              </div>
-            </div>
+        <Card className="border border-orange-200 bg-orange-50/50">
+          <CardContent className="p-3">
+            <p className="text-xs text-orange-600">Changes Requested</p>
+            <p className="text-xl font-semibold text-orange-700">{stats.changesRequested}</p>
+          </CardContent>
+        </Card>
+        <Card className="border border-green-200 bg-green-50/50">
+          <CardContent className="p-3">
+            <p className="text-xs text-green-600">Approved</p>
+            <p className="text-xl font-semibold text-green-700">{stats.approved}</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Filters */}
       <Card className="border border-slate-200">
-        <CardContent className="p-4">
-          <div className="flex flex-wrap items-center gap-4">
+        <CardContent className="p-3">
+          <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-2">
               <FilterIcon className="h-4 w-4 text-slate-400" />
-              <span className="text-sm font-medium text-slate-700">Filters:</span>
+              <span className="text-sm font-medium text-slate-700">Filter:</span>
             </div>
-            <div className="flex-1">
-              <Input
-                placeholder="Search review items..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="max-w-xs"
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <Label className="text-xs text-slate-500">Role</Label>
-              <Select value={roleFilter} onValueChange={setRoleFilter}>
-                <SelectTrigger className="w-[160px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {REVIEWER_ROLE_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <Input
+              placeholder="Search sections..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="max-w-xs h-8 text-sm"
+            />
+            <Select value={roleFilter} onValueChange={setRoleFilter}>
+              <SelectTrigger className="w-[140px] h-8 text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {REVIEWER_ROLE_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <span className="text-xs text-slate-400 ml-auto">
+              {filteredReview.length} of {review.length} items · {groupedBySectionTitle.length} sections
+            </span>
           </div>
         </CardContent>
       </Card>
@@ -394,183 +652,29 @@ export function ReviewClient() {
         </div>
       )}
 
-      <Card className="border border-slate-200">
-        <CardHeader>
-          <CardTitle>Review Focus</CardTitle>
-          <CardDescription>
-            Items that need attention first. {filteredReview.length} of {review.length} items shown.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {attentionQueue.length ? (
-            attentionQueue.map((gate) => (
-              <div key={gate.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-100 bg-white px-3 py-2">
-                <div className="flex items-center gap-2">
-                  <span className={`h-2 w-2 rounded-full ${gate.state === "changes_requested" ? "bg-orange-500" : "bg-slate-400"}`} />
-                  <div>
-                    <p className="text-sm font-medium text-slate-900">{gate.section_title}</p>
-                    <p className="text-xs text-slate-500">
-                      {gate.reviewer_role === "client" ? "Client review" : "Consultant review"} - {gate.stage.replace(/-/g, " ")}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge className={getStateColor(gate.state)}>{gate.state.replace(/[_-]/g, " ")}</Badge>
-                  {gate.section_instance_id && pack ? (
-                    <Button size="sm" variant="outline" asChild>
-                      <Link href={`/authorization-pack/sections/${gate.section_instance_id}?packId=${pack.id}`}>
-                        Open section
-                      </Link>
-                    </Button>
-                  ) : null}
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="py-6 text-center text-sm text-slate-400">
-              {review.length === 0 ? "No review items available." : "No items need attention right now."}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      <div className="grid gap-4 xl:grid-cols-4">
-        {REVIEW_COLUMNS.map((column) => {
-          const columnItems = reviewByState[column.key] || [];
-          return (
-            <Card key={column.key} className="border border-slate-200">
-              <CardHeader className="pb-3">
-                <CardTitle className={`text-base ${column.tone}`}>{column.label}</CardTitle>
-                <CardDescription>
-                  {column.description} ({columnItems.length})
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {columnItems.length ? (
-                  columnItems.map((gate) => (
-                    <div key={gate.id} className="rounded-lg border border-slate-200 bg-white p-3">
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <p className="text-sm font-semibold text-slate-900">{gate.section_title}</p>
-                          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                            <Badge variant="outline" className="text-[10px]">
-                              {gate.stage.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
-                            </Badge>
-                            <span className="flex items-center gap-1">
-                              <UserIcon className="h-3 w-3" />
-                              {gate.reviewer_role === "client" ? "Client Review" : "Consultant Review"}
-                            </span>
-                          </div>
-                          {gate.reviewed_at && (
-                            <p className="mt-1 text-[11px] text-slate-400">
-                              Reviewed {new Date(gate.reviewed_at).toLocaleDateString("en-GB")}
-                            </p>
-                          )}
-                        </div>
-                        <Badge className={getStateColor(gate.state)}>{gate.state.replace(/[_-]/g, " ")}</Badge>
-                      </div>
-                      <div className="mt-3 flex flex-wrap items-center gap-2">
-                        {gate.section_instance_id && pack ? (
-                          <Button size="sm" variant="outline" asChild>
-                            <Link href={`/authorization-pack/sections/${gate.section_instance_id}?packId=${pack.id}`}>
-                              Open section
-                            </Link>
-                          </Button>
-                        ) : null}
-                      </div>
-                      <details className="mt-3">
-                        <summary className="cursor-pointer text-xs text-slate-500">Notes and actions</summary>
-                        <div className="mt-3 grid gap-3">
-                          <div className="space-y-2">
-                            <Label className="text-xs text-slate-500">Internal Notes (Consultant Only)</Label>
-                            <Textarea
-                              className="text-sm"
-                              rows={3}
-                              placeholder="Internal notes not visible to client..."
-                              value={notes[gate.id]?.notes ?? gate.notes ?? ""}
-                              onChange={(event) =>
-                                setNotes((prev) => ({
-                                  ...prev,
-                                  [gate.id]: {
-                                    notes: event.target.value,
-                                    clientNotes: prev[gate.id]?.clientNotes ?? gate.client_notes ?? "",
-                                  },
-                                }))
-                              }
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label className="text-xs text-slate-500">Client Notes (Visible to Client)</Label>
-                            <Textarea
-                              className="text-sm"
-                              rows={3}
-                              placeholder="Notes visible to the client..."
-                              value={notes[gate.id]?.clientNotes ?? gate.client_notes ?? ""}
-                              onChange={(event) =>
-                                setNotes((prev) => ({
-                                  ...prev,
-                                  [gate.id]: {
-                                    notes: prev[gate.id]?.notes ?? gate.notes ?? "",
-                                    clientNotes: event.target.value,
-                                  },
-                                }))
-                              }
-                            />
-                          </div>
-                        </div>
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          <Select value={gate.state} onValueChange={(value) => handleUpdate(gate.id, value)}>
-                            <SelectTrigger className="h-8 w-[180px]">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {REVIEW_STATE_OPTIONS.map((opt) => (
-                                <SelectItem key={opt.value} value={opt.value}>
-                                  <span className={`inline-flex items-center gap-1.5 rounded px-2 py-0.5 text-xs ${opt.color}`}>
-                                    <opt.icon className="h-3 w-3" />
-                                    {opt.label}
-                                  </span>
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <Button size="sm" variant="outline" onClick={() => handleUpdate(gate.id, gate.state)}>
-                            Save notes
-                          </Button>
-                          {gate.state !== "changes_requested" && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="text-orange-600 hover:bg-orange-50"
-                              onClick={() => handleUpdate(gate.id, "changes_requested")}
-                            >
-                              <ExclamationIcon className="mr-1.5 h-3 w-3" />
-                              Request Changes
-                            </Button>
-                          )}
-                          {gate.state !== "approved" && (
-                            <Button
-                              size="sm"
-                              className="bg-green-600 hover:bg-green-700"
-                              onClick={() => handleUpdate(gate.id, "approved")}
-                            >
-                              <CheckCircleIcon className="mr-1.5 h-3 w-3" />
-                              Approve
-                            </Button>
-                          )}
-                        </div>
-                      </details>
-                    </div>
-                  ))
-                ) : (
-                  <div className="rounded-lg border border-dashed border-slate-200 px-3 py-6 text-center text-xs text-slate-400">
-                    No items in this column.
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          );
-        })}
+      {/* Collapsible Section Groups */}
+      <div className="space-y-3">
+        {groupedBySectionTitle.length > 0 ? (
+          groupedBySectionTitle.map(([sectionTitle, items]) => (
+            <ReviewSectionGroup
+              key={sectionTitle}
+              sectionTitle={sectionTitle}
+              items={items}
+              pack={pack}
+              notes={notes}
+              setNotes={setNotes}
+              onUpdate={handleUpdate}
+              onBulkApprove={handleBulkApprove}
+              isApproving={isApproving}
+            />
+          ))
+        ) : (
+          <Card className="border border-slate-200">
+            <CardContent className="p-8 text-center text-slate-400">
+              {review.length === 0 ? "No review items available." : "No items match your filters."}
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
