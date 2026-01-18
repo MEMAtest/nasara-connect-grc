@@ -9,6 +9,7 @@ export type EnvironmentName = 'development' | 'uat' | 'production' | 'local';
 const nextAuthUrl = process.env.NEXTAUTH_URL || '';
 const isDevUrl = nextAuthUrl.includes('dev.nasaraconnect');
 const isUatUrl = nextAuthUrl.includes('uat.nasaraconnect');
+const isProdUrl = nextAuthUrl.includes('nasaraconnect.com') && !isDevUrl && !isUatUrl;
 
 export const ENV_CONFIG = {
   /**
@@ -26,12 +27,12 @@ export const ENV_CONFIG = {
   /**
    * True if running in production environment (main branch on Vercel)
    */
-  isProd: process.env.VERCEL_ENV === 'production',
+  isProd: process.env.VERCEL_ENV === 'production' || isProdUrl,
 
   /**
    * True if running locally (not on Vercel)
    */
-  isLocal: !process.env.VERCEL && !isDevUrl && !isUatUrl,
+  isLocal: !process.env.VERCEL && !isDevUrl && !isUatUrl && !isProdUrl,
 
   /**
    * Current environment name
@@ -39,7 +40,7 @@ export const ENV_CONFIG = {
   envName: ((): EnvironmentName => {
     if (process.env.VERCEL_GIT_COMMIT_REF === 'dev' || isDevUrl) return 'development';
     if (process.env.VERCEL_GIT_COMMIT_REF === 'uat' || isUatUrl) return 'uat';
-    if (process.env.VERCEL_ENV === 'production') return 'production';
+    if (process.env.VERCEL_ENV === 'production' || isProdUrl) return 'production';
     if (!process.env.VERCEL) return 'local';
     return 'local';
   })(),
