@@ -85,21 +85,6 @@ function HeroSection() {
               <div className="text-4xl font-bold text-white mb-2">2022</div>
               <div className="text-slate-400">Founded</div>
             </div>
-            <div className="w-px h-12 bg-slate-700" />
-            <div className="text-center">
-              <div className="text-4xl font-bold text-white mb-2">50+</div>
-              <div className="text-slate-400">Clients</div>
-            </div>
-            <div className="w-px h-12 bg-slate-700" />
-            <div className="text-center">
-              <div className="text-4xl font-bold text-white mb-2">98%</div>
-              <div className="text-slate-400">Satisfaction</div>
-            </div>
-            <div className="w-px h-12 bg-slate-700" />
-            <div className="text-center">
-              <div className="text-4xl font-bold text-white mb-2">£50M+</div>
-              <div className="text-slate-400">Compliance Costs Saved</div>
-            </div>
           </div>
         </motion.div>
       </div>
@@ -140,7 +125,7 @@ function StorySection() {
               </p>
               <p>
                 We built Nasara Connect to be the platform we wish we&apos;d had: intelligent, integrated,
-                and genuinely useful. Today, we&apos;re proud to serve 50+ financial institutions across
+                and genuinely useful. We serve financial institutions across
                 banking, FinTech, payments, and wealth management.
               </p>
             </div>
@@ -231,12 +216,12 @@ function TimelineSection() {
   const isInView = useInView(ref, { once: true, margin: "-100px" })
 
   const milestones = [
-    { year: '2022', quarter: 'Q1', title: 'Company Founded', desc: 'Nasara Connect established by regulatory veterans' },
-    { year: '2022', quarter: 'Q3', title: 'First Client Onboarded', desc: 'FinTech authorization pack success' },
-    { year: '2023', quarter: 'Q1', title: 'Product Suite Launch', desc: 'Intelligence, Reconciliation, Framework modules live' },
-    { year: '2023', quarter: 'Q3', title: 'Series A Funding', desc: '£5M raised to accelerate growth' },
-    { year: '2024', quarter: 'Q1', title: '50+ Clients Milestone', desc: 'Serving banking, payments, wealth, insurance sectors' },
-    { year: '2024', quarter: 'Q4', title: 'Regulatory Intelligence', desc: 'Predictive regulatory insights deployed' },
+    { year: '2022', quarter: 'Q1', title: 'Company Founded', desc: 'Nasara Connect established by regulatory experts' },
+    { year: '2022', quarter: 'Q3', title: 'Platform Development', desc: 'Core compliance modules in development' },
+    { year: '2023', quarter: 'Q1', title: 'Product Suite Launch', desc: 'Authorization Pack, Risk Assessment, and Policy modules live' },
+    { year: '2023', quarter: 'Q3', title: 'Platform Expansion', desc: 'SM&CR Management and Training Library launched' },
+    { year: '2024', quarter: 'Q1', title: 'AI Integration', desc: 'AI-powered compliance assistant deployed' },
+    { year: '2024', quarter: 'Q4', title: 'Full GRC Platform', desc: 'Complete governance, risk, and compliance suite available' },
   ]
 
   return (
@@ -251,7 +236,7 @@ function TimelineSection() {
             Our Journey
           </h2>
           <p className="text-xl text-slate-400 max-w-3xl mx-auto">
-            From founding to industry leader in just two years
+            Building the future of regulatory compliance, one milestone at a time
           </p>
         </motion.div>
 
@@ -308,12 +293,8 @@ function TeamSection() {
   const isInView = useInView(ref, { once: true, margin: "-100px" })
 
   const team = [
-    { name: 'Sarah Johnson', role: 'CEO & Co-Founder', expertise: 'Former FCA Senior Manager, 15 years regulatory experience' },
-    { name: 'Michael Chen', role: 'CTO & Co-Founder', expertise: 'Ex-Google engineer, FinTech infrastructure specialist' },
-    { name: 'Emma Williams', role: 'Head of Compliance', expertise: 'Ex-Big 4 regulatory consultant, CISI certified' },
-    { name: 'David Patel', role: 'Head of Product', expertise: 'Former Compliance Officer at tier-1 bank' },
-    { name: 'Rachel Green', role: 'Head of Customer Success', expertise: '10 years client-facing regulatory advisory' },
-    { name: 'James Brown', role: 'Lead Engineer', expertise: 'AI/ML specialist, regulatory automation expert' },
+    { name: 'Ade Omosanya', role: 'CEO & Co-Founder', expertise: 'Regulatory technology strategist with deep expertise in FCA compliance and financial services transformation' },
+    { name: 'Misah Maragh', role: 'COO & Co-Founder', expertise: 'Operations and compliance specialist with extensive experience in building scalable regulatory frameworks' },
   ]
 
   return (
@@ -336,7 +317,7 @@ function TeamSection() {
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {team.map((member, i) => (
             <motion.div
               key={i}
@@ -444,7 +425,7 @@ function FinalCTA() {
             Ready to Transform Your Compliance Operations?
           </h2>
           <p className="text-xl text-slate-400 mb-8 max-w-2xl mx-auto">
-            Join 50+ financial institutions who&apos;ve chosen Nasara Connect to simplify compliance and accelerate growth.
+            Partner with Nasara Connect to simplify compliance and accelerate growth.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
