@@ -42,12 +42,7 @@ export const BLOG_CONTENT: Record<string, BlogContent> = {
           "The consequences of incorrectly scoping permissions can be severe. Firms that apply for insufficient permissions may find themselves unable to conduct planned activities, necessitating subsequent variation of permission applications that introduce delays and additional costs. Conversely, firms that apply for broader permissions than their business model requires face heightened regulatory expectations and capital requirements that may prove commercially challenging.",
           "Consider, for example, a firm intending to offer payment services. The distinction between operating as an Authorised Payment Institution under the full regulatory regime versus a Small Payment Institution with simplified requirements carries significant implications for capital, safeguarding arrangements, and ongoing compliance obligations. Similarly, firms contemplating e-money issuance must carefully assess whether their activities genuinely require e-money authorisation or whether payment institution permissions would suffice.",
           "The FCA expects applicants to demonstrate a sophisticated understanding of their regulatory perimeter. This means articulating not only what activities the firm intends to conduct, but also explaining why certain adjacent activities fall outside the scope of the application. Where the regulatory classification of particular products or services is ambiguous, proactive engagement with the FCA's Perimeter Enquiries team is advisable before submitting the application."
-        ],
-        image: {
-          src: "/images/blog/regulatory-perimeter-diagram.jpg",
-          alt: "Diagram showing the regulatory perimeter for different financial services activities",
-          caption: "Understanding where your activities fall within the regulatory perimeter is the foundation of a successful application"
-        }
+        ]
       },
       {
         heading: "Governance Architecture and Senior Management",
@@ -79,12 +74,7 @@ export const BLOG_CONTENT: Record<string, BlogContent> = {
           "Financial projections must extend over a minimum three-year horizon and include detailed profit and loss forecasts, balance sheet projections, and cash flow analyses. The FCA scrutinises these projections for realism, paying particular attention to customer acquisition costs, staff cost growth, and technology investment requirements. Projections that show rapid growth to profitability without adequate justification will attract sceptical review.",
           "Scenario analysis and stress testing demonstrate the sophistication of a firm's financial planning. The application should include sensitivity analyses showing how the firm would perform under adverse conditions, whether arising from market factors, operational challenges, or delays in achieving projected growth. The FCA expects to see that firms have considered downside scenarios and have identified the actions they would take to preserve viability.",
           "Capital adequacy receives detailed attention from the regulatory assessors. The application must demonstrate that the firm meets its initial capital requirement and will maintain adequate capital throughout the projection period. For firms subject to variable capital requirements based on business volumes, the projections must show how capital will be managed as the business scales. Firms should also address their approach to capital buffers beyond minimum requirements, recognising that operating at regulatory minimums leaves no margin for unexpected losses or growth opportunities."
-        ],
-        image: {
-          src: "/images/blog/financial-projections-chart.jpg",
-          alt: "Sample financial projection framework for FCA authorisation applications",
-          caption: "Well-constructed financial projections demonstrate commercial viability and regulatory capital adequacy"
-        }
+        ]
       },
       {
         heading: "Systems, Controls, and Operational Infrastructure",
@@ -126,12 +116,7 @@ export const BLOG_CONTENT: Record<string, BlogContent> = {
           "The quality of supporting documentation materially affects assessment timelines. Every policy, procedure, and governance document referenced in the application should be provided in final form. Draft documents or placeholder descriptions create uncertainty for assessors and typically generate additional information requests. The supporting document pack should be logically organised and cross-referenced to the relevant sections of the application form.",
           "Responsiveness to information requests is essential for maintaining momentum. The FCA operates statutory determination deadlines, but these timelines can be extended when applicants are slow to respond to queries. Firms should ensure they have appropriate resources available throughout the assessment period to respond promptly and comprehensively to any additional information requests.",
           "Post-authorisation planning should commence well before authorisation is granted. Firms need to be operationally ready to conduct regulated business as soon as permissions are received. This means ensuring that staff are recruited and trained, systems are operational, and all required regulatory notifications and registrations are prepared. Firms authorised under the temporary permissions regime must be particularly attentive to transition planning as they move to full authorisation."
-        ],
-        image: {
-          src: "/images/blog/authorisation-timeline.jpg",
-          alt: "Typical FCA authorisation application timeline and key milestones",
-          caption: "Understanding the authorisation timeline helps firms plan resources and manage stakeholder expectations"
-        }
+        ]
       }
     ],
     conclusion: [
@@ -188,12 +173,7 @@ export const BLOG_CONTENT: Record<string, BlogContent> = {
           "Matrix management structures present particular challenges for responsibilities mapping. Where individuals have dual reporting lines, whether to functional and business line managers, the map must clarify which reporting line takes precedence for accountability purposes. The FCA has indicated that matrix structures should not obscure accountability, meaning that ultimate responsibility must rest with identified individuals even where day-to-day management involves multiple parties.",
           "Shared services arrangements, whether within a group structure or through outsourcing, require careful treatment. Where critical functions are performed centrally rather than within the regulated firm itself, the map must show how accountability is maintained. This typically involves allocating oversight responsibility to a senior manager within the regulated firm whilst acknowledging that operational delivery occurs elsewhere.",
           "The treatment of temporary absences and deputy arrangements warrants explicit consideration. Senior managers inevitably take leave, fall ill, or become otherwise unavailable. The map should address how responsibilities are covered during such absences, including whether deputies have formal accountability during these periods. The FCA expects that coverage arrangements do not create gaps in accountability, even temporarily."
-        ],
-        image: {
-          src: "/images/blog/smcr-matrix-structure.jpg",
-          alt: "Example of responsibilities allocation in a matrix management structure",
-          caption: "Matrix structures require explicit clarity regarding which reporting line carries regulatory accountability"
-        }
+        ]
       },
       {
         heading: "Maintaining Currency and Managing Change",
@@ -259,12 +239,7 @@ export const BLOG_CONTENT: Record<string, BlogContent> = {
           "Constructing the monitoring universe requires systematic review of the firm's regulatory perimeter. This means identifying every applicable regulation, directive, and FCA rule that creates compliance obligations, then mapping these obligations to specific business activities, products, and processes. For many firms, this exercise reveals obligations that had not been explicitly documented or assigned to compliance owners, creating immediate value beyond the monitoring plan itself.",
           "The granularity of the monitoring universe requires careful calibration. Too coarse a level of analysis results in monitoring categories so broad that meaningful testing becomes impossible. Too fine a level creates an unwieldy inventory that cannot be practically monitored with available resources. The appropriate level typically corresponds to distinct regulatory requirements or specific control objectives that can be tested through defined procedures.",
           "Regulatory change creates ongoing obligations to maintain the monitoring universe. When new regulations take effect or existing requirements are amended, the monitoring universe must be updated to reflect these changes. Firms should establish processes to capture regulatory developments and assess their implications for the monitoring plan. This maintenance activity is essential for ensuring that the plan remains comprehensive as the regulatory landscape evolves."
-        ],
-        image: {
-          src: "/images/blog/monitoring-universe-framework.jpg",
-          alt: "Framework for establishing and maintaining the compliance monitoring universe",
-          caption: "The monitoring universe provides the foundation for comprehensive compliance coverage"
-        }
+        ]
       },
       {
         heading: "Risk-Based Prioritisation and Resource Allocation",
@@ -306,12 +281,7 @@ export const BLOG_CONTENT: Record<string, BlogContent> = {
           "Evidence retention supports both regulatory engagement and internal needs. Firms should establish retention periods for monitoring working papers that align with regulatory record-keeping requirements and anticipated needs for historical reference. Electronic storage facilitates retention whilst enabling efficient retrieval when historical monitoring results are required.",
           "Quality assurance processes should be applied to monitoring documentation to ensure it meets established standards. This may include supervisory review of completed monitoring files, periodic quality sampling by senior compliance staff, or internal audit coverage of the compliance monitoring function. The form of quality assurance should reflect the materiality of monitoring activities and the experience of those performing the work.",
           "Reporting documentation translates working papers into communications suitable for governance audiences. Monitoring reports should present findings in a manner that enables recipients to understand compliance status, prioritise attention to significant issues, and track progress on remediation. The format and content of reports should be tailored to the needs of different audiences, with more detailed reporting to compliance committees and more summarised reporting to the board."
-        ],
-        image: {
-          src: "/images/blog/monitoring-documentation-flow.jpg",
-          alt: "Documentation workflow from monitoring execution through to board reporting",
-          caption: "Structured documentation practices ensure monitoring work can be demonstrated and findings appropriately escalated"
-        }
+        ]
       },
       {
         heading: "Issue Management and Remediation Tracking",
@@ -369,12 +339,7 @@ export const BLOG_CONTENT: Record<string, BlogContent> = {
           "The traditional compliance evidence model emphasised documentation of controls: policies adopted, procedures followed, training completed, and decisions approved through appropriate governance. These remain relevant under the Consumer Duty, but they are insufficient. A firm could document impeccable processes whilst nonetheless failing to deliver good outcomes if those processes do not operate effectively in practice or if they are not fit for purpose in achieving their intended objectives.",
           "Outcome evidence requires firms to answer a different question: not 'what did we do?' but 'what happened as a result?'. This demands measurement of customer experience, analysis of whether outcomes vary across different customer groups, and genuine engagement with customer feedback. It requires firms to understand their customer base in ways that process compliance did not necessitate.",
           "The FCA has been explicit that it will assess Consumer Duty compliance based on outcomes achieved, not merely processes adopted. Supervisory engagement will examine whether customers are actually receiving good outcomes across the four areas specified in the Duty: products and services, price and value, consumer understanding, and consumer support. Firms must be prepared to demonstrate outcomes across all four areas."
-        ],
-        image: {
-          src: "/images/blog/consumer-duty-outcomes-framework.jpg",
-          alt: "Framework showing the four Consumer Duty outcome areas and their interconnection",
-          caption: "Evidence must demonstrate good outcomes across all four Consumer Duty areas"
-        }
+        ]
       },
       {
         heading: "Product and Service Outcome Evidence",
@@ -416,12 +381,7 @@ export const BLOG_CONTENT: Record<string, BlogContent> = {
           "Comprehension testing provides the most direct evidence of customer understanding. This may involve surveys asking customers to demonstrate understanding of key information, analysis of customer behaviour that might indicate confusion, or qualitative research exploring how customers interpret communications. Testing should focus on material information that affects customer decisions.",
           "Customer enquiry analysis reveals areas where communications may be failing to achieve understanding. Where customers frequently ask questions about matters that should have been clearly communicated, this suggests that communications are not achieving their intended effect. Pattern analysis of enquiries can identify systematic understanding gaps requiring attention.",
           "Decision pathway analysis examines whether customers make decisions that suggest informed understanding. Where customers consistently make choices that appear contrary to their interests, or where they later express surprise at outcomes that should have been foreseeable based on provided information, this may indicate understanding failures. Analysis should consider whether observed decision patterns align with what would be expected if customers genuinely understood the information provided."
-        ],
-        image: {
-          src: "/images/blog/consumer-understanding-testing.jpg",
-          alt: "Process flow for testing and evidencing consumer understanding",
-          caption: "Understanding evidence requires testing comprehension, not just documenting delivery"
-        }
+        ]
       },
       {
         heading: "Consumer Support Outcome Evidence",
@@ -487,12 +447,7 @@ export const BLOG_CONTENT: Record<string, BlogContent> = {
           "The internal record of customer fund entitlements derives from the firm's operational systems and represents the sum of customer balances that the firm is obligated to repay on demand. For electronic money issuers, this comprises outstanding e-money balances. For payment institutions, it includes funds received for payment transactions that have not yet settled. Maintaining an accurate internal record requires robust operational systems and clear business rules regarding when funds are recognised and extinguished.",
           "The safeguarding account balance derives from banking records and represents the funds actually held under safeguarding arrangements. This balance must be reconciled to statements or feeds from the safeguarding bank, ensuring that the firm's internal view of safeguarding balances matches the bank's records. Any discrepancy between internal records and bank records requires investigation.",
           "The reconciliation itself compares these two figures, identifying any difference that represents a safeguarding break. The causes of breaks range from timing differences that will naturally resolve to operational errors requiring correction to potential fraud requiring immediate attention. The reconciliation process must not merely identify breaks but classify and prioritise them for appropriate action."
-        ],
-        image: {
-          src: "/images/blog/reconciliation-process-flow.jpg",
-          alt: "Detailed process flow for daily safeguarding reconciliation",
-          caption: "The reconciliation process must systematically identify, classify, and resolve breaks"
-        }
+        ]
       },
       {
         heading: "Common Causes of Reconciliation Breaks",
@@ -523,12 +478,7 @@ export const BLOG_CONTENT: Record<string, BlogContent> = {
           "Detective controls ensure that breaks are identified promptly and completely. The daily reconciliation itself is the primary detective control, but it should be supplemented by real-time monitoring where feasible, trend analysis to identify emerging patterns, and exception reporting that highlights unusual items requiring attention. The reconciliation process should be designed to identify all material breaks, with appropriate thresholds and procedures for different break magnitudes.",
           "Resolution controls ensure that identified breaks are investigated and corrected within appropriate timeframes. This requires clear ownership of break investigation, defined escalation paths for material or persistent breaks, and tracking mechanisms to ensure breaks do not remain unresolved. Resolution controls should distinguish between different break types, applying appropriate urgency based on the nature and magnitude of the discrepancy.",
           "Oversight controls provide assurance that the reconciliation framework is operating effectively. This includes management review of reconciliation results, internal audit coverage of safeguarding controls, and reporting to governance forums on safeguarding status. Oversight controls identify weaknesses in the reconciliation framework itself, not merely individual breaks."
-        ],
-        image: {
-          src: "/images/blog/safeguarding-control-framework.jpg",
-          alt: "Comprehensive control framework for safeguarding reconciliation",
-          caption: "Effective safeguarding requires layered controls addressing prevention, detection, and resolution"
-        }
+        ]
       },
       {
         heading: "Technology and Automation Considerations",
@@ -596,12 +546,7 @@ export const BLOG_CONTENT: Record<string, BlogContent> = {
           "Firms that are not themselves FCA-authorised must seek approval from an authorised person before issuing promotions. This creates commercial relationships and dependencies that require careful management. The authorised approver bears regulatory responsibility for the promotion, creating incentives for thorough review. Unauthorised firms should ensure that approval arrangements provide sufficient time for this review.",
           "The approval authority within the firm should rest with individuals who have appropriate expertise and independence. Compliance functions typically hold approval authority, though arrangements vary depending on organisational structure. What matters is that approvers have the knowledge to assess regulatory compliance and the independence to decline approval where requirements are not met.",
           "Re-approval requirements arise when promotions are modified or when circumstances change materially. Amendments to promotional content, changes in the characteristics of promoted cryptoassets, or evolution in the regulatory environment may necessitate re-approval of existing promotions. Firms should establish processes to identify when re-approval is required."
-        ],
-        image: {
-          src: "/images/blog/promotion-approval-workflow.jpg",
-          alt: "Workflow diagram for cryptoasset financial promotion approval process",
-          caption: "A structured approval workflow ensures consistent compliance assessment before publication"
-        }
+        ]
       },
       {
         heading: "Content Requirements and Risk Warnings",
@@ -642,12 +587,7 @@ export const BLOG_CONTENT: Record<string, BlogContent> = {
           "Risk warning implementation should be documented with evidence showing what warnings were displayed, how prominence was achieved, and how any personalisation requirements were satisfied. For digital promotions, this may involve screenshots or archived versions that capture the actual consumer experience.",
           "Monitoring records demonstrate ongoing compliance assurance. Where firms conduct monitoring of live promotions, the results of this monitoring should be documented along with any remedial actions taken. Monitoring records create evidence that the firm maintained attention to compliance throughout the promotion lifecycle.",
           "Retention periods for financial promotion records extend to a minimum of three years from the date the promotion was last communicated. Firms should ensure that records remain accessible throughout this period and that retention practices address all channels through which promotions are communicated. Electronic storage systems should include appropriate controls to prevent unauthorised modification or deletion."
-        ],
-        image: {
-          src: "/images/blog/promotion-record-keeping.jpg",
-          alt: "Framework for financial promotion record-keeping and evidence management",
-          caption: "Comprehensive records demonstrate compliance and support regulatory engagement"
-        }
+        ]
       },
       {
         heading: "Enforcement and Regulatory Risk",
