@@ -12,6 +12,13 @@ export interface ProfileOption {
   value: string;
   label: string;
   score: number;
+  implication?: string;
+}
+
+export interface ProfileQuestionThreshold {
+  value: number;
+  comparison: "gt" | "lt" | "gte" | "lte" | "eq";
+  message: string;
 }
 
 export interface ProfileQuestion {
@@ -28,6 +35,9 @@ export interface ProfileQuestion {
   packSectionKeys?: string[];
   appliesTo?: ProfilePermissionCode[];
   aiHint?: string;
+  impact?: string;
+  allowOther?: boolean;
+  threshold?: ProfileQuestionThreshold;
 }
 
 export interface ProfileSection {
@@ -226,6 +236,8 @@ const PROFILE_QUESTIONS: ProfileQuestion[] = [
       { value: "white-label", label: "White label / partnerships", score: 1 },
     ],
     packSectionKeys: ["business-model"],
+    allowOther: true,
+    impact: "Distribution through agents requires FCA notification and due diligence on each agent. API partnerships may trigger 'principal arrangement' considerations.",
   },
   {
     id: "core-revenue-model",
@@ -244,6 +256,7 @@ const PROFILE_QUESTIONS: ProfileQuestion[] = [
       { value: "other", label: "Other", score: 1 },
     ],
     packSectionKeys: ["business-model", "financials"],
+    allowOther: true,
   },
   {
     id: "core-geography",
@@ -463,12 +476,23 @@ const PROFILE_QUESTIONS: ProfileQuestion[] = [
       "PSD2",
     ],
     options: [
-      { value: "yes", label: "Yes, issuing e-money", score: 3 },
-      { value: "no", label: "No e-money issuance", score: 1 },
+      {
+        value: "yes",
+        label: "Yes, issuing e-money",
+        score: 3,
+        implication: "Selecting YES means you need EMI authorization (not just PI). This requires higher capital (€350k vs €125k), client money safeguarding, and additional FCA permissions.",
+      },
+      {
+        value: "no",
+        label: "No e-money issuance",
+        score: 1,
+        implication: "You can proceed as a Payment Institution (PI) which has lower capital requirements.",
+      },
       { value: "review", label: "Under review", score: 0 },
     ],
     packSectionKeys: ["product-scope"],
     appliesTo: ["payments"],
+    impact: "Determines whether you need EMI or PI authorization, affecting capital requirements and regulatory obligations.",
   },
   {
     id: "pay-safeguarding",
@@ -542,13 +566,19 @@ const PROFILE_QUESTIONS: ProfileQuestion[] = [
     id: "pay-volume",
     sectionId: "payments",
     prompt: "Expected monthly transaction volume (GBP)",
-    description: "Estimate monthly transaction volume at launch.",
+    description: "Estimate monthly transaction volume at launch. Note: Volume above £3m/month means you cannot register as a Small Payment Institution (SPI).",
     type: "number",
     required: false,
     weight: 1,
     regulatoryRefs: ["PSR 2017 - Reporting and notifications"],
     packSectionKeys: ["financials"],
     appliesTo: ["payments"],
+    impact: "Transaction volume above £3m/month means you CANNOT register as a Small Payment Institution (SPI). You must apply for full PI/EMI authorization, which requires more capital and governance.",
+    threshold: {
+      value: 3000000,
+      comparison: "gt",
+      message: "Volume above £3m/month: You cannot register as a Small Payment Institution (SPI). Full PI/EMI authorization is required.",
+    },
   },
   {
     id: "pay-security",
@@ -611,13 +641,29 @@ const PROFILE_QUESTIONS: ProfileQuestion[] = [
     weight: 2,
     regulatoryRefs: ["PSR 2017 - Own funds calculation", "FCA Approach to Payment Services and E-Money (2017)"],
     options: [
-      { value: "method-a", label: "Method A - Fixed overheads", score: 2 },
-      { value: "method-b", label: "Method B - Scalable method", score: 2 },
-      { value: "method-c", label: "Method C - Hybrid", score: 2 },
+      {
+        value: "method-a",
+        label: "Method A - Fixed overheads",
+        score: 2,
+        implication: "10% of fixed overheads from previous year. Best for stable businesses with predictable costs. Simple to calculate but may result in higher capital for businesses with significant overheads.",
+      },
+      {
+        value: "method-b",
+        label: "Method B - Scalable method",
+        score: 2,
+        implication: "Based on payment volume tiers (0.5%-4% sliding scale). Better for high-volume, low-margin businesses. Capital requirement grows with transaction volume.",
+      },
+      {
+        value: "method-c",
+        label: "Method C - Hybrid",
+        score: 2,
+        implication: "Based on interest income, fees, and operating income. Suited for businesses with significant fee income. More complex calculation but may result in lower capital requirement for certain business models.",
+      },
       { value: "unsure", label: "Not yet determined", score: 0 },
     ],
     packSectionKeys: ["financials"],
     appliesTo: ["payments"],
+    impact: "The calculation method you choose affects your ongoing capital requirement. Choose based on your business model - overheads-heavy vs volume-heavy vs fee-income-heavy.",
   },
   {
     id: "cc-activities",

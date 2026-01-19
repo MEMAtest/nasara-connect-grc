@@ -10,6 +10,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 import { ProjectHeader } from "./ProjectHeader";
 import { BusinessPlanProfileClient } from "./BusinessPlanProfileClient";
+import {
+  getProfileQuestions,
+  isProfilePermissionCode,
+  type ProfileQuestion,
+  type ProfileResponse,
+} from "@/lib/business-plan-profile";
 
 interface ProjectDocument {
   id: string;
@@ -91,6 +97,9 @@ export function OpinionPackClient() {
   const [generateError, setGenerateError] = useState<string | null>(null);
   const [downloadError, setDownloadError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("profile");
+  const [missingQuestions, setMissingQuestions] = useState<ProfileQuestion[]>([]);
+  const [statusChangeError, setStatusChangeError] = useState<string | null>(null);
+  const [isChangingStatus, setIsChangingStatus] = useState<string | null>(null);
 
   const loadData = async () => {
     if (!projectId) return;
@@ -143,8 +152,10 @@ export function OpinionPackClient() {
 
   const handleStatusChange = async (docId: string, newStatus: string) => {
     if (!project?.packId) return;
+    setIsChangingStatus(docId);
+    setStatusChangeError(null);
     try {
-      await fetch(`/api/authorization-pack/packs/${project.packId}/documents`, {
+      const response = await fetch(`/api/authorization-pack/packs/${project.packId}/documents`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -154,9 +165,39 @@ export function OpinionPackClient() {
           ...(newStatus === "signed" ? { signedAt: new Date().toISOString(), signedBy: "client" } : {}),
         }),
       });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to update document status");
+      }
       await loadData();
+    } catch (error) {
+      console.error("Status change error:", error);
+      setStatusChangeError(error instanceof Error ? error.message : "Failed to update document status. Please try again.");
+    } finally {
+      setIsChangingStatus(null);
+    }
+  };
+
+  const isResponseComplete = (question: ProfileQuestion, response: ProfileResponse | undefined) => {
+    if (response === undefined || response === null) return false;
+    if (Array.isArray(response)) return response.length > 0;
+    if (typeof response === "string") return response.trim().length > 0;
+    return true;
+  };
+
+  const checkMissingQuestions = async (): Promise<ProfileQuestion[]> => {
+    if (!projectId) return [];
+    try {
+      const response = await fetch(`/api/authorization-pack/projects/${projectId}/business-plan-profile`);
+      if (!response.ok) return [];
+      const data = await response.json();
+      const responses = data?.profile?.responses ?? {};
+      const permission = isProfilePermissionCode(project?.permissionCode) ? project?.permissionCode : null;
+      const questions = getProfileQuestions(permission);
+      const required = questions.filter((q) => q.required);
+      return required.filter((q) => !isResponseComplete(q, responses[q.id]));
     } catch {
-      // Handle error silently
+      return [];
     }
   };
 
@@ -169,6 +210,16 @@ export function OpinionPackClient() {
     setIsGenerating(true);
     setGenerateError(null);
     setDownloadError(null);
+    setMissingQuestions([]);
+
+    // Check for missing questions first
+    const missing = await checkMissingQuestions();
+    if (missing.length > 0) {
+      setMissingQuestions(missing);
+      setGenerateError(`Please complete ${missing.length} required question${missing.length > 1 ? "s" : ""} before generating the opinion pack.`);
+      setIsGenerating(false);
+      return;
+    }
 
     try {
       const response = await fetch(`/api/authorization-pack/packs/${project.packId}/generate-business-plan`, {
@@ -179,6 +230,11 @@ export function OpinionPackClient() {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
         setGenerateError(errorData.error || "Failed to generate opinion pack");
+        // Also check for missing questions on server error
+        const missingCheck = await checkMissingQuestions();
+        if (missingCheck.length > 0) {
+          setMissingQuestions(missingCheck);
+        }
         return;
       }
 
@@ -243,7 +299,12 @@ export function OpinionPackClient() {
   if (isLoading) {
     return (
       <Card className="border border-slate-200">
-        <CardContent className="p-8 text-center text-slate-500">Loading opinion pack...</CardContent>
+        <CardContent className="p-8 text-center">
+          <div className="flex flex-col items-center justify-center gap-3">
+            <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
+            <p className="text-slate-500">Loading opinion pack...</p>
+          </div>
+        </CardContent>
       </Card>
     );
   }
@@ -335,6 +396,35 @@ export function OpinionPackClient() {
             <Card className="border border-red-200 bg-red-50">
               <CardContent className="p-4">
                 <p className="text-sm text-red-700">{generateError}</p>
+                {missingQuestions.length > 0 && (
+                  <div className="mt-3 space-y-2">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-red-600">
+                      Missing Required Questions
+                    </p>
+                    <ul className="space-y-1">
+                      {missingQuestions.map((q) => (
+                        <li key={q.id} className="flex items-center justify-between text-sm">
+                          <span className="text-red-800">{q.prompt}</span>
+                          <button
+                            type="button"
+                            onClick={() => setActiveTab("profile")}
+                            className="text-xs text-red-600 underline hover:text-red-800"
+                          >
+                            Go to section: {q.sectionId}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="mt-2 border-red-300 text-red-700 hover:bg-red-100"
+                      onClick={() => setActiveTab("profile")}
+                    >
+                      Complete Profile Questions
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
@@ -343,6 +433,21 @@ export function OpinionPackClient() {
             <Card className="border border-red-200 bg-red-50">
               <CardContent className="p-4">
                 <p className="text-sm text-red-700">{downloadError}</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {statusChangeError && (
+            <Card className="border border-red-200 bg-red-50">
+              <CardContent className="p-4 flex items-center justify-between">
+                <p className="text-sm text-red-700">{statusChangeError}</p>
+                <button
+                  type="button"
+                  onClick={() => setStatusChangeError(null)}
+                  className="text-xs text-red-500 underline hover:text-red-700"
+                >
+                  Dismiss
+                </button>
               </CardContent>
             </Card>
           )}
@@ -442,21 +547,50 @@ export function OpinionPackClient() {
                           </Badge>
                         )}
                         {doc.status === "draft" && (
-                          <Button size="sm" variant="outline" onClick={() => handleStatusChange(doc.id, "review")}>
-                            Submit for Review
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleStatusChange(doc.id, "review")}
+                            disabled={isChangingStatus === doc.id}
+                          >
+                            {isChangingStatus === doc.id ? (
+                              <>
+                                <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                                Submitting...
+                              </>
+                            ) : (
+                              "Submit for Review"
+                            )}
                           </Button>
                         )}
                         {doc.status === "review" && (
                           <>
-                            <Button size="sm" variant="outline" onClick={() => handleStatusChange(doc.id, "draft")}>
-                              Request Changes
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleStatusChange(doc.id, "draft")}
+                              disabled={isChangingStatus === doc.id}
+                            >
+                              {isChangingStatus === doc.id ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                "Request Changes"
+                              )}
                             </Button>
                             <Button
                               size="sm"
                               className="bg-emerald-600 hover:bg-emerald-700"
                               onClick={() => handleStatusChange(doc.id, "approved")}
+                              disabled={isChangingStatus === doc.id}
                             >
-                              Approve
+                              {isChangingStatus === doc.id ? (
+                                <>
+                                  <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                                  Approving...
+                                </>
+                              ) : (
+                                "Approve"
+                              )}
                             </Button>
                           </>
                         )}
@@ -465,8 +599,16 @@ export function OpinionPackClient() {
                             size="sm"
                             className="bg-teal-600 hover:bg-teal-700"
                             onClick={() => handleStatusChange(doc.id, "signed")}
+                            disabled={isChangingStatus === doc.id}
                           >
-                            Sign Off
+                            {isChangingStatus === doc.id ? (
+                              <>
+                                <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                                Signing...
+                              </>
+                            ) : (
+                              "Sign Off"
+                            )}
                           </Button>
                         )}
                         {doc.status === "signed" && (

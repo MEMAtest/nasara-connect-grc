@@ -223,6 +223,52 @@ export async function initDatabase() {
       CREATE INDEX IF NOT EXISTS idx_policy_triggers_org ON policy_triggers (organization_id, triggered_at DESC)
     `);
 
+    // Policy Activities Table - tracks all changes and actions on policies
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS policy_activities (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        policy_id UUID NOT NULL REFERENCES policies(id) ON DELETE CASCADE,
+        activity_type VARCHAR(50) NOT NULL,
+        description TEXT NOT NULL,
+        old_value TEXT,
+        new_value TEXT,
+        metadata JSONB DEFAULT '{}'::jsonb,
+        performed_by VARCHAR(255),
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_policy_activities_policy ON policy_activities (policy_id)
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_policy_activities_type ON policy_activities (activity_type)
+    `);
+
+    // Policy Versions Table - immutable snapshots of policy states
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS policy_versions (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        policy_id UUID NOT NULL REFERENCES policies(id) ON DELETE CASCADE,
+        version_number INTEGER NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        clauses JSONB DEFAULT '[]'::jsonb,
+        custom_content JSONB DEFAULT '{}'::jsonb,
+        status VARCHAR(50) NOT NULL,
+        published_at TIMESTAMP,
+        published_by VARCHAR(255),
+        change_summary TEXT,
+        created_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(policy_id, version_number)
+      )
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_policy_versions_policy ON policy_versions (policy_id)
+    `);
+
     await client.query(`
       CREATE TABLE IF NOT EXISTS cmp_controls (
         id TEXT PRIMARY KEY,
@@ -7186,4 +7232,179 @@ export async function deleteProductGovernanceRecord(id: string): Promise<boolean
   const client = await pool.connect();
   try { const result = await client.query('DELETE FROM product_governance_records WHERE id = $1', [id]); return result.rowCount !== null && result.rowCount > 0; }
   finally { client.release(); }
+}
+
+// ============================================
+// Policy Activities & Versions - Gold Standard
+// ============================================
+
+export interface PolicyActivity {
+  id: string;
+  policy_id: string;
+  activity_type: string;
+  description: string;
+  old_value: string | null;
+  new_value: string | null;
+  metadata: Record<string, unknown>;
+  performed_by: string | null;
+  created_at: Date;
+}
+
+export interface PolicyVersion {
+  id: string;
+  policy_id: string;
+  version_number: number;
+  name: string;
+  description: string | null;
+  clauses: unknown[];
+  custom_content: Record<string, unknown>;
+  status: string;
+  published_at: Date | null;
+  published_by: string | null;
+  change_summary: string | null;
+  created_at: Date;
+}
+
+// Get all activities for a policy
+export async function getPolicyActivities(policyId: string): Promise<PolicyActivity[]> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `SELECT * FROM policy_activities WHERE policy_id = $1 ORDER BY created_at DESC`,
+      [policyId]
+    );
+    return result.rows;
+  } finally {
+    client.release();
+  }
+}
+
+// Create a new policy activity record
+export async function createPolicyActivity(data: {
+  policy_id: string;
+  activity_type: string;
+  description: string;
+  old_value?: string | null;
+  new_value?: string | null;
+  metadata?: Record<string, unknown>;
+  performed_by?: string | null;
+}): Promise<PolicyActivity> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `INSERT INTO policy_activities (policy_id, activity_type, description, old_value, new_value, metadata, performed_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      [
+        data.policy_id,
+        data.activity_type,
+        data.description,
+        data.old_value ?? null,
+        data.new_value ?? null,
+        JSON.stringify(data.metadata ?? {}),
+        data.performed_by ?? null,
+      ]
+    );
+    return result.rows[0];
+  } finally {
+    client.release();
+  }
+}
+
+// Get all versions for a policy
+export async function getPolicyVersions(policyId: string): Promise<PolicyVersion[]> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `SELECT * FROM policy_versions WHERE policy_id = $1 ORDER BY version_number DESC`,
+      [policyId]
+    );
+    return result.rows;
+  } finally {
+    client.release();
+  }
+}
+
+// Create a new policy version with atomic version numbering
+export async function createPolicyVersion(
+  data: Omit<PolicyVersion, 'id' | 'created_at' | 'version_number'> & { version_number?: number }
+): Promise<PolicyVersion> {
+  const client = await pool.connect();
+  const maxRetries = 3;
+  let attempt = 0;
+
+  try {
+    while (attempt < maxRetries) {
+      try {
+        await client.query('BEGIN');
+
+        // Get next version number with row-level lock
+        const versionResult = await client.query(
+          `SELECT COALESCE(MAX(version_number), 0) + 1 as next_version
+           FROM policy_versions
+           WHERE policy_id = $1
+           FOR UPDATE`,
+          [data.policy_id]
+        );
+        const nextVersion = data.version_number ?? versionResult.rows[0].next_version;
+
+        const result = await client.query(
+          `INSERT INTO policy_versions (policy_id, version_number, name, description, clauses, custom_content, status, published_at, published_by, change_summary)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+          [
+            data.policy_id,
+            nextVersion,
+            data.name,
+            data.description ?? null,
+            JSON.stringify(data.clauses ?? []),
+            JSON.stringify(data.custom_content ?? {}),
+            data.status,
+            data.published_at ?? null,
+            data.published_by ?? null,
+            data.change_summary ?? null,
+          ]
+        );
+
+        await client.query('COMMIT');
+        return result.rows[0];
+      } catch (error) {
+        await client.query('ROLLBACK');
+        // Retry on unique constraint violation (race condition)
+        if ((error as { code?: string }).code === '23505' && attempt < maxRetries - 1) {
+          attempt++;
+          continue;
+        }
+        throw error;
+      }
+    }
+    throw new Error('Failed to create policy version after max retries');
+  } finally {
+    client.release();
+  }
+}
+
+// Get policy with full details (activities and versions)
+export async function getPolicyWithDetails(policyId: string): Promise<{
+  versions: PolicyVersion[];
+  activities: PolicyActivity[];
+}> {
+  const client = await pool.connect();
+  try {
+    const [versionsResult, activitiesResult] = await Promise.all([
+      client.query(
+        `SELECT * FROM policy_versions WHERE policy_id = $1 ORDER BY version_number DESC`,
+        [policyId]
+      ),
+      client.query(
+        `SELECT * FROM policy_activities WHERE policy_id = $1 ORDER BY created_at DESC LIMIT 50`,
+        [policyId]
+      ),
+    ]);
+
+    return {
+      versions: versionsResult.rows,
+      activities: activitiesResult.rows,
+    };
+  } finally {
+    client.release();
+  }
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
+import { Loader2, AlertCircle } from "lucide-react";
 
 type AddressSuggestion = {
   place_id: number;
@@ -26,6 +27,8 @@ export function AddressAutocomplete({
   const [query, setQuery] = useState(value);
   const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const countryParam = useMemo(() => {
     if (!countryCodes?.length) return "";
@@ -40,10 +43,14 @@ export function AddressAutocomplete({
     if (query.trim().length < minQueryLength) {
       setSuggestions([]);
       setIsOpen(false);
+      setError(null);
       return;
     }
 
     const controller = new AbortController();
+    setIsLoading(true);
+    setError(null);
+
     const handle = window.setTimeout(async () => {
       try {
         const response = await fetch(
@@ -57,14 +64,29 @@ export function AddressAutocomplete({
             },
           },
         );
-        if (!response.ok) return;
+
+        if (!response.ok) {
+          setError("Address lookup unavailable. Please enter manually.");
+          setSuggestions([]);
+          setIsLoading(false);
+          return;
+        }
+
         const data = (await response.json()) as AddressSuggestion[];
         setSuggestions(data);
         setIsOpen(true);
-      } catch (error) {
-        if ((error as DOMException).name === "AbortError") return;
+        setIsLoading(false);
+
+        if (data.length === 0) {
+          setError("No addresses found. Try a different search or enter manually.");
+        }
+      } catch (err) {
+        if ((err as DOMException).name === "AbortError") return;
+        console.error("Address lookup error:", err);
+        setError("Address lookup unavailable. Please enter manually.");
         setSuggestions([]);
         setIsOpen(false);
+        setIsLoading(false);
       }
     }, 350);
 
@@ -76,18 +98,33 @@ export function AddressAutocomplete({
 
   return (
     <div className="relative">
-      <Input
-        value={query}
-        onChange={(event) => {
-          const next = event.target.value;
-          setQuery(next);
-          onChange(next);
-        }}
-        placeholder={placeholder}
-        onFocus={() => setIsOpen(Boolean(suggestions.length))}
-        onBlur={() => setTimeout(() => setIsOpen(false), 150)}
-      />
-      {isOpen && suggestions.length ? (
+      <div className="relative">
+        <Input
+          value={query}
+          onChange={(event) => {
+            const next = event.target.value;
+            setQuery(next);
+            onChange(next);
+            setError(null);
+          }}
+          placeholder={placeholder}
+          onFocus={() => setIsOpen(Boolean(suggestions.length))}
+          onBlur={() => setTimeout(() => setIsOpen(false), 150)}
+          className={error ? "border-amber-300" : ""}
+        />
+        {isLoading && (
+          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+            <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
+          </div>
+        )}
+      </div>
+      {error && (
+        <div className="mt-1 flex items-center gap-1 text-xs text-amber-600">
+          <AlertCircle className="h-3 w-3" />
+          <span>{error}</span>
+        </div>
+      )}
+      {isOpen && suggestions.length > 0 && (
         <div className="absolute z-20 mt-1 w-full rounded-lg border border-slate-200 bg-white shadow-lg">
           {suggestions.map((suggestion) => (
             <button
@@ -99,13 +136,14 @@ export function AddressAutocomplete({
                 onChange(suggestion.display_name);
                 setQuery(suggestion.display_name);
                 setIsOpen(false);
+                setError(null);
               }}
             >
               {suggestion.display_name}
             </button>
           ))}
         </div>
-      ) : null}
+      )}
     </div>
   );
 }

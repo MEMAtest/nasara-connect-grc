@@ -18,7 +18,10 @@ export function AssistantLauncher() {
 
   const shouldAvoidBottomRight =
     typeof pathname === "string" &&
-    (pathname.startsWith("/policies") || pathname.startsWith("/smcr") || pathname.startsWith("/risk-assessment"));
+    (pathname.startsWith("/policies") ||
+      pathname.startsWith("/smcr") ||
+      pathname.startsWith("/risk-assessment") ||
+      pathname.startsWith("/authorization-pack"));
 
   return (
     <>

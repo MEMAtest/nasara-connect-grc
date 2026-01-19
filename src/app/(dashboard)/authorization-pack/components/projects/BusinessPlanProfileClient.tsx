@@ -23,7 +23,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { HelpCircle, Sparkles } from "lucide-react";
+import { AlertTriangle, HelpCircle, Info, Loader2, Sparkles } from "lucide-react";
 import {
   buildProfileInsights,
   getPackSectionLabel,
@@ -97,6 +97,7 @@ export function BusinessPlanProfileClient({
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [otherTextValues, setOtherTextValues] = useState<Record<string, string>>({});
 
   const insights = useMemo(() => buildProfileInsights(permission, responses), [permission, responses]);
 
@@ -120,6 +121,15 @@ export function BusinessPlanProfileClient({
         const data = await response.json();
         const nextResponses = data?.profile?.responses ?? {};
         setResponses(nextResponses);
+        // Extract "other" text values from responses
+        const extractedOtherTexts: Record<string, string> = {};
+        for (const key of Object.keys(nextResponses)) {
+          if (key.endsWith("_other_text") && typeof nextResponses[key] === "string") {
+            const questionId = key.replace("_other_text", "");
+            extractedOtherTexts[questionId] = nextResponses[key] as string;
+          }
+        }
+        setOtherTextValues(extractedOtherTexts);
       } catch (error) {
         setLoadError(error instanceof Error ? error.message : "Unable to load business plan profile.");
       } finally {
@@ -136,10 +146,17 @@ export function BusinessPlanProfileClient({
     setIsSaving(true);
     setSaveMessage(null);
     try {
+      // Merge otherTextValues into responses before saving
+      const responsesWithOther = { ...responses };
+      for (const [questionId, text] of Object.entries(otherTextValues)) {
+        if (text.trim()) {
+          responsesWithOther[`${questionId}_other_text`] = text;
+        }
+      }
       const response = await fetch(`/api/authorization-pack/projects/${projectId}/business-plan-profile`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ responses }),
+        body: JSON.stringify({ responses: responsesWithOther }),
       });
 
       if (!response.ok) {
@@ -218,51 +235,120 @@ export function BusinessPlanProfileClient({
     });
   };
 
+  const getSelectedImplication = (question: ProfileQuestion) => {
+    const value = responses[question.id];
+    if (!question.options || !value) return null;
+
+    if (question.type === "single-choice" && typeof value === "string") {
+      const option = question.options.find((opt) => opt.value === value);
+      return option?.implication;
+    }
+
+    if (question.type === "multi-choice" && Array.isArray(value)) {
+      const implications = question.options
+        .filter((opt) => value.includes(opt.value) && opt.implication)
+        .map((opt) => opt.implication);
+      return implications.length > 0 ? implications.join(" ") : null;
+    }
+
+    return null;
+  };
+
   const renderQuestionInput = (question: ProfileQuestion) => {
     const value = responses[question.id];
+    const implication = getSelectedImplication(question);
+    const hasOtherSelected = question.allowOther && Array.isArray(value) && value.includes("other");
 
     if (question.type === "single-choice" && question.options) {
       return (
-        <Select value={typeof value === "string" ? value : ""} onValueChange={(val) => updateResponse(question.id, val)}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select an option" />
-          </SelectTrigger>
-          <SelectContent>
-            {question.options.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="space-y-2">
+          <Select value={typeof value === "string" ? value : ""} onValueChange={(val) => updateResponse(question.id, val)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select an option" />
+            </SelectTrigger>
+            <SelectContent>
+              {question.options.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {implication && (
+            <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+              <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-500" />
+              <p>{implication}</p>
+            </div>
+          )}
+        </div>
       );
     }
 
     if (question.type === "multi-choice" && question.options) {
       const selected = Array.isArray(value) ? value : [];
       return (
-        <div className="grid gap-3 sm:grid-cols-2">
-          {question.options.map((option) => (
-            <label key={option.value} className="flex items-start gap-2 text-sm text-slate-700">
-              <Checkbox
-                checked={selected.includes(option.value)}
-                onCheckedChange={() => toggleMultiChoice(question.id, option.value)}
+        <div className="space-y-3">
+          <div className="grid gap-3 sm:grid-cols-2">
+            {question.options.map((option) => (
+              <label key={option.value} className="flex items-start gap-2 text-sm text-slate-700">
+                <Checkbox
+                  checked={selected.includes(option.value)}
+                  onCheckedChange={() => toggleMultiChoice(question.id, option.value)}
+                />
+                <span>{option.label}</span>
+              </label>
+            ))}
+          </div>
+          {hasOtherSelected && (
+            <div className="space-y-1">
+              <Label className="text-xs text-slate-500">Please specify:</Label>
+              <Input
+                value={otherTextValues[question.id] || ""}
+                onChange={(event) =>
+                  setOtherTextValues((prev) => ({ ...prev, [question.id]: event.target.value }))
+                }
+                placeholder="Describe your other option..."
+                className="text-sm"
               />
-              <span>{option.label}</span>
-            </label>
-          ))}
+            </div>
+          )}
+          {implication && (
+            <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+              <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-500" />
+              <p>{implication}</p>
+            </div>
+          )}
         </div>
       );
     }
 
     if (question.type === "number") {
+      const numericValue = typeof value === "number" ? value : value ? Number(value) : null;
+      const thresholdTriggered =
+        question.threshold &&
+        numericValue !== null &&
+        !isNaN(numericValue) &&
+        ((question.threshold.comparison === "gt" && numericValue > question.threshold.value) ||
+          (question.threshold.comparison === "gte" && numericValue >= question.threshold.value) ||
+          (question.threshold.comparison === "lt" && numericValue < question.threshold.value) ||
+          (question.threshold.comparison === "lte" && numericValue <= question.threshold.value) ||
+          (question.threshold.comparison === "eq" && numericValue === question.threshold.value));
+
       return (
-        <Input
-          type="number"
-          value={typeof value === "number" ? value : value ? String(value) : ""}
-          onChange={(event) => updateResponse(question.id, event.target.value)}
-          placeholder={question.placeholder ?? "Enter value"}
-        />
+        <div className="space-y-2">
+          <Input
+            type="number"
+            value={typeof value === "number" ? value : value ? String(value) : ""}
+            onChange={(event) => updateResponse(question.id, event.target.value)}
+            placeholder={question.placeholder ?? "Enter value"}
+          />
+          {thresholdTriggered && question.threshold && (
+            <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+              <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-500" />
+              <p>{question.threshold.message}</p>
+            </div>
+          )}
+        </div>
       );
     }
 
@@ -279,7 +365,12 @@ export function BusinessPlanProfileClient({
   if (isLoading) {
     return (
       <Card className="border border-slate-200">
-        <CardContent className="p-8 text-center text-slate-500">Loading business plan profile...</CardContent>
+        <CardContent className="p-8 text-center">
+          <div className="flex flex-col items-center justify-center gap-3">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-teal-200 border-t-teal-600" />
+            <p className="text-slate-500">Loading business plan profile...</p>
+          </div>
+        </CardContent>
       </Card>
     );
   }
@@ -352,7 +443,14 @@ export function BusinessPlanProfileClient({
               </Button>
             ) : null}
             <Button className="bg-teal-600 hover:bg-teal-700" onClick={handleSave} disabled={isSaving}>
-              {isSaving ? "Saving..." : "Save profile"}
+              {isSaving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Save profile"
+              )}
             </Button>
           </div>
         </CardHeader>
@@ -373,6 +471,21 @@ export function BusinessPlanProfileClient({
                 : "All required responses are complete."} Use the next phase button to generate the opinion pack.
             </p>
           </div>
+          {permission === "payments" && insights.activityHighlights.length > 0 && (
+            <div className="rounded-lg border border-teal-200 bg-teal-50 px-4 py-3 text-sm">
+              <p className="text-xs font-semibold uppercase tracking-wide text-teal-600">Selected Payment Services</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {insights.activityHighlights.map((service) => (
+                  <Badge key={service} className="bg-teal-100 text-teal-700 border-teal-200">
+                    {service}
+                  </Badge>
+                ))}
+              </div>
+              <p className="mt-2 text-xs text-teal-600">
+                These services determine your regulatory permissions and capital requirements.
+              </p>
+            </div>
+          )}
           {saveMessage && (
             <p className="text-sm text-slate-500">{saveMessage}</p>
           )}
@@ -796,6 +909,9 @@ export function BusinessPlanProfileClient({
                                 <TooltipContent side="right" sideOffset={6} className="max-w-xs text-left">
                                   <p className="font-semibold">Why we ask</p>
                                   {question.description ? <p className="mt-1">{question.description}</p> : null}
+                                  {question.impact ? (
+                                    <p className="mt-2 font-medium text-amber-700">Impact: {question.impact}</p>
+                                  ) : null}
                                   {question.aiHint ? <p className="mt-2">{question.aiHint}</p> : null}
                                   {meta.regulatoryRefs.length ? (
                                     <p className="mt-2">Regulatory source: {meta.regulatoryRefs.join(", ")}</p>
@@ -830,9 +946,45 @@ export function BusinessPlanProfileClient({
           </Tabs>
           {onNextPhase ? (
             <div className="mt-6 flex justify-end">
-              <Button className="bg-teal-600 hover:bg-teal-700" onClick={onNextPhase}>
-                Continue to Opinion Pack
-              </Button>
+              {(() => {
+                const currentIndex = sections.findIndex((s) => s.id === activeSectionId);
+                const isLastSection = currentIndex === sections.length - 1;
+                const allSectionsComplete = incompleteSections.length === 0;
+                const nextSection = sections[currentIndex + 1];
+
+                if (allSectionsComplete && isLastSection) {
+                  return (
+                    <Button className="bg-teal-600 hover:bg-teal-700" onClick={onNextPhase}>
+                      Continue to Opinion Pack
+                    </Button>
+                  );
+                }
+
+                if (!isLastSection && nextSection) {
+                  return (
+                    <Button
+                      className="bg-slate-600 hover:bg-slate-700"
+                      onClick={() => setActiveSectionId(nextSection.id)}
+                    >
+                      Next Section
+                    </Button>
+                  );
+                }
+
+                return (
+                  <Button
+                    className="bg-slate-600 hover:bg-slate-700"
+                    onClick={() => {
+                      const firstIncomplete = incompleteSections[0];
+                      if (firstIncomplete) {
+                        setActiveSectionId(firstIncomplete.id);
+                      }
+                    }}
+                  >
+                    Complete Remaining Sections ({incompleteSections.length})
+                  </Button>
+                );
+              })()}
             </div>
           ) : null}
         </CardContent>

@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import useSWR from "swr";
 import Link from "next/link";
-import { BarChart3, FileText } from "lucide-react";
+import { BarChart3, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -140,10 +140,10 @@ export function RegisterClient() {
                 Coverage
               </Link>
             </Button>
-            <Button variant="outline" asChild>
-              <Link href="/policies/wizard" className="gap-2">
-                <FileText className="h-4 w-4" />
-                New policy
+            <Button className="gap-2 bg-indigo-600 hover:bg-indigo-700" asChild>
+              <Link href="/policies/quick-create">
+                <Sparkles className="h-4 w-4" />
+                Quick create
               </Link>
             </Button>
           </div>

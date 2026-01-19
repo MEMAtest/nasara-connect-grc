@@ -1,4 +1,3 @@
-
 import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { DEFAULT_ORGANIZATION_ID } from "@/lib/constants";
@@ -10,6 +9,8 @@ import {
   type StoredPolicy,
 } from "@/lib/server/policy-store";
 import { upsertEntityLink } from "@/lib/server/entity-link-store";
+import { initDatabase, createPolicyActivity } from "@/lib/database";
+import { sanitizeString } from "@/lib/validation";
 import type { FirmPermissions } from "@/lib/policies";
 import type { PolicyClause, PolicyTemplate } from "@/lib/policies/templates";
 
@@ -53,6 +54,7 @@ function buildFallbackPolicy(input: {
 
 export async function GET() {
   try {
+    await initDatabase();
     const policies = await getPoliciesForOrganization(DEFAULT_ORGANIZATION_ID);
     return NextResponse.json(policies);
   } catch (error) {
@@ -62,6 +64,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  await initDatabase();
   const body = await request.json();
   const templateCode: string | undefined = body.templateCode;
   const template = templateCode ? getTemplateByCode(templateCode) : undefined;
@@ -141,6 +144,22 @@ export async function POST(request: Request) {
       approvals,
       status: "draft",
     });
+
+    // Create initial activity record for policy creation
+    try {
+      const performedBy = sanitizeString(body._performedBy) || "System";
+      await createPolicyActivity({
+        policy_id: created.id,
+        activity_type: "status_change",
+        description: `Policy "${template.name}" created from template`,
+        old_value: null,
+        new_value: "draft",
+        performed_by: performedBy,
+      });
+    } catch (activityError) {
+      console.error("Failed to create initial policy activity (non-blocking):", activityError);
+    }
+
     try {
       await persistSuggestedMappings(created.id);
     } catch (linkError) {

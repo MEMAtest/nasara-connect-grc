@@ -271,6 +271,36 @@ export const GIFT_ENTRY_TYPES = [
   "hospitality_given",
 ] as const;
 
+// Policy Register enums
+export const POLICY_TYPES = [
+  "aml_ctf",
+  "vulnerable_customers",
+  "complaints",
+  "data_protection",
+  "information_security",
+  "business_continuity",
+  "risk_management",
+  "conduct",
+  "financial_crime",
+  "operational_resilience",
+  "outsourcing",
+  "governance",
+  "other",
+] as const;
+export const POLICY_STATUSES = ["draft", "in_review", "approved", "archived", "expired"] as const;
+export const POLICY_ACTIVITY_TYPES = [
+  "status_change",
+  "content_update",
+  "approval_requested",
+  "approved",
+  "rejected",
+  "version_created",
+  "assigned",
+  "comment_added",
+  "review_scheduled",
+] as const;
+export const BOARD_FREQUENCIES = ["annual", "semi-annual", "quarterly"] as const;
+
 // Shared enums
 export const REVIEW_FREQUENCIES = [
   "annual",
@@ -301,3 +331,7 @@ export type COIStatus = (typeof COI_STATUSES)[number];
 export type GiftEntryType = (typeof GIFT_ENTRY_TYPES)[number];
 export type ReviewFrequency = (typeof REVIEW_FREQUENCIES)[number];
 export type PriorityLevel = (typeof PRIORITY_LEVELS)[number];
+export type PolicyType = (typeof POLICY_TYPES)[number];
+export type PolicyStatus = (typeof POLICY_STATUSES)[number];
+export type PolicyActivityType = (typeof POLICY_ACTIVITY_TYPES)[number];
+export type BoardFrequency = (typeof BOARD_FREQUENCIES)[number];
