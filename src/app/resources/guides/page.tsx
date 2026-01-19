@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Navigation } from "@/components/landing/Navigation";
+import { Footer } from "@/components/landing/Footer";
 import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
 import { RESOURCE_GUIDES } from "@/lib/seo/marketing-data";
 
@@ -57,6 +58,8 @@ export default function GuidesPage() {
           ))}
         </div>
       </section>
+
+      <Footer />
     </div>
   );
 }

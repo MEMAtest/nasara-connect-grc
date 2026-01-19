@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Navigation } from "@/components/landing/Navigation";
+import { Footer } from "@/components/landing/Footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BLOG_POSTS } from "@/lib/seo/marketing-data";
 import { BLOG_CONTENT, BlogChart, BlogImage } from "@/lib/seo/blog-content";
@@ -690,6 +691,8 @@ export default function BlogDetailPage() {
           </div>
         </div>
       </section>
+
+      <Footer />
     </div>
   );
 }

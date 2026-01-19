@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Navigation } from "@/components/landing/Navigation";
+import { Footer } from "@/components/landing/Footer";
 import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
 import { RESOURCE_TEMPLATES } from "@/lib/seo/marketing-data";
 
@@ -109,7 +110,7 @@ export default async function TemplateDetailPage({ params }: PageProps) {
             <Button asChild className="bg-gradient-to-r from-emerald-500 to-teal-600">
               <Link href="/request-demo">Request a walkthrough</Link>
             </Button>
-            <Button asChild variant="outline" className="border-slate-700 text-slate-200">
+            <Button asChild variant="outline" className="border-slate-600 text-white bg-slate-800/50 hover:bg-slate-700">
               <Link href="/resources/templates">Back to templates</Link>
             </Button>
           </div>
@@ -153,6 +154,8 @@ export default async function TemplateDetailPage({ params }: PageProps) {
           </div>
         </section>
       )}
+
+      <Footer />
     </div>
   );
 }

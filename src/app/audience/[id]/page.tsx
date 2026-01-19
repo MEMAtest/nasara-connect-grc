@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import Link from 'next/link'
 import { Navigation } from '@/components/landing/Navigation'
+import { Footer } from '@/components/landing/Footer'
 import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 import { notFound } from 'next/navigation'
 import dynamic from 'next/dynamic'
@@ -50,11 +51,6 @@ const sectorData = {
       { title: 'Safeguarding Module', desc: 'Automated calculations and audit trails' },
       { title: 'Transaction Monitoring', desc: 'Real-time alerts and reporting' },
       { title: 'Agent Management', desc: 'Full agent lifecycle compliance' }
-    ],
-    stats: [
-      { value: '£50B+', label: 'Transactions Monitored' },
-      { value: '200+', label: 'Fintech Clients' },
-      { value: '99.9%', label: 'Uptime SLA' }
     ]
   },
   banks: {
@@ -85,11 +81,6 @@ const sectorData = {
       { title: 'Consumer Duty Hub', desc: 'Outcomes monitoring and fair value' },
       { title: 'SM&CR Management', desc: 'Full senior managers regime' },
       { title: 'Board Reporting', desc: 'Automated MI and dashboards' }
-    ],
-    stats: [
-      { value: '50+', label: 'Banking Clients' },
-      { value: '£100B+', label: 'Assets Under Compliance' },
-      { value: '100%', label: 'Regulatory Pass Rate' }
     ]
   },
   investment: {
@@ -120,11 +111,6 @@ const sectorData = {
       { title: 'CASS Module', desc: 'Client assets compliance' },
       { title: 'Best Execution', desc: 'Monitoring and reporting' },
       { title: 'Suitability Engine', desc: 'Assessment and documentation' }
-    ],
-    stats: [
-      { value: '£500B+', label: 'AUM Covered' },
-      { value: '150+', label: 'Investment Firms' },
-      { value: '95%', label: 'Time Saved on Reporting' }
     ]
   },
   insurance: {
@@ -155,11 +141,6 @@ const sectorData = {
       { title: 'Product Governance', desc: 'Lifecycle management' },
       { title: 'Fair Value Engine', desc: 'Assessment and evidence' },
       { title: 'AR Oversight', desc: 'Representative management' }
-    ],
-    stats: [
-      { value: '300+', label: 'Insurance Firms' },
-      { value: '10M+', label: 'Policies Reviewed' },
-      { value: '80%', label: 'Faster Product Approval' }
     ]
   },
   crypto: {
@@ -190,11 +171,6 @@ const sectorData = {
       { title: 'Promotions Module', desc: 'Compliance review workflow' },
       { title: 'AML Framework', desc: 'Crypto-specific controls' },
       { title: 'Custody Compliance', desc: 'Asset protection policies' }
-    ],
-    stats: [
-      { value: '100+', label: 'Crypto Firms' },
-      { value: '95%', label: 'Registration Success' },
-      { value: '24/7', label: 'Regulatory Monitoring' }
     ]
   },
   consumer: {
@@ -225,11 +201,6 @@ const sectorData = {
       { title: 'Affordability Engine', desc: 'Assessment and documentation' },
       { title: 'Vulnerability Hub', desc: 'Identification and support' },
       { title: 'Collections Module', desc: 'Fair practices compliance' }
-    ],
-    stats: [
-      { value: '500+', label: 'Consumer Lenders' },
-      { value: '£10B+', label: 'Loans Monitored' },
-      { value: '70%', label: 'Complaint Reduction' }
     ]
   }
 }
@@ -273,6 +244,8 @@ export default function AudienceSectorPage({ params }: { params: Promise<{ id: s
 
       {/* CTA Section */}
       <CTASection sector={sector} />
+
+      <Footer />
     </div>
   )
 }
@@ -313,7 +286,7 @@ function HeroSection({ sector }: { sector: typeof sectorData[SectorId] }) {
                 </Button>
               </Link>
               <Link href="/pricing">
-                <Button size="lg" variant="outline" className="border-slate-600 text-lg px-8">
+                <Button size="lg" variant="outline" className="border-slate-600 text-white bg-slate-800/50 hover:bg-slate-700 text-lg px-8">
                   View Pricing
                 </Button>
               </Link>
@@ -508,6 +481,12 @@ function StatsSection({ sector }: { sector: typeof sectorData[SectorId] }) {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: "-100px" })
 
+  const benefits = [
+    { title: 'Streamlined Workflows', desc: 'Unified compliance processes in one platform' },
+    { title: 'Audit-Ready Evidence', desc: 'Comprehensive documentation for regulators' },
+    { title: 'Reduced Manual Work', desc: 'Automation of repetitive compliance tasks' }
+  ]
+
   return (
     <section ref={ref} className="py-20 px-4">
       <div className="max-w-5xl mx-auto">
@@ -518,15 +497,15 @@ function StatsSection({ sector }: { sector: typeof sectorData[SectorId] }) {
           <Card className={`p-12 bg-gradient-to-br from-slate-900 to-slate-800 border-2 border-slate-700`}>
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold text-white mb-2">
-                Trusted by {sector.title}
+                Built for {sector.title}
               </h2>
               <p className="text-slate-400">
-                Real results from firms like yours
+                Purpose-designed compliance solutions
               </p>
             </div>
 
             <div className="grid md:grid-cols-3 gap-8">
-              {sector.stats.map((stat, i) => (
+              {benefits.map((benefit, i) => (
                 <motion.div
                   key={i}
                   initial={{ opacity: 0, scale: 0.8 }}
@@ -534,10 +513,10 @@ function StatsSection({ sector }: { sector: typeof sectorData[SectorId] }) {
                   transition={{ delay: 0.2 + i * 0.1 }}
                   className="text-center"
                 >
-                  <div className={`text-4xl font-bold bg-gradient-to-r ${sector.gradient} bg-clip-text text-transparent mb-2`}>
-                    {stat.value}
+                  <div className={`text-xl font-bold bg-gradient-to-r ${sector.gradient} bg-clip-text text-transparent mb-2`}>
+                    {benefit.title}
                   </div>
-                  <div className="text-slate-400">{stat.label}</div>
+                  <div className="text-slate-400">{benefit.desc}</div>
                 </motion.div>
               ))}
             </div>
@@ -562,7 +541,7 @@ function CTASection({ sector }: { sector: typeof sectorData[SectorId] }) {
             Ready to Transform Your Compliance?
           </h2>
           <p className="text-xl text-slate-400 mb-8">
-            Join 100+ {sector.title.toLowerCase()} using Nasara Connect
+            See how Nasara Connect can help your firm achieve compliance excellence
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/request-demo">
@@ -572,7 +551,7 @@ function CTASection({ sector }: { sector: typeof sectorData[SectorId] }) {
               </Button>
             </Link>
             <Link href="/pricing">
-              <Button size="lg" variant="outline" className="border-slate-600 text-lg px-8">
+              <Button size="lg" variant="outline" className="border-slate-600 text-white bg-slate-800/50 hover:bg-slate-700 text-lg px-8">
                 View Pricing
               </Button>
             </Link>

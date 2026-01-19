@@ -88,10 +88,10 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {/* Trust Badge */}
+          {/* Security Badge */}
           <div className="mt-6 flex items-center justify-center gap-2 text-xs text-slate-600">
             <Sparkles className="w-4 h-4 text-emerald-500/50" />
-            <span>Trusted by leading financial institutions</span>
+            <span>Enterprise-grade security and compliance</span>
           </div>
         </div>
 

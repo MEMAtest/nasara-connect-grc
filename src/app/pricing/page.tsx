@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
 import { Navigation } from '@/components/landing/Navigation'
+import { Footer } from '@/components/landing/Footer'
 import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 
 // 3D Component
@@ -48,6 +49,8 @@ export default function PricingPage() {
 
       {/* Final CTA */}
       <FinalCTA />
+
+      <Footer />
     </div>
   )
 }
@@ -385,8 +388,8 @@ function ValueSection() {
               {[
                 {
                   icon: Shield,
-                  title: 'Reduce Compliance Costs by 60%',
-                  desc: 'Automate manual processes and reduce headcount needs with intelligent workflows'
+                  title: 'Reduce Compliance Costs',
+                  desc: 'Automate manual processes and streamline workflows to drive efficiency'
                 },
                 {
                   icon: BarChart3,
@@ -396,7 +399,7 @@ function ValueSection() {
                 {
                   icon: Users,
                   title: 'Free Up Your Team',
-                  desc: 'Reclaim hundreds of hours per month for strategic work instead of admin tasks'
+                  desc: 'Give your team time back for strategic work instead of manual admin tasks'
                 },
               ].map((item, i) => (
                 <div key={i} className="flex gap-4">
@@ -532,18 +535,18 @@ function ROISection() {
           <Card className="p-12 bg-gradient-to-br from-emerald-900/20 to-teal-900/20 border-2 border-emerald-500/30">
             <div className="text-center mb-12">
               <h2 className="text-4xl font-bold text-white mb-4">
-                Typical ROI: 300% in Year One
+                Built for Measurable Value
               </h2>
               <p className="text-xl text-slate-400">
-                Based on average customer savings across automation, risk reduction, and efficiency gains
+                Nasara Connect helps you streamline compliance operations and reduce manual effort
               </p>
             </div>
 
             <div className="grid md:grid-cols-3 gap-8">
               {[
-                { value: '£150k', label: 'Average Annual Savings', desc: 'Reduced headcount & automation' },
-                { value: '200hrs', label: 'Time Saved Per Month', desc: 'Freed from manual processes' },
-                { value: '6 months', label: 'Payback Period', desc: 'Average time to ROI break-even' },
+                { value: 'Automation', label: 'Reduce Manual Work', desc: 'Automate repetitive compliance tasks' },
+                { value: 'Efficiency', label: 'Streamlined Workflows', desc: 'Integrated compliance processes' },
+                { value: 'Visibility', label: 'Clear Oversight', desc: 'Real-time compliance dashboards' },
               ].map((stat, i) => (
                 <div key={i} className="text-center">
                   <div className="text-4xl font-bold text-emerald-400 mb-2">{stat.value}</div>
@@ -684,7 +687,7 @@ function FinalCTA() {
               <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
             <Link href="/request-demo">
-              <Button size="lg" variant="outline" className="border-slate-700 text-slate-300 hover:bg-slate-800 text-lg px-10">
+              <Button size="lg" variant="outline" className="border-slate-600 text-white bg-slate-800/50 hover:bg-slate-700 text-lg px-10">
                 Talk to Sales
               </Button>
             </Link>

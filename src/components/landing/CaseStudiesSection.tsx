@@ -47,7 +47,7 @@ export function CaseStudiesSection() {
           className="text-center mb-12"
         >
           <h2 className="text-2xl font-bold text-white mb-2">
-            Trusted by Forward-Thinking Financial Institutions
+            How We Help Financial Institutions
           </h2>
           <Link href="/case-studies" className="text-emerald-400 hover:text-emerald-300 text-sm inline-flex items-center gap-1">
             Read our case studies
@@ -143,10 +143,10 @@ export function CaseStudiesSection() {
 
 // Fallback data if API fails
 const defaultCaseStudies = [
-  { displayName: 'Tier 1 Bank', iconKey: 'shield-matrix' },
-  { displayName: 'Leading FinTech', iconKey: 'risk-radar' },
-  { displayName: 'Global Issuer', iconKey: 'integration-mesh' },
-  { displayName: 'Payment Provider', iconKey: 'data-flow' },
-  { displayName: 'Asset Manager', iconKey: 'compliance-nodes' },
-  { displayName: 'Digital Bank', iconKey: 'speed-lines' },
+  { displayName: 'Banking', iconKey: 'shield-matrix' },
+  { displayName: 'FinTech', iconKey: 'risk-radar' },
+  { displayName: 'Card Issuing', iconKey: 'integration-mesh' },
+  { displayName: 'Payments', iconKey: 'data-flow' },
+  { displayName: 'Asset Management', iconKey: 'compliance-nodes' },
+  { displayName: 'Digital Banking', iconKey: 'speed-lines' },
 ]

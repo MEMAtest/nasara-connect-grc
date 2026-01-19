@@ -55,7 +55,7 @@ export function LegalModal({ type, open, onOpenChange }: LegalModalProps) {
 
 function TermsContent() {
   return (
-    <div className="space-y-6 text-slate-300">
+    <div className="space-y-6 text-slate-200">
       <section>
         <h3 className="text-lg font-semibold text-white mb-3">1. Agreement to Terms</h3>
         <p className="text-sm leading-relaxed">
@@ -150,7 +150,7 @@ function TermsContent() {
 
 function PrivacyContent() {
   return (
-    <div className="space-y-6 text-slate-300">
+    <div className="space-y-6 text-slate-200">
       <section>
         <h3 className="text-lg font-semibold text-white mb-3">1. Introduction</h3>
         <p className="text-sm leading-relaxed">

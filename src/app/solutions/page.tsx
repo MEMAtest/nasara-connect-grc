@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import Link from 'next/link'
 import { Navigation } from '@/components/landing/Navigation'
+import { Footer } from '@/components/landing/Footer'
 import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 import { SOLUTION_PAGES } from '@/lib/seo/marketing-data'
 
@@ -45,6 +46,8 @@ export default function SolutionsPage() {
 
       {/* Final CTA */}
       <FinalCTA />
+
+      <Footer />
     </div>
   )
 }
@@ -467,7 +470,7 @@ function FinalCTA() {
               <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
             <Link href="/products">
-              <Button size="lg" variant="outline" className="border-slate-700 text-slate-300 hover:bg-slate-800 text-lg px-10">
+              <Button size="lg" variant="outline" className="border-slate-600 text-white bg-slate-800/50 hover:bg-slate-700 text-lg px-10">
                 View All Products
               </Button>
             </Link>

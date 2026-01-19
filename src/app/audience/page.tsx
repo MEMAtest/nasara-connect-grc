@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import Link from 'next/link'
 import { Navigation } from '@/components/landing/Navigation'
+import { Footer } from '@/components/landing/Footer'
 import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 
 const audiences = [
@@ -196,7 +197,7 @@ export default function AudiencePage() {
                   <h4 className="text-sm font-semibold text-slate-500 uppercase mb-3">Key Challenges</h4>
                   <div className="flex flex-wrap gap-2">
                     {audience.challenges.map((challenge, j) => (
-                      <Badge key={j} variant="outline" className="border-slate-700 text-slate-400">
+                      <Badge key={j} variant="outline" className="border-slate-700 text-slate-300">
                         {challenge}
                       </Badge>
                     ))}
@@ -240,6 +241,8 @@ export default function AudiencePage() {
           </motion.div>
         </div>
       </section>
+
+      <Footer />
     </div>
   )
 }

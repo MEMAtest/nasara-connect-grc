@@ -170,7 +170,7 @@ function ValueVisualization() {
             />
           </mesh>
 
-          {/* 300% ROI rings */}
+          {/* Value indicator rings */}
           {[0.5, 0.6, 0.7].map((radius, i) => (
             <mesh key={i} rotation={[Math.PI / 2, 0, 0]} position={[0, -0.2, 0]}>
               <torusGeometry args={[radius, 0.04, 16, 100]} />

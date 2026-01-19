@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Mail, PhoneCall, MapPin, Clock, ArrowRight, ShieldCheck } from "lucide-react";
 import { Navigation } from "@/components/landing/Navigation";
+import { Footer } from "@/components/landing/Footer";
 import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -33,7 +34,7 @@ export default function ContactPage() {
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
-            <Button asChild variant="outline" className="border-slate-700 text-slate-200">
+            <Button asChild variant="outline" className="border-slate-600 text-white bg-slate-800/50 hover:bg-slate-700">
               <Link href="/resources">View resources</Link>
             </Button>
           </div>
@@ -106,6 +107,8 @@ export default function ContactPage() {
           </Card>
         </div>
       </section>
+
+      <Footer />
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Navigation } from "@/components/landing/Navigation";
+import { Footer } from "@/components/landing/Footer";
 import type { MarketingPage } from "@/lib/seo/marketing-data";
 import { FEATURE_PAGES, SOLUTION_PAGES, RESOURCE_GUIDES } from "@/lib/seo/marketing-data";
 
@@ -44,7 +45,7 @@ export function MarketingDetailPage({
             <Button asChild className="bg-gradient-to-r from-emerald-500 to-teal-600">
               <Link href={page.ctaHref}>{page.ctaLabel}</Link>
             </Button>
-            <Button asChild variant="outline" className="border-slate-700 text-slate-200">
+            <Button asChild variant="outline" className="border-slate-600 text-white bg-slate-800/50 hover:bg-slate-700">
               <Link href="/pricing">View pricing</Link>
             </Button>
           </div>
@@ -139,6 +140,8 @@ export function MarketingDetailPage({
           </div>
         </div>
       </section>
+
+      <Footer />
     </div>
   );
 }

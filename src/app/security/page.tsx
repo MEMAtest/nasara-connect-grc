@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Lock, ShieldCheck, FileText, Activity, Users } from "lucide-react";
 import { Navigation } from "@/components/landing/Navigation";
+import { Footer } from "@/components/landing/Footer";
 import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -48,7 +49,7 @@ export default function SecurityPage() {
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
-            <Button asChild variant="outline" className="border-slate-700 text-slate-200">
+            <Button asChild variant="outline" className="border-slate-600 text-white bg-slate-800/50 hover:bg-slate-700">
               <Link href="/contact">Contact security</Link>
             </Button>
           </div>
@@ -112,12 +113,14 @@ export default function SecurityPage() {
             <p className="mt-3 text-sm text-slate-400">
               Third-party controls, data processing transparency, and regulatory readiness for audits.
             </p>
-            <Button asChild variant="outline" className="mt-4 border-slate-700 text-slate-200">
+            <Button asChild variant="outline" className="mt-4 border-slate-600 text-white bg-slate-800/50 hover:bg-slate-700">
               <Link href="/resources/guides/compliance-monitoring-plan-template">View compliance guide</Link>
             </Button>
           </Card>
         </div>
       </section>
+
+      <Footer />
     </div>
   );
 }

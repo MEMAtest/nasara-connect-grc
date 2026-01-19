@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Navigation } from "@/components/landing/Navigation";
+import { Footer } from "@/components/landing/Footer";
 import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
 import { CASE_STUDIES } from "@/lib/seo/marketing-data";
 
@@ -58,6 +59,8 @@ export default function CaseStudiesPage() {
           ))}
         </div>
       </section>
+
+      <Footer />
     </div>
   );
 }

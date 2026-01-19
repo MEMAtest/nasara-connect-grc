@@ -23,16 +23,15 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
-import Image from 'next/image'
 
 // 3D Illustration Components
 import dynamic from 'next/dynamic'
 import { AnimatedComplianceScore } from '@/components/landing/AnimatedComplianceScore'
 import { CaseStudiesSection } from '@/components/landing/CaseStudiesSection'
-import { LegalModal, useLegalModals } from '@/components/landing/LegalModals'
-import { AnimatedCounter, PercentCounter, PlusCounter } from '@/components/landing/AnimatedCounter'
+import { AnimatedCounter, PercentCounter } from '@/components/landing/AnimatedCounter'
 import { ParallaxElements } from '@/components/landing/ParallaxElements'
 import { Navigation } from '@/components/landing/Navigation'
+import { Footer } from '@/components/landing/Footer'
 
 const ComplianceEcosystem3D = dynamic(() => import('@/components/landing/3d/ComplianceEcosystem3D'), { ssr: false })
 const IntelligenceEngine3D = dynamic(() => import('@/components/landing/3d/IntelligenceEngine3D'), { ssr: false })
@@ -147,7 +146,7 @@ function HeroSection() {
               asChild
               size="lg"
               variant="outline"
-              className="border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white text-lg px-8"
+              className="border-slate-600 text-white bg-slate-800/50 hover:bg-slate-700 text-lg px-8"
             >
               <Link href="/grc-platform">
                 <PlayCircle className="mr-2 w-5 h-5" />
@@ -191,7 +190,7 @@ function ClientLogosSection() {
           className="text-center mb-12"
         >
           <h2 className="text-2xl font-bold text-white mb-2">
-            Trusted by Forward-Thinking Financial Institutions
+            How We Help Financial Institutions
           </h2>
           <Link
             href="/case-studies"
@@ -526,95 +525,16 @@ function FinalCTASection() {
               Request a Demo
               <ArrowRight className="ml-2 w-6 h-6" />
             </Button>
-            <Button size="lg" variant="outline" className="border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white text-xl px-10 py-7">
+            <Button size="lg" variant="outline" className="border-slate-600 text-white bg-slate-800/50 hover:bg-slate-700 text-xl px-10 py-7">
               Contact Sales
             </Button>
           </div>
 
           <p className="text-slate-500 mt-8 text-sm">
-            Join <span className="text-emerald-400 font-semibold"><PlusCounter value={500} duration={2} /></span> financial institutions already transforming their compliance operations
+            Transform your compliance operations today
           </p>
         </motion.div>
       </div>
     </section>
-  )
-}
-
-function Footer() {
-  const { termsOpen, setTermsOpen, privacyOpen, setPrivacyOpen } = useLegalModals()
-
-  return (
-    <>
-      <footer className="bg-slate-950 border-t border-slate-800 py-12 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-4 gap-8 mb-8">
-            <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <Image
-                  src="/nasara-logo.png"
-                  alt="Nasara Connect Logo"
-                  width={140}
-                  height={32}
-                  className="h-8 w-auto"
-                />
-              </div>
-              <p className="text-slate-400 text-sm">
-                Next-generation compliance platform for modern financial institutions.
-              </p>
-            </div>
-
-            <div>
-              <h4 className="text-white font-semibold mb-4">Product</h4>
-              <ul className="space-y-2 text-sm">
-                <li><a href="#intelligence" className="text-slate-400 hover:text-emerald-400 transition-colors">Intelligence</a></li>
-                <li><a href="#automation" className="text-slate-400 hover:text-emerald-400 transition-colors">Automation</a></li>
-                <li><a href="#governance" className="text-slate-400 hover:text-emerald-400 transition-colors">Governance</a></li>
-                <li><Link href="/features" className="text-slate-400 hover:text-emerald-400 transition-colors">Platform features</Link></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="text-white font-semibold mb-4">Company</h4>
-              <ul className="space-y-2 text-sm">
-                <li><Link href="/about" className="text-slate-400 hover:text-emerald-400 transition-colors">About</Link></li>
-                <li><Link href="/case-studies" className="text-slate-400 hover:text-emerald-400 transition-colors">Case Studies</Link></li>
-                <li><Link href="/security" className="text-slate-400 hover:text-emerald-400 transition-colors">Security</Link></li>
-                <li><Link href="/contact" className="text-slate-400 hover:text-emerald-400 transition-colors">Contact</Link></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="text-white font-semibold mb-4">Legal</h4>
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <button
-                    onClick={() => setPrivacyOpen(true)}
-                    className="text-slate-400 hover:text-emerald-400 transition-colors"
-                  >
-                    Privacy
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => setTermsOpen(true)}
-                    className="text-slate-400 hover:text-emerald-400 transition-colors"
-                  >
-                    Terms
-                  </button>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="border-t border-slate-800 pt-8 text-center">
-            <p className="text-slate-500 text-sm">&copy; 2025 Nasara Connect. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
-
-      {/* Legal Modals */}
-      <LegalModal type="privacy" open={privacyOpen} onOpenChange={setPrivacyOpen} />
-      <LegalModal type="terms" open={termsOpen} onOpenChange={setTermsOpen} />
-    </>
   )
 }

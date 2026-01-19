@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import Link from 'next/link'
 import { Navigation } from '@/components/landing/Navigation'
+import { Footer } from '@/components/landing/Footer'
 import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 import { BLOG_POSTS, RESOURCE_GUIDES, RESOURCE_TEMPLATES, TOOLS } from '@/lib/seo/marketing-data'
 
@@ -403,6 +404,8 @@ export default function ResourcesPage() {
           </motion.div>
         </div>
       </section>
+
+      <Footer />
     </div>
   )
 }

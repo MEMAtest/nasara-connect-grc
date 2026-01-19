@@ -11,6 +11,8 @@ import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 // Components
 import dynamic from 'next/dynamic'
 
+import { Footer } from '@/components/landing/Footer'
+
 const BookingCalendar = dynamic(() => import('@/components/about/BookingCalendar'), { ssr: false })
 const TimelineCalendar3D = dynamic(() => import('@/components/landing/3d/TimelineCalendar3D'), { ssr: false })
 
@@ -43,6 +45,8 @@ export default function AboutPage() {
 
       {/* Final CTA */}
       <FinalCTA />
+
+      <Footer />
     </div>
   )
 }
@@ -433,7 +437,7 @@ function FinalCTA() {
               Start Your Journey
               <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
-            <Button size="lg" variant="outline" className="border-slate-700 text-slate-300 hover:bg-slate-800 text-lg px-10">
+            <Button size="lg" variant="outline" className="border-slate-600 text-white bg-slate-800/50 hover:bg-slate-700 text-lg px-10">
               <Calendar className="mr-2 w-5 h-5" />
               Book a Demo
             </Button>

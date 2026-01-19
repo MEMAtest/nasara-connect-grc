@@ -29,11 +29,6 @@ export type BlogContent = {
 export const BLOG_CONTENT: Record<string, BlogContent> = {
   "fca-authorisation-checklist": {
     slug: "fca-authorisation-checklist",
-    heroImage: {
-      src: "/images/blog/fca-authorisation-hero.jpg",
-      alt: "FCA authorisation documentation and regulatory framework",
-      caption: "A structured approach to FCA authorisation ensures comprehensive coverage of regulatory expectations"
-    },
     introduction: [
       "The Financial Conduct Authority's authorisation process represents one of the most significant regulatory hurdles facing financial services firms seeking to operate in the United Kingdom. Having guided numerous organisations through this process over the past decade, I have observed that the firms who succeed most efficiently are those who approach authorisation not as an administrative exercise, but as an opportunity to build robust foundations for their ongoing compliance framework.",
       "The authorisation journey typically spans between six and twelve months, though this timeline can extend considerably when applications lack the depth and precision that the FCA expects. The regulator's Gateway team processes thousands of applications annually, and their assessment criteria have become increasingly sophisticated in response to the evolving complexity of financial services. Understanding these expectations from the outset is essential for any firm serious about achieving authorisation without unnecessary delays or costly resubmissions.",
@@ -148,11 +143,6 @@ export const BLOG_CONTENT: Record<string, BlogContent> = {
 
   "smcr-responsibilities-map": {
     slug: "smcr-responsibilities-map",
-    heroImage: {
-      src: "/images/blog/smcr-responsibilities-hero.jpg",
-      alt: "Senior management accountability framework visualisation",
-      caption: "Effective responsibilities mapping creates clear lines of accountability across the organisation"
-    },
     introduction: [
       "The Senior Managers and Certification Regime represents perhaps the most significant reform to individual accountability in UK financial services in a generation. At its core, SM&CR seeks to ensure that senior individuals within regulated firms can be held personally accountable for failures within their areas of responsibility. The responsibilities map serves as the central artefact demonstrating how this accountability is structured within each firm.",
       "Having reviewed hundreds of responsibilities maps across firms of varying sizes and complexity, I have observed that the most effective maps share certain characteristics that distinguish them from those that satisfy minimum regulatory requirements but fail to deliver genuine organisational clarity. The distinction matters not only for regulatory purposes but for the practical functioning of governance within the firm.",
@@ -256,11 +246,6 @@ export const BLOG_CONTENT: Record<string, BlogContent> = {
 
   "compliance-monitoring-plan": {
     slug: "compliance-monitoring-plan",
-    heroImage: {
-      src: "/images/blog/compliance-monitoring-hero.jpg",
-      alt: "Compliance monitoring dashboard and planning framework",
-      caption: "A structured compliance monitoring plan provides assurance that regulatory obligations are being met"
-    },
     introduction: [
       "The compliance monitoring plan represents one of the most important tools available to compliance functions in demonstrating that their firms meet regulatory obligations consistently and systematically. Yet my experience reviewing compliance monitoring arrangements across numerous firms reveals a striking disparity between those that approach monitoring as a genuine assurance mechanism and those that treat it as a box-ticking exercise with little connection to actual risk management.",
       "The most effective compliance monitoring plans share certain characteristics that enable them to provide meaningful assurance whilst remaining practical to execute. They are risk-based, focusing resources where risks are greatest. They are comprehensive, covering the full scope of regulatory obligations. They are evidence-based, generating documentation that demonstrates the work performed and conclusions reached. And they are responsive, adapting to changes in the business and regulatory environment.",
@@ -371,11 +356,6 @@ export const BLOG_CONTENT: Record<string, BlogContent> = {
 
   "consumer-duty-evidence": {
     slug: "consumer-duty-evidence",
-    heroImage: {
-      src: "/images/blog/consumer-duty-evidence-hero.jpg",
-      alt: "Consumer outcomes monitoring and evidence framework",
-      caption: "Consumer Duty compliance requires demonstrable evidence of good customer outcomes"
-    },
     introduction: [
       "The Consumer Duty has fundamentally transformed the evidential requirements for retail financial services firms. Where previous regulatory frameworks focused primarily on process compliance and fair treatment, the Consumer Duty demands that firms demonstrate they are actually delivering good outcomes for customers. This shift from process to outcomes creates significant challenges for compliance and governance functions that must now evidence something considerably more complex than adherence to procedural requirements.",
       "Having worked with numerous firms on Consumer Duty implementation, I have observed that those who approach the evidential requirements most effectively are those who recognise that outcome evidence requires different thinking than traditional compliance evidence. Process compliance can be demonstrated through policies, procedures, and attestations. Outcome compliance requires measurement, analysis, and genuine understanding of customer experience.",
@@ -485,11 +465,6 @@ export const BLOG_CONTENT: Record<string, BlogContent> = {
 
   "safeguarding-reconciliation-controls": {
     slug: "safeguarding-reconciliation-controls",
-    heroImage: {
-      src: "/images/blog/safeguarding-reconciliation-hero.jpg",
-      alt: "Safeguarding reconciliation control framework for payment institutions",
-      caption: "Robust reconciliation controls protect customer funds and demonstrate regulatory compliance"
-    },
     introduction: [
       "For electronic money institutions and payment institutions, the safeguarding of customer funds represents a fundamental regulatory obligation and a critical operational imperative. The reconciliation controls that ensure safeguarded funds match customer liabilities constitute the front line of protection, identifying discrepancies before they can escalate into material breaches or, in the worst case, customer losses.",
       "My experience working with payment institutions on safeguarding arrangements has revealed significant variation in the sophistication and effectiveness of reconciliation controls. The most effective frameworks share characteristics that distinguish them from approaches that satisfy minimum regulatory requirements but provide insufficient protection against operational failures or fraud.",
@@ -597,11 +572,6 @@ export const BLOG_CONTENT: Record<string, BlogContent> = {
 
   "crypto-financial-promotions": {
     slug: "crypto-financial-promotions",
-    heroImage: {
-      src: "/images/blog/crypto-promotions-hero.jpg",
-      alt: "Financial promotions compliance framework for cryptoasset firms",
-      caption: "The cryptoasset financial promotions regime requires robust approval and evidence processes"
-    },
     introduction: [
       "The extension of the financial promotions regime to cryptoassets represents one of the most significant regulatory developments affecting the digital assets sector in recent years. Since October 2023, communications that promote cryptoassets to UK consumers have been subject to FCA rules that impose substantive requirements on content, approval processes, and record-keeping. Firms that fail to comply face significant regulatory consequences.",
       "The regulatory framework reflects concerns regarding consumer harm in cryptoasset markets, where volatility, complexity, and the prevalence of speculative activity create particular risks for retail investors. The FCA's approach balances the objective of consumer protection against the recognition that innovation in digital assets continues to develop and that legitimate firms should be able to communicate with potential customers.",
