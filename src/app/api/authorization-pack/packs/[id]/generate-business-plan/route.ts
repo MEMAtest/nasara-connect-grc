@@ -7,7 +7,7 @@ import {
   getPack,
   getProjectByPackId,
 } from "@/lib/authorization-pack-db";
-import { createProjectDocument, deleteProjectDocument, initDatabase } from "@/lib/database";
+import { initDatabase } from "@/lib/database";
 import {
   removeAuthorizationPackPdf,
   storeAuthorizationPackPdf,
@@ -413,25 +413,9 @@ export async function POST(
     const storageKey = buildStorageKey(packId, pack.name);
     const storedFile = await storeAuthorizationPackPdf(storageKey, pdfBytes);
 
-    let document = null;
     let packDocument = null;
 
     try {
-      document = await createProjectDocument({
-        pack_id: packId,
-        name: documentName,
-        description,
-        section_code: "perimeter-opinion",
-        storage_key: storedFile.storageKey,
-        uploaded_by: auth.userId ?? undefined,
-        mime_type: "application/pdf",
-        file_size_bytes: pdfBytes.length,
-      });
-
-      if (!document) {
-        throw new Error("Failed to create project document record");
-      }
-
       packDocument = await createPackDocument({
         packId,
         name: documentName,
@@ -451,9 +435,6 @@ export async function POST(
       if (packDocument?.id) {
         await deletePackDocument(packDocument.id).catch(() => null);
       }
-      if (document?.id) {
-        await deleteProjectDocument(document.id).catch(() => null);
-      }
       await removeAuthorizationPackPdf(storedFile.storageKey).catch(() => null);
       throw error;
     }
@@ -465,8 +446,8 @@ export async function POST(
       headers: {
         "Content-Type": "application/pdf",
         "Content-Disposition": `attachment; filename="${filename}"`,
-        "X-Document-Id": document.id,
-        "X-Pack-Document-Id": packDocument?.id ?? "",
+        "X-Document-Id": packDocument.id,
+        "X-Pack-Document-Id": packDocument.id,
         "X-Document-Name": documentName,
         "X-Document-Filename": filename,
         "X-Section-Count": String(sections.length),
