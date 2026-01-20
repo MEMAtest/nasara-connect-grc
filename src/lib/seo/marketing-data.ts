@@ -512,6 +512,20 @@ export const RESOURCE_TEMPLATES = [
     seoDescription:
       "Board-ready MI template for Consumer Duty outcomes and fair value evidence.",
   },
+  {
+    slug: "vulnerable-customers-framework-pack",
+    title: "Vulnerable Customers Framework Pack",
+    seoTitle: "Vulnerable Customers Framework Pack",
+    seoDescription:
+      "Complete toolkit for identifying, supporting, and monitoring outcomes for vulnerable customers with TEXAS model checklists and staff guidance.",
+  },
+  {
+    slug: "compliance-monitoring-plan-pack",
+    title: "Compliance Monitoring Plan Pack",
+    seoTitle: "Compliance Monitoring Plan (CMP) Template Pack",
+    seoDescription:
+      "End-to-end CMP templates covering monitoring universe mapping, testing procedures, findings, remediation tracking, and governance reporting.",
+  },
 ];
 
 export const BLOG_POSTS = [
