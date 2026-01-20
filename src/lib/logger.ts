@@ -24,7 +24,7 @@ const baseConfig: pino.LoggerOptions = {
   level,
   base: {
     env: process.env.NODE_ENV,
-    app: 'nasara-connect',
+    app: 'nasaraconnect',
   },
   timestamp: pino.stdTimeFunctions.isoTime,
   formatters: {
