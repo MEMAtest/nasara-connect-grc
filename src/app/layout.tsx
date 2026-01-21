@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SessionProvider } from "@/components/session-provider";
 import { SiteStructuredData } from "@/components/seo/SiteStructuredData";
 import { ToastProvider } from "@/components/toast-provider";
+import { ProgressProvider } from "@/components/progress-provider";
 import { EnvironmentBanner } from "@/components/environment-banner";
 
 const geistSans = Geist({
@@ -53,9 +55,13 @@ export default function RootLayout({
         <EnvironmentBanner />
         <SiteStructuredData />
         <SessionProvider>
-          <ToastProvider>
-            {children}
-          </ToastProvider>
+          <Suspense fallback={null}>
+            <ProgressProvider>
+              <ToastProvider>
+                {children}
+              </ToastProvider>
+            </ProgressProvider>
+          </Suspense>
         </SessionProvider>
       </body>
     </html>

@@ -709,6 +709,17 @@ function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+// Helper to split an array into chunks of a given size
+function chunk<T>(array: T[], size: number): T[][] {
+  if (size <= 0) return [array];
+  if (!array.length) return [];
+  const chunks: T[][] = [];
+  for (let i = 0; i < array.length; i += size) {
+    chunks.push(array.slice(i, i + size));
+  }
+  return chunks;
+}
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -856,16 +867,29 @@ export async function POST(
       "opinion-recommendations",
     ]);
 
-    for (let i = 0; i < sections.length; i++) {
-      const section = sections[i];
-      if (!aiEligibleSections.has(section.key)) continue;
-      const synthesized = await synthesizeOpinionSection(section, context, section.synthesizedContent);
-      if (synthesized) {
-        section.synthesizedContent = section.synthesizedContent
-          ? `${section.synthesizedContent}\n\n${synthesized}`
-          : synthesized;
+    // Filter sections eligible for AI synthesis
+    const eligibleSections = sections.filter((s) => aiEligibleSections.has(s.key));
+
+    // Process sections in parallel batches of 3 for better performance
+    const BATCH_SIZE = 3;
+    const batches = chunk(eligibleSections, BATCH_SIZE);
+
+    for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+      const batch = batches[batchIndex];
+      await Promise.all(
+        batch.map(async (section) => {
+          const synthesized = await synthesizeOpinionSection(section, context, section.synthesizedContent);
+          if (synthesized) {
+            section.synthesizedContent = section.synthesizedContent
+              ? `${section.synthesizedContent}\n\n${synthesized}`
+              : synthesized;
+          }
+        })
+      );
+      // Small delay between batches to avoid rate limiting
+      if (batchIndex < batches.length - 1) {
+        await delay(200);
       }
-      await delay(400);
     }
 
     const pdfBytes = await buildPerimeterOpinionPack(

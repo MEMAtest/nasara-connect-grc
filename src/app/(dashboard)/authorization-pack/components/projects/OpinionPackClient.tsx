@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { FileText, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -92,15 +92,98 @@ export function OpinionPackClient() {
   const [activeTab, setActiveTab] = useState("profile");
   const [missingQuestions, setMissingQuestions] = useState<ProfileQuestion[]>([]);
   const [isCheckingMissing, setIsCheckingMissing] = useState(false);
+  // Cache profile data to avoid redundant API calls
+  const [cachedProfileResponses, setCachedProfileResponses] = useState<Record<string, ProfileResponse> | null>(null);
 
-  const loadData = async () => {
+  // Load data with cleanup to prevent race conditions
+  useEffect(() => {
+    if (!projectId) return;
+
+    let isMounted = true;
+
+    const loadData = async () => {
+      setIsLoading(true);
+      setLoadError(null);
+      setDocsError(null);
+      setDownloadError(null);
+      try {
+        // Fetch project and profile in parallel for faster initial load
+        const [projectRes, profileRes] = await Promise.all([
+          fetchWithTimeout(`/api/authorization-pack/projects/${projectId}`).catch(() => null),
+          fetchWithTimeout(`/api/authorization-pack/projects/${projectId}/business-plan-profile`).catch(() => null),
+        ]);
+
+        // Check if component is still mounted before updating state
+        if (!isMounted) return;
+
+        let packIdForDocs: string | null = null;
+        if (projectRes?.ok) {
+          const projectData = await projectRes.json();
+          const proj = projectData.project;
+          if (proj) {
+            setProject({
+              id: proj.id,
+              name: proj.name,
+              permissionCode: proj.permissionCode,
+              permissionName: proj.permissionName,
+              status: proj.status,
+              packId: proj.packId,
+            });
+            packIdForDocs = proj.packId;
+          }
+        }
+
+        // Cache profile responses for missing questions check
+        if (profileRes?.ok) {
+          const profileData = await profileRes.json();
+          if (isMounted) {
+            setCachedProfileResponses(profileData?.profile?.responses ?? {});
+          }
+        }
+
+        if (packIdForDocs && isMounted) {
+          const docsRes = await fetchWithTimeout(
+            `/api/authorization-pack/packs/${packIdForDocs}/documents`
+          ).catch(() => null);
+          if (!isMounted) return;
+          if (docsRes?.ok) {
+            const docsData = await docsRes.json();
+            setDocuments(docsData.documents || []);
+          } else if (docsRes) {
+            const errorData = await docsRes.json().catch(() => ({}));
+            setDocsError(errorData.error || "Failed to load opinion pack.");
+          }
+        }
+      } catch {
+        if (isMounted) {
+          setLoadError("Failed to load opinion pack.");
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [projectId]);
+
+  // Reload data function for manual refresh (e.g., after generation)
+  const reloadData = useCallback(async () => {
     if (!projectId) return;
     setIsLoading(true);
     setLoadError(null);
     setDocsError(null);
     setDownloadError(null);
     try {
-      const projectRes = await fetchWithTimeout(`/api/authorization-pack/projects/${projectId}`).catch(() => null);
+      const [projectRes, profileRes] = await Promise.all([
+        fetchWithTimeout(`/api/authorization-pack/projects/${projectId}`).catch(() => null),
+        fetchWithTimeout(`/api/authorization-pack/projects/${projectId}/business-plan-profile`).catch(() => null),
+      ]);
 
       let packIdForDocs: string | null = null;
       if (projectRes?.ok) {
@@ -117,6 +200,11 @@ export function OpinionPackClient() {
           });
           packIdForDocs = proj.packId;
         }
+      }
+
+      if (profileRes?.ok) {
+        const profileData = await profileRes.json();
+        setCachedProfileResponses(profileData?.profile?.responses ?? {});
       }
 
       if (packIdForDocs) {
@@ -136,38 +224,14 @@ export function OpinionPackClient() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  useEffect(() => {
-    loadData();
   }, [projectId]);
 
-  useEffect(() => {
-    if (activeTab !== "documents" || !projectId) return;
-    let isMounted = true;
-    setIsCheckingMissing(true);
-    checkMissingQuestions()
-      .then((missing) => {
-        if (isMounted) {
-          setMissingQuestions(missing);
-        }
-      })
-      .finally(() => {
-        if (isMounted) {
-          setIsCheckingMissing(false);
-        }
-      });
-    return () => {
-      isMounted = false;
-    };
-  }, [activeTab, projectId, project?.permissionCode]);
-
-
-  const isResponseComplete = (
+  // Helper function to check if a response is complete
+  const isResponseComplete = useCallback((
     question: ProfileQuestion,
     response: ProfileResponse | undefined,
     allResponses?: Record<string, ProfileResponse>
-  ) => {
+  ): boolean => {
     if (
       question.allowOther &&
       ((Array.isArray(response) && response.includes("other")) || response === "other")
@@ -190,15 +254,26 @@ export function OpinionPackClient() {
     if (question.type === "boolean") return typeof response === "boolean";
     if (typeof response === "string") return response.trim().length > 0;
     return true;
-  };
+  }, []);
 
-  const checkMissingQuestions = async (): Promise<ProfileQuestion[]> => {
+  // Memoized function to check missing questions using cached data
+  const checkMissingQuestions = useCallback((): ProfileQuestion[] => {
+    if (!projectId || cachedProfileResponses === null) return [];
+    const permission = isProfilePermissionCode(project?.permissionCode) ? project?.permissionCode : null;
+    const questions = getProfileQuestions(permission);
+    const required = questions.filter((q) => q.required);
+    return required.filter((q) => !isResponseComplete(q, cachedProfileResponses[q.id], cachedProfileResponses));
+  }, [projectId, project?.permissionCode, cachedProfileResponses, isResponseComplete]);
+
+  // Refreshes profile cache from server (only when needed, e.g., after profile changes)
+  const refreshProfileCache = useCallback(async (): Promise<ProfileQuestion[]> => {
     if (!projectId) return [];
     try {
       const response = await fetch(`/api/authorization-pack/projects/${projectId}/business-plan-profile`);
       if (!response.ok) return [];
       const data = await response.json();
       const responses = data?.profile?.responses ?? {};
+      setCachedProfileResponses(responses);
       const permission = isProfilePermissionCode(project?.permissionCode) ? project?.permissionCode : null;
       const questions = getProfileQuestions(permission);
       const required = questions.filter((q) => q.required);
@@ -206,7 +281,36 @@ export function OpinionPackClient() {
     } catch {
       return [];
     }
-  };
+  }, [projectId, project?.permissionCode, isResponseComplete]);
+
+  // Check missing questions when switching to documents tab using cached data
+  useEffect(() => {
+    if (activeTab !== "documents" || !projectId) return;
+    // Use cached data immediately if available (synchronous)
+    if (cachedProfileResponses !== null) {
+      const missing = checkMissingQuestions();
+      setMissingQuestions(missing);
+      setIsCheckingMissing(false);
+    } else {
+      // Only fetch if cache is empty (first load edge case)
+      let isMounted = true;
+      setIsCheckingMissing(true);
+      refreshProfileCache()
+        .then((missing) => {
+          if (isMounted) {
+            setMissingQuestions(missing);
+          }
+        })
+        .finally(() => {
+          if (isMounted) {
+            setIsCheckingMissing(false);
+          }
+        });
+      return () => {
+        isMounted = false;
+      };
+    }
+  }, [activeTab, projectId, project?.permissionCode, cachedProfileResponses, checkMissingQuestions, refreshProfileCache]);
 
   const handleGenerateOpinionPack = async () => {
     if (!project?.packId) {
@@ -219,8 +323,8 @@ export function OpinionPackClient() {
     setDownloadError(null);
     setMissingQuestions([]);
 
-    // Check for missing questions first
-    const missing = await checkMissingQuestions();
+    // Refresh profile cache and check for missing questions before generation
+    const missing = await refreshProfileCache();
     if (missing.length > 0) {
       setMissingQuestions(missing);
       setGenerateError(`Please complete ${missing.length} required question${missing.length > 1 ? "s" : ""} before generating the opinion pack.`);
@@ -237,8 +341,8 @@ export function OpinionPackClient() {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
         setGenerateError(errorData.error || "Failed to generate opinion pack");
-        // Also check for missing questions on server error
-        const missingCheck = await checkMissingQuestions();
+        // Use cached missing questions check (already refreshed above)
+        const missingCheck = checkMissingQuestions();
         if (missingCheck.length > 0) {
           setMissingQuestions(missingCheck);
         }
@@ -255,7 +359,7 @@ export function OpinionPackClient() {
       triggerDownload(blob, safeFilename);
 
       // Reload documents to show the new entry
-      await loadData();
+      await reloadData();
     } catch (err) {
       setGenerateError("Failed to connect to the server. Please try again.");
     } finally {
@@ -324,7 +428,7 @@ export function OpinionPackClient() {
           <CardDescription>{loadError || "Project not found."}</CardDescription>
         </CardHeader>
         <CardContent>
-          <Button className="bg-teal-600 hover:bg-teal-700" onClick={loadData}>
+          <Button className="bg-teal-600 hover:bg-teal-700" onClick={reloadData}>
             Retry
           </Button>
         </CardContent>

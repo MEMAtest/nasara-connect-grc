@@ -2148,47 +2148,47 @@ export async function getSections(packId: string) {
   await initAuthorizationPackDatabase();
   const client = await pool.connect();
   try {
-    const sections = await client.query(
-      `SELECT id, section_key, title, display_order, status, owner_id, due_date, review_state
-       FROM section_instances
-       WHERE pack_id = $1
-       ORDER BY display_order ASC`,
-      [packId]
-    );
-
-    const promptCounts = await client.query(
-      `SELECT si.id as section_instance_id,
-              COUNT(p.id) FILTER (WHERE p.required IS TRUE) as required_prompts,
-              COUNT(pr.id) FILTER (WHERE pr.value IS NOT NULL AND pr.value <> '') as answered_prompts
-       FROM section_instances si
-       JOIN section_templates st ON si.section_template_id = st.id
-       JOIN prompts p ON st.id = p.section_template_id
-       LEFT JOIN prompt_responses pr ON pr.section_instance_id = si.id AND pr.prompt_id = p.id
-       WHERE si.pack_id = $1
-       GROUP BY si.id`,
-      [packId]
-    );
-
-    const evidenceCounts = await client.query(
-      `SELECT section_instance_id,
-              COUNT(*) FILTER (WHERE status IN ('uploaded', 'approved')) as uploaded,
-              COUNT(*) as total
-       FROM evidence_items
-       WHERE pack_id = $1
-       GROUP BY section_instance_id`,
-      [packId]
-    );
-
-    const reviewCounts = await client.query(
-      `SELECT rg.section_instance_id,
-              COUNT(*) FILTER (WHERE rg.state = 'approved') as approved,
-              COUNT(*) as total
-       FROM review_gates rg
-       JOIN section_instances si ON rg.section_instance_id = si.id
-       WHERE si.pack_id = $1
-       GROUP BY rg.section_instance_id`,
-      [packId]
-    );
+    // Execute all queries in parallel for better performance
+    const [sections, promptCounts, evidenceCounts, reviewCounts] = await Promise.all([
+      client.query(
+        `SELECT id, section_key, title, display_order, status, owner_id, due_date, review_state
+         FROM section_instances
+         WHERE pack_id = $1
+         ORDER BY display_order ASC`,
+        [packId]
+      ),
+      client.query(
+        `SELECT si.id as section_instance_id,
+                COUNT(p.id) FILTER (WHERE p.required IS TRUE) as required_prompts,
+                COUNT(pr.id) FILTER (WHERE pr.value IS NOT NULL AND pr.value <> '') as answered_prompts
+         FROM section_instances si
+         JOIN section_templates st ON si.section_template_id = st.id
+         JOIN prompts p ON st.id = p.section_template_id
+         LEFT JOIN prompt_responses pr ON pr.section_instance_id = si.id AND pr.prompt_id = p.id
+         WHERE si.pack_id = $1
+         GROUP BY si.id`,
+        [packId]
+      ),
+      client.query(
+        `SELECT section_instance_id,
+                COUNT(*) FILTER (WHERE status IN ('uploaded', 'approved')) as uploaded,
+                COUNT(*) as total
+         FROM evidence_items
+         WHERE pack_id = $1
+         GROUP BY section_instance_id`,
+        [packId]
+      ),
+      client.query(
+        `SELECT rg.section_instance_id,
+                COUNT(*) FILTER (WHERE rg.state = 'approved') as approved,
+                COUNT(*) as total
+         FROM review_gates rg
+         JOIN section_instances si ON rg.section_instance_id = si.id
+         WHERE si.pack_id = $1
+         GROUP BY rg.section_instance_id`,
+        [packId]
+      ),
+    ]);
 
     const promptMap = new Map(promptCounts.rows.map((row) => [row.section_instance_id, row]));
     const evidenceMap = new Map(evidenceCounts.rows.map((row) => [row.section_instance_id, row]));

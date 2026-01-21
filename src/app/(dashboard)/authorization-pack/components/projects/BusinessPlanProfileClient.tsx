@@ -23,7 +23,8 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { AlertTriangle, Building2, Calculator, HelpCircle, Info, Loader2, Lock, Search, Sparkles, XCircle } from "lucide-react";
+import { AlertTriangle, Building2, Calculator, HelpCircle, Info, Loader2, Lock, Sparkles, XCircle } from "lucide-react";
+import { CompaniesHouseLookup } from "@/components/inputs/CompaniesHouseLookup";
 import {
   buildProfileInsights,
   getPackSectionLabel,
@@ -338,6 +339,52 @@ export function BusinessPlanProfileClient({
         setIsLookingUp(false);
       }
     }
+  };
+
+  // Handler for CompaniesHouseLookup component selection
+  const handleCompanySearchSelect = (data: {
+    legalName: string;
+    companyNumber: string;
+    sicCodes: string[];
+    registeredAddress: string;
+  }) => {
+    const updates: Record<string, ProfileResponse> = {};
+
+    // Update company number state
+    setCompanyNumber(data.companyNumber);
+
+    // Auto-fill company name into regulated activities
+    if (data.legalName) {
+      const currentActivities = responses["core-regulated-activities"];
+      if (!currentActivities || (typeof currentActivities === "string" && currentActivities.trim().length === 0)) {
+        updates["core-regulated-activities"] = `${data.legalName} - describe the regulated services this firm provides.`;
+      }
+    }
+
+    // Add SIC codes to activities
+    if (data.sicCodes?.length > 0) {
+      const sicDescription = data.sicCodes.join(", ");
+      const currentActivities = typeof updates["core-regulated-activities"] === "string"
+        ? updates["core-regulated-activities"]
+        : typeof responses["core-regulated-activities"] === "string"
+        ? responses["core-regulated-activities"]
+        : "";
+      if (!currentActivities.includes("SIC")) {
+        updates["core-regulated-activities"] = currentActivities
+          ? `${currentActivities}\n\nSIC codes: ${sicDescription}`
+          : `SIC codes: ${sicDescription}`;
+      }
+    }
+
+    if (Object.keys(updates).length > 0) {
+      setResponses((prev) => ({ ...prev, ...updates }));
+      setSaveMessage(`Imported data from Companies House: ${data.legalName}`);
+      setTimeout(() => setSaveMessage(null), 3000);
+    } else {
+      setSaveMessage(`Selected: ${data.legalName} (${data.companyNumber})`);
+      setTimeout(() => setSaveMessage(null), 3000);
+    }
+    setLookupError(null);
   };
 
   const updateResponse = (questionId: string, value: ProfileResponse) => {
@@ -793,30 +840,10 @@ export function BusinessPlanProfileClient({
               <span>Companies House Auto-Fill</span>
             </div>
             <p className="mt-1 text-xs text-slate-500">
-              Enter your company number to auto-fill profile fields from Companies House.
+              Search by company name or number to auto-fill profile fields from Companies House.
             </p>
-            <div className="mt-2 flex gap-2">
-              <Input
-                value={companyNumber}
-                onChange={(e) => setCompanyNumber(e.target.value)}
-                placeholder="e.g., 12345678 or SC123456"
-                className="max-w-[200px] text-sm"
-              />
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleCompaniesHouseLookup}
-                disabled={isLookingUp || !companyNumber.trim()}
-              >
-                {isLookingUp ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <>
-                    <Search className="mr-1 h-3 w-3" />
-                    Lookup
-                  </>
-                )}
-              </Button>
+            <div className="mt-2 max-w-md">
+              <CompaniesHouseLookup onSelect={handleCompanySearchSelect} />
             </div>
             {lookupError && (
               <p className="mt-2 text-xs text-red-600">{lookupError}</p>
