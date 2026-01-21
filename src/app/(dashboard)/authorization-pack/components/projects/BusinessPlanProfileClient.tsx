@@ -303,13 +303,16 @@ export function BusinessPlanProfileClient({
         }
       }
 
+      const isMockData = data._mock === true;
+      const mockWarning = isMockData ? " (demo data - configure API key for live results)" : "";
+
       if (Object.keys(updates).length > 0) {
         setResponses((prev) => ({ ...prev, ...updates }));
-        setSaveMessage(`Imported data from Companies House: ${data.company_name}`);
-        setTimeout(() => setSaveMessage(null), 3000);
+        setSaveMessage(`Imported data from Companies House: ${data.company_name}${mockWarning}`);
+        setTimeout(() => setSaveMessage(null), isMockData ? 5000 : 3000);
       } else {
-        setSaveMessage(`Found: ${data.company_name || companyNumber} (no fields to auto-fill)`);
-        setTimeout(() => setSaveMessage(null), 3000);
+        setSaveMessage(`Found: ${data.company_name || companyNumber}${mockWarning}`);
+        setTimeout(() => setSaveMessage(null), isMockData ? 5000 : 3000);
       }
     } catch (error) {
       // Ignore aborted requests

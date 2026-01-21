@@ -51,6 +51,29 @@ export async function GET(request: NextRequest) {
         );
       }
 
+      // Return mock data for 401 (invalid API key)
+      if (response.status === 401) {
+        console.warn("Companies House API key invalid - returning mock search results");
+        return NextResponse.json({
+          items: [
+            {
+              company_number: "12345678",
+              title: `${query.toUpperCase()} LTD`,
+              address_snippet: "123 Example Street, London, EC1A 1BB",
+              company_status: "active",
+            },
+            {
+              company_number: "87654321",
+              title: `${query.toUpperCase()} HOLDINGS LTD`,
+              address_snippet: "456 Business Park, Manchester, M1 1AA",
+              company_status: "active",
+            },
+          ],
+          source: "mock",
+          _message: "Mock data - set a valid COMPANIES_HOUSE_API_KEY for live results",
+        });
+      }
+
       return NextResponse.json(
         { error: "Companies House request failed", items: [] },
         { status: response.status }
