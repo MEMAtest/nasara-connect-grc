@@ -138,11 +138,17 @@ function getPackStatusColor(status: string) {
   return option?.color || "bg-slate-100 text-slate-700";
 }
 
+const clampPercent = (value: number | null | undefined) => {
+  if (typeof value !== "number" || !Number.isFinite(value)) return 0;
+  return Math.min(100, Math.max(0, Math.round(value)));
+};
+
 // Circular progress component
 function CircularProgress({ value, size = 120, strokeWidth = 8, color = "teal" }: { value: number; size?: number; strokeWidth?: number; color?: string }) {
+  const clampedValue = clampPercent(value);
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
-  const offset = circumference - (value / 100) * circumference;
+  const offset = circumference - (clampedValue / 100) * circumference;
 
   const colorMap: Record<string, string> = {
     teal: "stroke-teal-500",
@@ -177,7 +183,7 @@ function CircularProgress({ value, size = 120, strokeWidth = 8, color = "teal" }
         />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-2xl font-bold text-slate-900">{value}%</span>
+        <span className="text-2xl font-bold text-slate-900">{clampedValue}%</span>
       </div>
     </div>
   );
@@ -226,25 +232,22 @@ export function OverviewClient() {
         if (packIdParam !== activePack.id) {
           router.replace(`/authorization-pack/workspace?packId=${activePack.id}`);
         }
-        const readinessResponse = await fetchWithTimeout(`/api/authorization-pack/packs/${activePack.id}`).catch(
-          () => null
-        );
+        const [readinessResponse, sectionResponse, taskResponse] = await Promise.all([
+          fetchWithTimeout(`/api/authorization-pack/packs/${activePack.id}`).catch(() => null),
+          fetchWithTimeout(`/api/authorization-pack/packs/${activePack.id}/sections`).catch(() => null),
+          fetchWithTimeout(`/api/authorization-pack/packs/${activePack.id}/tasks`).catch(() => null),
+        ]);
+
         if (readinessResponse?.ok) {
           const readinessData = await readinessResponse.json();
           setReadiness(readinessData.readiness);
         }
 
-        const sectionResponse = await fetchWithTimeout(
-          `/api/authorization-pack/packs/${activePack.id}/sections`
-        ).catch(() => null);
         if (sectionResponse?.ok) {
           const sectionData = await sectionResponse.json();
           setSections(sectionData.sections || []);
         }
 
-        const taskResponse = await fetchWithTimeout(`/api/authorization-pack/packs/${activePack.id}/tasks`).catch(
-          () => null
-        );
         if (taskResponse?.ok) {
           const taskData = await taskResponse.json();
           setTasks(taskData.tasks || []);
@@ -267,15 +270,33 @@ export function OverviewClient() {
     loadPack();
   }, [packIdParam]);
 
+  const readinessSummary = readiness
+    ? {
+        overall: clampPercent(readiness.overall),
+        narrative: clampPercent(readiness.narrative),
+        review: clampPercent(readiness.review),
+      }
+    : null;
+
+  const uniqueSections = useMemo(() => {
+    const seen = new Set<string>();
+    return sections.filter((section) => {
+      const key = section.section_key || section.title;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [sections]);
+
   // Section statistics
   const sectionStats = useMemo(() => {
-    if (!sections.length) return { completed: 0, inProgress: 0, notStarted: 0 };
+    if (!uniqueSections.length) return { completed: 0, inProgress: 0, notStarted: 0 };
     return {
-      completed: sections.filter((s) => s.narrativeCompletion >= 100).length,
-      inProgress: sections.filter((s) => s.narrativeCompletion > 0 && s.narrativeCompletion < 100).length,
-      notStarted: sections.filter((s) => s.narrativeCompletion === 0).length,
+      completed: uniqueSections.filter((s) => s.narrativeCompletion >= 100).length,
+      inProgress: uniqueSections.filter((s) => s.narrativeCompletion > 0 && s.narrativeCompletion < 100).length,
+      notStarted: uniqueSections.filter((s) => s.narrativeCompletion === 0).length,
     };
-  }, [sections]);
+  }, [uniqueSections]);
 
   // Task statistics
   const visibleTasks = useMemo(() => tasks.filter((task) => task.source !== "auto-evidence"), [tasks]);
@@ -291,11 +312,11 @@ export function OverviewClient() {
   }, [visibleTasks]);
 
   const blockers = useMemo(() => {
-    if (!sections.length) return [];
+    if (!uniqueSections.length) return [];
     const items: { type: string; label: string; severity: "warning" | "error" }[] = [];
 
     // Pending reviews
-    sections
+    uniqueSections
       .filter((section) => section.reviewTotal > 0 && section.reviewApproved < section.reviewTotal)
       .slice(0, 2)
       .forEach((section) => {
@@ -319,7 +340,7 @@ export function OverviewClient() {
       });
 
     return items;
-  }, [sections, visibleTasks]);
+  }, [uniqueSections, visibleTasks]);
 
   const nextActions = useMemo(() => {
     return visibleTasks
@@ -658,26 +679,26 @@ export function OverviewClient() {
           <CardContent>
             <div className="flex flex-wrap items-center justify-around gap-8">
               <div className="text-center">
-                <CircularProgress value={readiness?.overall ?? 0} color="teal" />
+                <CircularProgress value={readinessSummary?.overall ?? 0} color="teal" />
                 <p className="mt-2 text-sm font-medium text-slate-700">Overall Readiness</p>
               </div>
               <div className="flex flex-col gap-4">
                 <div className="flex items-center gap-4">
                   <div className="w-24">
                     <p className="text-xs text-slate-500">Narrative</p>
-                    <p className="text-lg font-semibold text-slate-900">{readiness?.narrative ?? 0}%</p>
+                    <p className="text-lg font-semibold text-slate-900">{readinessSummary?.narrative ?? 0}%</p>
                   </div>
                   <div className="w-32">
-                    <Progress value={readiness?.narrative ?? 0} className="h-2" />
+                    <Progress value={readinessSummary?.narrative ?? 0} className="h-2" />
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="w-24">
                     <p className="text-xs text-slate-500">Review</p>
-                    <p className="text-lg font-semibold text-green-600">{readiness?.review ?? 0}%</p>
+                    <p className="text-lg font-semibold text-green-600">{readinessSummary?.review ?? 0}%</p>
                   </div>
                   <div className="w-32">
-                    <Progress value={readiness?.review ?? 0} className="h-2 [&>div]:bg-green-500" />
+                    <Progress value={readinessSummary?.review ?? 0} className="h-2 [&>div]:bg-green-500" />
                   </div>
                 </div>
               </div>
@@ -814,13 +835,18 @@ export function OverviewClient() {
 
       {/* Section Progress */}
       <Card className="border border-slate-200">
-        <CardHeader>
-          <CardTitle>Draft Coverage</CardTitle>
-          <CardDescription>Snapshot of narrative readiness across the pack.</CardDescription>
+        <CardHeader className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          <div>
+            <CardTitle>Draft Coverage</CardTitle>
+            <CardDescription>Snapshot of narrative readiness across the pack.</CardDescription>
+          </div>
+          <Button asChild variant="outline" size="sm" className="w-fit">
+            <Link href={`/authorization-pack/sections?packId=${pack.id}`}>View all sections</Link>
+          </Button>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {sections.slice(0, 8).map((section) => {
+            {uniqueSections.slice(0, 8).map((section) => {
               const status =
                 section.narrativeCompletion >= 100
                   ? "completed"
@@ -828,8 +854,9 @@ export function OverviewClient() {
                   ? "in-progress"
                   : "not-started";
               return (
-                <div
+                <Link
                   key={section.id}
+                  href={`/authorization-pack/sections/${section.id}?packId=${pack.id}`}
                   className="group flex items-center gap-4 rounded-lg border border-slate-100 p-3 transition-all hover:border-slate-200 hover:shadow-sm"
                 >
                   <div className="flex-shrink-0">
@@ -863,12 +890,12 @@ export function OverviewClient() {
                       </span>
                     </div>
                   </div>
-                </div>
+                </Link>
               );
             })}
-            {sections.length > 8 && (
+            {uniqueSections.length > 8 && (
               <p className="pt-2 text-center text-sm text-slate-400">
-                + {sections.length - 8} more sections
+                + {uniqueSections.length - 8} more sections
               </p>
             )}
           </div>

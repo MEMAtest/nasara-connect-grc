@@ -138,7 +138,7 @@ function buildCoverPage(ctx: DrawContext, config: OpinionPackConfig): void {
   const firmName = config.firmBasics?.legalName || config.packName;
 
   ctx.y = ctx.height - 100;
-  ctx.page.drawText("PERIMETER OPINION PACK", {
+  ctx.page.drawText("REGAUTH OPINION", {
     x: ctx.margin,
     y: ctx.y,
     font: ctx.fontBold,
@@ -147,21 +147,21 @@ function buildCoverPage(ctx: DrawContext, config: OpinionPackConfig): void {
   });
   ctx.y -= 40;
 
+  ctx.page.drawText(`Firm: ${firmName}`, {
+    x: ctx.margin,
+    y: ctx.y,
+    font: ctx.fontBold,
+    size: 18,
+    color: rgb(COLORS.text.r, COLORS.text.g, COLORS.text.b),
+  });
+  ctx.y -= 30;
+
   ctx.page.drawText(`Permission scope: ${config.permissionLabel}`, {
     x: ctx.margin,
     y: ctx.y,
     font: ctx.fontRegular,
-    size: 14,
+    size: 12,
     color: rgb(COLORS.secondary.r, COLORS.secondary.g, COLORS.secondary.b),
-  });
-  ctx.y -= 30;
-
-  ctx.page.drawText(firmName, {
-    x: ctx.margin,
-    y: ctx.y,
-    font: ctx.fontBold,
-    size: 20,
-    color: rgb(COLORS.text.r, COLORS.text.g, COLORS.text.b),
   });
   ctx.y -= 25;
 

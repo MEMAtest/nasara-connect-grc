@@ -83,16 +83,28 @@ export function ExportClient() {
   const [downloadError, setDownloadError] = useState<string | null>(null);
   const [downloadSuccess, setDownloadSuccess] = useState<string | null>(null);
 
-  const downloadFile = async (endpoint: string, filename: string, formatLabel?: string) => {
+  const downloadFile = async (
+    endpoint: string,
+    filename: string,
+    formatLabel?: string,
+    options?: RequestInit
+  ) => {
     const format = formatLabel || filename.split(".").pop()?.toUpperCase() || "file";
     setDownloadingFormat(format);
     setDownloadError(null);
     setDownloadSuccess(null);
     try {
-      const response = await fetch(endpoint);
+      const response = await fetch(endpoint, options);
       if (!response.ok) {
         const errorText = await response.text().catch(() => "Download failed");
-        setDownloadError(`Failed to download ${format}: ${errorText}`);
+        let errorMessage = errorText;
+        try {
+          const parsed = JSON.parse(errorText) as { error?: string; details?: string };
+          errorMessage = parsed.error || parsed.details || errorText;
+        } catch {
+          // Use raw text if not JSON.
+        }
+        setDownloadError(`Failed to download ${format}: ${errorMessage}`);
         return;
       }
       const blob = await response.blob();
@@ -314,7 +326,8 @@ export function ExportClient() {
                 downloadFile(
                   `/api/authorization-pack/packs/${pack.id}/generate-business-plan`,
                   `${safeName}-opinion-pack.pdf`,
-                  "Opinion PDF"
+                  "Opinion PDF",
+                  { method: "POST", headers: { "Content-Type": "application/json" } }
                 )
               }
             >

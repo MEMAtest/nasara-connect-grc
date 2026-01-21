@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getPack, getSectionWorkspace } from "@/lib/authorization-pack-db";
 import { requireAuth, isValidUUID } from "@/lib/auth-utils";
 import { logError } from "@/lib/logger";
+import { getOpenRouterApiKey } from "@/lib/openrouter";
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const DEFAULT_MODEL = process.env.OPENROUTER_MODEL ?? "openai/gpt-4o-mini";
@@ -119,7 +120,8 @@ export async function POST(
   { params }: { params: Promise<{ id: string; sectionId: string }> }
 ) {
   // Check for API key first
-  if (!process.env.OPENROUTER_API_KEY) {
+  const apiKey = getOpenRouterApiKey();
+  if (!apiKey) {
     return NextResponse.json(
       { error: "AI service not configured. Missing OPENROUTER_API_KEY." },
       { status: 500 }
@@ -187,7 +189,7 @@ export async function POST(
     const upstream = await fetch(OPENROUTER_URL, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
         "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
         "X-Title": "Nasara Connect - Authorization Pack AI",

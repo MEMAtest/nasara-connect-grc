@@ -1152,6 +1152,22 @@
     "source_extracted_at": "2025-12-13T11:27:19.405Z"
   },
   {
+    "id": "mfs_financial_crime-ongoing_monitoring_and_enhanced_due_diligence_edd-enhanced_due_diligen",
+    "policy_key": "mfs_financial_crime",
+    "title": "Enhanced Due Diligence",
+    "body_md": "Enhanced Due Diligence is applied to higher-risk relationships to ensure {{firm.name}} understands the customer, source of funds, and risk profile in sufficient depth. This includes collecting additional documentation, verifying beneficial ownership, assessing source of wealth and source of funds, and obtaining senior management approval where required. EDD reviews are refreshed more frequently, with documented rationale for risk ratings, any mitigating controls applied, and decisions to onboard or retain the customer.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS Financial Crime Policy & Minimum Standards.docx",
+    "source_extracted_at": "2025-12-13T11:27:19.405Z"
+  },
+  {
     "id": "mfs_financial_crime-ongoing_monitoring_and_enhanced_due_diligence_edd-ongoing_monitoring_f",
     "policy_key": "mfs_financial_crime",
     "title": "Ongoing Monitoring Framework",

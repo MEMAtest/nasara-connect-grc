@@ -389,17 +389,15 @@ export function ReviewClient() {
           router.replace(`/authorization-pack/review?packId=${activePack.id}`);
         }
 
-        const readinessResponse = await fetchWithTimeout(`/api/authorization-pack/packs/${activePack.id}`).catch(
-          () => null
-        );
+        const [readinessResponse, reviewResponse] = await Promise.all([
+          fetchWithTimeout(`/api/authorization-pack/packs/${activePack.id}`).catch(() => null),
+          fetchWithTimeout(`/api/authorization-pack/packs/${activePack.id}/review`).catch(() => null),
+        ]);
         if (readinessResponse?.ok) {
           const readinessData = await readinessResponse.json();
           setReadiness(readinessData.readiness);
         }
 
-        const reviewResponse = await fetchWithTimeout(`/api/authorization-pack/packs/${activePack.id}/review`).catch(
-          () => null
-        );
         if (reviewResponse?.ok) {
           const reviewData = await reviewResponse.json();
           setReview(reviewData.review || []);

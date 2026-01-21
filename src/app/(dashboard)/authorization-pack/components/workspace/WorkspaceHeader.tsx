@@ -30,8 +30,14 @@ interface WorkspaceHeaderProps {
   showCTA?: boolean;
 }
 
+const clampPercent = (value: number | null | undefined) => {
+  if (typeof value !== "number" || !Number.isFinite(value)) return 0;
+  return Math.min(100, Math.max(0, Math.round(value)));
+};
+
 const navItems = [
   { href: "/authorization-pack/workspace", label: "Workspace" },
+  { href: "/authorization-pack/sections", label: "Sections" },
   { href: "/authorization-pack/review", label: "Review" },
   { href: "/authorization-pack/export", label: "Export" },
 ];
@@ -43,6 +49,13 @@ export function WorkspaceHeader({ pack, readiness, showCTA = true }: WorkspaceHe
   const [packs, setPacks] = useState<PackSummary[]>([]);
 
   const activePackId = searchParams.get("packId") || pack?.id || "";
+  const readinessSummary = readiness
+    ? {
+        overall: clampPercent(readiness.overall),
+        narrative: clampPercent(readiness.narrative),
+        review: clampPercent(readiness.review),
+      }
+    : null;
 
   useEffect(() => {
     const loadPacks = async () => {
@@ -102,11 +115,6 @@ export function WorkspaceHeader({ pack, readiness, showCTA = true }: WorkspaceHe
                   {packTypeLabels[pack.template_type]}
                 </Badge>
                 <Badge className="bg-slate-900 text-white">{(pack.status || "draft").replace("-", " ")}</Badge>
-                <Button asChild className="bg-teal-600 hover:bg-teal-700">
-                  <Link href={activePackId ? `/authorization-pack/review?packId=${activePackId}` : "/authorization-pack/review"}>
-                    Open Review
-                  </Link>
-                </Button>
               </>
             ) : (
               <Button asChild className="bg-teal-600 hover:bg-teal-700">
@@ -117,18 +125,18 @@ export function WorkspaceHeader({ pack, readiness, showCTA = true }: WorkspaceHe
         )}
       </div>
 
-      {readiness ? (
+      {readinessSummary ? (
         <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Readiness</p>
-              <p className="text-2xl font-semibold text-slate-900">{readiness.overall}%</p>
+              <p className="text-2xl font-semibold text-slate-900">{readinessSummary.overall}%</p>
             </div>
             <div className="flex flex-1 flex-col gap-2 min-w-[240px]">
-              <Progress value={readiness.overall} className="h-2" />
+              <Progress value={readinessSummary.overall} className="h-2" />
               <div className="flex items-center justify-between text-xs text-slate-500">
-                <span>Narrative {readiness.narrative}%</span>
-                <span>Review {readiness.review}%</span>
+                <span>Narrative {readinessSummary.narrative}%</span>
+                <span>Review {readinessSummary.review}%</span>
               </div>
             </div>
           </div>
@@ -137,7 +145,9 @@ export function WorkspaceHeader({ pack, readiness, showCTA = true }: WorkspaceHe
 
       <div className="flex flex-wrap gap-2">
         {navItems.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive =
+            pathname === item.href ||
+            (item.href === "/authorization-pack/sections" && pathname.startsWith("/authorization-pack/sections"));
           const href = activePackId ? `${item.href}?packId=${activePackId}` : item.href;
           return (
             <Button

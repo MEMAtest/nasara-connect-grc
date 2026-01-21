@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { logError } from "@/lib/logger";
+import { getOpenRouterApiKey } from "@/lib/openrouter";
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const VISION_MODEL = process.env.OPENROUTER_VISION_MODEL ?? "openai/gpt-4o";
@@ -77,14 +78,15 @@ Be thorough but practical. Focus on material compliance issues, not minor format
 If no image is provided or the content is not a financial promotion, return a score of 0 with an appropriate message.`;
 
 async function analyzeWithVision(imageBase64: string, mimeType: string): Promise<AnalysisResult> {
-  if (!process.env.OPENROUTER_API_KEY) {
+  const apiKey = getOpenRouterApiKey();
+  if (!apiKey) {
     throw new Error("Missing OPENROUTER_API_KEY");
   }
 
   const response = await fetch(OPENROUTER_URL, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+      Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
       "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
       "X-Title": "Nasara Connect FinProm Analyzer",
@@ -145,14 +147,15 @@ async function analyzeWithVision(imageBase64: string, mimeType: string): Promise
 }
 
 async function analyzeWithText(textContent: string): Promise<AnalysisResult> {
-  if (!process.env.OPENROUTER_API_KEY) {
+  const apiKey = getOpenRouterApiKey();
+  if (!apiKey) {
     throw new Error("Missing OPENROUTER_API_KEY");
   }
 
   const response = await fetch(OPENROUTER_URL, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+      Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
       "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
       "X-Title": "Nasara Connect FinProm Analyzer",

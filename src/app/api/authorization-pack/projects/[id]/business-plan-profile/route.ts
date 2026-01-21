@@ -2,11 +2,47 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthorizationProject, saveAuthorizationBusinessPlanProfile } from "@/lib/authorization-pack-db";
 import { requireAuth, isValidUUID } from "@/lib/auth-utils";
 import { logError } from "@/lib/logger";
-import type { BusinessPlanProfile } from "@/lib/business-plan-profile";
+import type { BusinessPlanProfile, ProfileResponse } from "@/lib/business-plan-profile";
 
 const DEFAULT_PROFILE: BusinessPlanProfile = {
   version: 1,
   responses: {},
+};
+
+const PAYMENT_BACKFILL_RESPONSES: Record<string, ProfileResponse> = {
+  "pay-psp-record": "review",
+  "pay-operate-accounts": "review",
+  "pay-credit-line": "review",
+  "pay-payment-instruments": "review",
+};
+
+const applyPaymentProfileBackfill = (
+  profile: BusinessPlanProfile,
+  permissionCode: string | null | undefined
+): BusinessPlanProfile | null => {
+  if (permissionCode !== "payments") {
+    return null;
+  }
+
+  const responses = profile.responses ?? {};
+  let changed = false;
+  const nextResponses: Record<string, ProfileResponse> = { ...responses };
+
+  for (const [key, value] of Object.entries(PAYMENT_BACKFILL_RESPONSES)) {
+    if (nextResponses[key] === undefined) {
+      nextResponses[key] = value;
+      changed = true;
+    }
+  }
+
+  if (!changed) {
+    return null;
+  }
+
+  return {
+    ...profile,
+    responses: nextResponses,
+  };
 };
 
 export async function GET(
@@ -31,7 +67,18 @@ export async function GET(
     }
 
     const assessment = project.assessment_data as Record<string, unknown>;
-    const profile = (assessment?.businessPlanProfile as BusinessPlanProfile | undefined) ?? DEFAULT_PROFILE;
+    const storedProfile = assessment?.businessPlanProfile as BusinessPlanProfile | undefined;
+    const profile: BusinessPlanProfile = {
+      version: storedProfile?.version ?? DEFAULT_PROFILE.version,
+      responses: storedProfile?.responses ?? DEFAULT_PROFILE.responses,
+      updatedAt: storedProfile?.updatedAt,
+    };
+
+    const backfilled = applyPaymentProfileBackfill(profile, project.permission_code);
+    if (backfilled) {
+      const saved = await saveAuthorizationBusinessPlanProfile(id, backfilled);
+      return NextResponse.json({ profile: saved ?? backfilled });
+    }
 
     return NextResponse.json({ profile });
   } catch (error) {

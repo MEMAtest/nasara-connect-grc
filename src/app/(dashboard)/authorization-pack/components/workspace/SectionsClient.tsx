@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -68,16 +68,14 @@ export function SectionsClient() {
           if (packIdParam !== activePack.id) {
             router.replace(`/authorization-pack/workspace?packId=${activePack.id}`);
           }
-          const readinessResponse = await fetchWithTimeout(`/api/authorization-pack/packs/${activePack.id}`).catch(
-            () => null
-          );
+          const [readinessResponse, sectionResponse] = await Promise.all([
+            fetchWithTimeout(`/api/authorization-pack/packs/${activePack.id}`).catch(() => null),
+            fetchWithTimeout(`/api/authorization-pack/packs/${activePack.id}/sections`).catch(() => null),
+          ]);
           if (readinessResponse?.ok) {
             const readinessData = await readinessResponse.json();
             setReadiness(readinessData.readiness);
           }
-          const sectionResponse = await fetchWithTimeout(
-            `/api/authorization-pack/packs/${activePack.id}/sections`
-          ).catch(() => null);
           if (sectionResponse?.ok) {
             const sectionData = await sectionResponse.json();
             setSections(sectionData.sections || []);
@@ -95,7 +93,12 @@ export function SectionsClient() {
       <div className="space-y-6">
         <WorkspaceHeader pack={pack} readiness={readiness} />
         <Card className="border border-slate-200">
-          <CardContent className="p-8 text-center text-slate-500">Loading sections...</CardContent>
+          <CardContent className="p-8 text-center text-slate-500">
+            <div className="flex items-center justify-center gap-2">
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-teal-500 border-t-transparent" />
+              Loading sections...
+            </div>
+          </CardContent>
         </Card>
       </div>
     );
@@ -133,8 +136,18 @@ export function SectionsClient() {
     );
   }
 
-  const remainingSections = sections.filter((section) => section.narrativeCompletion < 100);
-  const visibleSections = showIncompleteOnly ? remainingSections : sections;
+  const uniqueSections = useMemo(() => {
+    const seen = new Set<string>();
+    return sections.filter((section) => {
+      const key = section.section_key || section.title;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [sections]);
+
+  const remainingSections = uniqueSections.filter((section) => section.narrativeCompletion < 100);
+  const visibleSections = showIncompleteOnly ? remainingSections : uniqueSections;
 
   return (
     <div className="space-y-6">

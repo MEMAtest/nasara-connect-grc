@@ -75,6 +75,7 @@ function ArrowRightIcon({ className }: { className?: string }) {
 interface SectionSummary {
   id: string;
   title: string;
+  section_key?: string;
 }
 
 interface ProjectDetail {
@@ -118,7 +119,7 @@ function EcosystemItemCard({
   const colors = colorMap[accentColor] || colorMap.teal;
 
   return (
-    <Card className={`border ${colors.border} ${colors.bg}`}>
+    <Card className={`border ${colors.border} ${colors.bg} transition hover:-translate-y-0.5 hover:shadow-md`}>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -141,7 +142,7 @@ function EcosystemItemCard({
             {items.map((item) => (
               <div
                 key={item.key}
-                className="flex items-center gap-2 rounded-md border border-white/50 bg-white px-2.5 py-1.5 text-sm"
+                className="flex items-center gap-2 rounded-md border border-white/50 bg-white px-2.5 py-1.5 text-sm transition hover:border-slate-200 hover:bg-white/90"
               >
                 <CheckCircleIcon className="h-3.5 w-3.5 flex-shrink-0 text-green-500" />
                 {item.href ? (
@@ -223,6 +224,10 @@ export function EcosystemClient() {
   }
 
   const sections = project.sections || [];
+  const uniqueSections = sections.filter((section, index, list) => {
+    const key = section.section_key || section.title;
+    return list.findIndex((item) => (item.section_key || item.title) === key) === index;
+  });
   const policyItems = getPolicyItems(project.policyTemplates);
   const trainingItems = getTrainingItems(project.trainingRequirements);
   const smcrItems = getSmcrItems(project.smcrRoles);
@@ -257,7 +262,7 @@ export function EcosystemClient() {
             <div className="flex items-center gap-4">
               <div className="text-right">
                 <p className="text-xs text-slate-400">Coverage</p>
-                <p className="text-2xl font-bold text-teal-600">{sections.length}</p>
+                <p className="text-2xl font-bold text-teal-600">{uniqueSections.length}</p>
                 <p className="text-xs text-slate-500">Gold-standard sections</p>
               </div>
               {project.typicalTimelineWeeks && (
@@ -290,9 +295,37 @@ export function EcosystemClient() {
             <Button asChild variant="outline">
               <Link href="/smcr">Key Persons Setup</Link>
             </Button>
+            <Button asChild variant="outline">
+              <Link href="/registers">Registers</Link>
+            </Button>
           </div>
         </CardContent>
       </Card>
+
+      {/* Sections List */}
+      {uniqueSections.length > 0 && (
+        <Card className="border border-slate-200">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Gold-Standard Sections</CardTitle>
+            <CardDescription>Business plan sections required for {project.permissionName || project.permissionCode}.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {uniqueSections.map((section, idx) => (
+                <div
+                  key={section.id}
+                  className="flex items-center gap-2 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2"
+                >
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-100 text-xs font-medium text-teal-700">
+                    {idx + 1}
+                  </span>
+                  <span className="flex-1 truncate text-sm text-slate-700">{section.title}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Ecosystem Grid - 2x2 */}
       <div className="grid gap-4 md:grid-cols-2">
@@ -333,31 +366,6 @@ export function EcosystemClient() {
           accentColor="amber"
         />
       </div>
-
-      {/* Sections List */}
-      {sections.length > 0 && (
-        <Card className="border border-slate-200">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Gold-Standard Sections</CardTitle>
-            <CardDescription>Business plan sections required for {project.permissionName || project.permissionCode}.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-              {sections.map((section, idx) => (
-                <div
-                  key={section.id}
-                  className="flex items-center gap-2 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2"
-                >
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-100 text-xs font-medium text-teal-700">
-                    {idx + 1}
-                  </span>
-                  <span className="flex-1 truncate text-sm text-slate-700">{section.title}</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }

@@ -208,25 +208,22 @@ export function SectionWorkspaceClient() {
           router.replace(`/authorization-pack/sections/${sectionId}?packId=${activePack.id}`);
         }
 
-        const readinessResponse = await fetchWithTimeout(`/api/authorization-pack/packs/${activePack.id}`).catch(
-          () => null
-        );
+        const [readinessResponse, sectionResponse, workspaceResponse] = await Promise.all([
+          fetchWithTimeout(`/api/authorization-pack/packs/${activePack.id}`).catch(() => null),
+          fetchWithTimeout(`/api/authorization-pack/packs/${activePack.id}/sections`).catch(() => null),
+          fetchWithTimeout(`/api/authorization-pack/packs/${activePack.id}/sections/${sectionId}`).catch(() => null),
+        ]);
+
         if (readinessResponse?.ok) {
           const readinessData = await readinessResponse.json();
           setReadiness(readinessData.readiness);
         }
 
-        const sectionResponse = await fetchWithTimeout(
-          `/api/authorization-pack/packs/${activePack.id}/sections`
-        ).catch(() => null);
         if (sectionResponse?.ok) {
           const sectionData = await sectionResponse.json();
           setSections(sectionData.sections || []);
         }
 
-        const workspaceResponse = await fetchWithTimeout(
-          `/api/authorization-pack/packs/${activePack.id}/sections/${sectionId}`
-        ).catch(() => null);
         if (workspaceResponse?.ok) {
           const workspaceData = await workspaceResponse.json();
           setSectionMeta({
@@ -244,8 +241,23 @@ export function SectionWorkspaceClient() {
     load();
   }, [sectionId, packIdParam, router]);
 
-  const currentSection = useMemo(() => sections.find((section) => section.id === sectionId), [sections, sectionId]);
-  const currentSectionIndex = useMemo(() => sections.findIndex((section) => section.id === sectionId), [sections, sectionId]);
+  const navSections = useMemo(() => {
+    const map = new Map<string, SectionNavItem>();
+    sections.forEach((section) => {
+      const key = section.section_key || section.title;
+      const existing = map.get(key);
+      if (!existing || section.id === sectionId) {
+        map.set(key, section);
+      }
+    });
+    return Array.from(map.values());
+  }, [sections, sectionId]);
+
+  const currentSection = useMemo(() => navSections.find((section) => section.id === sectionId), [navSections, sectionId]);
+  const currentSectionIndex = useMemo(
+    () => navSections.findIndex((section) => section.id === sectionId),
+    [navSections, sectionId]
+  );
 
   const handlePromptChange = (promptId: string, value: string) => {
     setPrompts((prev) => prev.map((prompt) => (prompt.id === promptId ? { ...prompt, value } : prompt)));
@@ -552,7 +564,7 @@ export function SectionWorkspaceClient() {
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="space-y-1">
               <div className="flex items-center gap-2 text-xs text-slate-500">
-                <span>Section {currentSectionIndex + 1} of {sections.length}</span>
+                <span>Section {currentSectionIndex + 1} of {navSections.length}</span>
                 <span>•</span>
                 <span>{packTypeLabels[pack.template_type]}</span>
               </div>
@@ -600,7 +612,7 @@ export function SectionWorkspaceClient() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-1 pb-4">
-            {sections.map((section, index) => {
+            {navSections.map((section, index) => {
               const status = getSectionStatus(section);
               const isActive = section.id === sectionId;
               return (

@@ -144,6 +144,22 @@
     "source_extracted_at": "2025-12-14T02:43:05.570Z"
   },
   {
+    "id": "mfs_consumer_duty-mfs_s_role_under_the_consumer_duty-distributor_role",
+    "policy_key": "mfs_consumer_duty",
+    "title": "Distributor role and responsibilities",
+    "body_md": "As a Distributor, {{firm.name}} is responsible for ensuring products and services are delivered to the right target market, customer communications are clear and fair, and outcomes are monitored for foreseeable harm. {{firm.name}} shares relevant MI with manufacturers where applicable, escalates issues in the distribution chain, and maintains oversight of any intermediaries to ensure Consumer Duty obligations are met across the customer journey.",
+    "tags": {
+      "source": [
+        "docx"
+      ]
+    },
+    "variables": [],
+    "version": "1.0.0",
+    "status": "active",
+    "source_template_filename": "MFS_Consumer Duty Procedure_V1.docx",
+    "source_extracted_at": "2025-12-14T02:43:05.570Z"
+  },
+  {
     "id": "mfs_consumer_duty-mfs_s_role_under_the_consumer_duty-mfs_acts_as_a_distributor_for_the_maj",
     "policy_key": "mfs_consumer_duty",
     "title": "MFS acts as a Distributor for the majority of its products and services, including:",

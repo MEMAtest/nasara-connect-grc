@@ -5,6 +5,7 @@
 
 import { NextResponse } from 'next/server'
 import { pool } from '@/lib/database'
+import { getOpenRouterApiKey } from '@/lib/openrouter'
 
 export const dynamic = 'force-dynamic'
 
@@ -68,8 +69,11 @@ function checkEnvironmentVariables(): HealthCheck {
   }
 
   // Check optional but important vars
-  const optional = ['NEXTAUTH_SECRET', 'NEXT_PUBLIC_APP_URL', 'OPENROUTER_API_KEY']
+  const optional = ['NEXTAUTH_SECRET', 'NEXT_PUBLIC_APP_URL']
   const missingOptional = optional.filter(key => !process.env[key])
+  if (!getOpenRouterApiKey()) {
+    missingOptional.push('OPENROUTER_API_KEY')
+  }
 
   if (missingOptional.length > 0) {
     return {

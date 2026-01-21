@@ -44,13 +44,6 @@ interface ProjectDetail {
   packId?: string | null;
 }
 
-const statusColors: Record<string, string> = {
-  draft: "bg-slate-100 text-slate-700",
-  review: "bg-amber-100 text-amber-700",
-  approved: "bg-emerald-100 text-emerald-700",
-  signed: "bg-teal-100 text-teal-700",
-};
-
 const sectionLabels: Record<string, string> = {
   "business-plan": "Perimeter Opinion Pack",
   "perimeter-opinion": "Perimeter Opinion Pack",
@@ -98,8 +91,7 @@ export function OpinionPackClient() {
   const [downloadError, setDownloadError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("profile");
   const [missingQuestions, setMissingQuestions] = useState<ProfileQuestion[]>([]);
-  const [statusChangeError, setStatusChangeError] = useState<string | null>(null);
-  const [isChangingStatus, setIsChangingStatus] = useState<string | null>(null);
+  const [isCheckingMissing, setIsCheckingMissing] = useState(false);
 
   const loadData = async () => {
     if (!projectId) return;
@@ -150,37 +142,52 @@ export function OpinionPackClient() {
     loadData();
   }, [projectId]);
 
-  const handleStatusChange = async (docId: string, newStatus: string) => {
-    if (!project?.packId) return;
-    setIsChangingStatus(docId);
-    setStatusChangeError(null);
-    try {
-      const response = await fetch(`/api/authorization-pack/packs/${project.packId}/documents`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          documentId: docId,
-          status: newStatus,
-          ...(newStatus === "review" ? { reviewedAt: new Date().toISOString(), reviewedBy: "consultant" } : {}),
-          ...(newStatus === "signed" ? { signedAt: new Date().toISOString(), signedBy: "client" } : {}),
-        }),
+  useEffect(() => {
+    if (activeTab !== "documents" || !projectId) return;
+    let isMounted = true;
+    setIsCheckingMissing(true);
+    checkMissingQuestions()
+      .then((missing) => {
+        if (isMounted) {
+          setMissingQuestions(missing);
+        }
+      })
+      .finally(() => {
+        if (isMounted) {
+          setIsCheckingMissing(false);
+        }
       });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || "Failed to update document status");
-      }
-      await loadData();
-    } catch (error) {
-      console.error("Status change error:", error);
-      setStatusChangeError(error instanceof Error ? error.message : "Failed to update document status. Please try again.");
-    } finally {
-      setIsChangingStatus(null);
-    }
-  };
+    return () => {
+      isMounted = false;
+    };
+  }, [activeTab, projectId, project?.permissionCode]);
 
-  const isResponseComplete = (question: ProfileQuestion, response: ProfileResponse | undefined) => {
+
+  const isResponseComplete = (
+    question: ProfileQuestion,
+    response: ProfileResponse | undefined,
+    allResponses?: Record<string, ProfileResponse>
+  ) => {
+    if (
+      question.allowOther &&
+      ((Array.isArray(response) && response.includes("other")) || response === "other")
+    ) {
+      const otherText = allResponses?.[`${question.id}_other_text`];
+      if (typeof otherText !== "string" || otherText.trim().length === 0) {
+        return false;
+      }
+    }
     if (response === undefined || response === null) return false;
     if (Array.isArray(response)) return response.length > 0;
+    if (question.type === "number") {
+      if (typeof response === "number") return !Number.isNaN(response);
+      if (typeof response === "string") {
+        const parsed = Number(response);
+        return response.trim().length > 0 && !Number.isNaN(parsed);
+      }
+      return false;
+    }
+    if (question.type === "boolean") return typeof response === "boolean";
     if (typeof response === "string") return response.trim().length > 0;
     return true;
   };
@@ -195,7 +202,7 @@ export function OpinionPackClient() {
       const permission = isProfilePermissionCode(project?.permissionCode) ? project?.permissionCode : null;
       const questions = getProfileQuestions(permission);
       const required = questions.filter((q) => q.required);
-      return required.filter((q) => !isResponseComplete(q, responses[q.id]));
+      return required.filter((q) => !isResponseComplete(q, responses[q.id], responses));
     } catch {
       return [];
     }
@@ -325,9 +332,7 @@ export function OpinionPackClient() {
     );
   }
 
-  const draftDocs = documents.filter((d) => d.status === "draft");
-  const reviewDocs = documents.filter((d) => d.status === "review");
-  const approvedDocs = documents.filter((d) => d.status === "approved" || d.status === "signed");
+  const generatedDocs = documents.length;
 
   return (
     <div className="space-y-6">
@@ -360,12 +365,12 @@ export function OpinionPackClient() {
               <Button
                 className="bg-indigo-600 hover:bg-indigo-700"
                 onClick={handleGenerateOpinionPack}
-                disabled={isGenerating || !project?.packId}
+                disabled={isGenerating || isCheckingMissing || missingQuestions.length > 0 || !project?.packId}
               >
-                {isGenerating ? (
+                {isGenerating || isCheckingMissing ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Generating...
+                    {isCheckingMissing ? "Checking..." : "Generating..."}
                   </>
                 ) : (
                   <>
@@ -388,6 +393,53 @@ export function OpinionPackClient() {
             <Card className="border border-amber-200 bg-amber-50">
               <CardContent className="p-4">
                 <p className="text-sm text-amber-700">{docsError}</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {isCheckingMissing && (
+            <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin text-slate-500" />
+                Checking required profile questions...
+              </div>
+            </div>
+          )}
+
+          {missingQuestions.length > 0 && !isCheckingMissing && (
+            <Card className="border border-amber-200 bg-amber-50">
+              <CardContent className="p-4">
+                <p className="text-sm text-amber-800">
+                  Complete {missingQuestions.length} required question{missingQuestions.length > 1 ? "s" : ""} to unlock the
+                  opinion pack.
+                </p>
+                <div className="mt-3 space-y-2">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-amber-600">
+                    Missing Required Questions
+                  </p>
+                  <ul className="space-y-1">
+                    {missingQuestions.map((q) => (
+                      <li key={q.id} className="flex items-center justify-between text-sm">
+                        <span className="text-amber-900">{q.prompt}</span>
+                        <button
+                          type="button"
+                          onClick={() => setActiveTab("profile")}
+                          className="text-xs text-amber-700 underline hover:text-amber-900"
+                        >
+                          Go to section: {q.sectionId}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="mt-2 border-amber-300 text-amber-800 hover:bg-amber-100"
+                    onClick={() => setActiveTab("profile")}
+                  >
+                    Complete Profile Questions
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           )}
@@ -437,21 +489,6 @@ export function OpinionPackClient() {
             </Card>
           )}
 
-          {statusChangeError && (
-            <Card className="border border-red-200 bg-red-50">
-              <CardContent className="p-4 flex items-center justify-between">
-                <p className="text-sm text-red-700">{statusChangeError}</p>
-                <button
-                  type="button"
-                  onClick={() => setStatusChangeError(null)}
-                  className="text-xs text-red-500 underline hover:text-red-700"
-                >
-                  Dismiss
-                </button>
-              </CardContent>
-            </Card>
-          )}
-
           {isGenerating && (
             <Card className="border border-indigo-200 bg-indigo-50">
               <CardContent className="p-6 text-center">
@@ -467,23 +504,25 @@ export function OpinionPackClient() {
           <div className="grid gap-4 md:grid-cols-3">
             <Card className="border border-slate-200">
               <CardContent className="p-4">
-                <p className="text-xs uppercase tracking-wide text-slate-400">Draft</p>
-                <p className="mt-1 text-2xl font-semibold text-slate-900">{draftDocs.length}</p>
-                <p className="text-xs text-slate-500">Awaiting review</p>
+                <p className="text-xs uppercase tracking-wide text-slate-400">Generated</p>
+                <p className="mt-1 text-2xl font-semibold text-slate-900">{generatedDocs}</p>
+                <p className="text-xs text-slate-500">Opinion pack versions</p>
               </CardContent>
             </Card>
-            <Card className="border border-amber-200 bg-amber-50/50">
+            <Card className="border border-slate-200">
               <CardContent className="p-4">
-                <p className="text-xs uppercase tracking-wide text-amber-600">In Review</p>
-                <p className="mt-1 text-2xl font-semibold text-amber-900">{reviewDocs.length}</p>
-                <p className="text-xs text-amber-600">Client reviewing</p>
+                <p className="text-xs uppercase tracking-wide text-slate-400">Latest update</p>
+                <p className="mt-1 text-2xl font-semibold text-slate-900">
+                  {documents[0]?.uploadedAt ? formatDate(documents[0].uploadedAt) : "—"}
+                </p>
+                <p className="text-xs text-slate-500">Last generated date</p>
               </CardContent>
             </Card>
-            <Card className="border border-emerald-200 bg-emerald-50/50">
+            <Card className="border border-slate-200">
               <CardContent className="p-4">
-                <p className="text-xs uppercase tracking-wide text-emerald-600">Approved / Signed</p>
-                <p className="mt-1 text-2xl font-semibold text-emerald-900">{approvedDocs.length}</p>
-                <p className="text-xs text-emerald-600">Ready for submission</p>
+                <p className="text-xs uppercase tracking-wide text-slate-400">Downloads</p>
+                <p className="mt-1 text-2xl font-semibold text-slate-900">{documents.filter((doc) => doc.storageKey).length}</p>
+                <p className="text-xs text-slate-500">Available files</p>
               </CardContent>
             </Card>
           </div>
@@ -520,7 +559,7 @@ export function OpinionPackClient() {
                             }`}
                           />
                           <h3 className="font-semibold text-slate-900">{doc.name}</h3>
-                          <Badge className={statusColors[doc.status]}>{doc.status}</Badge>
+                          <Badge className="bg-slate-100 text-slate-700">Generated</Badge>
                           {doc.sectionCode && (
                             <Badge variant="outline" className="border-slate-200 text-slate-600">
                               {sectionLabels[doc.sectionCode] || doc.sectionCode}
@@ -545,74 +584,6 @@ export function OpinionPackClient() {
                           <Badge variant="outline" className="border-slate-200 text-slate-500">
                             File missing
                           </Badge>
-                        )}
-                        {doc.status === "draft" && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleStatusChange(doc.id, "review")}
-                            disabled={isChangingStatus === doc.id}
-                          >
-                            {isChangingStatus === doc.id ? (
-                              <>
-                                <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-                                Submitting...
-                              </>
-                            ) : (
-                              "Submit for Review"
-                            )}
-                          </Button>
-                        )}
-                        {doc.status === "review" && (
-                          <>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleStatusChange(doc.id, "draft")}
-                              disabled={isChangingStatus === doc.id}
-                            >
-                              {isChangingStatus === doc.id ? (
-                                <Loader2 className="h-3 w-3 animate-spin" />
-                              ) : (
-                                "Request Changes"
-                              )}
-                            </Button>
-                            <Button
-                              size="sm"
-                              className="bg-emerald-600 hover:bg-emerald-700"
-                              onClick={() => handleStatusChange(doc.id, "approved")}
-                              disabled={isChangingStatus === doc.id}
-                            >
-                              {isChangingStatus === doc.id ? (
-                                <>
-                                  <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-                                  Approving...
-                                </>
-                              ) : (
-                                "Approve"
-                              )}
-                            </Button>
-                          </>
-                        )}
-                        {doc.status === "approved" && (
-                          <Button
-                            size="sm"
-                            className="bg-teal-600 hover:bg-teal-700"
-                            onClick={() => handleStatusChange(doc.id, "signed")}
-                            disabled={isChangingStatus === doc.id}
-                          >
-                            {isChangingStatus === doc.id ? (
-                              <>
-                                <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-                                Signing...
-                              </>
-                            ) : (
-                              "Sign Off"
-                            )}
-                          </Button>
-                        )}
-                        {doc.status === "signed" && (
-                          <Badge className="bg-teal-600 text-white">Signed</Badge>
                         )}
                       </div>
                     </div>

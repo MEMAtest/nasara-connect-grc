@@ -13,12 +13,18 @@ interface ProjectHeaderProps {
     status: string;
     packId?: string | null;
   };
-  active: "overview" | "assessment" | "plan" | "opinion-pack" | "ecosystem";
+  active: "overview" | "assessment" | "plan" | "opinion-pack" | "ecosystem" | "workspace";
 }
 
 export function ProjectHeader({ project, active }: ProjectHeaderProps) {
   const permissionLabel = project.permissionName || project.permissionCode || "Permission";
   const workspaceHref = project.packId ? `/authorization-pack/workspace?packId=${project.packId}` : null;
+  const phaseItems = [
+    { key: "assessment", label: "Assessment", href: `/authorization-pack/${project.id}/assessment`, phase: 1 },
+    { key: "plan", label: "Plan", href: `/authorization-pack/${project.id}/plan`, phase: 2 },
+    { key: "opinion-pack", label: "Opinion Pack", href: `/authorization-pack/${project.id}/opinion-pack`, phase: 3 },
+    { key: "workspace", label: "Workspace", href: workspaceHref, phase: 4 },
+  ] as const;
 
   return (
     <div className="space-y-4">
@@ -45,6 +51,43 @@ export function ProjectHeader({ project, active }: ProjectHeaderProps) {
         </div>
       </div>
 
+      <div className="flex flex-wrap items-center gap-3">
+        <span className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Phases</span>
+        <div className="flex flex-wrap gap-2">
+          {phaseItems.map((item) => {
+            const isActive = active === item.key;
+            const phaseBadgeClasses = isActive
+              ? "bg-white/20 text-white"
+              : "bg-slate-100 text-slate-500";
+            if (!item.href) {
+              return (
+                <Button key={item.key} variant="outline" className="text-slate-400" disabled>
+                  <span className={`mr-2 inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] ${phaseBadgeClasses}`}>
+                    {item.phase}
+                  </span>
+                  {item.label}
+                </Button>
+              );
+            }
+            return (
+              <Button
+                key={item.key}
+                variant={isActive ? "default" : "outline"}
+                className={isActive ? "bg-slate-900 text-white" : "text-slate-600"}
+                asChild
+              >
+                <Link href={item.href}>
+                  <span className={`mr-2 inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] ${phaseBadgeClasses}`}>
+                    {item.phase}
+                  </span>
+                  {item.label}
+                </Link>
+              </Button>
+            );
+          })}
+        </div>
+      </div>
+
       <div className="flex flex-wrap gap-2">
         <Button
           variant={active === "overview" ? "default" : "outline"}
@@ -54,42 +97,12 @@ export function ProjectHeader({ project, active }: ProjectHeaderProps) {
           <Link href={`/authorization-pack/${project.id}`}>Overview</Link>
         </Button>
         <Button
-          variant={active === "assessment" ? "default" : "outline"}
-          className={active === "assessment" ? "bg-slate-900 text-white" : "text-slate-600"}
-          asChild
-        >
-          <Link href={`/authorization-pack/${project.id}/assessment`}>Assessment</Link>
-        </Button>
-        <Button
-          variant={active === "plan" ? "default" : "outline"}
-          className={active === "plan" ? "bg-slate-900 text-white" : "text-slate-600"}
-          asChild
-        >
-          <Link href={`/authorization-pack/${project.id}/plan`}>Plan</Link>
-        </Button>
-        <Button
-          variant={active === "opinion-pack" ? "default" : "outline"}
-          className={active === "opinion-pack" ? "bg-slate-900 text-white" : "text-slate-600"}
-          asChild
-        >
-          <Link href={`/authorization-pack/${project.id}/opinion-pack`}>Opinion Pack</Link>
-        </Button>
-        <Button
           variant={active === "ecosystem" ? "default" : "outline"}
           className={active === "ecosystem" ? "bg-slate-900 text-white" : "text-slate-600"}
           asChild
         >
           <Link href={`/authorization-pack/${project.id}/ecosystem`}>Ecosystem</Link>
         </Button>
-        {workspaceHref ? (
-          <Button variant="outline" className="text-slate-600" asChild>
-            <Link href={workspaceHref}>Workspace</Link>
-          </Button>
-        ) : (
-          <Button variant="outline" className="text-slate-400" disabled>
-            Workspace
-          </Button>
-        )}
         <Button variant="ghost" className="text-slate-500" asChild>
           <Link href="/authorization-pack">Back to Projects</Link>
         </Button>

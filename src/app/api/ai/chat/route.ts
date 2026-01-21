@@ -5,6 +5,7 @@ import { logError } from "@/lib/logger";
 import { requireAuth } from "@/lib/auth-utils";
 import { getPoliciesForOrganization } from "@/lib/server/policy-store";
 import { DEFAULT_ORGANIZATION_ID } from "@/lib/constants";
+import { getOpenRouterApiKey } from "@/lib/openrouter";
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const DEFAULT_MODEL = process.env.OPENROUTER_MODEL ?? "openai/gpt-4o-mini";
@@ -77,7 +78,8 @@ export async function POST(request: Request) {
   const { auth, error } = await requireAuth();
   if (error) return error;
 
-  if (!process.env.OPENROUTER_API_KEY) {
+  const apiKey = getOpenRouterApiKey();
+  if (!apiKey) {
     return NextResponse.json(
       { error: "Missing OPENROUTER_API_KEY. Add it to your environment." },
       { status: 500 }
@@ -159,7 +161,7 @@ export async function POST(request: Request) {
     const upstream = await fetch(OPENROUTER_URL, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
         "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
         "X-Title": "Nasara Connect AI Assistant",

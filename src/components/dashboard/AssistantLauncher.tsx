@@ -16,21 +16,22 @@ export function AssistantLauncher() {
   const { context } = useAssistantContext();
   const pathname = usePathname();
 
+  const isAuthPack = typeof pathname === "string" && pathname.startsWith("/authorization-pack");
   const shouldAvoidBottomRight =
     typeof pathname === "string" &&
     (pathname.startsWith("/policies") ||
       pathname.startsWith("/smcr") ||
-      pathname.startsWith("/risk-assessment") ||
-      pathname.startsWith("/authorization-pack"));
+      pathname.startsWith("/risk-assessment"));
+
+  const positionClasses = isAuthPack
+    ? "right-5 top-24 md:top-28"
+    : shouldAvoidBottomRight
+    ? "left-5 bottom-5 md:bottom-6"
+    : "right-5 bottom-5";
 
   return (
     <>
-      <div
-        className={[
-          "group fixed right-5 z-40 flex flex-col items-end gap-2",
-          shouldAvoidBottomRight ? "bottom-24 md:bottom-28" : "bottom-5",
-        ].join(" ")}
-      >
+      <div className={["group fixed z-40 flex flex-col items-end gap-2", positionClasses].join(" ")}>
         <Button
           type="button"
           size="icon"

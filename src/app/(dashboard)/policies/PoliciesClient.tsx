@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FileText, Settings2, Sparkles } from "lucide-react";
+import { FileText, Settings2, Sparkles, Rocket, FileCheck2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePermissions, usePolicyMetrics } from "@/lib/policies";
 import { PolicyEffectivenessScore } from "@/components/policies/policy-effectiveness-score";
@@ -45,12 +45,45 @@ export function PoliciesClient() {
         </div>
       </header>
 
-      <PolicyEffectivenessScore
-        attestationsComplete={metrics.completionRate}
-        breaches={metrics.overduePolicies}
-        trainingCompletion={metrics.completionRate}
-        controlEffectiveness={Math.max(60, 100 - metrics.policyGaps * 5)}
-      />
+      {/* Show empty state when no policies exist, otherwise show effectiveness score */}
+      {!isLoadingMetrics && metrics.totalPolicies === 0 ? (
+        <section className="rounded-3xl border border-dashed border-indigo-200 bg-gradient-to-br from-indigo-50 to-white p-8 text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-indigo-100">
+            <Rocket className="h-8 w-8 text-indigo-600" />
+          </div>
+          <h2 className="mt-4 text-xl font-semibold text-slate-900">Get started with your first policy</h2>
+          <p className="mx-auto mt-2 max-w-md text-sm text-slate-500">
+            You haven&apos;t created any policies yet. Use Quick Create to generate FCA-compliant policy drafts in
+            minutes, or explore the advanced wizard for full customization.
+          </p>
+          <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Button className="gap-2 bg-indigo-600 hover:bg-indigo-700" asChild>
+              <Link href="/policies/quick-create">
+                <Sparkles className="h-4 w-4" />
+                Quick Create Policy
+              </Link>
+            </Button>
+            <Button variant="outline" className="gap-2" asChild>
+              <Link href="/policies/wizard">
+                <Settings2 className="h-4 w-4" />
+                Advanced Wizard
+              </Link>
+            </Button>
+          </div>
+          <p className="mt-6 text-xs text-slate-400">
+            Based on your firm permissions, you have {requiredPolicies.length} mandatory policies to create.
+          </p>
+        </section>
+      ) : (
+        <PolicyEffectivenessScore
+          attestationsComplete={metrics.completionRate}
+          breaches={metrics.overduePolicies}
+          trainingCompletion={metrics.completionRate}
+          controlEffectiveness={Math.max(60, 100 - metrics.policyGaps * 5)}
+          isEmpty={metrics.totalPolicies === 0}
+          isLoading={isLoadingMetrics}
+        />
+      )}
 
       <section className="grid gap-6 lg:grid-cols-[2fr_1fr]">
         <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
@@ -85,6 +118,20 @@ export function PoliciesClient() {
           <h2 className="text-lg font-semibold text-slate-900">Policy metrics</h2>
           {isLoadingMetrics ? (
             <p className="mt-2 text-sm text-slate-400">Syncing latest status…</p>
+          ) : metrics.totalPolicies === 0 ? (
+            <div className="mt-4 text-center">
+              <FileCheck2 className="mx-auto h-10 w-10 text-slate-300" />
+              <p className="mt-3 text-sm text-slate-500">No policies created yet</p>
+              <p className="mt-1 text-xs text-slate-400">
+                Metrics will appear here once you create your first policy.
+              </p>
+              <Button size="sm" className="mt-4 gap-2 bg-indigo-600 hover:bg-indigo-700" asChild>
+                <Link href="/policies/quick-create">
+                  <Sparkles className="h-3 w-3" />
+                  Create first policy
+                </Link>
+              </Button>
+            </div>
           ) : (
             <dl className="mt-4 space-y-3 text-sm text-slate-600">
               <div className="flex items-center justify-between">
@@ -97,15 +144,21 @@ export function PoliciesClient() {
               </div>
               <div className="flex items-center justify-between">
                 <dt>Overdue reviews</dt>
-                <dd className="font-semibold text-rose-600">{metrics.overduePolicies}</dd>
+                <dd className={`font-semibold ${metrics.overduePolicies > 0 ? "text-rose-600" : "text-slate-600"}`}>
+                  {metrics.overduePolicies}
+                </dd>
               </div>
               <div className="flex items-center justify-between">
                 <dt>Documentation gaps</dt>
-                <dd className="font-semibold text-amber-600">{metrics.policyGaps}</dd>
+                <dd className={`font-semibold ${metrics.policyGaps > 0 ? "text-amber-600" : "text-emerald-600"}`}>
+                  {metrics.policyGaps}
+                </dd>
               </div>
             </dl>
           )}
-          <p className="mt-4 text-xs text-slate-400">Advanced wizard is available for detailed configuration.</p>
+          {metrics.totalPolicies > 0 && (
+            <p className="mt-4 text-xs text-slate-400">Advanced wizard is available for detailed configuration.</p>
+          )}
         </div>
       </section>
 

@@ -21,6 +21,7 @@ interface ReadinessSummary {
 interface SectionSummary {
   id: string;
   title: string;
+  section_key?: string;
   narrativeCompletion: number;
   reviewCompletion: number;
 }
@@ -44,6 +45,11 @@ interface ProjectDetail {
   assessmentData?: Record<string, unknown>;
   projectPlan?: Record<string, unknown>;
 }
+
+const clampPercent = (value: number | null | undefined) => {
+  if (typeof value !== "number" || !Number.isFinite(value)) return 0;
+  return Math.min(100, Math.max(0, Math.round(value)));
+};
 
 export function ProjectDashboardClient() {
   const params = useParams();
@@ -73,8 +79,23 @@ export function ProjectDashboardClient() {
     loadProject();
   }, [projectId]);
 
-  const readiness = project?.readiness;
-  const sectionCount = project?.sections?.length || 0;
+  const readiness = project?.readiness
+    ? {
+        overall: clampPercent(project.readiness.overall),
+        narrative: clampPercent(project.readiness.narrative),
+        review: clampPercent(project.readiness.review),
+      }
+    : null;
+  const uniqueSections = useMemo(() => {
+    if (!project?.sections) return [];
+    return project.sections.filter(
+      (section, index, list) =>
+        list.findIndex(
+          (item) => (item.section_key || item.title) === (section.section_key || section.title)
+        ) === index
+    );
+  }, [project]);
+  const sectionCount = uniqueSections.length;
   const registerCount = useMemo(
     () => (project ? getRegisterItems(project.permissionCode).length : 0),
     [project]
@@ -95,13 +116,13 @@ export function ProjectDashboardClient() {
       actions.push("Generate the auto project plan and timeline.");
     }
 
-    if (project.sections?.length) {
-      const narrativeGaps = project.sections.filter((section) => section.narrativeCompletion < 50).slice(0, 2);
+    if (uniqueSections.length) {
+      const narrativeGaps = uniqueSections.filter((section) => section.narrativeCompletion < 50).slice(0, 2);
       narrativeGaps.forEach((section) => actions.push(`Complete narrative draft for ${section.title}`));
     }
 
     return actions.slice(0, 4);
-  }, [project]);
+  }, [project, uniqueSections]);
 
   const nextSteps = useMemo(() => {
     if (!project) return [];
@@ -131,7 +152,7 @@ export function ProjectDashboardClient() {
     const hasPlan =
       Array.isArray((planData as { milestones?: unknown }).milestones) &&
       (planData as { milestones?: unknown[] }).milestones!.length > 0;
-    const narrativeStarted = (project.readiness?.narrative ?? 0) > 0;
+    const narrativeStarted = (readiness?.narrative ?? 0) > 0;
     return [
       {
         key: "assessment",
@@ -162,7 +183,12 @@ export function ProjectDashboardClient() {
   if (isLoading) {
     return (
       <Card className="border border-slate-200">
-        <CardContent className="p-8 text-center text-slate-500">Loading project...</CardContent>
+        <CardContent className="p-8 text-center text-slate-500">
+          <div className="flex items-center justify-center gap-2">
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-teal-500 border-t-transparent" />
+            Loading project...
+          </div>
+        </CardContent>
       </Card>
     );
   }
@@ -288,7 +314,7 @@ export function ProjectDashboardClient() {
         <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="rounded-lg border border-slate-100 bg-slate-50 p-4">
+              <div className="rounded-lg border border-slate-100 bg-slate-50 p-4 transition hover:border-teal-200 hover:bg-white hover:shadow-sm focus-within:border-teal-200 focus-within:bg-white focus-within:shadow-sm">
                 <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Policies</p>
                 <p className="mt-2 text-2xl font-semibold text-slate-900">{project.policyTemplates?.length || 0}</p>
                 <Button asChild variant="link" className="px-0 text-teal-600">
@@ -300,7 +326,7 @@ export function ProjectDashboardClient() {
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="rounded-lg border border-slate-100 bg-slate-50 p-4">
+              <div className="rounded-lg border border-slate-100 bg-slate-50 p-4 transition hover:border-teal-200 hover:bg-white hover:shadow-sm focus-within:border-teal-200 focus-within:bg-white focus-within:shadow-sm">
                 <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Training</p>
                 <p className="mt-2 text-2xl font-semibold text-slate-900">{project.trainingRequirements?.length || 0}</p>
                 <Button asChild variant="link" className="px-0 text-teal-600">
@@ -312,7 +338,7 @@ export function ProjectDashboardClient() {
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="rounded-lg border border-slate-100 bg-slate-50 p-4">
+              <div className="rounded-lg border border-slate-100 bg-slate-50 p-4 transition hover:border-teal-200 hover:bg-white hover:shadow-sm focus-within:border-teal-200 focus-within:bg-white focus-within:shadow-sm">
                 <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Key Persons</p>
                 <p className="mt-2 text-2xl font-semibold text-slate-900">{project.smcrRoles?.length || 0}</p>
                 <Button asChild variant="link" className="px-0 text-teal-600">
@@ -324,7 +350,7 @@ export function ProjectDashboardClient() {
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="rounded-lg border border-slate-100 bg-slate-50 p-4">
+              <div className="rounded-lg border border-slate-100 bg-slate-50 p-4 transition hover:border-teal-200 hover:bg-white hover:shadow-sm focus-within:border-teal-200 focus-within:bg-white focus-within:shadow-sm">
                 <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Registers</p>
                 <p className="mt-2 text-2xl font-semibold text-slate-900">{registerCount}</p>
                 <Button asChild variant="link" className="px-0 text-teal-600">

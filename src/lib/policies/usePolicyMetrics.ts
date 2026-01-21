@@ -13,12 +13,12 @@ export interface PolicyMetrics {
 }
 
 const DEFAULT_METRICS: PolicyMetrics = {
-  totalPolicies: 18,
-  overduePolicies: 2,
-  policyGaps: 3,
-  completionRate: 72,
-  reviewsDueSoon: 4,
-  underReview: 1,
+  totalPolicies: 0,
+  overduePolicies: 0,
+  policyGaps: 0,
+  completionRate: 0,
+  reviewsDueSoon: 0,
+  underReview: 0,
   lastUpdated: new Date().toISOString(),
 };
 
@@ -29,24 +29,16 @@ interface UsePolicyMetricsState {
   refresh: () => Promise<void>;
 }
 
-export function usePolicyMetrics(organizationId?: string): UsePolicyMetricsState {
+export function usePolicyMetrics(): UsePolicyMetricsState {
   const [metrics, setMetrics] = useState<PolicyMetrics>(DEFAULT_METRICS);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    void fetchMetrics();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [organizationId]);
 
   const fetchMetrics = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const endpoint = organizationId
-        ? `/api/organizations/${organizationId}/policies/metrics`
-        : "/api/policies/metrics";
-      const response = await fetch(endpoint);
+      const response = await fetch("/api/policies/metrics");
       if (!response.ok) {
         throw new Error("Failed to load policy metrics");
       }
@@ -59,6 +51,10 @@ export function usePolicyMetrics(organizationId?: string): UsePolicyMetricsState
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    void fetchMetrics();
+  }, []);
 
   return {
     metrics,

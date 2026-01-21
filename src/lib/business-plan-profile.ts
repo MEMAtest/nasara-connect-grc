@@ -29,6 +29,7 @@ export interface ProfileQuestion {
   placeholder?: string;
   type: ProfileQuestionType;
   options?: ProfileOption[];
+  maxSelections?: number;
   required?: boolean;
   weight?: number;
   regulatoryRefs?: string[];
@@ -86,6 +87,39 @@ export interface PerimeterOpinion {
   obligations: string[];
 }
 
+export interface ValidationConflict {
+  id: string;
+  severity: "error" | "warning";
+  message: string;
+  questionIds: string[];
+  suggestion?: string;
+}
+
+export interface CapitalEstimate {
+  method: "A" | "B" | "C" | null;
+  minimumCapital: number;
+  methodAEstimate: number | null;
+  methodBEstimate: number | null;
+  recommendation: string;
+  breakdown?: string[];
+}
+
+export interface SectionDependency {
+  sectionId: string;
+  dependsOn: string[];
+  reason: string;
+}
+
+export const SECTION_DEPENDENCIES: SectionDependency[] = [
+  { sectionId: "model", dependsOn: ["scope"], reason: "Define regulated activities before describing business model" },
+  { sectionId: "operations", dependsOn: ["scope", "model"], reason: "Scope and model inform operational requirements" },
+  { sectionId: "governance", dependsOn: ["scope"], reason: "Governance structure depends on regulatory scope" },
+  { sectionId: "financials", dependsOn: ["scope", "model"], reason: "Financial projections need scope and model clarity" },
+  { sectionId: "payments", dependsOn: ["scope"], reason: "Complete scope section to unlock payments questions" },
+  { sectionId: "consumer-credit", dependsOn: ["scope"], reason: "Complete scope section to unlock consumer credit questions" },
+  { sectionId: "investments", dependsOn: ["scope"], reason: "Complete scope section to unlock investments questions" },
+];
+
 export interface ProfileInsights {
   completionPercent: number;
   sectionScores: ProfileSectionScore[];
@@ -94,6 +128,8 @@ export interface ProfileInsights {
   activityHighlights: string[];
   perimeterOpinion: PerimeterOpinion;
   focusAreas: string[];
+  conflicts: ValidationConflict[];
+  capitalEstimate: CapitalEstimate | null;
 }
 
 const PACK_SECTION_LABELS = (() => {
@@ -182,7 +218,8 @@ const PROFILE_QUESTIONS: ProfileQuestion[] = [
     required: true,
     weight: 3,
     regulatoryRefs: ["PERG 2 - Regulated activities"],
-    aiHint: "Describe what you do in plain language. The AI will convert this into FCA-ready regulatory narrative.",
+    aiHint:
+      "Cover: customer journey, services delivered, PSP-of-record status, where money or client assets move, key third parties, permissions expected, and what is explicitly out of scope.",
     packSectionKeys: ["product-scope", "executive-summary"],
   },
   {
@@ -290,6 +327,7 @@ const PROFILE_QUESTIONS: ProfileQuestion[] = [
       { value: "fraud", label: "Fraud monitoring", score: 2 },
       { value: "other", label: "Other", score: 1 },
     ],
+    allowOther: true,
     regulatoryRefs: ["FCA outsourcing expectations"],
     packSectionKeys: ["third-party-risk", "operational-resilience"],
   },
@@ -309,6 +347,7 @@ const PROFILE_QUESTIONS: ProfileQuestion[] = [
       { value: "on-prem", label: "On-premise / private data center", score: 1 },
       { value: "other", label: "Other", score: 1 },
     ],
+    allowOther: true,
     packSectionKeys: ["operational-resilience", "cyber-security"],
   },
   {
@@ -329,6 +368,7 @@ const PROFILE_QUESTIONS: ProfileQuestion[] = [
       { value: "crm", label: "CRM / customer support", score: 1 },
       { value: "other", label: "Other", score: 1 },
     ],
+    allowOther: true,
     packSectionKeys: ["operational-resilience", "cyber-security", "sensitive-data"],
   },
   {
@@ -341,6 +381,8 @@ const PROFILE_QUESTIONS: ProfileQuestion[] = [
     required: false,
     weight: 1,
     packSectionKeys: ["operational-resilience", "cyber-security", "sensitive-data"],
+    aiHint:
+      "Highlight build vs buy, core vendors, hosting regions, key integrations (KYC/AML, payments, card processing), and data residency.",
   },
   {
     id: "core-governance",
@@ -362,11 +404,71 @@ const PROFILE_QUESTIONS: ProfileQuestion[] = [
     id: "core-risk-theme",
     sectionId: "governance",
     prompt: "Top operational and compliance risks identified",
-    description: "Summarize the top 3 risks and mitigation approach.",
-    type: "text",
+    description: "Select up to three risks that are most material to your model.",
+    type: "multi-choice",
     required: true,
     weight: 2,
+    maxSelections: 3,
+    options: [
+      {
+        value: "safeguarding-breach",
+        label: "Safeguarding shortfall or reconciliation failure",
+        score: 2,
+        implication: "Risk of client money shortfall due to reconciliation errors or commingling; requires daily reconciliation, segregation, and audit trail.",
+      },
+      {
+        value: "financial-crime-failure",
+        label: "Financial crime control failure (KYC/AML/sanctions)",
+        score: 2,
+        implication: "Risk of onboarding illicit actors or missing suspicious activity; requires risk assessment, screening, monitoring, and SAR escalation.",
+      },
+      {
+        value: "operational-outage",
+        label: "Operational outage or resilience breach",
+        score: 2,
+        implication: "Risk of service disruption or missed payment deadlines; requires impact tolerances, testing, incident response, and comms playbooks.",
+      },
+      {
+        value: "data-cyber-incident",
+        label: "Data breach or cyber incident",
+        score: 2,
+        implication: "Risk of data loss or compromised credentials; requires security controls, monitoring, and incident response.",
+      },
+      {
+        value: "outsourcing-failure",
+        label: "Outsourcing or critical vendor failure",
+        score: 2,
+        implication: "Risk from third-party outages or control gaps; requires due diligence, contracts, oversight, and exit planning.",
+      },
+      {
+        value: "conduct-harm",
+        label: "Customer harm / Consumer Duty breach",
+        score: 2,
+        implication: "Risk of poor outcomes or unfair value; requires outcome monitoring, MI, and governance.",
+      },
+      {
+        value: "other",
+        label: "Other",
+        score: 1,
+        implication: "Describe any additional material risks.",
+      },
+    ],
     packSectionKeys: ["risk-compliance"],
+    allowOther: true,
+    impact: "Selected risks drive the risk narrative and evidence plan.",
+    aiHint: "Select the top risks, then capture mitigation notes below.",
+  },
+  {
+    id: "core-risk-mitigation",
+    sectionId: "governance",
+    prompt: "Risk mitigation notes",
+    description: "For each selected risk, outline controls, owners, and evidence.",
+    placeholder: "e.g., Safeguarding: daily reconciliation owned by Finance; evidence in weekly MI pack.",
+    type: "text",
+    required: false,
+    weight: 1,
+    packSectionKeys: ["risk-compliance"],
+    aiHint: "List each risk, the key control, accountable owner, and how you evidence effectiveness (MI, testing, audits).",
   },
   {
     id: "core-capital",
@@ -404,16 +506,153 @@ const PROFILE_QUESTIONS: ProfileQuestion[] = [
     id: "core-winddown",
     sectionId: "financials",
     prompt: "Wind-down planning",
-    description: "Status of exit strategy, triggers, and cost model.",
+    description: "Status of exit strategy, triggers, and costed execution plan.",
     type: "single-choice",
     required: true,
     weight: 2,
     options: [
-      { value: "draft", label: "Draft plan complete", score: 3 },
+      { value: "draft", label: "Draft plan complete (costed & reviewed)", score: 3 },
       { value: "outline", label: "Outline in progress", score: 2 },
       { value: "not-started", label: "Not started", score: 0 },
     ],
     packSectionKeys: ["wind-down"],
+  },
+  {
+    id: "core-winddown-trigger",
+    sectionId: "financials",
+    prompt: "Wind-down triggers",
+    description: "Select events that would trigger a wind-down decision.",
+    type: "multi-choice",
+    required: true,
+    weight: 1,
+    regulatoryRefs: ["FCA Approach to Payment Services and E-Money (2017) - Wind-down planning"],
+    options: [
+      {
+        value: "capital-shortfall",
+        label: "Capital falls below minimum requirement",
+        score: 2,
+        implication: "Requires a documented trigger tied to own funds thresholds and board escalation.",
+      },
+      {
+        value: "safeguarding-failure",
+        label: "Safeguarding breach or reconciliation failure",
+        score: 2,
+        implication: "Requires immediate incident response and safeguarding remediation steps.",
+      },
+      {
+        value: "regulatory-action",
+        label: "Regulatory intervention or permissions risk",
+        score: 2,
+        implication: "Requires governance escalation and controlled exit plan.",
+      },
+      {
+        value: "critical-vendor",
+        label: "Critical vendor or sponsor failure",
+        score: 2,
+        implication: "Requires vendor exit plan and contingency operations.",
+      },
+      {
+        value: "strategic-exit",
+        label: "Strategic exit or board decision",
+        score: 1,
+        implication: "Requires customer communications and orderly closure plan.",
+      },
+      {
+        value: "other",
+        label: "Other",
+        score: 1,
+        implication: "Describe any additional wind-down triggers.",
+      },
+    ],
+    allowOther: true,
+    packSectionKeys: ["wind-down", "risk-compliance"],
+    aiHint: "Include capital triggers, safeguarding issues, regulatory action, or critical vendor failure.",
+  },
+  {
+    id: "core-winddown-plan",
+    sectionId: "financials",
+    prompt: "Wind-down execution plan",
+    description: "Describe how you would protect customers and close services in an orderly manner.",
+    placeholder: "Cover customer communications, safeguarding actions, settlement timelines, data retention, and exit steps.",
+    type: "text",
+    required: true,
+    weight: 1,
+    packSectionKeys: ["wind-down"],
+    aiHint: "Include customer communications, safeguarding account actions, outstanding payments, data retention, and expected timeline.",
+  },
+  {
+    id: "pay-psp-record",
+    sectionId: "payments",
+    prompt: "Will the firm be the PSP of record for the payment services it provides?",
+    description: "Confirm whether the firm is the contracting PSP responsible for service outcomes.",
+    type: "single-choice",
+    required: true,
+    weight: 3,
+    regulatoryRefs: ["PERG 15 - PSP responsibility", "PSR 2017"],
+    options: [
+      { value: "psp-of-record", label: "Yes, the firm is PSP of record", score: 3 },
+      { value: "shared", label: "Shared with a sponsor/partner PSP", score: 1 },
+      { value: "no", label: "No, another PSP is PSP of record", score: 0 },
+      { value: "review", label: "Under review", score: 0 },
+    ],
+    packSectionKeys: ["product-scope", "governance", "flow-of-funds"],
+    appliesTo: ["payments"],
+    aiHint: "If shared or no, document the sponsor/partner PSP and accountability split.",
+  },
+  {
+    id: "pay-operate-accounts",
+    sectionId: "payments",
+    prompt: "Will you provide or operate payment accounts?",
+    description: "Includes balances, statements, access controls, and account administration.",
+    type: "single-choice",
+    required: true,
+    weight: 2,
+    regulatoryRefs: ["PSR 2017 Sch 1 Pt 1 para 1(a)", "PERG 15"],
+    options: [
+      { value: "yes", label: "Yes, we operate payment accounts", score: 3 },
+      { value: "no", label: "No, accounts are held with another PSP", score: 0 },
+      { value: "review", label: "Under review", score: 1 },
+    ],
+    packSectionKeys: ["product-scope", "product-architecture"],
+    appliesTo: ["payments"],
+    aiHint: "Describe whether accounts are in the firm's name and how customer access is managed.",
+  },
+  {
+    id: "pay-credit-line",
+    sectionId: "payments",
+    prompt: "Will any payment execution be funded by credit or overdraft?",
+    description: "Indicate whether payments can be executed without prefunded balances.",
+    type: "single-choice",
+    required: true,
+    weight: 2,
+    regulatoryRefs: ["PSR 2017 Sch 1 Pt 1 para 1(d)", "PERG 15"],
+    options: [
+      { value: "prefunded", label: "Prefunded balances only", score: 3 },
+      { value: "credit", label: "Credit/overdraft funded execution", score: 0 },
+      { value: "both", label: "Both prefunded and credit execution", score: 1 },
+      { value: "review", label: "Under review", score: 1 },
+    ],
+    packSectionKeys: ["financials", "risk-compliance"],
+    appliesTo: ["payments"],
+    aiHint: "If credit-funded execution is planned, explain limits and underwriting controls.",
+  },
+  {
+    id: "pay-payment-instruments",
+    sectionId: "payments",
+    prompt: "Do you provide the payment initiation procedure or instrument?",
+    description: "Includes authenticated approval workflows and submission procedures used by customers.",
+    type: "single-choice",
+    required: true,
+    weight: 2,
+    regulatoryRefs: ["PSR 2017 Sch 1 Pt 1 para 1(e)", "PERG 15"],
+    options: [
+      { value: "yes", label: "Yes, we provide the initiation procedure/instrument", score: 2 },
+      { value: "no", label: "No, the PSP provides the initiation procedure", score: 0 },
+      { value: "review", label: "Under review", score: 1 },
+    ],
+    packSectionKeys: ["product-architecture", "security-policy"],
+    appliesTo: ["payments"],
+    aiHint: "Clarify whether your workflow is the mechanism that initiates payment orders.",
   },
   {
     id: "pay-services",
@@ -435,8 +674,6 @@ const PROFILE_QUESTIONS: ProfileQuestion[] = [
       { value: "execution-telecom", label: "Execution via telecom or IT device", score: 1 },
       { value: "issuing-acquiring", label: "Issuing or acquiring payment instruments", score: 2 },
       { value: "money-remittance", label: "Money remittance", score: 2 },
-      { value: "payment-initiation", label: "Payment initiation service (PIS)", score: 2 },
-      { value: "account-information", label: "Account information service (AIS)", score: 2 },
     ],
     packSectionKeys: ["product-scope", "product-architecture", "schedule-2"],
     appliesTo: ["payments"],
@@ -515,35 +752,70 @@ const PROFILE_QUESTIONS: ProfileQuestion[] = [
     appliesTo: ["payments"],
   },
   {
+    id: "pay-funds-flow-touchpoints",
+    sectionId: "payments",
+    prompt: "Funds flow touchpoints",
+    description: "Select where customer funds sit or move through in the lifecycle.",
+    type: "multi-choice",
+    required: false,
+    weight: 1,
+    regulatoryRefs: ["PSR 2017 - Safeguarding", "FCA Approach to Payment Services and E-Money (2017)"],
+    options: [
+      {
+        value: "customer-wallet",
+        label: "Customer wallet / e-money account",
+        score: 1,
+        implication: "Requires clear e-money issuance and redemption controls.",
+      },
+      {
+        value: "safeguarding-account",
+        label: "Segregated safeguarding account",
+        score: 2,
+        implication: "Requires reconciliation, segregation, and safeguarding policy evidence.",
+      },
+      {
+        value: "partner-bank",
+        label: "Partner/settlement bank account",
+        score: 1,
+        implication: "Clarify settlement timing and safeguarding separation from own funds.",
+      },
+      {
+        value: "psp",
+        label: "Third-party PSP / acquirer",
+        score: 1,
+        implication: "Clarify contractual responsibilities and safeguarding responsibilities.",
+      },
+      {
+        value: "card-scheme",
+        label: "Card scheme / issuer processor",
+        score: 1,
+        implication: "Document scheme settlement flows and chargeback handling.",
+      },
+      {
+        value: "other",
+        label: "Other",
+        score: 1,
+        implication: "Add any additional funds flow touchpoints.",
+      },
+    ],
+    allowOther: true,
+    packSectionKeys: ["flow-of-funds", "product-architecture", "client-asset-protection"],
+    appliesTo: ["payments"],
+  },
+  {
     id: "pay-funds-flow",
     sectionId: "payments",
     prompt: "Describe the flow of funds",
     description: "Summarize how funds move between customers, partners, and safeguarding accounts.",
+    placeholder: "Outline each step: payer -> wallet/account -> safeguarding -> settlement -> merchant, incl. timing.",
     type: "text",
     required: true,
     weight: 2,
     regulatoryRefs: ["FCA Approach to Payment Services and E-Money (2017) - Safeguarding"],
     packSectionKeys: ["flow-of-funds", "product-architecture"],
     appliesTo: ["payments"],
-  },
-  {
-    id: "pay-pis-ais",
-    sectionId: "payments",
-    prompt: "Open banking services",
-    description: "Select if PIS or AIS is offered.",
-    type: "multi-choice",
-    required: false,
-    weight: 1,
-    regulatoryRefs: [
-      "FCA Approach to Payment Services and E-Money (2017) - Authentication",
-      "PSD2 RTS on SCA and CSC",
-    ],
-    options: [
-      { value: "pis", label: "Payment initiation service", score: 1 },
-      { value: "ais", label: "Account information service", score: 1 },
-    ],
-    packSectionKeys: ["security-policy", "operational-resilience"],
-    appliesTo: ["payments"],
+    aiHint:
+      "Include who holds funds at each step, settlement timing, prefunding vs credit, reconciliation cadence, safeguarding segregation, refunds/chargebacks, and any third-party PSPs.",
   },
   {
     id: "pay-agents",
@@ -567,6 +839,7 @@ const PROFILE_QUESTIONS: ProfileQuestion[] = [
     sectionId: "payments",
     prompt: "Expected monthly transaction volume (GBP)",
     description: "Estimate monthly transaction volume at launch. Note: Volume above £3m/month means you cannot register as a Small Payment Institution (SPI).",
+    placeholder: "e.g., 1500000",
     type: "number",
     required: false,
     weight: 1,
@@ -624,12 +897,14 @@ const PROFILE_QUESTIONS: ProfileQuestion[] = [
     sectionId: "payments",
     prompt: "Estimated monthly operating expenditure (GBP)",
     description: "Enter your projected monthly operating costs. Used to calculate own funds requirement under Method A.",
+    placeholder: "e.g., 120000",
     type: "number",
     required: true,
     weight: 2,
     regulatoryRefs: ["PSR 2017 - Own funds requirement", "EMRs 2011 - Capital requirements"],
     packSectionKeys: ["financials"],
     appliesTo: ["payments"],
+    aiHint: "Include staff, technology, compliance, rent, and professional services. Use your most recent forecast.",
   },
   {
     id: "pay-capital-method",
@@ -664,6 +939,7 @@ const PROFILE_QUESTIONS: ProfileQuestion[] = [
     packSectionKeys: ["financials"],
     appliesTo: ["payments"],
     impact: "The calculation method you choose affects your ongoing capital requirement. Choose based on your business model - overheads-heavy vs volume-heavy vs fee-income-heavy.",
+    aiHint: "Method A = 10% of fixed overheads. Method B = volume tiers. Method C = income-based.",
   },
   {
     id: "cc-activities",
@@ -702,6 +978,7 @@ const PROFILE_QUESTIONS: ProfileQuestion[] = [
       { value: "logbook", label: "Logbook / pawn lending", score: 1 },
       { value: "other", label: "Other", score: 1 },
     ],
+    allowOther: true,
     packSectionKeys: ["business-model"],
     appliesTo: ["consumer-credit"],
   },
@@ -861,6 +1138,7 @@ const PROFILE_QUESTIONS: ProfileQuestion[] = [
       { value: "structured", label: "Structured products", score: 1 },
       { value: "other", label: "Other", score: 1 },
     ],
+    allowOther: true,
     packSectionKeys: ["business-model"],
     appliesTo: ["investments"],
   },
@@ -963,7 +1241,20 @@ export const getProfileQuestions = (permission?: ProfilePermissionCode | null) =
     (question) => !question.appliesTo || (permission ? question.appliesTo.includes(permission) : false)
   );
 
-const isAnswered = (question: ProfileQuestion, value: ProfileResponse | undefined) => {
+const isAnswered = (
+  question: ProfileQuestion,
+  value: ProfileResponse | undefined,
+  responses: Record<string, ProfileResponse>
+) => {
+  if (
+    question.allowOther &&
+    ((Array.isArray(value) && value.includes("other")) || value === "other")
+  ) {
+    const otherText = responses[`${question.id}_other_text`];
+    if (typeof otherText !== "string" || otherText.trim().length === 0) {
+      return false;
+    }
+  }
   if (value === undefined || value === null) return false;
   if (question.type === "multi-choice") {
     return Array.isArray(value) && value.length > 0;
@@ -972,7 +1263,12 @@ const isAnswered = (question: ProfileQuestion, value: ProfileResponse | undefine
     return String(value).trim().length > 0;
   }
   if (question.type === "number") {
-    return typeof value === "number" && !isNaN(value);
+    if (typeof value === "number") return !isNaN(value);
+    if (typeof value === "string") {
+      const parsed = Number(value);
+      return value.trim().length > 0 && !Number.isNaN(parsed);
+    }
+    return false;
   }
   if (question.type === "boolean") {
     return typeof value === "boolean";
@@ -980,9 +1276,13 @@ const isAnswered = (question: ProfileQuestion, value: ProfileResponse | undefine
   return String(value).trim().length > 0;
 };
 
-const scoreQuestion = (question: ProfileQuestion, value: ProfileResponse | undefined) => {
+const scoreQuestion = (
+  question: ProfileQuestion,
+  value: ProfileResponse | undefined,
+  responses: Record<string, ProfileResponse>
+) => {
   const weight = question.weight ?? 1;
-  const answered = isAnswered(question, value);
+  const answered = isAnswered(question, value, responses);
   if (!answered) {
     return { score: 0, maxScore: weight };
   }
@@ -994,12 +1294,7 @@ const scoreQuestion = (question: ProfileQuestion, value: ProfileResponse | undef
   }
 
   if (question.type === "multi-choice" && question.options?.length) {
-    const values = Array.isArray(value) ? value : [];
-    const totalScore = question.options.reduce((sum, opt) => sum + opt.score, 0) || 1;
-    const selectedScore = question.options
-      .filter((opt) => values.includes(opt.value))
-      .reduce((sum, opt) => sum + opt.score, 0);
-    return { score: (selectedScore / totalScore) * weight, maxScore: weight };
+    return { score: weight, maxScore: weight };
   }
 
   if (question.type === "boolean") {
@@ -1125,6 +1420,235 @@ const buildInvestmentOpinion = (responses: Record<string, ProfileResponse>): Per
   };
 };
 
+const detectConflicts = (
+  permission: ProfilePermissionCode | null | undefined,
+  responses: Record<string, ProfileResponse>
+): ValidationConflict[] => {
+  const conflicts: ValidationConflict[] = [];
+
+  if (permission === "payments") {
+    // Conflict: No e-money but e-money wallet in funds flow
+    const emoney = responses["pay-emoney"];
+    const fundsFlow = Array.isArray(responses["pay-funds-flow-touchpoints"])
+      ? responses["pay-funds-flow-touchpoints"]
+      : [];
+    if (emoney === "no" && fundsFlow.includes("customer-wallet")) {
+      conflicts.push({
+        id: "emoney-wallet-conflict",
+        severity: "error",
+        message: "You selected 'No e-money issuance' but included 'Customer wallet / e-money account' in funds flow.",
+        questionIds: ["pay-emoney", "pay-funds-flow-touchpoints"],
+        suggestion: "If you hold customer balances in wallets, this likely constitutes e-money issuance.",
+      });
+    }
+
+    // Conflict: PSP of record but no payment account operation
+    const pspRecord = responses["pay-psp-record"];
+    const operateAccounts = responses["pay-operate-accounts"];
+    if (pspRecord === "psp-of-record" && operateAccounts === "no") {
+      conflicts.push({
+        id: "psp-account-conflict",
+        severity: "warning",
+        message: "You are PSP of record but don't operate payment accounts. Clarify the operating model.",
+        questionIds: ["pay-psp-record", "pay-operate-accounts"],
+        suggestion: "If another PSP holds accounts, document the principal arrangement clearly.",
+      });
+    }
+
+    // Conflict: High volume but no safeguarding decision
+    const rawVolume = responses["pay-volume"];
+    const parsedVolume = typeof rawVolume === "number"
+      ? rawVolume
+      : typeof rawVolume === "string"
+      ? parseFloat(rawVolume.replace(/,/g, ""))
+      : 0;
+    const volume = Number.isFinite(parsedVolume) ? parsedVolume : 0;
+    const safeguarding = responses["pay-safeguarding"];
+    if (volume > 1000000 && safeguarding === "undecided") {
+      conflicts.push({
+        id: "volume-safeguarding-conflict",
+        severity: "warning",
+        message: "High transaction volume (>£1m/month) but safeguarding approach undecided.",
+        questionIds: ["pay-volume", "pay-safeguarding"],
+        suggestion: "Safeguarding is critical for volumes of this size. Decide on segregated accounts or insurance.",
+      });
+    }
+
+    // Conflict: Agents but no agent oversight in risks
+    const agents = responses["pay-agents"];
+    const risks = Array.isArray(responses["core-risk-theme"]) ? responses["core-risk-theme"] : [];
+    if (agents === "yes" && !risks.includes("outsourcing-failure")) {
+      conflicts.push({
+        id: "agents-risk-conflict",
+        severity: "warning",
+        message: "You use agents but haven't identified outsourcing/vendor failure as a key risk.",
+        questionIds: ["pay-agents", "core-risk-theme"],
+        suggestion: "Agent oversight is a regulatory focus area. Consider adding outsourcing risk.",
+      });
+    }
+
+    // Conflict: Credit-funded execution without credit documentation
+    const creditLine = responses["pay-credit-line"];
+    if (creditLine === "credit" || creditLine === "both") {
+      const activities = responses["core-regulated-activities"];
+      // Handle both string and array types for activities
+      const activitiesText = typeof activities === "string"
+        ? activities.toLowerCase()
+        : Array.isArray(activities)
+        ? activities.join(" ").toLowerCase()
+        : "";
+      if (!activitiesText.includes("credit")) {
+        conflicts.push({
+          id: "credit-execution-conflict",
+          severity: "warning",
+          message: "Credit/overdraft-funded execution may trigger consumer credit permissions.",
+          questionIds: ["pay-credit-line", "core-regulated-activities"],
+          suggestion: "Document credit terms clearly - this could require additional CONC permissions.",
+        });
+      }
+    }
+  }
+
+  // General conflicts
+  const governance = responses["core-governance"];
+  const winddown = responses["core-winddown"];
+  if (governance === "not-started" && winddown === "draft") {
+    conflicts.push({
+      id: "governance-winddown-conflict",
+      severity: "warning",
+      message: "Wind-down plan drafted but governance not started. Wind-down requires board oversight.",
+      questionIds: ["core-governance", "core-winddown"],
+      suggestion: "Ensure board/SMF roles are in place to own the wind-down plan.",
+    });
+  }
+
+  // Capital vs projections conflict
+  const capital = responses["core-capital"];
+  const projections = responses["core-projections"];
+  if (capital === "not-secured" && projections === "full") {
+    conflicts.push({
+      id: "capital-projections-conflict",
+      severity: "warning",
+      message: "Full financial projections but funding not secured.",
+      questionIds: ["core-capital", "core-projections"],
+      suggestion: "Projections should align with realistic funding expectations.",
+    });
+  }
+
+  return conflicts;
+};
+
+// Currency conversion rate (as of 2024, for indicative calculations only)
+const GBP_TO_EUR = 1.17;
+const EUR_TO_GBP = 1 / GBP_TO_EUR; // ~0.855
+
+const calculateCapitalEstimate = (
+  permission: ProfilePermissionCode | null | undefined,
+  responses: Record<string, ProfileResponse>
+): CapitalEstimate | null => {
+  if (permission !== "payments") return null;
+
+  const method = responses["pay-capital-method"];
+  const rawOpex = responses["pay-monthly-opex"];
+  const rawVolume = responses["pay-volume"];
+
+  const monthlyOpex = typeof rawOpex === "number"
+    ? rawOpex
+    : typeof rawOpex === "string"
+    ? parseFloat(rawOpex.replace(/,/g, ""))
+    : null;
+  const monthlyVolume = typeof rawVolume === "number"
+    ? rawVolume
+    : typeof rawVolume === "string"
+    ? parseFloat(rawVolume.replace(/,/g, ""))
+    : null;
+  const emoney = responses["pay-emoney"] === "yes";
+
+  // Minimum capital requirements in EUR, converted to GBP
+  // PI: €125k, EMI: €350k
+  const PI_MINIMUM_EUR = emoney ? 350000 : 125000;
+  const minimumCapitalGbp = Math.round(PI_MINIMUM_EUR * EUR_TO_GBP);
+
+  let methodAEstimate: number | null = null;
+  let methodBEstimate: number | null = null;
+
+  // Method A: 10% of fixed overheads (already in GBP)
+  if (monthlyOpex !== null && Number.isFinite(monthlyOpex) && monthlyOpex > 0) {
+    const annualOverheads = monthlyOpex * 12;
+    methodAEstimate = annualOverheads * 0.1;
+  }
+
+  // Method B: Volume-based tiers (PSR 2017)
+  // Tiers are in EUR: 4% of first €5m, 2.5% of €5m-€10m, 1% of €10m-€100m, 0.5% of €100m-€250m, 0.25% above
+  if (monthlyVolume !== null && Number.isFinite(monthlyVolume) && monthlyVolume > 0) {
+    const annualVolume = monthlyVolume * 12;
+    // Convert GBP volume to EUR for tier calculation
+    const volumeEur = annualVolume * GBP_TO_EUR;
+
+    let methodBEur = 0;
+    const tiers = [
+      { threshold: 5000000, rate: 0.04 },
+      { threshold: 10000000, rate: 0.025 },
+      { threshold: 100000000, rate: 0.01 },
+      { threshold: 250000000, rate: 0.005 },
+      { threshold: Infinity, rate: 0.0025 },
+    ];
+
+    let remaining = volumeEur;
+    let prevThreshold = 0;
+    for (const tier of tiers) {
+      const tierAmount = Math.min(remaining, tier.threshold - prevThreshold);
+      if (tierAmount <= 0) break;
+      methodBEur += tierAmount * tier.rate;
+      remaining -= tierAmount;
+      prevThreshold = tier.threshold;
+    }
+
+    // Convert result back to GBP using consistent rate
+    methodBEstimate = methodBEur * EUR_TO_GBP;
+  }
+
+  // Determine recommendation
+  let recommendation = "";
+  const breakdown: string[] = [];
+
+  if (methodAEstimate !== null && methodBEstimate !== null) {
+    const methodATotal = Math.max(methodAEstimate, minimumCapitalGbp);
+    const methodBTotal = Math.max(methodBEstimate, minimumCapitalGbp);
+
+    breakdown.push(`Method A (10% fixed overheads): £${Math.round(methodAEstimate).toLocaleString()}`);
+    breakdown.push(`Method B (volume tiers): £${Math.round(methodBEstimate).toLocaleString()}`);
+    breakdown.push(`Minimum capital (${emoney ? "EMI €350k" : "PI €125k"}): £${minimumCapitalGbp.toLocaleString()}`);
+
+    if (methodATotal < methodBTotal) {
+      recommendation = `Method A results in lower capital (£${Math.round(methodATotal).toLocaleString()} vs £${Math.round(methodBTotal).toLocaleString()}). Better for overhead-light, high-volume models.`;
+    } else if (methodBTotal < methodATotal) {
+      recommendation = `Method B results in lower capital (£${Math.round(methodBTotal).toLocaleString()} vs £${Math.round(methodATotal).toLocaleString()}). Better for low-volume or high-overhead models.`;
+    } else {
+      recommendation = `Both methods result in similar capital (£${Math.round(methodATotal).toLocaleString()}). Choose based on future growth expectations.`;
+    }
+  } else if (methodAEstimate !== null) {
+    breakdown.push(`Method A (10% fixed overheads): £${Math.round(methodAEstimate).toLocaleString()}`);
+    breakdown.push(`Minimum capital (${emoney ? "EMI €350k" : "PI €125k"}): £${minimumCapitalGbp.toLocaleString()}`);
+    recommendation = "Enter transaction volume to compare with Method B calculation.";
+  } else if (methodBEstimate !== null) {
+    breakdown.push(`Method B (volume tiers): £${Math.round(methodBEstimate).toLocaleString()}`);
+    breakdown.push(`Minimum capital (${emoney ? "EMI €350k" : "PI €125k"}): £${minimumCapitalGbp.toLocaleString()}`);
+    recommendation = "Enter monthly OpEx to compare with Method A calculation.";
+  } else {
+    recommendation = "Enter monthly OpEx and transaction volume to calculate capital requirements.";
+  }
+
+  return {
+    method: method === "method-a" ? "A" : method === "method-b" ? "B" : method === "method-c" ? "C" : null,
+    minimumCapital: minimumCapitalGbp,
+    methodAEstimate,
+    methodBEstimate,
+    recommendation,
+    breakdown,
+  };
+};
+
 export const buildProfileInsights = (
   permission: ProfilePermissionCode | null | undefined,
   responses: Record<string, ProfileResponse>
@@ -1141,13 +1665,13 @@ export const buildProfileInsights = (
 
   for (const question of applicableQuestions) {
     const response = responses[question.id];
-    const answered = isAnswered(question, response);
+    const answered = isAnswered(question, response, responses);
     if (question.required) {
       requiredTotal += 1;
       if (answered) requiredAnswered += 1;
     }
 
-    const { score, maxScore } = scoreQuestion(question, response);
+    const { score, maxScore } = scoreQuestion(question, response, responses);
 
     const sectionStats = sectionScoreMap.get(question.sectionId) ?? { score: 0, maxScore: 0 };
     sectionStats.score += score;
@@ -1222,6 +1746,9 @@ export const buildProfileInsights = (
     .slice(0, 4)
     .map((item) => item.label);
 
+  const conflicts = detectConflicts(permission, responses);
+  const capitalEstimate = calculateCapitalEstimate(permission, responses);
+
   return {
     completionPercent,
     sectionScores,
@@ -1230,5 +1757,7 @@ export const buildProfileInsights = (
     activityHighlights,
     perimeterOpinion,
     focusAreas,
+    conflicts,
+    capitalEstimate,
   };
 };

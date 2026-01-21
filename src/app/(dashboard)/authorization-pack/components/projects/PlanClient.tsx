@@ -844,12 +844,12 @@ export function PlanClient() {
       ) : (
         <>
           {/* Gantt Chart */}
-          <Card className="relative overflow-hidden border border-slate-200">
+          <Card className="relative overflow-visible border border-slate-200">
             {/* Loading overlay during regeneration */}
             {isGenerating && <LoadingOverlay message="Regenerating plan..." />}
 
             <CardContent className="p-0">
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto overflow-y-visible">
                 <div style={{ minWidth: `${GANTT_CONFIG.MIN_CHART_WIDTH}px` }}>
                   {/* Week Header Row */}
                   <div className="flex border-b border-slate-200 bg-slate-50">
@@ -912,7 +912,7 @@ export function PlanClient() {
                     return (
                       <div
                         key={phase}
-                        className={`${phaseIdx < phaseGroups.length - 1 ? "border-b border-slate-100" : ""}`}
+                        className={`group/phase ${phaseIdx < phaseGroups.length - 1 ? "border-b border-slate-100" : ""}`}
                       >
                         {/* Phase header - clickable to expand/collapse */}
                         <div className="flex">
@@ -972,7 +972,7 @@ export function PlanClient() {
                                 }}
                               >
                                 <div
-                                  className={`flex h-8 cursor-pointer items-center justify-between rounded-md border-2 px-3 shadow-sm ${config.bg} ${config.border}`}
+                                  className={`flex h-8 cursor-pointer items-center justify-between rounded-md border-2 px-3 shadow-sm transition-all group-hover/phase:border-slate-300 group-hover/phase:shadow-md ${config.bg} ${config.border}`}
                                   onClick={togglePhase}
                                 >
                                   <span className={`text-xs font-medium ${config.text}`}>
@@ -1048,7 +1048,7 @@ export function PlanClient() {
                                           e.preventDefault();
                                         }
                                       }}
-                                      className={`relative flex h-8 cursor-pointer items-center justify-between overflow-hidden rounded-md border-2 px-2 shadow-sm transition-all hover:shadow-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-1 ${config.bg} ${config.border} ${status.opacity} ${status.className}`}
+                                      className={`relative flex h-8 cursor-pointer items-center justify-between overflow-hidden rounded-md border-2 px-2 shadow-sm transition-all hover:shadow-md group-hover/phase:border-slate-300 group-hover/phase:shadow-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-1 ${config.bg} ${config.border} ${status.opacity} ${status.className}`}
                                     >
                                       {milestone.status === "complete" && (
                                         <div className={`absolute inset-0 ${config.bgSolid} opacity-20`} />
@@ -1067,8 +1067,8 @@ export function PlanClient() {
                                       <span className={`relative z-10 ml-1 flex-shrink-0 text-[10px] ${config.text} opacity-70`}>
                                         {milestone.durationWeeks}w
                                       </span>
-                                      <MilestoneTooltip milestone={milestone} config={config} position={tooltipPosition} />
                                     </div>
+                                    <MilestoneTooltip milestone={milestone} config={config} position={tooltipPosition} />
                                   </div>
                                 );
                               })}

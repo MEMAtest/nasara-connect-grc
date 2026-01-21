@@ -5,7 +5,6 @@ const mkdir = vi.fn().mockResolvedValue(undefined);
 const writeFile = vi.fn().mockResolvedValue(undefined);
 const unlink = vi.fn().mockResolvedValue(undefined);
 
-const createProjectDocument = vi.fn().mockResolvedValue({ id: "project-doc-id" });
 const createPackDocument = vi.fn().mockResolvedValue({ id: "pack-doc-id" });
 
 vi.mock("fs", () => ({
@@ -26,8 +25,6 @@ vi.mock("@/lib/auth-utils", () => ({
 
 vi.mock("@/lib/database", () => ({
   initDatabase: vi.fn(),
-  createProjectDocument,
-  deleteProjectDocument: vi.fn().mockResolvedValue(true),
 }));
 
 vi.mock("@/lib/authorization-pack-db", () => ({
@@ -163,14 +160,9 @@ describe("Generate opinion pack route", () => {
 
     expect(res.status).toBe(200);
     expect(writeFile).toHaveBeenCalledOnce();
-    expect(createProjectDocument).toHaveBeenCalledOnce();
     expect(createPackDocument).toHaveBeenCalledOnce();
-
-    const projectArgs = createProjectDocument.mock.calls[0][0];
     const packArgs = createPackDocument.mock.calls[0][0];
 
-    expect(projectArgs.storage_key).toBe(packArgs.storageKey);
-    expect(projectArgs.mime_type).toBe("application/pdf");
     expect(packArgs.mimeType).toBe("application/pdf");
   });
 });

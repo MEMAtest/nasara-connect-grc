@@ -93,17 +93,29 @@ export function DashboardClient() {
   const { metrics: policyMetrics, isLoading: isPolicyLoading, refresh: refreshPolicyMetrics } = usePolicyMetrics();
   const { summary: cmpSummary } = useCmpSummary({ organizationId: DEFAULT_ORGANIZATION_ID });
 
-  const policyMetricCard = useMemo(() => ({
-    title: "Policy Completion",
-    value: `${policyMetrics.completionRate}%`,
-    change: null,
-    icon: FileText,
-    color: (policyMetrics.completionRate >= 80
-        ? "green"
-        : policyMetrics.completionRate >= 60
-        ? "blue"
-        : "orange") as "green" | "blue" | "purple" | "orange",
-  }), [policyMetrics]);
+  const policyMetricCard = useMemo(() => {
+    // Show loading state until data is fetched
+    if (isPolicyLoading) {
+      return {
+        title: "Policy Completion",
+        value: "--",
+        change: null,
+        icon: FileText,
+        color: "blue" as const,
+      };
+    }
+    return {
+      title: "Policy Completion",
+      value: `${policyMetrics.completionRate}%`,
+      change: null,
+      icon: FileText,
+      color: (policyMetrics.completionRate >= 80
+          ? "green"
+          : policyMetrics.completionRate >= 60
+          ? "blue"
+          : "orange") as "green" | "blue" | "purple" | "orange",
+    };
+  }, [policyMetrics, isPolicyLoading]);
 
   const cmpMetricCard = useMemo(() => ({
     title: "CMP Pass Rate",
@@ -122,8 +134,9 @@ export function DashboardClient() {
       module.id === "policies"
         ? {
             ...module,
-            progress: policyMetrics.completionRate,
-            alerts: policyMetrics.overduePolicies + policyMetrics.policyGaps,
+            // Show null/undefined during loading to trigger skeleton/loading state in ModuleCard
+            progress: isPolicyLoading ? module.progress : policyMetrics.completionRate,
+            alerts: isPolicyLoading ? module.alerts : policyMetrics.overduePolicies + policyMetrics.policyGaps,
             isLocked: false,
           }
         : module.id === "complianceFramework"
@@ -135,7 +148,7 @@ export function DashboardClient() {
           }
         : module
     );
-  }, [policyMetrics, cmpSummary]);
+  }, [policyMetrics, cmpSummary, isPolicyLoading]);
 
   const metricsWithPolicy = useMemo(() => {
     return [...dashboardMetrics, policyMetricCard, cmpMetricCard];
