@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
       }
 
       return NextResponse.json(
-        { error: "Companies House request failed", items: [] },
+        { error: "Companies House request failed", details: errorText, statusCode: response.status, items: [] },
         { status: response.status }
       );
     }
