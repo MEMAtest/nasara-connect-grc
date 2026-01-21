@@ -103,6 +103,7 @@ export function BusinessPlanProfileClient({
   const [isLookingUp, setIsLookingUp] = useState(false);
   const [lookupError, setLookupError] = useState<string | null>(null);
   const companyLookupAbortRef = useRef<AbortController | null>(null);
+  const companyLookupRequestIdRef = useRef(0);
 
   const insights = useMemo(() => buildProfileInsights(permission, responses), [permission, responses]);
 
@@ -246,6 +247,9 @@ export function BusinessPlanProfileClient({
     }
     companyLookupAbortRef.current = new AbortController();
 
+    // Track request ID to ignore stale responses
+    const currentRequestId = ++companyLookupRequestIdRef.current;
+
     setIsLookingUp(true);
     setLookupError(null);
     try {
@@ -253,12 +257,19 @@ export function BusinessPlanProfileClient({
         `/api/companies-house/${encodeURIComponent(companyNumber.trim())}`,
         { signal: companyLookupAbortRef.current.signal }
       );
+
+      // Ignore if a newer request was made
+      if (currentRequestId !== companyLookupRequestIdRef.current) return;
+
       if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
+        const data = await response.json().catch(() => ({} as { error?: string }));
         setLookupError(data.error || "Company not found");
         return;
       }
       const data = await response.json();
+
+      // Ignore if a newer request was made
+      if (currentRequestId !== companyLookupRequestIdRef.current) return;
 
       // Auto-fill relevant fields from Companies House data
       const updates: Record<string, ProfileResponse> = {};
@@ -315,13 +326,17 @@ export function BusinessPlanProfileClient({
         setTimeout(() => setSaveMessage(null), isMockData ? 5000 : 3000);
       }
     } catch (error) {
-      // Ignore aborted requests
+      // Ignore aborted requests or if a newer request was made
       if (error instanceof DOMException && error.name === "AbortError") {
         return;
       }
+      if (currentRequestId !== companyLookupRequestIdRef.current) return;
       setLookupError(error instanceof Error ? error.message : "Lookup failed. Check company number.");
     } finally {
-      setIsLookingUp(false);
+      // Only update loading state if this is still the latest request
+      if (currentRequestId === companyLookupRequestIdRef.current) {
+        setIsLookingUp(false);
+      }
     }
   };
 

@@ -54,25 +54,31 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ co
         );
       }
 
-      // Return mock data for 401 (invalid API key) in development
+      // Return mock data for 401 (invalid API key) only in development
       if (response.status === 401) {
-        console.warn("Companies House API key invalid - returning mock data");
-        return NextResponse.json({
-          company_name: `Company ${paddedNumber}`,
-          company_number: paddedNumber,
-          company_status: "active",
-          date_of_creation: "2020-01-15",
-          registered_office_address: {
-            address_line_1: "123 Example Street",
-            locality: "London",
-            postal_code: "EC1A 1BB",
-            country: "United Kingdom",
-          },
-          sic_codes: ["62012"],
-          type: "ltd",
-          _mock: true,
-          _message: "Mock data - set a valid COMPANIES_HOUSE_API_KEY for live results",
-        });
+        console.warn("Companies House API key invalid");
+        if (process.env.NODE_ENV === "development") {
+          return NextResponse.json({
+            company_name: `Company ${paddedNumber}`,
+            company_number: paddedNumber,
+            company_status: "active",
+            date_of_creation: "2020-01-15",
+            registered_office_address: {
+              address_line_1: "123 Example Street",
+              locality: "London",
+              postal_code: "EC1A 1BB",
+              country: "United Kingdom",
+            },
+            sic_codes: ["62012"],
+            type: "ltd",
+            _mock: true,
+            _message: "Mock data - set a valid COMPANIES_HOUSE_API_KEY for live results",
+          });
+        }
+        return NextResponse.json(
+          { error: "Companies House API authentication failed. Please contact support." },
+          { status: 401 }
+        );
       }
 
       return NextResponse.json(
