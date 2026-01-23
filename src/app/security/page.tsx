@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Lock, ShieldCheck, FileText, Activity, Users } from "lucide-react";
+import Image from "next/image";
+import { ArrowRight, Lock, ShieldCheck, FileText, Activity, Users, Award, CheckCircle2 } from "lucide-react";
 import { Navigation } from "@/components/landing/Navigation";
 import { Footer } from "@/components/landing/Footer";
 import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
@@ -116,6 +117,73 @@ export default function SecurityPage() {
             <Button asChild variant="outline" className="mt-4 border-slate-600 text-white bg-slate-800/50 hover:bg-slate-700">
               <Link href="/resources/guides/compliance-monitoring-plan-template">View compliance guide</Link>
             </Button>
+          </Card>
+        </div>
+      </section>
+
+      {/* Certifications Section */}
+      <section className="px-4 pb-24">
+        <div className="mx-auto max-w-5xl">
+          <div className="text-center mb-10">
+            <Badge className="mb-4 bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
+              <Award className="h-3 w-3 mr-1" />
+              Certifications
+            </Badge>
+            <h2 className="text-3xl font-bold text-white">Industry-Recognised Security Standards</h2>
+            <p className="mt-2 text-slate-400">
+              Our commitment to security is validated by independent certification bodies.
+            </p>
+          </div>
+
+          <Card className="border-slate-800 bg-gradient-to-br from-slate-900/80 to-emerald-950/30 p-8">
+            <div className="flex flex-col md:flex-row items-center gap-8">
+              {/* Cyber Essentials Badge */}
+              <div className="flex-shrink-0">
+                <Image
+                  src="/cyber-essentials-badge.svg"
+                  alt="Cyber Essentials Certified Badge"
+                  width={200}
+                  height={80}
+                  className="w-auto h-auto max-w-[200px]"
+                />
+              </div>
+
+              {/* Certification Details */}
+              <div className="flex-1 text-center md:text-left">
+                <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
+                  <h3 className="text-2xl font-bold text-white">Cyber Essentials Certified</h3>
+                  <CheckCircle2 className="h-6 w-6 text-emerald-400" />
+                </div>
+                <p className="text-slate-300 mb-4">
+                  Mema Technology Solutions Ltd (trading as Nasara Connect) has been independently assessed
+                  and certified as meeting the requirements of the Cyber Essentials scheme, demonstrating
+                  our commitment to protecting against common cyber threats.
+                </p>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+                  <div className="bg-slate-800/50 rounded-lg p-3 text-center">
+                    <p className="text-xs text-slate-400 uppercase tracking-wider">Certified</p>
+                    <p className="text-sm font-semibold text-white mt-1">23 Jan 2026</p>
+                  </div>
+                  <div className="bg-slate-800/50 rounded-lg p-3 text-center">
+                    <p className="text-xs text-slate-400 uppercase tracking-wider">Valid Until</p>
+                    <p className="text-sm font-semibold text-white mt-1">23 Jan 2027</p>
+                  </div>
+                  <div className="bg-slate-800/50 rounded-lg p-3 text-center">
+                    <p className="text-xs text-slate-400 uppercase tracking-wider">Scope</p>
+                    <p className="text-sm font-semibold text-white mt-1">Whole Organisation</p>
+                  </div>
+                  <div className="bg-slate-800/50 rounded-lg p-3 text-center">
+                    <p className="text-xs text-slate-400 uppercase tracking-wider">Certification Body</p>
+                    <p className="text-sm font-semibold text-white mt-1">Blunt Security</p>
+                  </div>
+                </div>
+
+                <p className="text-xs text-slate-500 mt-4">
+                  Certificate Number: f79c8215-9502-4432-aee0-9abe6e6df599
+                </p>
+              </div>
+            </div>
           </Card>
         </div>
       </section>

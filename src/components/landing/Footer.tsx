@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
+import { ShieldCheck } from 'lucide-react'
 import { LegalModal, useLegalModals } from '@/components/landing/LegalModals'
 
 export function Footer() {
@@ -70,8 +71,21 @@ export function Footer() {
             </div>
           </div>
 
-          <div className="border-t border-slate-800 pt-8 text-center">
-            <p className="text-slate-400 text-sm">&copy; {new Date().getFullYear()} Nasara Connect. All rights reserved.</p>
+          <div className="border-t border-slate-800 pt-8">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <p className="text-slate-400 text-sm">&copy; {new Date().getFullYear()} Nasara Connect. All rights reserved.</p>
+
+              {/* Cyber Essentials Badge */}
+              <Link
+                href="/security"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/20 transition-colors group"
+              >
+                <ShieldCheck className="h-4 w-4 text-emerald-400" />
+                <span className="text-xs font-medium text-emerald-400 group-hover:text-emerald-300">
+                  Cyber Essentials Certified
+                </span>
+              </Link>
+            </div>
           </div>
         </div>
       </footer>

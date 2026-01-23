@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 160" width="400" height="160">
+  <defs>
+    <linearGradient id="checkBlue" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#4fc3dc"/>
+      <stop offset="100%" stop-color="#2b9fd1"/>
+    </linearGradient>
+    <linearGradient id="checkGreen" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8cc63f"/>
+      <stop offset="100%" stop-color="#5ba428"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Dark Blue Circle -->
+  <circle cx="80" cy="80" r="72" fill="#192657"/>
+
+  <!-- Green inner checkmark part -->
+  <path d="M45 95 Q50 60 75 75 Q60 95 55 110 Q48 108 45 95" fill="url(#checkGreen)"/>
+
+  <!-- Blue checkmark swoosh -->
+  <path d="M35 85 Q45 55 80 70 Q95 30 140 15 Q130 25 100 50 Q85 65 70 85 Q55 100 45 105 Q38 100 35 85" fill="url(#checkBlue)"/>
+
+  <!-- Text: CYBER (white for dark backgrounds) -->
+  <text x="170" y="70" font-family="Arial, Helvetica, sans-serif" font-size="42" font-weight="bold" fill="#ffffff">CYBER</text>
+
+  <!-- Text: ESSENTIALS (white for dark backgrounds) -->
+  <text x="170" y="120" font-family="Arial, Helvetica, sans-serif" font-size="42" font-weight="bold" fill="#ffffff">ESSENTIALS</text>
+</svg>

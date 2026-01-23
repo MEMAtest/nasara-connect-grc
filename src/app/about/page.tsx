@@ -226,6 +226,9 @@ function TimelineSection() {
     { year: '2023', quarter: 'Q3', title: 'Platform Expansion', desc: 'SM&CR Management and Training Library launched' },
     { year: '2024', quarter: 'Q1', title: 'AI Integration', desc: 'AI-powered compliance assistant deployed' },
     { year: '2024', quarter: 'Q4', title: 'Full GRC Platform', desc: 'Complete governance, risk, and compliance suite available' },
+    { year: '2025', quarter: 'Q2', title: 'Registers & Reporting', desc: 'Comprehensive regulatory registers and board reporting launched' },
+    { year: '2025', quarter: 'Q4', title: 'Compliance Framework Builder', desc: 'Custom compliance monitoring plan builder released' },
+    { year: '2026', quarter: 'Q1', title: 'Cyber Essentials Certified', desc: 'Achieved Cyber Essentials certification for enhanced security assurance' },
   ]
 
   return (

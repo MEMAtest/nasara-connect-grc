@@ -23,6 +23,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
+import Image from 'next/image'
 
 // 3D Illustration Components
 import dynamic from 'next/dynamic'
@@ -154,6 +155,25 @@ function HeroSection() {
               </Link>
             </Button>
           </div>
+
+          {/* Trust Badge - Cyber Essentials */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 0.5 }}
+            className="pt-6"
+          >
+            <Link href="/security" className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-slate-800/50 border border-slate-700 hover:border-emerald-500/50 transition-colors group">
+              <Image
+                src="/cyber-essentials-badge.svg"
+                alt="Cyber Essentials Certified"
+                width={120}
+                height={48}
+                className="h-8 w-auto"
+              />
+              <span className="text-sm text-slate-400 group-hover:text-slate-300">Certified</span>
+            </Link>
+          </motion.div>
         </motion.div>
 
         {/* Right: 3D Ecosystem Visual */}
