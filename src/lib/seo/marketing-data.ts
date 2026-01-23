@@ -571,6 +571,27 @@ export const BLOG_POSTS = [
     seoDescription:
       "Build a compliant promotion workflow with approvals, versioning, and evidence.",
   },
+  {
+    slug: "smcr-compliance-without-spreadsheets",
+    title: "SM&CR Compliance Without Spreadsheets: A Modern Approach",
+    seoTitle: "SM&CR Compliance Without Spreadsheets in 2026",
+    seoDescription:
+      "Why Excel-based SM&CR solutions create risk and how purpose-built software delivers better outcomes for FCA-regulated firms.",
+  },
+  {
+    slug: "payment-services-authorization-guide",
+    title: "Payment Services Authorization: EMI and PI Licensing Guide",
+    seoTitle: "EMI and PI Authorization Guide 2026",
+    seoDescription:
+      "Complete guide to FCA authorization for payment institutions, EMIs, and money remittance firms including timelines, requirements, and common pitfalls.",
+  },
+  {
+    slug: "aml-risk-assessment-payment-firms",
+    title: "AML Risk Assessment for Payment Firms: A Practical Framework",
+    seoTitle: "AML Risk Assessment for Payment and EMI Firms",
+    seoDescription:
+      "Build a compliant AML risk assessment framework for payment institutions and EMIs that satisfies FCA and JMLSG requirements.",
+  },
 ];
 
 export const CASE_STUDIES = [
