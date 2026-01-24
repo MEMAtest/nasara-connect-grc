@@ -592,6 +592,20 @@ export const BLOG_POSTS = [
     seoDescription:
       "Build a compliant AML risk assessment framework for payment institutions and EMIs that satisfies FCA and JMLSG requirements.",
   },
+  {
+    slug: "consumer-duty-payment-firms",
+    title: "Consumer Duty for Payment Firms: Implementation Guide 2026",
+    seoTitle: "Consumer Duty for Payment Firms and Fintechs 2026",
+    seoDescription:
+      "Complete guide to FCA Consumer Duty implementation for payment institutions, EMIs, and fintechs including outcomes monitoring, fair value, and governance requirements.",
+  },
+  {
+    slug: "operational-resilience-fca-requirements",
+    title: "Operational Resilience: FCA Requirements and Implementation",
+    seoTitle: "FCA Operational Resilience Requirements 2026",
+    seoDescription:
+      "Meet FCA operational resilience requirements with practical guidance on important business services, impact tolerances, scenario testing, and self-assessment.",
+  },
 ];
 
 export const CASE_STUDIES = [

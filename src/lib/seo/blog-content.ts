@@ -964,5 +964,273 @@ export const BLOG_CONTENT: Record<string, BlogContent> = {
       "Building effective risk assessment capability requires investment in methodology, data, systems, and people. Firms that treat risk assessment as a genuine management tool rather than a compliance checkbox gain real insight into their vulnerabilities and can allocate control resources more effectively.",
       "The regulatory environment continues to evolve, with FCA expectations for payment firm AML frameworks rising steadily. Firms that build robust risk assessment capabilities now position themselves for sustainable operation. Those that delay or underinvest face increasing regulatory pressure and potential enforcement action. In payment services, effective AML risk assessment is not optional—it is essential."
     ]
+  },
+  "consumer-duty-payment-firms": {
+    slug: "consumer-duty-payment-firms",
+    introduction: [
+      "The FCA's Consumer Duty represents the most significant regulatory change for UK financial services in a generation. Since its implementation in July 2023 for open products and July 2024 for closed products, the Duty has fundamentally shifted regulatory expectations from process compliance to outcomes delivery. For payment firms, fintechs, and electronic money institutions, understanding and implementing Consumer Duty requirements is now essential for regulatory compliance and sustainable business operation.",
+      "Payment services present unique Consumer Duty challenges. The high-volume, low-margin nature of many payment products, combined with diverse customer bases and rapid transaction processing, creates complexity that traditional financial services firms may not face. However, the FCA has made clear that these characteristics do not diminish Consumer Duty obligations—payment firms must deliver good outcomes for their customers just as any other regulated firm.",
+      "This comprehensive guide examines Consumer Duty requirements specifically for payment firms, EMIs, and fintechs. We explore the four outcomes, practical implementation approaches, governance requirements, and common pitfalls that firms must navigate to achieve and evidence compliance."
+    ],
+    sections: [
+      {
+        heading: "Understanding the Consumer Duty Framework",
+        content: [
+          "The Consumer Duty establishes a new Consumer Principle requiring firms to act to deliver good outcomes for retail customers. This overarching principle is supported by three cross-cutting rules and four outcome areas that together define what good looks like for consumer protection.",
+          "The Consumer Principle (Principle 12) requires firms to act to deliver good outcomes for retail customers. This is an outcomes-focused obligation—firms cannot simply demonstrate they followed correct processes if those processes failed to deliver good outcomes. The FCA expects firms to actively work toward positive customer results.",
+          "Three cross-cutting rules elaborate the Consumer Principle. First, firms must act in good faith toward retail customers. Second, firms must avoid causing foreseeable harm to retail customers. Third, firms must enable and support retail customers to pursue their financial objectives. These rules apply across all interactions with customers.",
+          "Four outcomes define specific areas where good outcomes must be demonstrated: products and services, price and value, consumer understanding, and consumer support. Each outcome has detailed rules and guidance that firms must implement. Payment firms should assess their operations against each outcome systematically.",
+          "The Duty applies to the entire distribution chain. Manufacturers of payment products bear responsibility for product design and value assessment. Distributors must ensure products reach appropriate customers and that their own activities support good outcomes. Payment firms often act in both capacities and must understand their obligations in each role."
+        ],
+        chart: {
+          type: 'donut',
+          title: 'Consumer Duty Framework Structure',
+          description: 'The four outcome areas that define Consumer Duty compliance',
+          data: [
+            { label: 'Products & Services', value: 25, color: '#22c55e' },
+            { label: 'Price & Value', value: 25, color: '#3b82f6' },
+            { label: 'Consumer Understanding', value: 25, color: '#8b5cf6' },
+            { label: 'Consumer Support', value: 25, color: '#f97316' }
+          ]
+        }
+      },
+      {
+        heading: "Products and Services Outcome for Payment Firms",
+        content: [
+          "The products and services outcome requires that products and services are designed to meet the needs, characteristics, and objectives of customers in the target market. For payment firms, this means ensuring payment products genuinely serve customer needs rather than simply generating transaction revenue.",
+          "Target market definition is foundational. Payment firms must clearly define who their products are designed for, considering factors like customer sophistication, transaction needs, risk tolerance, and financial circumstances. A remittance product designed for migrant workers has different target market characteristics than a corporate treasury payment solution.",
+          "Product design must align with target market needs. Features, pricing structures, terms and conditions, and operational characteristics should all support good outcomes for target customers. Payment firms should document how design decisions reflect customer needs and avoid features that could cause harm.",
+          "Distribution strategy must reach appropriate customers. Payment firms should consider how their products are marketed and sold, ensuring distribution channels reach the intended target market and include appropriate controls to prevent sales to customers outside the target market.",
+          "Ongoing product review is mandatory. Payment firms must regularly review whether products continue to meet target market needs, whether any issues have emerged, and whether modifications are required. This review should draw on customer feedback, complaints data, and outcomes monitoring.",
+          "For EMIs and payment institutions, product governance applies to e-money products, payment accounts, and specific payment services. While some payment transactions are simple, the products and accounts through which customers access those transactions require proper governance."
+        ]
+      },
+      {
+        heading: "Price and Value Assessment for Payment Services",
+        content: [
+          "The price and value outcome requires that products provide fair value to customers in the target market. Price must be reasonable relative to the benefits customers receive. For payment firms, demonstrating fair value requires careful analysis of pricing structures, costs, and customer benefits.",
+          "Fair value assessment methodology must be documented. The FCA expects firms to have a structured approach to assessing whether prices represent fair value. This should consider the costs of providing the service, the benefits to customers, prices of comparable products, and characteristics of target customers.",
+          "Payment services pricing complexity creates assessment challenges. Transaction fees, foreign exchange margins, monthly charges, penalty fees, and other pricing elements must all be considered in fair value assessment. Firms should evaluate total cost of ownership rather than individual fee components in isolation.",
+          "Cross-subsidisation requires careful consideration. Some payment business models involve loss-making services subsidised by profitable ones. While not prohibited, firms must ensure that customers receiving less favourable terms are not being treated unfairly and that overall propositions still deliver fair value.",
+          "Value extends beyond price. Benefits like convenience, speed, reliability, security, and customer service contribute to value. Payment firms with higher prices may still deliver fair value if benefits justify the premium. Document how benefits contribute to your fair value assessment.",
+          "Vulnerable customers require specific consideration. Pricing and value must be assessed considering how vulnerable customers in your target market experience your products. Features that seem fair for mainstream customers may deliver poor value for vulnerable groups.",
+          "Regular fair value review maintains compliance. As costs, market conditions, and customer needs evolve, fair value assessments require updating. Establish review cycles and triggers that ensure assessments remain current."
+        ],
+        chart: {
+          type: 'bar',
+          title: 'Fair Value Assessment Components',
+          description: 'Elements to consider when assessing payment product fair value',
+          data: [
+            { label: 'Manufacturing costs', value: 20, color: '#64748b' },
+            { label: 'Distribution costs', value: 15, color: '#64748b' },
+            { label: 'Profit margin', value: 15, color: '#64748b' },
+            { label: 'Customer benefits', value: 30, color: '#22c55e' },
+            { label: 'Market comparison', value: 20, color: '#3b82f6' }
+          ]
+        }
+      },
+      {
+        heading: "Consumer Understanding in Payment Services",
+        content: [
+          "The consumer understanding outcome requires that communications enable customers to make effective, timely, and properly informed decisions. Payment firms must ensure customers understand their products, fees, risks, and how to use services effectively.",
+          "Communication standards apply across all customer touchpoints. Marketing materials, terms and conditions, transaction notifications, statements, and customer service interactions must all meet consumer understanding requirements. Inconsistent communication quality creates compliance gaps.",
+          "Plain language is mandatory. Technical jargon, complex sentence structures, and unnecessarily complicated explanations undermine consumer understanding. Payment firms should test communications with representative customers to verify comprehension.",
+          "Key information must be prominent and timely. Fees, risks, and important terms should be clearly visible at the point where customers make decisions. Burying important information in lengthy documents or presenting it after decisions are made fails the consumer understanding standard.",
+          "Digital communication presents specific considerations. App notifications, in-app messaging, and digital interfaces must be designed for comprehension. Small screens, time-pressured interactions, and diverse user capabilities all affect understanding. User experience design should prioritise clarity.",
+          "Multi-lingual customer bases require appropriate support. If payment firms serve customers whose first language is not English, they should consider whether translations or simplified communications are necessary to ensure understanding.",
+          "Testing and monitoring communication effectiveness demonstrates compliance. Track whether customers understand key product features, measure comprehension at critical decision points, and use findings to improve communications over time."
+        ]
+      },
+      {
+        heading: "Consumer Support Requirements",
+        content: [
+          "The consumer support outcome requires that customers receive support that meets their needs throughout the product lifecycle. Payment firms must make it easy for customers to contact them, address issues promptly, and support customers in using products effectively.",
+          "Accessibility is fundamental. Customers must be able to reach support through appropriate channels without unreasonable barriers. Excessive hold times, complex IVR systems, or digital-only support that excludes some customers may breach consumer support requirements.",
+          "Response times must be reasonable. While the FCA does not mandate specific timeframes for all interactions, firms should establish service standards that reflect customer expectations and communicate these clearly. Prolonged delays in addressing customer issues cause harm.",
+          "Issue resolution must be effective. Support interactions should actually resolve customer problems rather than simply closing tickets. Track resolution rates, repeat contact rates, and customer satisfaction to assess support effectiveness.",
+          "Vulnerable customer support requires enhancement. Customers in vulnerable circumstances may need additional support, more time, alternative communication channels, or specialist assistance. Payment firms should train staff to identify vulnerability indicators and provide appropriate support.",
+          "Friction in support processes attracts FCA scrutiny. Making it easy to buy but hard to complain, change, or cancel creates sludge practices that the FCA specifically targets. Support processes should be as straightforward as acquisition processes.",
+          "Complaints handling connects to consumer support. While complaints are governed by DISP rules, the manner in which firms handle complaints also reflects on consumer support. Fair, prompt, and effective complaints handling supports good customer outcomes."
+        ]
+      },
+      {
+        heading: "Governance and Accountability for Consumer Duty",
+        content: [
+          "Consumer Duty implementation requires robust governance with clear board-level accountability. The FCA expects boards to oversee Consumer Duty compliance and take responsibility for ensuring their firms deliver good outcomes.",
+          "Board reporting on Consumer Duty outcomes is expected. Regular MI should inform board discussions about whether customers are receiving good outcomes across the four outcome areas. Boards should scrutinise this MI and challenge where outcomes appear poor.",
+          "A Consumer Duty Champion at board level is good practice. While not mandated, having a designated board member responsible for championing consumer interests elevates Consumer Duty in governance discussions and ensures consistent focus.",
+          "Senior manager accountability applies under SM&CR. Senior managers with relevant responsibilities must ensure their areas comply with Consumer Duty requirements. For payment firms not yet subject to SM&CR, similar accountability principles should apply.",
+          "Documentation of Consumer Duty decisions supports regulatory engagement. When the FCA assesses compliance, it will expect to see evidence of how firms identified target markets, assessed fair value, designed communications, and established support. Governance records should demonstrate active consideration of Consumer Duty requirements.",
+          "Culture and incentives affect outcomes. Firms whose cultures prioritise short-term revenue over customer interests will struggle to deliver good outcomes consistently. Incentive structures, performance management, and cultural messaging should all align with Consumer Duty objectives.",
+          "Annual Consumer Duty board report is required. The FCA mandates that firms produce an annual assessment of whether they are delivering good outcomes, to be considered and approved by the board. This report should identify areas for improvement and actions being taken."
+        ],
+        chart: {
+          type: 'trend',
+          title: 'Consumer Duty Governance Maturity',
+          description: 'Progression of governance capabilities for Consumer Duty compliance',
+          data: [
+            { label: 'Ad hoc monitoring', value: 20, color: '#ef4444' },
+            { label: 'Basic MI reporting', value: 40, color: '#f97316' },
+            { label: 'Systematic tracking', value: 60, color: '#eab308' },
+            { label: 'Proactive intervention', value: 80, color: '#84cc16' },
+            { label: 'Embedded culture', value: 100, color: '#22c55e' }
+          ]
+        }
+      },
+      {
+        heading: "Monitoring Outcomes and Evidencing Compliance",
+        content: [
+          "Consumer Duty compliance requires ongoing monitoring of customer outcomes, not just point-in-time assessment. Payment firms must establish monitoring frameworks that identify when outcomes are poor and trigger appropriate response.",
+          "Outcome metrics should cover all four outcome areas. Define specific, measurable indicators that demonstrate whether customers are receiving good outcomes. Transaction success rates, complaint volumes, support response times, and comprehension testing results might all feature in a payment firm's metrics framework.",
+          "Data collection must support monitoring. Payment firms typically have substantial transaction data but may lack customer outcome data. Consider what additional data collection is needed to monitor Consumer Duty outcomes effectively.",
+          "Root cause analysis addresses poor outcomes. When monitoring identifies problems, firms should investigate causes rather than simply treating symptoms. Understanding why outcomes are poor enables effective remediation.",
+          "Remediation may include customer redress. Where poor outcomes have caused customer harm, firms may need to provide redress. Proactive identification and remediation of issues is viewed more favourably by the FCA than waiting for complaints or regulatory intervention.",
+          "Evidence retention supports regulatory engagement. Maintain records of monitoring activities, findings, actions taken, and outcomes achieved. When the FCA examines Consumer Duty compliance, firms should be able to demonstrate systematic attention to customer outcomes.",
+          "Continuous improvement should result from monitoring. Consumer Duty compliance is not a static achievement but an ongoing commitment. Use monitoring insights to drive improvements in products, communications, and support."
+        ]
+      }
+    ],
+    conclusion: [
+      "Consumer Duty represents a fundamental shift in regulatory expectations for payment firms. The outcomes-focused approach requires firms to move beyond process compliance toward genuine delivery of good customer outcomes. Payment firms that embrace this shift will build stronger customer relationships and more sustainable businesses.",
+      "Implementation requires systematic attention across products, pricing, communications, and support. Governance frameworks must ensure board-level oversight and accountability. Monitoring must track outcomes and trigger intervention when problems emerge. The comprehensive nature of Consumer Duty means partial implementation is insufficient.",
+      "The FCA has signalled that Consumer Duty will be central to its supervisory approach. Firms that fail to evidence good outcomes face increased regulatory scrutiny and potential enforcement action. Those that genuinely prioritise customer outcomes will find Consumer Duty strengthens rather than constrains their business. In the payment services market, where customer trust is essential for growth, Consumer Duty alignment supports commercial success as well as regulatory compliance."
+    ]
+  },
+  "operational-resilience-fca-requirements": {
+    slug: "operational-resilience-fca-requirements",
+    introduction: [
+      "Operational resilience has become a cornerstone of UK financial services regulation. Since March 2022, FCA-regulated firms providing important business services have been required to identify those services, set impact tolerances, and build capabilities to remain within tolerance during severe but plausible disruption scenarios. By March 2025, firms must demonstrate they can remain within impact tolerances.",
+      "For payment firms and electronic money institutions, operational resilience requirements present particular challenges and opportunities. Payment services are inherently important to customers who depend on them for daily transactions, bill payments, and money transfers. Disruption to payment services can cause immediate consumer harm, making resilience both a regulatory requirement and a business imperative.",
+      "This guide provides practical guidance on implementing FCA operational resilience requirements for payment firms. We examine the regulatory framework, explain how to identify important business services, establish impact tolerances, conduct scenario testing, and build the governance structures that demonstrate compliance."
+    ],
+    sections: [
+      {
+        heading: "Understanding the Operational Resilience Framework",
+        content: [
+          "The FCA's operational resilience framework requires firms to take a fundamentally different approach to operational risk. Rather than focusing on individual systems or processes, firms must consider resilience from the perspective of the services that matter most to customers and markets.",
+          "The framework centres on important business services. These are services provided to external customers or market participants where disruption could cause intolerable harm. Firms must identify their important business services, understand the resources supporting them, and ensure they can continue delivery during disruption.",
+          "Impact tolerances define acceptable disruption limits. For each important business service, firms must set the maximum tolerable duration and extent of disruption. These tolerances should reflect the point at which disruption would cause intolerable harm to consumers, market integrity, or financial stability.",
+          "Scenario testing validates resilience capabilities. Firms must test whether they can remain within impact tolerances during severe but plausible disruption scenarios. Testing should cover a range of scenarios including technology failures, third-party disruptions, and external events.",
+          "Self-assessment documents compliance. Firms must maintain self-assessments of their operational resilience capabilities, identifying vulnerabilities and remediation plans. These assessments inform board oversight and regulatory engagement.",
+          "The framework applies proportionately. While all FCA-regulated firms should consider operational resilience, detailed requirements apply primarily to firms providing important business services. Smaller payment firms should assess whether their services meet the importance threshold."
+        ]
+      },
+      {
+        heading: "Identifying Important Business Services",
+        content: [
+          "Identifying important business services is the foundation of operational resilience compliance. This requires analysis from the customer and market perspective rather than internal operational views.",
+          "Start with external services. Important business services are those provided to external customers or market participants. Internal services, however critical operationally, are not themselves important business services—though they may support important business services.",
+          "Assess disruption impact. For each external service, consider the harm that disruption would cause. Would customers be unable to access funds? Would payments fail? Would customers face financial loss or significant inconvenience? Services where disruption causes material harm are candidates for importance classification.",
+          "Consider customer dependency. Services that customers rely on for essential activities are more likely to be important. A payment service enabling customers to pay rent, buy groceries, or receive wages is more critical than one used for discretionary purchases.",
+          "Evaluate market impact. Some services may be important because of their role in market functioning rather than individual customer impact. High-volume payment processing that supports market infrastructure may be important even if individual transactions are small.",
+          "Document importance rationale. For each service classified as important, document why. Also document services considered but not classified as important, with rationale. This documentation supports regulatory engagement and demonstrates systematic analysis.",
+          "For payment firms, core payment services are typically important. Payment initiation, account access, and fund transfers are usually essential to customers and likely meet importance thresholds. Ancillary services require case-by-case assessment."
+        ],
+        chart: {
+          type: 'donut',
+          title: 'Important Business Service Categories',
+          description: 'Common important business services identified by payment institutions',
+          data: [
+            { label: 'Payment initiation', value: 30, color: '#3b82f6' },
+            { label: 'Account access', value: 25, color: '#22c55e' },
+            { label: 'Fund transfers', value: 20, color: '#8b5cf6' },
+            { label: 'Card services', value: 15, color: '#f97316' },
+            { label: 'Customer support', value: 10, color: '#64748b' }
+          ]
+        }
+      },
+      {
+        heading: "Setting Impact Tolerances",
+        content: [
+          "Impact tolerances define the maximum tolerable disruption for each important business service. Setting appropriate tolerances requires careful analysis of customer impact and should drive resilience investment decisions.",
+          "Tolerances should reflect intolerable harm thresholds. The FCA expects tolerances to be set at the point beyond which harm becomes intolerable, not at the point where any harm begins. Some short-duration disruption may be tolerable; prolonged or severe disruption is not.",
+          "Duration is typically the primary tolerance metric. Most impact tolerances are expressed as maximum acceptable service outage duration—for example, payment initiation service must be restored within four hours. Duration tolerances should reflect how quickly customer harm escalates.",
+          "Other tolerance metrics may be appropriate. Volume of affected transactions, geographic scope, or customer segments affected might supplement duration tolerances. Use metrics that meaningfully capture the dimensions of harm for your services.",
+          "Customer perspective should drive tolerance setting. Engage customers or use customer research to understand when disruption becomes intolerable from their perspective. Internal operational views may underestimate customer impact.",
+          "Tolerances should be stretching but achievable. Setting very short tolerances that cannot realistically be met undermines the framework. Setting very long tolerances that permit significant customer harm fails regulatory expectations. Balance ambition with achievability.",
+          "Document tolerance rationale. Explain how tolerances were derived, what evidence informed the analysis, and how customer impact was considered. Regulatory scrutiny will examine whether tolerance setting was rigorous.",
+          "Review tolerances periodically. As services, customer expectations, and operational capabilities evolve, tolerances may require adjustment. Establish review cycles that keep tolerances current."
+        ]
+      },
+      {
+        heading: "Mapping Resources and Dependencies",
+        content: [
+          "Understanding what resources support important business services enables firms to identify vulnerabilities and build resilience. Resource mapping connects service delivery to underlying people, processes, technology, facilities, and third parties.",
+          "Technology mapping identifies systems supporting each service. Document the applications, infrastructure, data, and integrations required for service delivery. Understand dependencies between systems and identify single points of failure.",
+          "People dependencies matter. Which roles are essential for service delivery? What happens if key personnel are unavailable? Consider both operational staff and specialist expertise needed for incident response.",
+          "Third-party mapping is critical for payment firms. Payment services typically depend on card schemes, banking partners, technology vendors, and other third parties. Map these dependencies and understand each third party's resilience capabilities.",
+          "Data dependencies should be identified. Which data is essential for service delivery? Where is it stored? How is it protected? Data unavailability or corruption can disrupt services even when systems are functioning.",
+          "Facility dependencies may exist. While many payment services operate digitally, some may depend on physical facilities—data centres, offices, or operational locations. Identify facility dependencies and their vulnerabilities.",
+          "Mapping should enable vulnerability identification. The purpose of resource mapping is not documentation for its own sake but understanding where weaknesses exist. Use mapping outputs to identify concentration risks, single points of failure, and areas requiring resilience investment."
+        ],
+        chart: {
+          type: 'bar',
+          title: 'Resource Dependencies for Payment Services',
+          description: 'Typical resource category dependencies for payment firm important business services',
+          data: [
+            { label: 'Technology systems', value: 35, color: '#3b82f6' },
+            { label: 'Third parties', value: 30, color: '#8b5cf6' },
+            { label: 'Data', value: 15, color: '#22c55e' },
+            { label: 'People', value: 12, color: '#f97316' },
+            { label: 'Facilities', value: 8, color: '#64748b' }
+          ]
+        }
+      },
+      {
+        heading: "Scenario Testing and Exercising",
+        content: [
+          "Scenario testing validates whether firms can remain within impact tolerances during disruption. The FCA expects firms to test against severe but plausible scenarios that stress their resilience capabilities.",
+          "Scenario selection should cover key risk categories. Consider technology failures, cyber attacks, third-party outages, pandemic or staffing disruptions, physical events, and other scenarios relevant to your operations. Scenarios should be severe enough to test resilience meaningfully.",
+          "Severe but plausible is the standard. Scenarios should represent genuinely challenging situations that could realistically occur, not everyday incidents or apocalyptic events. The FCA has provided guidance on calibrating scenario severity.",
+          "Testing should measure tolerance achievement. The purpose of testing is to determine whether services can be maintained or restored within impact tolerances. Test outputs should clearly indicate whether tolerances were met and identify any gaps.",
+          "Different testing approaches suit different purposes. Tabletop exercises test decision-making and coordination. Technical tests validate system failover and recovery. Full simulations test end-to-end response. Use appropriate approaches for different scenarios and capabilities.",
+          "Third-party involvement may be necessary. Where services depend on third parties, testing should include those dependencies. Engage third parties in scenario testing or obtain assurance about their tested capabilities.",
+          "Testing frequency should reflect risk. Higher-risk services and scenarios may require more frequent testing. Establish testing programmes that provide ongoing assurance rather than one-time validation.",
+          "Document and learn from testing. Maintain records of scenarios tested, results achieved, and lessons identified. Use findings to drive resilience improvements and update response procedures."
+        ]
+      },
+      {
+        heading: "Building Response and Recovery Capabilities",
+        content: [
+          "Operational resilience requires capabilities to prevent disruption where possible and respond effectively when disruption occurs. Building these capabilities demands investment in technology, processes, and people.",
+          "Prevention measures reduce disruption likelihood. Robust technology architecture, security controls, redundancy, and quality assurance all help prevent incidents. While prevention cannot eliminate all disruption risk, it reduces frequency and severity.",
+          "Detection capabilities enable rapid response. Monitoring systems should identify disruption quickly so response can begin. Delayed detection extends disruption duration and customer impact.",
+          "Response procedures guide action during incidents. Documented procedures ensure consistent, effective response regardless of which personnel are available. Procedures should cover escalation, communication, technical response, and decision-making.",
+          "Recovery capabilities restore services. Technical recovery mechanisms—failover, backup restoration, alternative processing—enable service restoration. Understand recovery time objectives and test that they can be achieved.",
+          "Communication during incidents matters. Customers, regulators, and partners need appropriate information during disruption. Communication plans should address who communicates what, when, and through which channels.",
+          "Post-incident review improves resilience. After incidents, conduct thorough reviews to understand what happened, why, and how to prevent recurrence. Implement improvements identified through review.",
+          "Investment prioritisation should reflect risk. Focus resilience investment on the most important services and most significant vulnerabilities. Resource mapping and testing results inform prioritisation decisions."
+        ]
+      },
+      {
+        heading: "Governance and Self-Assessment",
+        content: [
+          "Operational resilience requires governance structures that ensure board oversight, clear accountability, and systematic management of resilience capabilities.",
+          "Board responsibility is explicit. The FCA expects boards to approve impact tolerances, oversee resilience capabilities, and receive regular reporting on resilience status. Operational resilience should feature in board agendas and governance frameworks.",
+          "Senior management accountability applies. Under SM&CR, senior managers with relevant responsibilities must ensure their areas meet operational resilience requirements. Clear accountability for resilience drives appropriate attention and resources.",
+          "Self-assessment provides structured compliance review. Firms must maintain self-assessments of their operational resilience capabilities. Self-assessments should identify important business services, evaluate whether impact tolerances can be met, and document remediation plans for gaps.",
+          "Self-assessment should be honest. The purpose is not to present a favourable picture but to understand genuine capabilities and vulnerabilities. Regulators will scrutinise whether self-assessments are realistic and whether identified gaps are being addressed.",
+          "Regular review keeps assessments current. As services, resources, and capabilities evolve, self-assessments require updating. Establish review cycles and triggers that maintain assessment currency.",
+          "Regulatory engagement may draw on self-assessments. The FCA may request self-assessments as part of supervisory engagement. Well-maintained assessments that demonstrate systematic resilience management support positive regulatory relationships."
+        ],
+        chart: {
+          type: 'trend',
+          title: 'Operational Resilience Maturity Journey',
+          description: 'Progression from baseline compliance to embedded resilience',
+          data: [
+            { label: 'IBS identification', value: 25, color: '#3b82f6' },
+            { label: 'Tolerances set', value: 40, color: '#22c55e' },
+            { label: 'Mapping complete', value: 55, color: '#8b5cf6' },
+            { label: 'Testing active', value: 75, color: '#f97316' },
+            { label: 'Within tolerance', value: 100, color: '#22c55e' }
+          ]
+        }
+      }
+    ],
+    conclusion: [
+      "Operational resilience requirements represent a significant regulatory investment for payment firms but also an opportunity to build genuine competitive advantage. Firms that can demonstrate reliable service delivery during disruption build customer trust and differentiate themselves in competitive markets.",
+      "The March 2025 deadline for demonstrating tolerance achievement creates urgency for firms still building capabilities. Those that have not yet completed resource mapping, established testing programmes, or addressed identified vulnerabilities should prioritise these activities. The FCA has indicated it will assess compliance actively.",
+      "Beyond regulatory compliance, operational resilience is simply good business practice. Payment services that customers can rely on, even during challenging circumstances, create loyalty and support growth. Firms that view operational resilience as a strategic capability rather than a compliance burden will find the investment delivers lasting value."
+    ]
   }
 };
