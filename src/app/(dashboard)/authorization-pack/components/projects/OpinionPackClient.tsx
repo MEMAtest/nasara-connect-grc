@@ -1,15 +1,18 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { FileText, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { NasaraLoader } from "@/components/ui/nasara-loader";
+import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 import { ProjectHeader } from "./ProjectHeader";
 import { BusinessPlanProfileClient } from "./BusinessPlanProfileClient";
+import { PredictiveInsights } from "./PredictiveInsights";
 import {
   getProfileQuestions,
   isProfilePermissionCode,
@@ -42,6 +45,17 @@ interface ProjectDetail {
   permissionName?: string | null;
   status: string;
   packId?: string | null;
+}
+
+interface GenerationJob {
+  id: string;
+  status: string;
+  progress?: number | null;
+  currentStep?: string | null;
+  errorMessage?: string | null;
+  documentId?: string | null;
+  documentName?: string | null;
+  payload?: { warnings?: string[] };
 }
 
 const sectionLabels: Record<string, string> = {
@@ -87,6 +101,7 @@ export function OpinionPackClient() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [docsError, setDocsError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isStartingGeneration, setIsStartingGeneration] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
   const [downloadError, setDownloadError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("profile");
@@ -94,6 +109,18 @@ export function OpinionPackClient() {
   const [isCheckingMissing, setIsCheckingMissing] = useState(false);
   // Cache profile data to avoid redundant API calls
   const [cachedProfileResponses, setCachedProfileResponses] = useState<Record<string, ProfileResponse> | null>(null);
+  const [generationJob, setGenerationJob] = useState<GenerationJob | null>(null);
+  const generationInFlight = useRef(false);
+  const orderedDocuments = useMemo(() => {
+    const next = [...documents];
+    next.sort((a, b) => {
+      const aTime = a.uploadedAt ? new Date(a.uploadedAt).getTime() : 0;
+      const bTime = b.uploadedAt ? new Date(b.uploadedAt).getTime() : 0;
+      if (bTime !== aTime) return bTime - aTime;
+      return b.version - a.version;
+    });
+    return next;
+  }, [documents]);
 
   // Load data with cleanup to prevent race conditions
   useEffect(() => {
@@ -226,6 +253,113 @@ export function OpinionPackClient() {
     }
   }, [projectId]);
 
+  const fetchGenerationStatus = useCallback(async () => {
+    if (!project?.packId) return;
+    const response = await fetch(`/api/authorization-pack/packs/${project.packId}/generate-business-plan`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "status" }),
+    }).catch(() => null);
+    if (response?.ok) {
+      const data = await response.json();
+      setGenerationJob(data.job ?? null);
+    }
+  }, [project?.packId]);
+
+  const downloadGeneratedDocument = useCallback(
+    async (documentId: string, documentName?: string | null) => {
+      if (!project?.packId) return;
+      setDownloadError(null);
+      try {
+        const response = await fetch(
+          `/api/authorization-pack/packs/${project.packId}/documents/${documentId}`
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          setDownloadError(errorData.error || "Failed to download document.");
+          return;
+        }
+
+        const blob = await response.blob();
+        const headerName = response.headers.get("X-Document-Filename") || documentName || "Perimeter Opinion Pack";
+        const safeFilename = ensurePdfFilename(sanitizeFilename(headerName));
+        triggerDownload(blob, safeFilename);
+      } catch {
+        setDownloadError("Failed to download document.");
+      }
+    },
+    [project?.packId]
+  );
+
+  const runOpinionPackJob = useCallback(
+    async (jobId: string) => {
+      if (!project?.packId || generationInFlight.current) return;
+      generationInFlight.current = true;
+      setIsGenerating(true);
+      setGenerateError(null);
+
+      try {
+        let completed = false;
+        let attempts = 0;
+        while (!completed && attempts < 30) {
+          attempts += 1;
+          const response = await fetch(
+            `/api/authorization-pack/packs/${project.packId}/generate-business-plan`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ action: "run", jobId, batchSize: 1 }),
+            }
+          );
+
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
+            setGenerateError(errorData.details ? `${errorData.error}: ${errorData.details}` : errorData.error || "Failed to generate opinion pack");
+            break;
+          }
+
+          const data = await response.json();
+          const nextJob = data.job as GenerationJob | null;
+          if (!nextJob) {
+            setGenerateError("Generation status unavailable. Please try again.");
+            break;
+          }
+
+          setGenerationJob(nextJob);
+
+          if (nextJob.status === "completed") {
+            const documentId = data.document?.id || nextJob.documentId;
+            const documentName = data.document?.name || nextJob.documentName;
+            if (documentId) {
+              await downloadGeneratedDocument(documentId, documentName);
+            }
+            await reloadData();
+            completed = true;
+            break;
+          }
+
+          if (nextJob.status === "failed") {
+            setGenerateError(nextJob.errorMessage || "Failed to generate opinion pack.");
+            break;
+          }
+
+          await new Promise((resolve) => setTimeout(resolve, 400));
+        }
+
+        if (!completed && attempts >= 30) {
+          setGenerateError("Generation is taking longer than expected. Please click Generate again to continue.");
+        }
+      } catch {
+        setGenerateError("Failed to connect to the server. Please try again.");
+      } finally {
+        generationInFlight.current = false;
+        setIsGenerating(false);
+      }
+    },
+    [project?.packId, downloadGeneratedDocument, reloadData]
+  );
+
   // Helper function to check if a response is complete
   const isResponseComplete = useCallback((
     question: ProfileQuestion,
@@ -256,14 +390,17 @@ export function OpinionPackClient() {
     return true;
   }, []);
 
-  // Memoized function to check missing questions using cached data
-  const checkMissingQuestions = useCallback((): ProfileQuestion[] => {
-    if (!projectId || cachedProfileResponses === null) return [];
-    const permission = isProfilePermissionCode(project?.permissionCode) ? project?.permissionCode : null;
+  const computeMissingQuestions = useCallback((responses: Record<string, ProfileResponse> | null): ProfileQuestion[] => {
+    if (!projectId || !responses) return [];
+    const permission = isProfilePermissionCode(project?.permissionCode)
+      ? project?.permissionCode
+      : project?.permissionCode?.startsWith("payments")
+      ? "payments"
+      : null;
     const questions = getProfileQuestions(permission);
     const required = questions.filter((q) => q.required);
-    return required.filter((q) => !isResponseComplete(q, cachedProfileResponses[q.id], cachedProfileResponses));
-  }, [projectId, project?.permissionCode, cachedProfileResponses, isResponseComplete]);
+    return required.filter((q) => !isResponseComplete(q, responses[q.id], responses));
+  }, [projectId, project?.permissionCode, isResponseComplete]);
 
   // Refreshes profile cache from server (only when needed, e.g., after profile changes)
   const refreshProfileCache = useCallback(async (): Promise<ProfileQuestion[]> => {
@@ -274,7 +411,11 @@ export function OpinionPackClient() {
       const data = await response.json();
       const responses = data?.profile?.responses ?? {};
       setCachedProfileResponses(responses);
-      const permission = isProfilePermissionCode(project?.permissionCode) ? project?.permissionCode : null;
+      const permission = isProfilePermissionCode(project?.permissionCode)
+        ? project?.permissionCode
+        : project?.permissionCode?.startsWith("payments")
+        ? "payments"
+        : null;
       const questions = getProfileQuestions(permission);
       const required = questions.filter((q) => q.required);
       return required.filter((q) => !isResponseComplete(q, responses[q.id], responses));
@@ -283,34 +424,37 @@ export function OpinionPackClient() {
     }
   }, [projectId, project?.permissionCode, isResponseComplete]);
 
-  // Check missing questions when switching to documents tab using cached data
+  // Show cached missing questions immediately when entering the documents tab
+  useEffect(() => {
+    if (activeTab !== "documents") return;
+    setMissingQuestions(computeMissingQuestions(cachedProfileResponses));
+  }, [activeTab, cachedProfileResponses, computeMissingQuestions]);
+
+  // Refresh missing questions from the server when entering the documents tab
   useEffect(() => {
     if (activeTab !== "documents" || !projectId) return;
-    // Use cached data immediately if available (synchronous)
-    if (cachedProfileResponses !== null) {
-      const missing = checkMissingQuestions();
-      setMissingQuestions(missing);
-      setIsCheckingMissing(false);
-    } else {
-      // Only fetch if cache is empty (first load edge case)
-      let isMounted = true;
-      setIsCheckingMissing(true);
-      refreshProfileCache()
-        .then((missing) => {
-          if (isMounted) {
-            setMissingQuestions(missing);
-          }
-        })
-        .finally(() => {
-          if (isMounted) {
-            setIsCheckingMissing(false);
-          }
-        });
-      return () => {
-        isMounted = false;
-      };
-    }
-  }, [activeTab, projectId, project?.permissionCode, cachedProfileResponses, checkMissingQuestions, refreshProfileCache]);
+    let isMounted = true;
+    setIsCheckingMissing(true);
+    refreshProfileCache()
+      .then((missing) => {
+        if (isMounted) {
+          setMissingQuestions(missing);
+        }
+      })
+      .finally(() => {
+        if (isMounted) {
+          setIsCheckingMissing(false);
+        }
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, [activeTab, projectId, refreshProfileCache]);
+
+  useEffect(() => {
+    if (activeTab !== "documents") return;
+    fetchGenerationStatus();
+  }, [activeTab, fetchGenerationStatus]);
 
   const handleGenerateOpinionPack = async () => {
     if (!project?.packId) {
@@ -318,7 +462,7 @@ export function OpinionPackClient() {
       return;
     }
 
-    setIsGenerating(true);
+    setIsStartingGeneration(true);
     setGenerateError(null);
     setDownloadError(null);
     setMissingQuestions([]);
@@ -328,7 +472,7 @@ export function OpinionPackClient() {
     if (missing.length > 0) {
       setMissingQuestions(missing);
       setGenerateError(`Please complete ${missing.length} required question${missing.length > 1 ? "s" : ""} before generating the opinion pack.`);
-      setIsGenerating(false);
+      setIsStartingGeneration(false);
       return;
     }
 
@@ -336,34 +480,30 @@ export function OpinionPackClient() {
       const response = await fetch(`/api/authorization-pack/packs/${project.packId}/generate-business-plan`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "start", force: documents.length > 0 }),
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
-        setGenerateError(errorData.error || "Failed to generate opinion pack");
-        // Use cached missing questions check (already refreshed above)
-        const missingCheck = checkMissingQuestions();
-        if (missingCheck.length > 0) {
-          setMissingQuestions(missingCheck);
-        }
+        console.error("Generation API error:", response.status, errorData);
+        setGenerateError(errorData.details ? `${errorData.error}: ${errorData.details}` : errorData.error || "Failed to start opinion pack generation");
+        setIsStartingGeneration(false);
         return;
       }
 
-      // Download the PDF
-      const blob = await response.blob();
-      const documentName =
-        response.headers.get("X-Document-Filename") ||
-        response.headers.get("X-Document-Name") ||
-        "Perimeter Opinion Pack";
-      const safeFilename = ensurePdfFilename(sanitizeFilename(documentName));
-      triggerDownload(blob, safeFilename);
-
-      // Reload documents to show the new entry
-      await reloadData();
+      const data = await response.json();
+      const job = data.job as GenerationJob | null;
+      if (!job?.id) {
+        setGenerateError("Unable to start generation job. Please try again.");
+        setIsStartingGeneration(false);
+        return;
+      }
+      setGenerationJob(job);
+      setIsStartingGeneration(false);
+      await runOpinionPackJob(job.id);
     } catch (err) {
       setGenerateError("Failed to connect to the server. Please try again.");
-    } finally {
-      setIsGenerating(false);
+      setIsStartingGeneration(false);
     }
   };
 
@@ -410,11 +550,8 @@ export function OpinionPackClient() {
   if (isLoading) {
     return (
       <Card className="border border-slate-200">
-        <CardContent className="p-8 text-center">
-          <div className="flex flex-col items-center justify-center gap-3">
-            <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
-            <p className="text-slate-500">Loading opinion pack...</p>
-          </div>
+        <CardContent className="p-8">
+          <NasaraLoader label="Loading opinion pack..." />
         </CardContent>
       </Card>
     );
@@ -436,7 +573,10 @@ export function OpinionPackClient() {
     );
   }
 
-  const generatedDocs = documents.length;
+  const generatedDocs = orderedDocuments.length;
+  const generationProgress = generationJob?.progress ?? 0;
+  const generationStep = generationJob?.currentStep || (generationJob ? "Preparing opinion pack..." : "");
+  const hasActiveJob = !!generationJob && generationJob.status !== "completed" && generationJob.status !== "failed";
 
   return (
     <div className="space-y-6">
@@ -445,6 +585,7 @@ export function OpinionPackClient() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="flex flex-wrap justify-start">
           <TabsTrigger value="profile">Phase 1 - Business Plan Profile</TabsTrigger>
+          <TabsTrigger value="readiness">Readiness Assessment</TabsTrigger>
           <TabsTrigger value="documents">Phase 2 - Opinion Pack</TabsTrigger>
         </TabsList>
 
@@ -453,8 +594,27 @@ export function OpinionPackClient() {
             projectId={project.id}
             permissionCode={project.permissionCode}
             permissionName={project.permissionName}
-            onNextPhase={() => setActiveTab("documents")}
+            onNextPhase={() => setActiveTab("readiness")}
           />
+        </TabsContent>
+
+        <TabsContent value="readiness" className="space-y-6">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h2 className="text-xl font-semibold text-slate-900">FCA Authorization Readiness</h2>
+              <p className="text-sm text-slate-500">
+                Predictive assessment based on FCA historical decision patterns and failure analysis.
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => setActiveTab("documents")}
+            >
+              Continue to Opinion Pack →
+            </Button>
+          </div>
+
+          <PredictiveInsights projectId={project.id} />
         </TabsContent>
 
         <TabsContent value="documents" className="space-y-6">
@@ -462,36 +622,79 @@ export function OpinionPackClient() {
             <div>
               <h2 className="text-xl font-semibold text-slate-900">Perimeter Opinion Pack</h2>
               <p className="text-sm text-slate-500">
-                Auto-generated 5-7 page perimeter opinion based on Phase 1 profile responses.
+                Generated 5-7 page perimeter opinion based on Phase 1 profile responses.
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
               <Button
                 className="bg-indigo-600 hover:bg-indigo-700"
-                onClick={handleGenerateOpinionPack}
-                disabled={isGenerating || isCheckingMissing || missingQuestions.length > 0 || !project?.packId}
+                onClick={() => {
+                  if (hasActiveJob && generationJob?.id) {
+                    runOpinionPackJob(generationJob.id);
+                  } else {
+                    handleGenerateOpinionPack();
+                  }
+                }}
+                disabled={
+                  isGenerating ||
+                  isStartingGeneration ||
+                  isCheckingMissing ||
+                  (!hasActiveJob && missingQuestions.length > 0) ||
+                  !project?.packId
+                }
               >
-                {isGenerating || isCheckingMissing ? (
+                {isStartingGeneration || isGenerating || isCheckingMissing ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {isCheckingMissing ? "Checking..." : "Generating..."}
+                    {isCheckingMissing ? "Checking..." : isStartingGeneration ? "Starting..." : "Generating..."}
                   </>
                 ) : (
                   <>
                     <Sparkles className="mr-2 h-4 w-4" />
-                    Generate Opinion Pack
+                    {hasActiveJob ? "Continue Generation" : "Generate Opinion Pack"}
                   </>
                 )}
               </Button>
             </div>
           </div>
           <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">AI workflow</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Workflow</p>
             <p className="mt-2">
               Complete the Business Plan Profile in Phase 1 first. Then click Generate Opinion Pack to create your 5-7 page
-              perimeter opinion. The AI will synthesize your answers into regulatory narrative. Regenerate anytime after updates.
+              perimeter opinion. Regenerate anytime after updates.
             </p>
           </div>
+
+          {isStartingGeneration && !generationJob ? (
+            <Card className="border border-indigo-200 bg-indigo-50">
+              <CardContent className="p-4">
+                <NasaraLoader label="Preparing opinion pack..." />
+              </CardContent>
+            </Card>
+          ) : null}
+
+          {generationJob && generationJob.status !== "completed" ? (
+            <Card className="border border-blue-200 bg-blue-50">
+              <CardContent className="space-y-2 p-4 text-sm text-blue-900">
+                <div className="flex items-center gap-2">
+                  {isGenerating ? <Loader2 className="h-4 w-4 animate-spin text-blue-600" /> : null}
+                  <span className="font-medium">
+                    {generationJob.status === "failed" ? "Generation failed" : generationStep}
+                  </span>
+                </div>
+                <Progress value={generationProgress} className="h-2" />
+                <div className="flex items-center justify-between text-xs text-blue-700">
+                  <span>{generationProgress}% complete</span>
+                  {generationJob.payload?.warnings?.length ? (
+                    <span>{generationJob.payload.warnings.length} warnings</span>
+                  ) : null}
+                </div>
+                {generationJob.errorMessage ? (
+                  <p className="text-xs text-blue-800">{generationJob.errorMessage}</p>
+                ) : null}
+              </CardContent>
+            </Card>
+          ) : null}
 
           {docsError && (
             <Card className="border border-amber-200 bg-amber-50">
@@ -598,9 +801,7 @@ export function OpinionPackClient() {
               <CardContent className="p-6 text-center">
                 <Loader2 className="mx-auto h-8 w-8 animate-spin text-indigo-600" />
                 <p className="mt-3 font-medium text-indigo-900">Generating your opinion pack...</p>
-                <p className="mt-1 text-sm text-indigo-600">
-                  AI is synthesizing your profile answers into a perimeter opinion. This may take a moment.
-                </p>
+                <p className="mt-1 text-sm text-indigo-600">This may take a moment.</p>
               </CardContent>
             </Card>
           )}
@@ -617,7 +818,7 @@ export function OpinionPackClient() {
               <CardContent className="p-4">
                 <p className="text-xs uppercase tracking-wide text-slate-400">Latest update</p>
                 <p className="mt-1 text-2xl font-semibold text-slate-900">
-                  {documents[0]?.uploadedAt ? formatDate(documents[0].uploadedAt) : "—"}
+                  {orderedDocuments[0]?.uploadedAt ? formatDate(orderedDocuments[0].uploadedAt) : "—"}
                 </p>
                 <p className="text-xs text-slate-500">Last generated date</p>
               </CardContent>
@@ -625,13 +826,15 @@ export function OpinionPackClient() {
             <Card className="border border-slate-200">
               <CardContent className="p-4">
                 <p className="text-xs uppercase tracking-wide text-slate-400">Downloads</p>
-                <p className="mt-1 text-2xl font-semibold text-slate-900">{documents.filter((doc) => doc.storageKey).length}</p>
+                <p className="mt-1 text-2xl font-semibold text-slate-900">
+                  {orderedDocuments.filter((doc) => doc.storageKey).length}
+                </p>
                 <p className="text-xs text-slate-500">Available files</p>
               </CardContent>
             </Card>
           </div>
 
-          {documents.length === 0 ? (
+          {orderedDocuments.length === 0 ? (
             <Card className="border border-slate-200">
               <CardContent className="p-8 text-center">
                 <p className="text-slate-500">No opinion pack generated yet.</p>
@@ -642,7 +845,7 @@ export function OpinionPackClient() {
             </Card>
           ) : (
             <div className="space-y-4">
-              {documents.map((doc) => (
+              {orderedDocuments.map((doc) => (
                 <Card
                   key={doc.id}
                   className={`border ${
