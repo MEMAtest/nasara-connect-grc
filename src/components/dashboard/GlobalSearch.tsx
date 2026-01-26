@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Search, Loader2, FileText, Users, BookOpen, Boxes, ClipboardList, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -42,6 +42,34 @@ export function GlobalSearch() {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const groupedResults = useMemo(() => {
+    const typeOrder: SearchResult["type"][] = [
+      "module",
+      "policy",
+      "register",
+      "assessment",
+      "person",
+      "case_study",
+    ];
+    const buckets = new Map<SearchResult["type"], Array<{ result: SearchResult; index: number }>>();
+
+    results.forEach((result, index) => {
+      const existing = buckets.get(result.type);
+      if (existing) {
+        existing.push({ result, index });
+      } else {
+        buckets.set(result.type, [{ result, index }]);
+      }
+    });
+
+    return typeOrder
+      .map((type) => {
+        const items = buckets.get(type);
+        if (!items?.length) return null;
+        return { type, items };
+      })
+      .filter(Boolean) as Array<{ type: SearchResult["type"]; items: Array<{ result: SearchResult; index: number }> }>;
+  }, [results]);
 
   // Debounced search
   useEffect(() => {
@@ -145,6 +173,8 @@ export function GlobalSearch() {
           onFocus={() => query.length >= 2 && setIsOpen(true)}
           onKeyDown={handleKeyDown}
           aria-label="Search"
+          role="combobox"
+          aria-autocomplete="list"
           aria-expanded={isOpen}
           aria-controls="search-results"
         />
@@ -179,37 +209,50 @@ export function GlobalSearch() {
 
           {results.length > 0 && (
             <ul className="max-h-80 overflow-y-auto py-2">
-              {results.map((result, index) => (
-                <li
-                  key={result.id}
-                  role="option"
-                  aria-selected={index === selectedIndex}
-                  className={cn(
-                    "flex cursor-pointer items-start gap-3 px-4 py-3 transition",
-                    index === selectedIndex
-                      ? "bg-teal-50"
-                      : "hover:bg-slate-50"
-                  )}
-                  onClick={() => handleResultClick(result)}
-                  onMouseEnter={() => setSelectedIndex(index)}
-                >
-                  <div className="mt-0.5 flex-shrink-0">
-                    {typeIcons[result.type]}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="truncate font-medium text-slate-900">
-                        {result.title}
-                      </span>
-                      <span className="flex-shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">
-                        {typeLabels[result.type]}
-                      </span>
-                    </div>
-                    <p className="mt-0.5 truncate text-sm text-slate-500">
-                      {result.description}
-                    </p>
-                  </div>
-                </li>
+              {groupedResults.map((group, groupIndex) => (
+                <React.Fragment key={`group-${group.type}`}>
+                  <li
+                    role="presentation"
+                    className={cn(
+                      "px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wide text-slate-400",
+                      groupIndex === 0 && "pt-1"
+                    )}
+                  >
+                    {typeLabels[group.type]}
+                  </li>
+                  {group.items.map(({ result, index }) => (
+                    <li
+                      key={`${result.type}-${result.id}`}
+                      role="option"
+                      aria-selected={index === selectedIndex}
+                      className={cn(
+                        "flex cursor-pointer items-start gap-3 px-4 py-3 transition",
+                        index === selectedIndex
+                          ? "bg-teal-50"
+                          : "hover:bg-slate-50"
+                      )}
+                      onClick={() => handleResultClick(result)}
+                      onMouseEnter={() => setSelectedIndex(index)}
+                    >
+                      <div className="mt-0.5 flex-shrink-0">
+                        {typeIcons[result.type]}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="truncate font-medium text-slate-900">
+                            {result.title}
+                          </span>
+                          <span className="flex-shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">
+                            {typeLabels[result.type]}
+                          </span>
+                        </div>
+                        <p className="mt-0.5 truncate text-sm text-slate-500">
+                          {result.description}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </React.Fragment>
               ))}
             </ul>
           )}
