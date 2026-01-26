@@ -1,0 +1,93 @@
+[
+  {
+    "id": "nasara_info_security-purpose-purpose_and_objectives",
+    "policy_key": "info_security",
+    "title": "Purpose and objectives",
+    "body_md": "This policy sets out how {{firm.name}} protects personal data and information assets in line with UK GDPR, the DPA 2018, and FCA expectations.\n\nObjectives:\n- ensure lawful, fair, and transparent processing of personal data.\n- apply data minimisation, purpose limitation, and retention controls.\n- embed security by design into day-to-day operations.\n- define how to detect, report, and manage security incidents and data breaches.",
+    "source_template_filename": "MODULE_DATA_PROTECTION_INFORMATION_SECURITY_ESSENTIALS.txt"
+  },
+  {
+    "id": "nasara_info_security-scope-scope_and_applicability",
+    "policy_key": "info_security",
+    "title": "Scope and applicability",
+    "body_md": "This policy applies to all staff, contractors, and third parties handling data on behalf of {{firm.name}}. It covers all systems, applications, and records containing personal data or confidential business information, whether processed on-site, remotely, or by vendors.",
+    "source_template_filename": "MODULE_DATA_PROTECTION_INFORMATION_SECURITY_ESSENTIALS.txt"
+  },
+  {
+    "id": "nasara_info_security-definitions-key_definitions",
+    "policy_key": "info_security",
+    "title": "Key definitions",
+    "body_md": "Key terms used in this policy include:\n- Personal data: information relating to an identifiable living person.\n- Special category data: sensitive data such as health or biometric data.\n- Controller: the party that decides why and how data is processed.\n- Processor: the party that processes data on the controller's instructions.\n- Lawful basis: a valid reason for processing such as contract, legal obligation, consent, or legitimate interests.",
+    "source_template_filename": "MODULE_DATA_PROTECTION_INFORMATION_SECURITY_ESSENTIALS.txt"
+  },
+  {
+    "id": "nasara_info_security-lawful-lawful_bases_and_transparency",
+    "policy_key": "info_security",
+    "title": "Lawful bases and transparency",
+    "body_md": "Every processing activity must have a lawful basis and clear privacy information.\n\nCommon bases include contract, legal obligation, legitimate interests (with assessment), and consent (freely given, specific, informed, and withdrawable). Privacy notices must be accurate and kept up to date.",
+    "source_template_filename": "MODULE_DATA_PROTECTION_INFORMATION_SECURITY_ESSENTIALS.txt"
+  },
+  {
+    "id": "nasara_info_security-minimisation-data_minimisation_and_retention",
+    "policy_key": "info_security",
+    "title": "Data minimisation, purpose limitation, and retention",
+    "body_md": "Collect only what is necessary, use it only for the stated purpose, and retain it only for as long as required.\n\nControls:\n- use approved fields and templates.\n- avoid free-text sensitive details unless essential.\n- apply retention schedules and secure deletion or archiving.\n- pseudonymise or anonymise data where possible.",
+    "source_template_filename": "MODULE_DATA_PROTECTION_INFORMATION_SECURITY_ESSENTIALS.txt"
+  },
+  {
+    "id": "nasara_info_security-rights-individual_rights_handling",
+    "policy_key": "info_security",
+    "title": "Individual rights handling",
+    "body_md": "Individuals can exercise rights such as access, rectification, erasure, restriction, objection, portability, and consent withdrawal.\n\nStaff must acknowledge requests, capture details, and route them to the Privacy team. Do not delete or disclose data directly outside the approved process.",
+    "source_template_filename": "MODULE_DATA_PROTECTION_INFORMATION_SECURITY_ESSENTIALS.txt"
+  },
+  {
+    "id": "nasara_info_security-security-security_by_design",
+    "policy_key": "info_security",
+    "title": "Security by design",
+    "body_md": "Security controls must be embedded into daily work:\n- access control and least privilege.\n- screen locking and strong authentication.\n- classification and secure handling of data.\n- encryption for portable media and devices.\n- secure development practices for technology teams.\n\nPersonal email or unapproved storage tools must never be used for firm data.",
+    "source_template_filename": "MODULE_DATA_PROTECTION_INFORMATION_SECURITY_ESSENTIALS.txt"
+  },
+  {
+    "id": "nasara_info_security-phishing-phishing_and_social_engineering",
+    "policy_key": "info_security",
+    "title": "Phishing and social engineering",
+    "body_md": "Be alert to phishing and social engineering attempts, including urgent payment changes, mismatched domains, and unexpected attachments.\n\nControls:\n- verify requests via known channels.\n- do not click unknown links or approve unexpected MFA prompts.\n- report suspicious emails immediately using the approved reporting tool.",
+    "source_template_filename": "MODULE_DATA_PROTECTION_INFORMATION_SECURITY_ESSENTIALS.txt"
+  },
+  {
+    "id": "nasara_info_security-sharing-data_sharing_and_transfers",
+    "policy_key": "info_security",
+    "title": "Data sharing and international transfers",
+    "body_md": "Before sharing personal data with vendors or transferring data outside the UK/EEA:\n- ensure contracts and controller-processor terms are in place.\n- document transfer mechanisms and risk assessments (SCCs or IDTA where required).\n- share only the minimum necessary data.\n- update records of processing activities (RoPA).",
+    "source_template_filename": "MODULE_DATA_PROTECTION_INFORMATION_SECURITY_ESSENTIALS.txt"
+  },
+  {
+    "id": "nasara_info_security-incidents-incidents_and_breach_reporting",
+    "policy_key": "info_security",
+    "title": "Incidents and breach reporting",
+    "body_md": "If you suspect a data breach or security incident:\n- contain the issue immediately (revoke access, isolate device, stop the leak).\n- report via the incident process without delay.\n- preserve evidence and do not delete trails.\n- do not notify customers or regulators directly; the DPO and Compliance will assess notification duties.",
+    "source_template_filename": "MODULE_DATA_PROTECTION_INFORMATION_SECURITY_ESSENTIALS.txt"
+  },
+  {
+    "id": "nasara_info_security-records-records_and_evidence",
+    "policy_key": "info_security",
+    "title": "Records and evidence",
+    "body_md": "Evidence must be maintained for privacy and security compliance, including:\n- RoPA entries and updates.\n- DPIAs or LIAs where required.\n- privacy notices and change logs.\n- vendor assessments and transfer documentation.\n- incident register and post-incident reviews.\n- training completion and attestations.",
+    "source_template_filename": "MODULE_DATA_PROTECTION_INFORMATION_SECURITY_ESSENTIALS.txt"
+  },
+  {
+    "id": "nasara_info_security-training-training_and_awareness",
+    "policy_key": "info_security",
+    "title": "Training and awareness",
+    "body_md": "All staff must complete data protection and security training relevant to their role. Training completion and attestations must be recorded and refreshed in line with the firm training plan.",
+    "source_template_filename": "MODULE_DATA_PROTECTION_INFORMATION_SECURITY_ESSENTIALS.txt"
+  },
+  {
+    "id": "nasara_info_security-governance-governance_and_review",
+    "policy_key": "info_security",
+    "title": "Governance and review",
+    "body_md": "The Data Protection Officer (DPO), InfoSec, and Compliance oversee this policy. Senior management is accountable for ensuring appropriate resourcing, escalation routes, and periodic review of controls and incidents.",
+    "source_template_filename": "MODULE_DATA_PROTECTION_INFORMATION_SECURITY_ESSENTIALS.txt"
+  }
+]

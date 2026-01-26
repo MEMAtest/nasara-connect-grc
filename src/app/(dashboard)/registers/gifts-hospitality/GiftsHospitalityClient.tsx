@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
-import { generateTrendData } from "@/lib/chart-utils";
+import { generateTrendData, getMonthKey, type TrendPoint } from "@/lib/chart-utils";
 import { useToast } from "@/components/toast-provider";
 import { Plus, Loader2, Gift, ArrowDownLeft, ArrowUpRight, Clock, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -79,6 +79,7 @@ export function GiftsHospitalityClient() {
   });
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [drillDownFilter, setDrillDownFilter] = useState<{ key: string; value: string } | null>(null);
+  const [monthFilter, setMonthFilter] = useState<{ key: string; label: string } | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingRecord, setEditingRecord] = useState<GiftRecord | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -217,7 +218,7 @@ export function GiftsHospitalityClient() {
   };
 
   // Filter records
-  const filteredRecords = useMemo(() => {
+  const baseFilteredRecords = useMemo(() => {
     return records.filter((r) => {
       const matchesSearch =
         r.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -233,6 +234,11 @@ export function GiftsHospitalityClient() {
     });
   }, [records, searchQuery, filterValues, drillDownFilter]);
 
+  const filteredRecords = useMemo(() => {
+    if (!monthFilter) return baseFilteredRecords;
+    return baseFilteredRecords.filter((r) => getMonthKey(r.date_of_event) === monthFilter.key);
+  }, [baseFilteredRecords, monthFilter]);
+
   // Pagination
   const {
     paginatedData,
@@ -242,40 +248,40 @@ export function GiftsHospitalityClient() {
   // Statistics
   const stats = useMemo(
     () => ({
-      total: records.length,
-      received: records.filter((r) => r.entry_type.includes("received")).length,
-      given: records.filter((r) => r.entry_type.includes("given")).length,
-      pendingApproval: records.filter((r) => r.approval_status === "pending").length,
-      totalValue: records.reduce((sum, r) => sum + (r.estimated_value_gbp || 0), 0),
+      total: filteredRecords.length,
+      received: filteredRecords.filter((r) => r.entry_type.includes("received")).length,
+      given: filteredRecords.filter((r) => r.entry_type.includes("given")).length,
+      pendingApproval: filteredRecords.filter((r) => r.approval_status === "pending").length,
+      totalValue: filteredRecords.reduce((sum, r) => sum + (r.estimated_value_gbp || 0), 0),
     }),
-    [records]
+    [filteredRecords]
   );
 
   // Chart data
   const typeChartData = useMemo(
     () => [
-      { label: "Gift Received", value: records.filter((r) => r.entry_type === "gift_received").length, color: chartColors.gift_received },
-      { label: "Gift Given", value: records.filter((r) => r.entry_type === "gift_given").length, color: chartColors.gift_given },
-      { label: "Hospitality Received", value: records.filter((r) => r.entry_type === "hospitality_received").length, color: chartColors.hospitality_received },
-      { label: "Hospitality Given", value: records.filter((r) => r.entry_type === "hospitality_given").length, color: chartColors.hospitality_given },
+      { label: "Gift Received", value: filteredRecords.filter((r) => r.entry_type === "gift_received").length, color: chartColors.gift_received },
+      { label: "Gift Given", value: filteredRecords.filter((r) => r.entry_type === "gift_given").length, color: chartColors.gift_given },
+      { label: "Hospitality Received", value: filteredRecords.filter((r) => r.entry_type === "hospitality_received").length, color: chartColors.hospitality_received },
+      { label: "Hospitality Given", value: filteredRecords.filter((r) => r.entry_type === "hospitality_given").length, color: chartColors.hospitality_given },
     ],
-    [records]
+    [filteredRecords]
   );
 
   const valueByTypeData = useMemo(() => {
     const sums: Record<string, number> = {};
-    records.forEach((r) => {
+    filteredRecords.forEach((r) => {
       sums[r.entry_type] = (sums[r.entry_type] || 0) + (r.estimated_value_gbp || 0);
     });
     return Object.entries(sums).map(([type, value]) => ({
       label: typeLabels[type] || type,
       value: Math.round(value),
     }));
-  }, [records]);
+  }, [filteredRecords]);
 
   const trendData = useMemo(() => {
-    return generateTrendData(records, 6, 'created_at');
-  }, [records]);
+    return generateTrendData(baseFilteredRecords, 6, 'date_of_event');
+  }, [baseFilteredRecords]);
 
   const isReceived = formData.entry_type.includes("received");
 
@@ -370,6 +376,19 @@ export function GiftsHospitalityClient() {
     }
   };
 
+  const handleMonthFilter = (point: TrendPoint) => {
+    const key = point.monthKey || point.label;
+    if (!key) return;
+    if (monthFilter?.key === key) {
+      setMonthFilter(null);
+      return;
+    }
+    const label = point.startDate
+      ? new Date(point.startDate).toLocaleDateString("en-GB", { month: "short", year: "numeric" })
+      : point.label;
+    setMonthFilter({ key, label });
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center py-12">
@@ -444,6 +463,16 @@ export function GiftsHospitalityClient() {
           </Button>
         </div>
       )}
+      {monthFilter && (
+        <div className="flex items-center gap-2 rounded-lg bg-slate-50 px-4 py-2">
+          <span className="text-sm text-slate-700">
+            Filtered by month: <strong>{monthFilter.label}</strong>
+          </span>
+          <Button variant="ghost" size="sm" onClick={() => setMonthFilter(null)} className="h-6 text-slate-600 hover:text-slate-700">
+            Clear month
+          </Button>
+        </div>
+      )}
 
       {/* Dashboard View */}
       {viewMode === "dashboard" && (
@@ -506,7 +535,13 @@ export function GiftsHospitalityClient() {
             />
           </div>
 
-          <TrendChart data={trendData} title="Entries Trend (6 Months)" color="#ec4899" />
+          <TrendChart
+            data={trendData}
+            title="Entries Trend (6 Months)"
+            color="#ec4899"
+            onPointClick={handleMonthFilter}
+            activePointKey={monthFilter?.key}
+          />
         </div>
       )}
 

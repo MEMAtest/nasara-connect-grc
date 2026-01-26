@@ -1,0 +1,100 @@
+[
+  {
+    "id": "nasara_fin_promotions-purpose-purpose_and_objectives",
+    "policy_key": "fin_promotions",
+    "title": "Purpose and objectives",
+    "body_md": "This policy sets out how {{firm.name}} ensures that financial promotions and other customer-facing communications are clear, fair, and not misleading, and aligned to Consumer Duty expectations.\n\nObjectives:\n- define when financial promotion rules apply and who is accountable.\n- ensure risk, limitations, and key exclusions are prominent and proximate to claims.\n- require evidence for claims, comparisons, and numerical statements.\n- set approval, record-keeping, and monitoring standards across all channels.",
+    "source_template_filename": "MODULE_FINANCIAL_PROMOTIONS_CONSUMER_FACING_COMMS.txt"
+  },
+  {
+    "id": "nasara_fin_promotions-scope-scope_and_applicability",
+    "policy_key": "fin_promotions",
+    "title": "Scope and applicability",
+    "body_md": "This policy applies to all marketing and customer-facing communications produced or distributed by {{firm.name}}, including:\n- websites, landing pages, emails, SMS, social posts, paid ads, scripts, PDFs, videos, and chatbots.\n- promotions issued via introducers, affiliates, and influencers.\n- communications created by marketing, product, sales, customer support, or third parties on the firm's behalf.\n\nThe requirements apply to any invitation or inducement to engage in a regulated activity made in the course of business.",
+    "source_template_filename": "MODULE_FINANCIAL_PROMOTIONS_CONSUMER_FACING_COMMS.txt"
+  },
+  {
+    "id": "nasara_fin_promotions-definitions-what_is_a_financial_promotion",
+    "policy_key": "fin_promotions",
+    "title": "What is a financial promotion",
+    "body_md": "A financial promotion is any invitation or inducement to engage in investment, credit, or other regulated activity, made in the course of business.\n\nCommunications can be promotions even if they are short-form, shared, or embedded within other content. If in doubt, treat content as a promotion and apply this policy.",
+    "source_template_filename": "MODULE_FINANCIAL_PROMOTIONS_CONSUMER_FACING_COMMS.txt"
+  },
+  {
+    "id": "nasara_fin_promotions-cfnm-clear_fair_not_misleading",
+    "policy_key": "fin_promotions",
+    "title": "Clear, fair, and not misleading",
+    "body_md": "All promotions must be clear, fair, and not misleading. This means:\n- Clear: plain language, key features and risks are easy to understand.\n- Fair: balanced presentation of benefits and risks; no cherry-picking.\n- Not misleading: no omissions, ambiguity, or contradictions between headline and detail.\n\nControls:\n- avoid absolute claims such as \"guaranteed\" or \"best\" unless fully substantiated.\n- ensure numbers include assumptions, ranges, and fees.\n- prohibit pre-ticked add-ons or hidden conditions.",
+    "source_template_filename": "MODULE_FINANCIAL_PROMOTIONS_CONSUMER_FACING_COMMS.txt"
+  },
+  {
+    "id": "nasara_fin_promotions-prominence-risk_warnings_and_limitations",
+    "policy_key": "fin_promotions",
+    "title": "Prominence of risk warnings and limitations",
+    "body_md": "Risk warnings and material limitations must be prominent and proximate to the claim they qualify.\n\nRequirements:\n- place risks next to the benefit statement or call to action.\n- ensure font size, color, and placement make warnings readable.\n- avoid burying conditions in footnotes or separate pages.\n- ensure landing pages continue the balanced message and do not contradict the headline.",
+    "source_template_filename": "MODULE_FINANCIAL_PROMOTIONS_CONSUMER_FACING_COMMS.txt"
+  },
+  {
+    "id": "nasara_fin_promotions-target_market-target_market_and_consumer_duty",
+    "policy_key": "fin_promotions",
+    "title": "Target market and Consumer Duty alignment",
+    "body_md": "Promotions must be designed for the intended audience and align to Consumer Duty expectations for understanding and outcomes.\n\nControls:\n- define the target market and restrict channels accordingly.\n- ensure language, tone, and format are suitable for the audience.\n- test comprehension for complex products and vulnerable customer segments.\n- confirm target market fit as part of approval and sign-off.",
+    "source_template_filename": "MODULE_FINANCIAL_PROMOTIONS_CONSUMER_FACING_COMMS.txt"
+  },
+  {
+    "id": "nasara_fin_promotions-substantiation-claims_comparisons_and_numbers",
+    "policy_key": "fin_promotions",
+    "title": "Substantiation of claims, comparisons, and numbers",
+    "body_md": "All claims must be true, current, and supportable. Comparisons must be fair and like-for-like.\n\nRequirements:\n- maintain evidence for every factual claim, performance statement, or ranking.\n- disclose assumptions for rates, fees, and numerical examples.\n- do not use outdated or selective evidence.\n- ensure disclaimers do not contradict the headline or main message.",
+    "source_template_filename": "MODULE_FINANCIAL_PROMOTIONS_CONSUMER_FACING_COMMS.txt"
+  },
+  {
+    "id": "nasara_fin_promotions-approvals-approvals_and_third_parties",
+    "policy_key": "fin_promotions",
+    "title": "Approvals and third-party promotions",
+    "body_md": "{{firm.name}} uses a controlled workflow for promotions: brief -> draft -> compliance review -> final sign-off -> release.\n\nControls:\n- no promotion may be published without compliance approval.\n- approvals must be logged with dates, reviewers, and version references.\n- third parties (introducers, affiliates, influencers) must use approved scripts and assets.\n- the firm remains responsible for promotions made on its behalf.",
+    "source_template_filename": "MODULE_FINANCIAL_PROMOTIONS_CONSUMER_FACING_COMMS.txt"
+  },
+  {
+    "id": "nasara_fin_promotions-digital-digital_and_social_specifics",
+    "policy_key": "fin_promotions",
+    "title": "Digital and social communications",
+    "body_md": "Short formats still require balance. Character limits do not remove regulatory obligations.\n\nRequirements:\n- use layered communications where needed (caption plus click-through).\n- ensure the landing page continues the balanced story and includes required risks.\n- avoid sharing or re-posting third-party content without compliance review.\n- record the final post, caption, and linked content as part of the promotion file.",
+    "source_template_filename": "MODULE_FINANCIAL_PROMOTIONS_CONSUMER_FACING_COMMS.txt"
+  },
+  {
+    "id": "nasara_fin_promotions-records-records_and_evidence",
+    "policy_key": "fin_promotions",
+    "title": "Records and evidence",
+    "body_md": "For each promotion, maintain a complete promotion file that includes:\n- final approved copy and creative (all versions).\n- approval records, reviewers, and dates.\n- targeting and placement details (channels and audiences).\n- evidence supporting claims, calculations, and comparisons.\n- monitoring results, complaints, withdrawals, and remediation actions.\n\nRecords must be retained in line with regulatory requirements and internal record-keeping standards.",
+    "source_template_filename": "MODULE_FINANCIAL_PROMOTIONS_CONSUMER_FACING_COMMS.txt"
+  },
+  {
+    "id": "nasara_fin_promotions-monitoring-monitoring_and_review",
+    "policy_key": "fin_promotions",
+    "title": "Monitoring and ongoing review",
+    "body_md": "Promotions must be monitored for performance, customer understanding, and complaint trends.\n\nControls:\n- review active promotions at defined intervals.\n- withdraw or remediate promotions that become misleading due to changes in product terms or market conditions.\n- feed monitoring insights into periodic reviews and Consumer Duty MI.",
+    "source_template_filename": "MODULE_FINANCIAL_PROMOTIONS_CONSUMER_FACING_COMMS.txt"
+  },
+  {
+    "id": "nasara_fin_promotions-escalation-red_flags_and_escalation",
+    "policy_key": "fin_promotions",
+    "title": "Red flags and escalation",
+    "body_md": "Examples of red flags include:\n- claims of \"guaranteed\" returns or outcomes.\n- hidden fees, exclusions, or conditions.\n- absolute statements such as \"no catches\" or \"best on the market\" without evidence.\n- conflicting information between headline, landing page, and terms.\n\nIf in doubt, pause publication and escalate to Compliance for review.",
+    "source_template_filename": "MODULE_FINANCIAL_PROMOTIONS_CONSUMER_FACING_COMMS.txt"
+  },
+  {
+    "id": "nasara_fin_promotions-training-training_and_awareness",
+    "policy_key": "fin_promotions",
+    "title": "Training and awareness",
+    "body_md": "Staff who draft, review, approve, or publish promotions must complete financial promotions training and maintain awareness of current regulatory standards.\n\nTraining completion and attestations must be recorded and refreshed in line with the firm's training plan.",
+    "source_template_filename": "MODULE_FINANCIAL_PROMOTIONS_CONSUMER_FACING_COMMS.txt"
+  },
+  {
+    "id": "nasara_fin_promotions-governance-governance_and_accountability",
+    "policy_key": "fin_promotions",
+    "title": "Governance and accountability",
+    "body_md": "Compliance owns the financial promotions framework and provides oversight of approvals, monitoring, and record keeping.\n\nSenior management is accountable for ensuring appropriate resourcing, escalation routes, and periodic review of this policy.",
+    "source_template_filename": "MODULE_FINANCIAL_PROMOTIONS_CONSUMER_FACING_COMMS.txt"
+  }
+]

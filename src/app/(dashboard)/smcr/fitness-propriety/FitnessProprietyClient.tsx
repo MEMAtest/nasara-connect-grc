@@ -31,11 +31,15 @@ import {
   FitnessBooleanAnswer,
 } from "../context/SmcrDataContext";
 import { fitnessQuestionGroups } from "../data/fitness-framework";
+import { FitnessProprietyIcon } from "../components/SmcrIcons";
+
+type ReviewFrequency = "monthly" | "quarterly" | "semi_annual" | "annual";
 
 interface StartAssessmentForm {
   personId: string;
   assessmentDate?: Date;
   nextDueDate?: Date;
+  reviewFrequency: ReviewFrequency;
   reviewer: string;
 }
 
@@ -44,6 +48,7 @@ interface StatusDraft {
   reviewer: string;
   assessmentDate?: Date;
   nextDueDate?: Date;
+  reviewFrequency: ReviewFrequency;
   conditions: string;
 }
 
@@ -51,6 +56,7 @@ const initialStartForm: StartAssessmentForm = {
   personId: "",
   assessmentDate: undefined,
   nextDueDate: undefined,
+  reviewFrequency: "annual",
   reviewer: "",
 };
 
@@ -59,8 +65,24 @@ const initialStatusDraft: StatusDraft = {
   reviewer: "",
   assessmentDate: undefined,
   nextDueDate: undefined,
+  reviewFrequency: "annual",
   conditions: "",
 };
+
+const frequencyOptions: { label: string; value: ReviewFrequency; months: number }[] = [
+  { label: "Monthly", value: "monthly", months: 1 },
+  { label: "Quarterly", value: "quarterly", months: 3 },
+  { label: "Semi-Annual", value: "semi_annual", months: 6 },
+  { label: "Annual", value: "annual", months: 12 },
+];
+
+function calculateNextDueDate(assessmentDate: Date, frequency: ReviewFrequency): Date {
+  const frequencyConfig = frequencyOptions.find((f) => f.value === frequency);
+  const months = frequencyConfig?.months ?? 12;
+  const nextDate = new Date(assessmentDate);
+  nextDate.setMonth(nextDate.getMonth() + months);
+  return nextDate;
+}
 
 const booleanOptions: { label: string; value: FitnessBooleanAnswer }[] = [
   { label: "Yes", value: "yes" },
@@ -117,6 +139,7 @@ export function FitnessProprietyClient() {
         reviewer: activeAssessment.reviewer ?? "",
         assessmentDate: parseDate(activeAssessment.assessmentDate),
         nextDueDate: parseDate(activeAssessment.nextDueDate),
+        reviewFrequency: "annual", // Default to annual for existing assessments
         conditions: activeAssessment.conditions?.join("\n") ?? "",
       });
     }
@@ -197,9 +220,12 @@ export function FitnessProprietyClient() {
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Fitness &amp; Propriety Assessments</h1>
-          <p className="text-slate-600 mt-1">Track and document SM&amp;CR fitness determinations with evidence-backed questions.</p>
+        <div className="flex items-center gap-4">
+          <FitnessProprietyIcon size={48} />
+          <div>
+            <h1 className="text-2xl font-semibold text-slate-900">Fitness &amp; Propriety Assessments</h1>
+            <p className="text-slate-600 mt-1">Track and document SM&amp;CR fitness determinations with evidence-backed questions.</p>
+          </div>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={handleExportAll}>
@@ -309,14 +335,59 @@ export function FitnessProprietyClient() {
                 label="Assessment Date"
                 placeholder="Select date"
                 value={startForm.assessmentDate}
-                onChange={(date) => setStartForm((prev) => ({ ...prev, assessmentDate: date }))}
+                onChange={(date) => {
+                  setStartForm((prev) => {
+                    const updated = { ...prev, assessmentDate: date };
+                    // Auto-calculate next due date based on frequency
+                    if (date) {
+                      updated.nextDueDate = calculateNextDueDate(date, prev.reviewFrequency);
+                    }
+                    return updated;
+                  });
+                }}
               />
+              <div>
+                <Label>Review Frequency</Label>
+                <Select
+                  value={startForm.reviewFrequency}
+                  onValueChange={(value: ReviewFrequency) => {
+                    setStartForm((prev) => {
+                      const updated = { ...prev, reviewFrequency: value };
+                      // Recalculate next due date when frequency changes
+                      if (prev.assessmentDate) {
+                        updated.nextDueDate = calculateNextDueDate(prev.assessmentDate, value);
+                      }
+                      return updated;
+                    });
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {frequencyOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               <DatePickerField
-                label="Next Due Date"
-                placeholder="Select date"
+                label="Next Due Date (auto-calculated)"
+                placeholder="Set assessment date first"
                 value={startForm.nextDueDate}
                 onChange={(date) => setStartForm((prev) => ({ ...prev, nextDueDate: date }))}
               />
+              <div className="flex items-end">
+                {startForm.nextDueDate && (
+                  <div className="text-xs text-slate-500 pb-2">
+                    Next review: {format(startForm.nextDueDate, "PPP")}
+                  </div>
+                )}
+              </div>
             </div>
             <div>
               <Label htmlFor="reviewer">Reviewer</Label>
@@ -492,16 +563,52 @@ export function FitnessProprietyClient() {
                       </Select>
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                     <DatePickerField
                       label="Assessment Date"
                       placeholder="Select date"
                       value={statusDraft.assessmentDate}
-                      onChange={(date) => setStatusDraft((prev) => ({ ...prev, assessmentDate: date }))}
+                      onChange={(date) => {
+                        setStatusDraft((prev) => {
+                          const updated = { ...prev, assessmentDate: date };
+                          // Auto-calculate next due date based on frequency
+                          if (date) {
+                            updated.nextDueDate = calculateNextDueDate(date, prev.reviewFrequency);
+                          }
+                          return updated;
+                        });
+                      }}
                     />
+                    <div>
+                      <Label className="text-sm text-slate-700">Review Frequency</Label>
+                      <Select
+                        value={statusDraft.reviewFrequency}
+                        onValueChange={(value: ReviewFrequency) => {
+                          setStatusDraft((prev) => {
+                            const updated = { ...prev, reviewFrequency: value };
+                            // Recalculate next due date when frequency changes
+                            if (prev.assessmentDate) {
+                              updated.nextDueDate = calculateNextDueDate(prev.assessmentDate, value);
+                            }
+                            return updated;
+                          });
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {frequencyOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                     <DatePickerField
                       label="Next Due Date"
-                      placeholder="Select date"
+                      placeholder="Auto-calculated"
                       value={statusDraft.nextDueDate}
                       onChange={(date) => setStatusDraft((prev) => ({ ...prev, nextDueDate: date }))}
                     />

@@ -18,6 +18,7 @@ import {
   badRequestResponse,
   serverErrorResponse,
 } from "@/lib/api-auth";
+import { notifyRegisterCreated } from "@/lib/server/notification-builders";
 import { logError } from "@/lib/logger";
 
 const PRODUCT_TYPES = ["investment", "insurance", "credit", "payment", "deposit", "other"] as const;
@@ -184,6 +185,16 @@ export async function POST(request: NextRequest) {
     };
 
     const record = await createProductGovernanceRecord(recordData);
+    try {
+      await notifyRegisterCreated({
+        organizationId: authResult.user.organizationId,
+        registerKey: "product-governance",
+        record,
+        actor: authResult.user.userEmail,
+      });
+    } catch {
+      // Non-blocking notification failures
+    }
 
     return NextResponse.json({ record }, { status: 201 });
   } catch (error) {

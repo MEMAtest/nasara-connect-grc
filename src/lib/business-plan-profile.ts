@@ -672,11 +672,14 @@ const PROFILE_QUESTIONS: ProfileQuestion[] = [
       { value: "cash-withdrawal", label: "Cash withdrawal from payment account", score: 2 },
       { value: "execution-transfers", label: "Execution of payment transactions (credit transfer, direct debit, card)", score: 2 },
       { value: "execution-telecom", label: "Execution via telecom or IT device", score: 1 },
+      { value: "payment-initiation", label: "Payment initiation services (PIS)", score: 2 },
+      { value: "account-info", label: "Account information services (AIS)", score: 2 },
       { value: "issuing-acquiring", label: "Issuing or acquiring payment instruments", score: 2 },
       { value: "money-remittance", label: "Money remittance", score: 2 },
     ],
     packSectionKeys: ["product-scope", "product-architecture", "schedule-2"],
     appliesTo: ["payments"],
+    impact: "Selecting a service defines the FCA permissions you need and drives the policy and evidence list.",
   },
   {
     id: "pay-exemptions",
@@ -746,6 +749,7 @@ const PROFILE_QUESTIONS: ProfileQuestion[] = [
     options: [
       { value: "segregated", label: "Segregated safeguarding account", score: 3 },
       { value: "insurance", label: "Insurance or comparable guarantee", score: 2 },
+      { value: "na", label: "Not applicable (no client funds held)", score: 2 },
       { value: "undecided", label: "Not decided yet", score: 0 },
     ],
     packSectionKeys: ["client-asset-protection"],
@@ -884,10 +888,10 @@ const PROFILE_QUESTIONS: ProfileQuestion[] = [
     regulatoryRefs: ["PSR 2017 - Own funds calculation"],
     options: [
       { value: "1-5", label: "1-5 employees", score: 1 },
-      { value: "6-10", label: "6-10 employees", score: 2 },
-      { value: "11-25", label: "11-25 employees", score: 2 },
-      { value: "26-50", label: "26-50 employees", score: 3 },
-      { value: "50+", label: "50+ employees", score: 3 },
+      { value: "6-20", label: "6-20 employees", score: 2 },
+      { value: "21-50", label: "21-50 employees", score: 2 },
+      { value: "51-100", label: "51-100 employees", score: 3 },
+      { value: "100+", label: "100+ employees", score: 3 },
     ],
     packSectionKeys: ["financials", "governance"],
     appliesTo: ["payments"],
@@ -896,7 +900,7 @@ const PROFILE_QUESTIONS: ProfileQuestion[] = [
     id: "pay-monthly-opex",
     sectionId: "payments",
     prompt: "Estimated monthly operating expenditure (GBP)",
-    description: "Enter your projected monthly operating costs. Used to calculate own funds requirement under Method A.",
+    description: "Enter your projected monthly operating costs (staff, technology, compliance, rent, outsourcing). Used for Method A own funds.",
     placeholder: "e.g., 120000",
     type: "number",
     required: true,
@@ -1552,16 +1556,19 @@ const calculateCapitalEstimate = (
   const rawOpex = responses["pay-monthly-opex"];
   const rawVolume = responses["pay-volume"];
 
-  const monthlyOpex = typeof rawOpex === "number"
-    ? rawOpex
-    : typeof rawOpex === "string"
-    ? parseFloat(rawOpex.replace(/,/g, ""))
-    : null;
-  const monthlyVolume = typeof rawVolume === "number"
-    ? rawVolume
-    : typeof rawVolume === "string"
-    ? parseFloat(rawVolume.replace(/,/g, ""))
-    : null;
+  const parseNumeric = (value: ProfileResponse | undefined) => {
+    if (typeof value === "number") return Number.isFinite(value) ? value : null;
+    if (typeof value === "string") {
+      const cleaned = value.replace(/[^0-9.]/g, "");
+      if (!cleaned) return null;
+      const parsed = Number(cleaned);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+    return null;
+  };
+
+  const monthlyOpex = parseNumeric(rawOpex);
+  const monthlyVolume = parseNumeric(rawVolume);
   const emoney = responses["pay-emoney"] === "yes";
 
   // Minimum capital requirements in EUR, converted to GBP

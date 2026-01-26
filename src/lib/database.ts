@@ -185,6 +185,19 @@ export async function initDatabase() {
     `);
 
     await client.query(`
+      CREATE TABLE IF NOT EXISTS policy_firm_profiles (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+        firm_profile JSONB DEFAULT '{}'::jsonb,
+        governance_defaults JSONB DEFAULT '{}'::jsonb,
+        linked_project_ids UUID[] DEFAULT '{}',
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE (organization_id)
+      )
+    `);
+
+    await client.query(`
       CREATE TABLE IF NOT EXISTS policies (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
@@ -6980,26 +6993,42 @@ export interface SmcrCertificationRecord {
   pack_id?: string;
   employee_reference: string;
   employee_name: string;
+  job_title?: string;
   certification_function: string;
   function_code?: string;
   department?: string;
   start_date?: Date;
+  certification_start_date?: Date;
+  certification_expiry_date?: Date;
   annual_assessment_due?: Date;
+  next_assessment_due?: Date;
   last_assessment_date?: Date;
+  assessor_name?: string;
   assessment_outcome?: string;
-  fit_proper_confirmed: boolean;
-  conduct_rules_training: boolean;
+  training_completed?: boolean;
+  training_details?: string;
+  competency_confirmed?: boolean;
+  competency_evidence?: string;
+  fit_proper_confirmed?: boolean;
+  fit_and_proper_confirmed?: boolean;
+  fit_and_proper_date?: Date;
+  conduct_rules_training?: boolean;
   conduct_rules_date?: Date;
-  regulatory_references_checked: boolean;
-  criminal_records_checked: boolean;
-  credit_checked: boolean;
+  regulatory_references_checked?: boolean;
+  regulatory_references_obtained?: boolean;
+  references_details?: string;
+  criminal_records_checked?: boolean;
+  credit_checked?: boolean;
   certification_status: string;
   certified_by?: string;
+  certification_issued_by?: string;
   certification_date?: Date;
+  certification_issued_date?: Date;
   certification_expiry?: Date;
-  conduct_breaches: number;
+  conduct_breaches?: number;
   last_breach_date?: Date;
   status: string;
+  leaving_date?: Date;
   notes?: string;
   created_at: Date;
   updated_at: Date;

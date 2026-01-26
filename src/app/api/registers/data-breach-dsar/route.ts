@@ -19,6 +19,7 @@ import {
   badRequestResponse,
   serverErrorResponse,
 } from "@/lib/api-auth";
+import { notifyRegisterCreated } from "@/lib/server/notification-builders";
 import { logError } from "@/lib/logger";
 
 const RECORD_TYPES = ["data_breach", "dsar"] as const;
@@ -182,6 +183,16 @@ export async function POST(request: NextRequest) {
     };
 
     const record = await createDataBreachDsarRecord(recordData);
+    try {
+      await notifyRegisterCreated({
+        organizationId: authResult.user.organizationId,
+        registerKey: "data-breach-dsar",
+        record,
+        actor: authResult.user.userEmail,
+      });
+    } catch {
+      // Non-blocking notification failures
+    }
 
     return NextResponse.json({ record }, { status: 201 });
   } catch (error) {

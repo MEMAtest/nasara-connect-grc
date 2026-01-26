@@ -8,7 +8,11 @@ import {
   PERMISSION_ECOSYSTEMS,
   PermissionCode,
 } from "@/lib/authorization-pack-ecosystems";
-import type { BusinessPlanProfile } from "@/lib/business-plan-profile";
+import {
+  buildProfileInsights,
+  isProfilePermissionCode,
+  type BusinessPlanProfile,
+} from "@/lib/business-plan-profile";
 
 interface PackTemplateRow {
   id: string;
@@ -28,6 +32,20 @@ interface PermissionEcosystemRow {
   training_requirements: string[];
   smcr_roles: string[];
   typical_timeline_weeks: number | null;
+}
+
+interface OpinionPackGenerationJobRow {
+  id: string;
+  pack_id: string;
+  status: string;
+  progress: number | null;
+  current_step: string | null;
+  payload: unknown;
+  error_message: string | null;
+  document_id: string | null;
+  document_name: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 const normalizeEvidenceName = (value: string) => value.trim().toLowerCase();
@@ -499,6 +517,40 @@ export async function initAuthorizationPackDatabase() {
         ADD COLUMN IF NOT EXISTS signed_at TIMESTAMP,
         ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW(),
         ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT NOW();
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS authorization_pack_generation_jobs (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        pack_id UUID REFERENCES packs(id) ON DELETE CASCADE,
+        status VARCHAR(50) DEFAULT 'pending',
+        progress INTEGER DEFAULT 0,
+        current_step VARCHAR(255),
+        payload JSONB DEFAULT '{}'::jsonb,
+        error_message TEXT,
+        document_id UUID,
+        document_name TEXT,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    await client.query(`
+      ALTER TABLE authorization_pack_generation_jobs
+        ADD COLUMN IF NOT EXISTS pack_id UUID REFERENCES packs(id) ON DELETE CASCADE,
+        ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'pending',
+        ADD COLUMN IF NOT EXISTS progress INTEGER DEFAULT 0,
+        ADD COLUMN IF NOT EXISTS current_step VARCHAR(255),
+        ADD COLUMN IF NOT EXISTS payload JSONB DEFAULT '{}'::jsonb,
+        ADD COLUMN IF NOT EXISTS error_message TEXT,
+        ADD COLUMN IF NOT EXISTS document_id UUID,
+        ADD COLUMN IF NOT EXISTS document_name TEXT,
+        ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW(),
+        ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT NOW();
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_auth_pack_gen_jobs_pack ON authorization_pack_generation_jobs(pack_id);
     `);
 
     await client.query(`
@@ -985,6 +1037,7 @@ export async function getAuthorizationProjects(organizationId: string) {
               ap.created_at,
               ap.updated_at,
               ap.pack_id,
+              ap.assessment_data,
               pe.name as permission_name,
               pe.description as permission_description,
               pe.typical_timeline_weeks,
@@ -1005,18 +1058,178 @@ export async function getAuthorizationProjects(organizationId: string) {
       [organizationId]
     );
 
-    const projects = await Promise.all(
-      result.rows.map(async (row) => {
-        const readiness = row.pack_id ? await getPackReadiness(row.pack_id) : null;
-        return {
-          ...row,
-          policy_templates: coerceJsonArray<string>(row.policy_templates),
-          training_requirements: coerceJsonArray<string>(row.training_requirements),
-          smcr_roles: coerceJsonArray<string>(row.smcr_roles),
-          readiness,
-        };
-      })
+    const packIds = Array.from(
+      new Set(result.rows.map((row) => row.pack_id).filter((packId): packId is string => Boolean(packId)))
     );
+    const readinessByPack = new Map<
+      string,
+      { overall: number; narrative: number; evidence: number; review: number }
+    >();
+
+    if (packIds.length) {
+      const [sectionCounts, narrativeRes, evidenceRes, reviewRes, opinionRes] = await Promise.all([
+        client.query(
+          `SELECT pack_id, COUNT(*)::int as count
+           FROM section_instances
+           WHERE pack_id = ANY($1::uuid[])
+           GROUP BY pack_id`,
+          [packIds]
+        ),
+        client.query(
+          `WITH prompt_counts AS (
+             SELECT si.pack_id,
+                    si.id AS section_instance_id,
+                    COUNT(p.id) FILTER (WHERE p.required IS TRUE) AS required_prompts,
+                    COUNT(pr.id) FILTER (WHERE pr.value IS NOT NULL AND pr.value <> '') AS answered_prompts
+             FROM section_instances si
+             JOIN section_templates st ON st.id = si.section_template_id
+             LEFT JOIN prompts p ON p.section_template_id = st.id
+             LEFT JOIN prompt_responses pr ON pr.section_instance_id = si.id AND pr.prompt_id = p.id
+             WHERE si.pack_id = ANY($1::uuid[])
+             GROUP BY si.pack_id, si.id
+           )
+           SELECT pack_id,
+                  AVG(
+                    CASE
+                      WHEN required_prompts = 0 THEN 0
+                      ELSE (answered_prompts::decimal / required_prompts::decimal) * 100
+                    END
+                  ) AS narrative
+           FROM prompt_counts
+           GROUP BY pack_id`,
+          [packIds]
+        ),
+        client.query(
+          `WITH evidence_counts AS (
+             SELECT si.pack_id,
+                    si.id AS section_instance_id,
+                    COUNT(ei.id) FILTER (WHERE ei.status IN ('uploaded', 'approved')) AS uploaded,
+                    COUNT(ei.id) AS total
+             FROM section_instances si
+             LEFT JOIN evidence_items ei ON ei.section_instance_id = si.id
+             WHERE si.pack_id = ANY($1::uuid[])
+             GROUP BY si.pack_id, si.id
+           )
+           SELECT pack_id,
+                  AVG(
+                    CASE
+                      WHEN total = 0 THEN 0
+                      ELSE (uploaded::decimal / total::decimal) * 100
+                    END
+                  ) AS evidence
+           FROM evidence_counts
+           GROUP BY pack_id`,
+          [packIds]
+        ),
+        client.query(
+          `WITH review_counts AS (
+             SELECT si.pack_id,
+                    si.id AS section_instance_id,
+                    COUNT(rg.id) FILTER (WHERE rg.state = 'approved') AS approved,
+                    COUNT(rg.id) AS total
+             FROM section_instances si
+             LEFT JOIN review_gates rg ON rg.section_instance_id = si.id
+             WHERE si.pack_id = ANY($1::uuid[])
+             GROUP BY si.pack_id, si.id
+           )
+           SELECT pack_id,
+                  AVG(
+                    CASE
+                      WHEN total = 0 THEN 0
+                      ELSE (approved::decimal / total::decimal) * 100
+                    END
+                  ) AS review
+           FROM review_counts
+           GROUP BY pack_id`,
+          [packIds]
+        ),
+        client.query(
+          `SELECT pack_id,
+                  COUNT(*) FILTER (
+                    WHERE section_code = 'perimeter-opinion'
+                      AND storage_key IS NOT NULL
+                      AND storage_key <> ''
+                  ) AS opinion_count
+           FROM pack_documents
+           WHERE pack_id = ANY($1::uuid[])
+           GROUP BY pack_id`,
+          [packIds]
+        ),
+      ]);
+
+      const sectionCountMap = new Map(
+        sectionCounts.rows.map((row) => [row.pack_id, Number(row.count || 0)])
+      );
+      const narrativeMap = new Map(
+        narrativeRes.rows.map((row) => [row.pack_id, Number(row.narrative || 0)])
+      );
+      const evidenceMap = new Map(
+        evidenceRes.rows.map((row) => [row.pack_id, Number(row.evidence || 0)])
+      );
+      const reviewMap = new Map(
+        reviewRes.rows.map((row) => [row.pack_id, Number(row.review || 0)])
+      );
+      const opinionMap = new Map(
+        opinionRes.rows.map((row) => [row.pack_id, Number(row.opinion_count || 0) > 0])
+      );
+
+      result.rows.forEach((row) => {
+        if (!row.pack_id || readinessByPack.has(row.pack_id)) return;
+        const assessmentData = coerceJsonObject<ProjectAssessmentData>(row.assessment_data);
+        const responses = assessmentData?.businessPlanProfile?.responses ?? {};
+        const permission = isProfilePermissionCode(row.permission_code)
+          ? row.permission_code
+          : row.permission_code?.startsWith("payments")
+          ? "payments"
+          : null;
+        const hasResponses = Object.keys(responses).length > 0;
+        const profileCompletion =
+          permission && hasResponses ? buildProfileInsights(permission, responses).completionPercent : 0;
+        const opinionCompletion = opinionMap.get(row.pack_id) ? 100 : 0;
+
+        const baseNarrative = Math.round(narrativeMap.get(row.pack_id) ?? 0);
+        const baseEvidence = Math.round(evidenceMap.get(row.pack_id) ?? 0);
+        const baseReview = Math.round(reviewMap.get(row.pack_id) ?? 0);
+
+        const narrative = Math.max(baseNarrative, profileCompletion, opinionCompletion);
+        const review = Math.max(baseReview, opinionCompletion);
+        const evidence = baseEvidence;
+        const hasSections = (sectionCountMap.get(row.pack_id) ?? 0) > 0;
+        const overall = hasSections
+          ? Math.round(narrative * 0.4 + evidence * 0.4 + review * 0.2)
+          : Math.max(profileCompletion, opinionCompletion);
+
+        readinessByPack.set(row.pack_id, {
+          overall,
+          narrative: Math.round(narrative),
+          evidence: Math.round(evidence),
+          review: Math.round(review),
+        });
+      });
+    }
+
+    const projects = result.rows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      permission_code: row.permission_code,
+      status: row.status,
+      target_submission_date: row.target_submission_date,
+      created_at: row.created_at,
+      updated_at: row.updated_at,
+      pack_id: row.pack_id,
+      permission_name: row.permission_name,
+      permission_description: row.permission_description,
+      typical_timeline_weeks: row.typical_timeline_weeks,
+      policy_templates: coerceJsonArray<string>(row.policy_templates),
+      training_requirements: coerceJsonArray<string>(row.training_requirements),
+      smcr_roles: coerceJsonArray<string>(row.smcr_roles),
+      pack_name: row.pack_name,
+      pack_status: row.pack_status,
+      pack_target_submission_date: row.pack_target_submission_date,
+      pack_template_type: row.pack_template_type,
+      pack_template_name: row.pack_template_name,
+      readiness: row.pack_id ? readinessByPack.get(row.pack_id) ?? null : null,
+    }));
     return projects;
   } finally {
     client.release();
@@ -1062,7 +1275,39 @@ export async function getAuthorizationProject(projectId: string) {
     if (!row) return null;
 
     const sections = row.pack_id ? await getSections(row.pack_id) : [];
-    const readiness = row.pack_id ? buildReadinessFromSections(sections) : null;
+    let readiness = row.pack_id ? buildReadinessFromSections(sections) : null;
+    if (row.pack_id) {
+      const assessmentData = coerceJsonObject<ProjectAssessmentData>(row.assessment_data);
+      const responses = assessmentData?.businessPlanProfile?.responses ?? {};
+      const permission = isProfilePermissionCode(row.permission_code)
+        ? row.permission_code
+        : row.permission_code?.startsWith("payments")
+        ? "payments"
+        : null;
+      const hasResponses = Object.keys(responses).length > 0;
+      const profileCompletion =
+        permission && hasResponses ? buildProfileInsights(permission, responses).completionPercent : 0;
+      const documents = await getPackDocuments(row.pack_id);
+      const hasOpinionPack = documents.some(
+        (doc) => doc.section_code === "perimeter-opinion" && doc.storage_key
+      );
+      const opinionCompletion = hasOpinionPack ? 100 : 0;
+      const baseNarrative = readiness?.narrative ?? 0;
+      const baseEvidence = readiness?.evidence ?? 0;
+      const baseReview = readiness?.review ?? 0;
+      const narrative = Math.max(baseNarrative, profileCompletion, opinionCompletion);
+      const review = Math.max(baseReview, opinionCompletion);
+      const evidence = baseEvidence;
+      const overall = sections.length
+        ? Math.round(narrative * 0.4 + evidence * 0.4 + review * 0.2)
+        : Math.max(profileCompletion, opinionCompletion);
+      readiness = {
+        overall,
+        narrative,
+        evidence,
+        review,
+      };
+    }
 
     return {
       ...row,
@@ -2088,6 +2333,159 @@ export async function deletePackDocument(documentId: string) {
   }
 }
 
+const normalizeOpinionPackGenerationJob = (row: OpinionPackGenerationJobRow | undefined | null) => {
+  if (!row) return null;
+  return {
+    id: row.id,
+    packId: row.pack_id,
+    status: row.status,
+    progress: typeof row.progress === "number" ? row.progress : 0,
+    currentStep: row.current_step,
+    payload: coerceJsonObject<Record<string, unknown>>(row.payload),
+    errorMessage: row.error_message,
+    documentId: row.document_id,
+    documentName: row.document_name,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+};
+
+export async function createOpinionPackGenerationJob(packId: string) {
+  await initAuthorizationPackDatabase();
+  const client = await pool.connect();
+  try {
+    const jobId = randomUUID();
+    const payload = { aiContent: {}, warnings: [] };
+    const result = await client.query(
+      `INSERT INTO authorization_pack_generation_jobs
+        (id, pack_id, status, progress, current_step, payload)
+       VALUES ($1, $2, 'pending', 0, 'queued', $3)
+       RETURNING *`,
+      [jobId, packId, payload]
+    );
+    return normalizeOpinionPackGenerationJob(result.rows[0]);
+  } finally {
+    client.release();
+  }
+}
+
+export async function getOpinionPackGenerationJob(jobId: string) {
+  await initAuthorizationPackDatabase();
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `SELECT *
+       FROM authorization_pack_generation_jobs
+       WHERE id = $1
+       LIMIT 1`,
+      [jobId]
+    );
+    return normalizeOpinionPackGenerationJob(result.rows[0] as OpinionPackGenerationJobRow | undefined);
+  } finally {
+    client.release();
+  }
+}
+
+export async function getActiveOpinionPackGenerationJob(packId: string) {
+  await initAuthorizationPackDatabase();
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `SELECT *
+       FROM authorization_pack_generation_jobs
+       WHERE pack_id = $1 AND status IN ('pending', 'processing')
+       ORDER BY created_at DESC
+       LIMIT 1`,
+      [packId]
+    );
+    return normalizeOpinionPackGenerationJob(result.rows[0] as OpinionPackGenerationJobRow | undefined);
+  } finally {
+    client.release();
+  }
+}
+
+export async function getLatestOpinionPackGenerationJob(packId: string) {
+  await initAuthorizationPackDatabase();
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `SELECT *
+       FROM authorization_pack_generation_jobs
+       WHERE pack_id = $1
+       ORDER BY created_at DESC
+       LIMIT 1`,
+      [packId]
+    );
+    return normalizeOpinionPackGenerationJob(result.rows[0] as OpinionPackGenerationJobRow | undefined);
+  } finally {
+    client.release();
+  }
+}
+
+export async function updateOpinionPackGenerationJob(
+  jobId: string,
+  updates: {
+    status?: string;
+    progress?: number;
+    currentStep?: string | null;
+    payload?: Record<string, unknown>;
+    errorMessage?: string | null;
+    documentId?: string | null;
+    documentName?: string | null;
+  }
+) {
+  await initAuthorizationPackDatabase();
+  const client = await pool.connect();
+  try {
+    const setClauses: string[] = [];
+    const values: unknown[] = [];
+    let idx = 1;
+
+    if (updates.status !== undefined) {
+      setClauses.push(`status = $${idx++}`);
+      values.push(updates.status);
+    }
+    if (updates.progress !== undefined) {
+      setClauses.push(`progress = $${idx++}`);
+      values.push(updates.progress);
+    }
+    if (updates.currentStep !== undefined) {
+      setClauses.push(`current_step = $${idx++}`);
+      values.push(updates.currentStep);
+    }
+    if (updates.payload !== undefined) {
+      setClauses.push(`payload = $${idx++}`);
+      values.push(updates.payload);
+    }
+    if (updates.errorMessage !== undefined) {
+      setClauses.push(`error_message = $${idx++}`);
+      values.push(updates.errorMessage);
+    }
+    if (updates.documentId !== undefined) {
+      setClauses.push(`document_id = $${idx++}`);
+      values.push(updates.documentId);
+    }
+    if (updates.documentName !== undefined) {
+      setClauses.push(`document_name = $${idx++}`);
+      values.push(updates.documentName);
+    }
+
+    setClauses.push("updated_at = NOW()");
+    values.push(jobId);
+
+    const result = await client.query(
+      `UPDATE authorization_pack_generation_jobs
+       SET ${setClauses.join(", ")}
+       WHERE id = $${idx}
+       RETURNING *`,
+      values
+    );
+    return normalizeOpinionPackGenerationJob(result.rows[0] as OpinionPackGenerationJobRow | undefined);
+  } finally {
+    client.release();
+  }
+}
+
 export async function updatePack(
   packId: string,
   updates: {
@@ -2773,7 +3171,43 @@ function buildReadinessFromSections(
 
 export async function getPackReadiness(packId: string) {
   const sections = await getSections(packId);
-  return buildReadinessFromSections(sections);
+  const readiness = buildReadinessFromSections(sections);
+
+  const project = await getProjectByPackId(packId);
+  if (!project) {
+    return readiness;
+  }
+
+  const permission = isProfilePermissionCode(project.permissionCode)
+    ? project.permissionCode
+    : project.permissionCode?.startsWith("payments")
+    ? "payments"
+    : null;
+
+  const responses = project.assessmentData?.businessPlanProfile?.responses ?? {};
+  const hasResponses = Object.keys(responses).length > 0;
+  const profileCompletion =
+    permission && hasResponses ? buildProfileInsights(permission, responses).completionPercent : 0;
+
+  const documents = await getPackDocuments(packId);
+  const hasOpinionPack = documents.some(
+    (doc) => doc.section_code === "perimeter-opinion" && doc.storage_key
+  );
+  const opinionCompletion = hasOpinionPack ? 100 : 0;
+
+  const narrative = Math.max(readiness.narrative, profileCompletion, opinionCompletion);
+  const review = Math.max(readiness.review, opinionCompletion);
+  const evidence = readiness.evidence;
+  const overall = sections.length
+    ? Math.round(narrative * 0.4 + evidence * 0.4 + review * 0.2)
+    : Math.max(profileCompletion, opinionCompletion);
+
+  return {
+    overall,
+    narrative,
+    evidence,
+    review,
+  };
 }
 
 function average(values: number[]) {

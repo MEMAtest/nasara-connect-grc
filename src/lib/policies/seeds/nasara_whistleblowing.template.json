@@ -1,0 +1,118 @@
+{
+  "code": "WHISTLEBLOWING",
+  "name": "Whistleblowing & Speaking Up",
+  "category": "Governance",
+  "description": "Policy defining whistleblowing channels, protections, and investigation processes.",
+  "sections": [
+    {
+      "id": "purpose",
+      "title": "Purpose and objectives",
+      "summary": "Set objectives for whistleblowing and speaking up.",
+      "suggestedClauses": [
+        "nasara_whistleblowing-purpose-purpose_and_objectives"
+      ]
+    },
+    {
+      "id": "scope",
+      "title": "Scope and applicability",
+      "summary": "Define who and what the policy covers.",
+      "suggestedClauses": [
+        "nasara_whistleblowing-scope-scope_and_applicability"
+      ]
+    },
+    {
+      "id": "definitions",
+      "title": "What is whistleblowing",
+      "summary": "Define protected disclosures and grievances.",
+      "suggestedClauses": [
+        "nasara_whistleblowing-definitions-what_is_whistleblowing"
+      ]
+    },
+    {
+      "id": "channels",
+      "title": "Channels and confidentiality",
+      "summary": "Define channels and confidentiality protections.",
+      "suggestedClauses": [
+        "nasara_whistleblowing-channels-channels_and_confidentiality"
+      ]
+    },
+    {
+      "id": "details",
+      "title": "What to include",
+      "summary": "Set expectations for report details and evidence.",
+      "suggestedClauses": [
+        "nasara_whistleblowing-details-what_to_include"
+      ]
+    },
+    {
+      "id": "triage",
+      "title": "Triage and investigation",
+      "summary": "Define the investigation lifecycle.",
+      "suggestedClauses": [
+        "nasara_whistleblowing-triage-triage_and_investigation"
+      ]
+    },
+    {
+      "id": "managers",
+      "title": "Manager responsibilities",
+      "summary": "Define how managers should receive concerns.",
+      "suggestedClauses": [
+        "nasara_whistleblowing-managers-manager_responsibilities"
+      ]
+    },
+    {
+      "id": "retaliation",
+      "title": "No retaliation",
+      "summary": "Set non-retaliation expectations.",
+      "suggestedClauses": [
+        "nasara_whistleblowing-retaliation-no_retaliation"
+      ]
+    },
+    {
+      "id": "escalation",
+      "title": "Escalation and regulators",
+      "summary": "Define escalation routes and regulator engagement.",
+      "suggestedClauses": [
+        "nasara_whistleblowing-escalation-escalation_and_regulators"
+      ]
+    },
+    {
+      "id": "records",
+      "title": "Records and MI",
+      "summary": "Define record keeping and MI requirements.",
+      "suggestedClauses": [
+        "nasara_whistleblowing-records-records_and_mi"
+      ]
+    },
+    {
+      "id": "training",
+      "title": "Training and awareness",
+      "summary": "Require training and attestations.",
+      "suggestedClauses": [
+        "nasara_whistleblowing-training-training_and_awareness"
+      ]
+    },
+    {
+      "id": "governance",
+      "title": "Governance and review",
+      "summary": "Set oversight and review cadence.",
+      "suggestedClauses": [
+        "nasara_whistleblowing-governance-governance_and_review"
+      ]
+    }
+  ],
+  "mandatoryClauses": [
+    "nasara_whistleblowing-purpose-purpose_and_objectives",
+    "nasara_whistleblowing-scope-scope_and_applicability",
+    "nasara_whistleblowing-definitions-what_is_whistleblowing",
+    "nasara_whistleblowing-channels-channels_and_confidentiality",
+    "nasara_whistleblowing-details-what_to_include",
+    "nasara_whistleblowing-triage-triage_and_investigation",
+    "nasara_whistleblowing-managers-manager_responsibilities",
+    "nasara_whistleblowing-retaliation-no_retaliation",
+    "nasara_whistleblowing-escalation-escalation_and_regulators",
+    "nasara_whistleblowing-records-records_and_mi",
+    "nasara_whistleblowing-training-training_and_awareness",
+    "nasara_whistleblowing-governance-governance_and_review"
+  ]
+}

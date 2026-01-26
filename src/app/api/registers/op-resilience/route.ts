@@ -18,6 +18,7 @@ import {
   badRequestResponse,
   serverErrorResponse,
 } from "@/lib/api-auth";
+import { notifyRegisterCreated } from "@/lib/server/notification-builders";
 import { logError } from "@/lib/logger";
 
 const SCENARIO_TEST_RESULTS = ["passed", "failed", "partial", "not_tested"] as const;
@@ -161,6 +162,16 @@ export async function POST(request: NextRequest) {
     };
 
     const record = await createOpResilienceRecord(recordData);
+    try {
+      await notifyRegisterCreated({
+        organizationId: authResult.user.organizationId,
+        registerKey: "op-resilience",
+        record,
+        actor: authResult.user.userEmail,
+      });
+    } catch {
+      // Non-blocking notification failures
+    }
 
     return NextResponse.json({ record }, { status: 201 });
   } catch (error) {

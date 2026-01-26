@@ -16,6 +16,30 @@ const PAYMENT_BACKFILL_RESPONSES: Record<string, ProfileResponse> = {
   "pay-payment-instruments": "review",
 };
 
+const PAYMENT_SERVICE_BACKFILL_MAP: Record<string, string> = {
+  "ps-cash-payment-account": "cash-deposit",
+  "ps-cash-withdrawal": "cash-withdrawal",
+  "ps-execution-payment-account": "execution-transfers",
+  "ps-execution-credit-line": "execution-transfers",
+  "ps-issuing-acquiring": "issuing-acquiring",
+  "ps-money-remittance": "money-remittance",
+  "ps-pis": "payment-initiation",
+  "ps-ais": "account-info",
+  "payment-initiation": "payment-initiation",
+  "account-info-services": "account-info",
+  "money-transmission": "money-remittance",
+  "card-issuing": "issuing-acquiring",
+  acquiring: "issuing-acquiring",
+};
+
+const parseCommaList = (value: unknown) => {
+  if (typeof value !== "string") return [];
+  return value
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+};
+
 const applyPaymentProfileBackfill = (
   profile: BusinessPlanProfile,
   permissionCode: string | null | undefined
@@ -31,6 +55,74 @@ const applyPaymentProfileBackfill = (
   for (const [key, value] of Object.entries(PAYMENT_BACKFILL_RESPONSES)) {
     if (nextResponses[key] === undefined) {
       nextResponses[key] = value;
+      changed = true;
+    }
+  }
+
+  if (!changed) {
+    return null;
+  }
+
+  return {
+    ...profile,
+    responses: nextResponses,
+  };
+};
+
+const applyAssessmentProfileBackfill = (
+  profile: BusinessPlanProfile,
+  assessmentData: Record<string, unknown> | null | undefined,
+  permissionCode: string | null | undefined
+): BusinessPlanProfile | null => {
+  const basics = assessmentData?.basics;
+  if (!basics || typeof basics !== "object" || Array.isArray(basics)) {
+    return null;
+  }
+
+  const responses = profile.responses ?? {};
+  let changed = false;
+  const nextResponses: Record<string, ProfileResponse> = { ...responses };
+
+  const headcount = (basics as Record<string, unknown>).headcount;
+  if (permissionCode === "payments" && typeof headcount === "string" && nextResponses["pay-headcount"] === undefined) {
+    nextResponses["pay-headcount"] = headcount;
+    changed = true;
+  }
+
+  const targetMarkets = (basics as Record<string, unknown>).targetMarkets;
+  if (typeof targetMarkets === "string" && nextResponses["core-geography"] === undefined) {
+    const geographyMap: Record<string, string> = {
+      "uk-only": "uk",
+      "uk-eea": "uk-eea",
+      "uk-international": "global",
+      global: "global",
+    };
+    const mapped = geographyMap[targetMarkets];
+    if (mapped) {
+      nextResponses["core-geography"] = mapped;
+      changed = true;
+    }
+  }
+
+  if (permissionCode === "payments" && nextResponses["pay-services"] === undefined) {
+    const activities = parseCommaList((basics as Record<string, unknown>).regulatedActivities);
+    const mapped = Array.from(
+      new Set(
+        activities
+          .map((activity) => PAYMENT_SERVICE_BACKFILL_MAP[activity])
+          .filter((value): value is string => Boolean(value))
+      )
+    );
+    if (mapped.length) {
+      nextResponses["pay-services"] = mapped;
+      changed = true;
+    }
+  }
+
+  if (permissionCode === "payments" && nextResponses["pay-emoney"] === undefined) {
+    const activities = parseCommaList((basics as Record<string, unknown>).regulatedActivities);
+    if (activities.includes("e-money-issuance")) {
+      nextResponses["pay-emoney"] = "yes";
       changed = true;
     }
   }
@@ -74,10 +166,20 @@ export async function GET(
       updatedAt: storedProfile?.updatedAt,
     };
 
-    const backfilled = applyPaymentProfileBackfill(profile, project.permission_code);
-    if (backfilled) {
-      const saved = await saveAuthorizationBusinessPlanProfile(id, backfilled);
-      return NextResponse.json({ profile: saved ?? backfilled });
+    let nextProfile = profile;
+    const assessmentBackfill = applyAssessmentProfileBackfill(profile, assessment, project.permission_code);
+    if (assessmentBackfill) {
+      nextProfile = assessmentBackfill;
+    }
+
+    const paymentBackfill = applyPaymentProfileBackfill(nextProfile, project.permission_code);
+    if (paymentBackfill) {
+      nextProfile = paymentBackfill;
+    }
+
+    if (nextProfile !== profile) {
+      const saved = await saveAuthorizationBusinessPlanProfile(id, nextProfile);
+      return NextResponse.json({ profile: saved ?? nextProfile });
     }
 
     return NextResponse.json({ profile });

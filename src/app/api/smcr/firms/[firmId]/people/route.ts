@@ -11,6 +11,7 @@ import {
   initSmcrDatabase,
   CreatePersonInput,
 } from '@/lib/smcr-database';
+import { createNotification } from "@/lib/server/notifications-store";
 import { logError, logApiRequest } from '@/lib/logger';
 
 export async function GET(
@@ -69,6 +70,19 @@ export async function POST(
     };
 
     const person = await createPerson(input);
+    try {
+      await createNotification({
+        organizationId: "default-org",
+        title: "SMCR person added",
+        message: `${person.name} added to SMCR firm ${firmId}.`,
+        severity: "info",
+        source: "smcr",
+        link: "/smcr/people",
+        metadata: { firmId, personId: person.id },
+      });
+    } catch {
+      // Non-blocking notification failures
+    }
     return NextResponse.json(person, { status: 201 });
   } catch (error) {
     logError(error, 'Failed to create SMCR person', { firmId });

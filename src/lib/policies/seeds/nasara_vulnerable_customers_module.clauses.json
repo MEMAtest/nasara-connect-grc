@@ -1,0 +1,79 @@
+[
+  {
+    "id": "nasara_vulnerable_customers-purpose-purpose_and_objectives",
+    "policy_key": "vulnerable_customers_module",
+    "title": "Purpose and objectives",
+    "body_md": "This policy sets out how {{firm.name}} identifies, supports, and evidences fair outcomes for customers in vulnerable circumstances, aligned to FCA FG21/1 and Consumer Duty expectations.\n\nObjectives:\n- recognise vulnerability indicators early.\n- record needs and adjustments, not diagnoses.\n- deliver reasonable adjustments across the customer journey.\n- track outcomes and remediate gaps.",
+    "source_template_filename": "MODULE_VULNERABLE_CUSTOMERS.txt"
+  },
+  {
+    "id": "nasara_vulnerable_customers-scope-scope_and_applicability",
+    "policy_key": "vulnerable_customers_module",
+    "title": "Scope and applicability",
+    "body_md": "This policy applies to all customer-facing teams and all stages of the customer journey, including onboarding, servicing, changes, arrears or forbearance, complaints, and exit. It covers all products and services provided by {{firm.name}}.",
+    "source_template_filename": "MODULE_VULNERABLE_CUSTOMERS.txt"
+  },
+  {
+    "id": "nasara_vulnerable_customers-definitions-what_is_vulnerability",
+    "policy_key": "vulnerable_customers_module",
+    "title": "What is vulnerability",
+    "body_md": "A vulnerable customer is one who, due to personal circumstances, is especially susceptible to harm if a firm does not act with appropriate care.\n\nDrivers of vulnerability include health, life events, resilience, and capability. Vulnerability may be temporary, situational, or long-term.",
+    "source_template_filename": "MODULE_VULNERABLE_CUSTOMERS.txt"
+  },
+  {
+    "id": "nasara_vulnerable_customers-identification-indicators_and_signals",
+    "policy_key": "vulnerable_customers_module",
+    "title": "Indicators and signals",
+    "body_md": "Indicators may include confusion about key terms, repeated questions, distress, sudden changes in behaviour, language barriers, missed payments, or requests for breathing space.\n\nStaff must stay alert to signals in conversations, data, and behaviour and respond appropriately.",
+    "source_template_filename": "MODULE_VULNERABLE_CUSTOMERS.txt"
+  },
+  {
+    "id": "nasara_vulnerable_customers-recording-recording_needs_not_diagnoses",
+    "policy_key": "vulnerable_customers_module",
+    "title": "Recording needs (not diagnoses)",
+    "body_md": "Record the customer's needs and the adjustments agreed, not medical or personal diagnoses. Notes should be factual, minimal, and purposeful.\n\nExamples of appropriate notes include communication preferences, timing adjustments, or support requirements.",
+    "source_template_filename": "MODULE_VULNERABLE_CUSTOMERS.txt"
+  },
+  {
+    "id": "nasara_vulnerable_customers-adjustments-reasonable_adjustments",
+    "policy_key": "vulnerable_customers_module",
+    "title": "Reasonable adjustments",
+    "body_md": "Reasonable adjustments may include:\n- plain-English communications and written summaries.\n- translation or interpreter support.\n- alternative channels or longer appointments.\n- third-party support with consent.\n- signposting to free debt advice or support services.\n\nAdjustments should be delivered consistently and recorded.",
+    "source_template_filename": "MODULE_VULNERABLE_CUSTOMERS.txt"
+  },
+  {
+    "id": "nasara_vulnerable_customers-duty-consumer_duty_alignment",
+    "policy_key": "vulnerable_customers_module",
+    "title": "Consumer Duty alignment",
+    "body_md": "Under the Consumer Duty, outcomes for vulnerable customers must be as good as those for other customers.\n\nControls include testing communications for understanding, reducing friction in support channels, assessing price and value impacts, and designing products and services that avoid harm.",
+    "source_template_filename": "MODULE_VULNERABLE_CUSTOMERS.txt"
+  },
+  {
+    "id": "nasara_vulnerable_customers-escalation-escalation_and_safeguarding",
+    "policy_key": "vulnerable_customers_module",
+    "title": "Escalation and safeguarding",
+    "body_md": "Escalate cases where there is serious risk of harm, coercion, or capacity concerns.\n\nFollow the safeguarding and speak-up procedures, document facts, and involve the appropriate teams (Compliance, MLRO, or specialist support) as required.",
+    "source_template_filename": "MODULE_VULNERABLE_CUSTOMERS.txt"
+  },
+  {
+    "id": "nasara_vulnerable_customers-mi-management_information_and_evidence",
+    "policy_key": "vulnerable_customers_module",
+    "title": "Management information and evidence",
+    "body_md": "MI should track outcomes for vulnerable customers, including complaints themes, repeat contacts, arrears outcomes, and adjustment delivery.\n\nEvidence must include QA checks, remediation actions, and training completion to demonstrate fair outcomes.",
+    "source_template_filename": "MODULE_VULNERABLE_CUSTOMERS.txt"
+  },
+  {
+    "id": "nasara_vulnerable_customers-training-training_and_awareness",
+    "policy_key": "vulnerable_customers_module",
+    "title": "Training and awareness",
+    "body_md": "All staff involved in customer interactions must complete vulnerable customer training. Training completion and attestations must be refreshed in line with the firm training plan.",
+    "source_template_filename": "MODULE_VULNERABLE_CUSTOMERS.txt"
+  },
+  {
+    "id": "nasara_vulnerable_customers-governance-governance_and_review",
+    "policy_key": "vulnerable_customers_module",
+    "title": "Governance and review",
+    "body_md": "The Customer Outcomes Lead and Compliance oversee this policy. Senior management reviews MI and remediation plans on a defined cadence to ensure continuous improvement.",
+    "source_template_filename": "MODULE_VULNERABLE_CUSTOMERS.txt"
+  }
+]

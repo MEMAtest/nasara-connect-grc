@@ -26,6 +26,7 @@ import {
   badRequestResponse,
   serverErrorResponse,
 } from "@/lib/api-auth";
+import { notifyRegisterCreated } from "@/lib/server/notification-builders";
 import { logError } from "@/lib/logger";
 
 // GET /api/registers/third-party - List all Third-Party records
@@ -187,6 +188,16 @@ export async function POST(request: NextRequest) {
     };
 
     const record = await createThirdPartyRecord(recordData);
+    try {
+      await notifyRegisterCreated({
+        organizationId: authResult.user.organizationId,
+        registerKey: "third-party",
+        record,
+        actor: authResult.user.userEmail,
+      });
+    } catch {
+      // Non-blocking notification failures
+    }
 
     return NextResponse.json({ record }, { status: 201 });
   } catch (error) {

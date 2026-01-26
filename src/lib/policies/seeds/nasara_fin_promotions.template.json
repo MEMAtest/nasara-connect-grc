@@ -1,0 +1,136 @@
+{
+  "code": "FIN_PROMOTIONS",
+  "name": "Financial Promotions & Consumer-Facing Communications",
+  "category": "Markets",
+  "description": "Policy governing the creation, approval, and monitoring of financial promotions and customer-facing communications.",
+  "sections": [
+    {
+      "id": "purpose",
+      "title": "Purpose and objectives",
+      "summary": "Set the objectives for clear, fair, and not misleading promotions.",
+      "suggestedClauses": [
+        "nasara_fin_promotions-purpose-purpose_and_objectives"
+      ]
+    },
+    {
+      "id": "scope",
+      "title": "Scope and applicability",
+      "summary": "Define channels, roles, and communications covered by this policy.",
+      "suggestedClauses": [
+        "nasara_fin_promotions-scope-scope_and_applicability"
+      ]
+    },
+    {
+      "id": "definitions",
+      "title": "Definitions",
+      "summary": "Clarify what counts as a financial promotion.",
+      "suggestedClauses": [
+        "nasara_fin_promotions-definitions-what_is_a_financial_promotion"
+      ]
+    },
+    {
+      "id": "cfnm",
+      "title": "Clear, fair, and not misleading",
+      "summary": "Set expectations for balanced, plain-language communications.",
+      "suggestedClauses": [
+        "nasara_fin_promotions-cfnm-clear_fair_not_misleading"
+      ]
+    },
+    {
+      "id": "prominence",
+      "title": "Prominence of risk warnings",
+      "summary": "Ensure risks and limitations are visible and proximate to claims.",
+      "suggestedClauses": [
+        "nasara_fin_promotions-prominence-risk_warnings_and_limitations"
+      ]
+    },
+    {
+      "id": "target_market",
+      "title": "Target market and Consumer Duty",
+      "summary": "Confirm audience fit and Consumer Duty alignment.",
+      "suggestedClauses": [
+        "nasara_fin_promotions-target_market-target_market_and_consumer_duty"
+      ]
+    },
+    {
+      "id": "substantiation",
+      "title": "Substantiation",
+      "summary": "Require evidence for claims, comparisons, and numerical statements.",
+      "suggestedClauses": [
+        "nasara_fin_promotions-substantiation-claims_comparisons_and_numbers"
+      ]
+    },
+    {
+      "id": "approvals",
+      "title": "Approvals and third parties",
+      "summary": "Set the approval workflow and third-party controls.",
+      "suggestedClauses": [
+        "nasara_fin_promotions-approvals-approvals_and_third_parties"
+      ]
+    },
+    {
+      "id": "digital",
+      "title": "Digital and social communications",
+      "summary": "Apply rules to short-form and social channels.",
+      "suggestedClauses": [
+        "nasara_fin_promotions-digital-digital_and_social_specifics"
+      ]
+    },
+    {
+      "id": "records",
+      "title": "Records and evidence",
+      "summary": "Define the promotion file and record-keeping standards.",
+      "suggestedClauses": [
+        "nasara_fin_promotions-records-records_and_evidence"
+      ]
+    },
+    {
+      "id": "monitoring",
+      "title": "Monitoring and review",
+      "summary": "Set ongoing monitoring and update expectations.",
+      "suggestedClauses": [
+        "nasara_fin_promotions-monitoring-monitoring_and_review"
+      ]
+    },
+    {
+      "id": "escalation",
+      "title": "Red flags and escalation",
+      "summary": "Define red flags and escalation expectations.",
+      "suggestedClauses": [
+        "nasara_fin_promotions-escalation-red_flags_and_escalation"
+      ]
+    },
+    {
+      "id": "training",
+      "title": "Training and awareness",
+      "summary": "Require training and attestations for staff involved in promotions.",
+      "suggestedClauses": [
+        "nasara_fin_promotions-training-training_and_awareness"
+      ]
+    },
+    {
+      "id": "governance",
+      "title": "Governance and accountability",
+      "summary": "Define oversight, accountability, and review expectations.",
+      "suggestedClauses": [
+        "nasara_fin_promotions-governance-governance_and_accountability"
+      ]
+    }
+  ],
+  "mandatoryClauses": [
+    "nasara_fin_promotions-purpose-purpose_and_objectives",
+    "nasara_fin_promotions-scope-scope_and_applicability",
+    "nasara_fin_promotions-definitions-what_is_a_financial_promotion",
+    "nasara_fin_promotions-cfnm-clear_fair_not_misleading",
+    "nasara_fin_promotions-prominence-risk_warnings_and_limitations",
+    "nasara_fin_promotions-target_market-target_market_and_consumer_duty",
+    "nasara_fin_promotions-substantiation-claims_comparisons_and_numbers",
+    "nasara_fin_promotions-approvals-approvals_and_third_parties",
+    "nasara_fin_promotions-digital-digital_and_social_specifics",
+    "nasara_fin_promotions-records-records_and_evidence",
+    "nasara_fin_promotions-monitoring-monitoring_and_review",
+    "nasara_fin_promotions-escalation-red_flags_and_escalation",
+    "nasara_fin_promotions-training-training_and_awareness",
+    "nasara_fin_promotions-governance-governance_and_accountability"
+  ]
+}

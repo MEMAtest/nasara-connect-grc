@@ -3,9 +3,14 @@ import path from "path";
 import { requireAuth, isValidUUID } from "@/lib/auth-utils";
 import {
   createPackDocument,
+  createOpinionPackGenerationJob,
   deletePackDocument,
+  getActiveOpinionPackGenerationJob,
+  getLatestOpinionPackGenerationJob,
+  getOpinionPackGenerationJob,
   getPack,
   getProjectByPackId,
+  updateOpinionPackGenerationJob,
 } from "@/lib/authorization-pack-db";
 import { initDatabase } from "@/lib/database";
 import {
@@ -92,101 +97,367 @@ function formatResponse(
 const normalizeText = (value: string | null | undefined, fallback = "Not provided") =>
   value && value.trim().length ? value.trim() : fallback;
 
-const buildExecutiveSummaryContent = ({
+const sanitizeOpinionContent = (content: string): string => {
+  const cleaned = content
+    .split("\n")
+    .map((line) =>
+      line
+        .replace(/^\s*[-*•]\s+/, "")
+        .replace(/^\s*\d+[.)]\s+/, "")
+        .replace(/\*\*/g, "")
+        .trimEnd()
+    )
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+  return cleaned;
+};
+
+const getRegimeLabel = (permission: string) =>
+  permission === "payments"
+    ? "Payment Services Regulations 2017 (PSRs 2017)"
+    : permission === "consumer-credit"
+    ? "Consumer Credit regime (CONC)"
+    : "Investment services regime (COBS/MiFID)";
+
+const isProvided = (value: string) => value !== "Not provided" && value.trim().length > 0;
+
+type PaymentPermissionSummary = {
+  engaged: string[];
+  conditional: string[];
+  outOfScope: string[];
+  exemptions: string[];
+  emoneyStatus: string | null;
+};
+
+const buildPaymentPermissionSummary = ({
+  responses,
+  questionLookup,
+}: {
+  responses: Record<string, ProfileResponse>;
+  questionLookup: Map<string, ProfileQuestion>;
+}): PaymentPermissionSummary => {
+  const payServices = Array.isArray(responses["pay-services"]) ? (responses["pay-services"] as string[]) : [];
+  const hasService = (value: string) => payServices.includes(value);
+  const addUnique = (list: string[], value: string) => {
+    if (!list.includes(value)) list.push(value);
+  };
+
+  const engaged: string[] = [];
+  const conditional: string[] = [];
+  const outOfScope: string[] = [];
+
+  const operateAccounts = responses["pay-operate-accounts"];
+  if (operateAccounts === "yes") {
+    addUnique(engaged, "paragraph 1(a) (operating payment accounts)");
+  } else if (operateAccounts === "no") {
+    addUnique(outOfScope, "paragraph 1(a) (operating payment accounts)");
+  } else if (operateAccounts) {
+    addUnique(conditional, "paragraph 1(a) (operating payment accounts)");
+  }
+
+  if (hasService("cash-deposit")) {
+    addUnique(engaged, "paragraph 1(a) (cash deposits to payment accounts)");
+  }
+  if (hasService("cash-withdrawal")) {
+    addUnique(engaged, "paragraph 1(b) (cash withdrawals from payment accounts)");
+  }
+  if (hasService("execution-transfers") || hasService("execution-telecom")) {
+    addUnique(engaged, "paragraph 1(c) (execution of payment transactions)");
+  }
+
+  const creditLine = responses["pay-credit-line"];
+  if (creditLine === "credit" || creditLine === "both") {
+    addUnique(engaged, "paragraph 1(d) (credit-funded execution)");
+  } else if (creditLine === "prefunded") {
+    addUnique(outOfScope, "paragraph 1(d) (credit-funded execution)");
+  } else if (creditLine) {
+    addUnique(conditional, "paragraph 1(d) (credit-funded execution)");
+  }
+
+  const paymentInstruments = responses["pay-payment-instruments"];
+  if (paymentInstruments === "yes") {
+    addUnique(engaged, "paragraph 1(e) (issuing/acquiring payment instruments)");
+  } else if (paymentInstruments === "no") {
+    addUnique(outOfScope, "paragraph 1(e) (issuing/acquiring payment instruments)");
+  } else if (paymentInstruments) {
+    addUnique(conditional, "paragraph 1(e) (issuing/acquiring payment instruments)");
+  }
+
+  if (hasService("issuing-acquiring")) {
+    addUnique(engaged, "paragraph 1(e) (issuing/acquiring payment instruments)");
+  }
+  if (hasService("money-remittance")) {
+    addUnique(engaged, "paragraph 1(f) (money remittance)");
+  }
+  if (hasService("payment-initiation")) {
+    addUnique(engaged, "paragraph 1(g) (payment initiation services)");
+  }
+  if (hasService("account-info")) {
+    addUnique(engaged, "paragraph 1(h) (account information services)");
+  }
+
+  const exemptionsRaw = Array.isArray(responses["pay-exemptions"]) ? (responses["pay-exemptions"] as string[]) : [];
+  const exemptions = exemptionsRaw
+    .filter((value) => value !== "none")
+    .map((value) => {
+      const question = questionLookup.get("pay-exemptions");
+      const option = question?.options?.find((opt) => opt.value === value);
+      return option?.label ?? value;
+    })
+    .filter(Boolean);
+
+  const emoneyStatus =
+    typeof responses["pay-emoney"] === "string" ? (responses["pay-emoney"] as string) : null;
+
+  return {
+    engaged,
+    conditional,
+    outOfScope,
+    exemptions,
+    emoneyStatus,
+  };
+};
+
+const buildInstructionScopeContent = ({
   firmName,
   permission,
   permissionLabel,
-  responses,
-  questionLookup,
-  insights,
+  generatedDate,
 }: {
   firmName: string;
   permission: string;
   permissionLabel: string;
-  responses: Record<string, ProfileResponse>;
-  questionLookup: Map<string, ProfileQuestion>;
-  insights: ReturnType<typeof buildProfileInsights>;
+  generatedDate: string;
 }): string => {
-  const answer = (id: string) => {
-    const question = questionLookup.get(id);
-    if (!question) return "";
-    return formatResponse(question, responses[id], responses);
-  };
-  const regimeLabel =
-    permission === "payments"
-      ? "Payment Services Regulations 2017 (PSRs 2017)"
-      : permission === "consumer-credit"
-      ? "Consumer Credit regime (CONC)"
-      : "Investment services regime (COBS/MiFID)";
-
+  const regimeLabel = getRegimeLabel(permission);
   const lines: string[] = [];
-  lines.push("**Executive Summary**");
   lines.push(
-    `This RegAuth opinion for ${firmName} assesses the firm's stated activities against the ${permissionLabel} perimeter and maps them to the relevant regulatory permissions and obligations.`
+    `We have been instructed by ${firmName} to provide a regulatory perimeter and permissions opinion in relation to ${permissionLabel}.`
   );
-  lines.push("");
-  lines.push("**The question**");
   lines.push(
-    `The firm has requested a regulatory perimeter opinion to confirm which permissions are required under the ${regimeLabel} and related FCA perimeter guidance (PERG).`
+    `The question addressed is whether the activities described by the firm constitute regulated activities under ${regimeLabel} and, if so, which FCA permissions are engaged.`
   );
-  lines.push("");
-  lines.push("**Firm activities and operating model**");
-  const activityItems = [
-    `Regulated activities: ${normalizeText(answer("core-regulated-activities"))}`,
-    `Customer segments: ${normalizeText(answer("core-customer-segments"))}`,
-    `Distribution channels: ${normalizeText(answer("core-distribution"))}`,
-    `PSP of record: ${normalizeText(answer("pay-psp-record"))}`,
-    `Payment accounts operated: ${normalizeText(answer("pay-operate-accounts"))}`,
-    `Payment initiation procedure provided: ${normalizeText(answer("pay-payment-instruments"))}`,
-    `Flow of funds: ${normalizeText(answer("pay-funds-flow"))}`,
-    `Safeguarding approach: ${normalizeText(answer("pay-safeguarding"))}`,
-  ];
-  activityItems.forEach((item) => lines.push(`- ${item}`));
-  lines.push("");
-  lines.push("**Scope note**");
   lines.push(
-    `This opinion is based on the responses captured in the Business Plan Profile. Any material change in operating model, PSP-of-record status, or flow of funds requires a fresh perimeter review.`
+    "This opinion does not cover tax, non-UK regulatory regimes, or detailed legal advice beyond the FCA perimeter and permissions analysis."
   );
-  lines.push("");
-  lines.push("**Profile completion**");
-  lines.push(`Required responses complete: ${insights.completionPercent}%`);
-  return lines.join("\n");
+  lines.push(
+    `We rely on the information provided by the firm and have not independently verified it. The opinion is given as at ${generatedDate}.`
+  );
+  return lines.join("\n\n");
 };
 
-const buildRegulatoryFrameworkContent = ({
+const buildFactualBackgroundContent = ({
+  permission,
+  responses,
+  questionLookup,
+}: {
+  permission: string;
+  responses: Record<string, ProfileResponse>;
+  questionLookup: Map<string, ProfileQuestion>;
+}): string => {
+  const answer = (id: string, fallback = "") => {
+    const question = questionLookup.get(id);
+    if (!question) return fallback;
+    const value = formatResponse(question, responses[id], responses);
+    return normalizeText(value, fallback);
+  };
+
+  const statements: string[] = [];
+  const regulatedActivities = answer("core-regulated-activities");
+  if (isProvided(regulatedActivities)) {
+    statements.push(`The firm states that its regulated activities are ${regulatedActivities}.`);
+  }
+  const customerSegments = answer("core-customer-segments");
+  if (isProvided(customerSegments)) {
+    statements.push(`The firm intends to serve ${customerSegments}.`);
+  }
+  const geography = answer("core-geography");
+  if (isProvided(geography)) {
+    statements.push(`The firm states that its customers will be located in ${geography}.`);
+  }
+  const distribution = answer("core-distribution");
+  if (isProvided(distribution)) {
+    statements.push(`The distribution model is described as ${distribution}.`);
+  }
+
+  if (permission === "payments") {
+    const payServices = answer("pay-services");
+    if (isProvided(payServices)) {
+      statements.push(`The firm identifies the following payment services: ${payServices}.`);
+    }
+    const pspRecord = answer("pay-psp-record");
+    if (isProvided(pspRecord)) {
+      statements.push(`The firm describes the PSP of record as ${pspRecord}.`);
+    }
+    const operateAccounts = responses["pay-operate-accounts"];
+    if (operateAccounts === "yes") {
+      statements.push("The firm states that it operates payment accounts.");
+    } else if (operateAccounts === "no") {
+      statements.push("The firm states that it does not operate payment accounts.");
+    } else if (operateAccounts) {
+      statements.push("The firm indicates that operation of payment accounts is under review.");
+    }
+    const paymentInstruments = responses["pay-payment-instruments"];
+    if (paymentInstruments === "yes") {
+      statements.push("The firm states that it provides the payment initiation procedure or instrument.");
+    } else if (paymentInstruments === "no") {
+      statements.push("The firm states that it does not provide the payment initiation procedure or instrument.");
+    } else if (paymentInstruments) {
+      statements.push("The firm indicates that provision of the payment initiation procedure is under review.");
+    }
+    const creditLine = responses["pay-credit-line"];
+    if (creditLine === "prefunded") {
+      statements.push("The firm states that payment execution is prefunded.");
+    } else if (creditLine === "credit") {
+      statements.push("The firm states that payment execution may be funded by credit or overdraft.");
+    } else if (creditLine === "both") {
+      statements.push("The firm states that payment execution may be prefunded or credit-funded.");
+    } else if (creditLine) {
+      statements.push("The firm indicates that the credit-funded execution position is under review.");
+    }
+    const emoney = responses["pay-emoney"];
+    if (emoney === "yes") {
+      statements.push("The firm states that it will issue electronic money.");
+    } else if (emoney === "no") {
+      statements.push("The firm states that it will not issue electronic money.");
+    } else if (emoney) {
+      statements.push("The firm indicates that e-money issuance is under review.");
+    }
+    const fundsFlow = answer("pay-funds-flow");
+    if (isProvided(fundsFlow)) {
+      statements.push(`The flow of funds is described as follows: ${fundsFlow}.`);
+    }
+    const safeguarding = answer("pay-safeguarding");
+    if (isProvided(safeguarding)) {
+      statements.push(`The firm states that safeguarding is addressed as ${safeguarding}.`);
+    }
+    const agents = answer("pay-agents");
+    if (isProvided(agents)) {
+      statements.push(`The firm states its use of agents or distributors as ${agents}.`);
+    }
+  }
+
+  if (!statements.length) {
+    statements.push(
+      "The firm has provided limited factual detail about its operating model for the purposes of this opinion."
+    );
+  }
+
+  return ["FACT:", statements.join(" ")].join("\n\n");
+};
+
+const buildRegulatoryFrameworkSourcesContent = ({
   permission,
   permissionLabel,
+  responses,
 }: {
   permission: string;
   permissionLabel: string;
+  responses: Record<string, ProfileResponse>;
 }): string => {
   const lines: string[] = [];
-  lines.push("**Regulatory framework**");
+  lines.push("ANALYSIS:");
   if (permission === "payments") {
+    const emoney = responses["pay-emoney"] === "yes";
     lines.push(
-      "Schedule 1, Part 1 of the PSRs 2017 defines payment services that may require authorisation. PERG 15 provides FCA perimeter guidance on the scope of these services and how PSP responsibilities are allocated."
-    );
-    lines.push(
-      "The FCA Approach Document sets expectations for governance, safeguarding, operational resilience, outsourcing oversight, incident management, and readiness to operate as a PSP of record."
+      `The perimeter assessment is made by reference to the Payment Services Regulations 2017 (PSRs 2017), in particular Schedule 1, Part 1, and the FCA's Perimeter Guidance Manual (PERG 15). The FCA Approach Document on Payment Services and E-Money is relevant to the characterisation of PSP roles and safeguarding obligations${emoney ? ", and the Electronic Money Regulations 2011 (EMRs 2011) are relevant to the extent the model includes e-money issuance." : "."}`
     );
   } else if (permission === "consumer-credit") {
     lines.push(
-      "The Consumer Credit Act regime and the FCA's CONC sourcebook define regulated consumer credit activities and conduct requirements. PERG 17 provides perimeter guidance on what falls in scope."
+      "The perimeter assessment is made by reference to the Consumer Credit Act regime and the FCA Consumer Credit sourcebook (CONC), together with PERG 17 on the scope of regulated consumer credit activities."
     );
   } else {
     lines.push(
-      "MiFID II, COBS and related FCA perimeter guidance define the scope of investment services. PERG 8 provides guidance on activities that require authorisation."
+      "The perimeter assessment is made by reference to MiFID II, the FCA Conduct of Business Sourcebook (COBS), and PERG 8 on the scope of investment services and activities."
     );
   }
-  lines.push("");
-  lines.push("**Threshold conditions (COND)**");
   lines.push(
-    `The FCA will assess whether the firm has adequate resources, effective supervision, suitability of management, and a viable business model for the ${permissionLabel} permission. These conditions must be demonstrable in the application narrative and supporting evidence.`
+    `The FCA Threshold Conditions (COND) provide the authorisation framework applicable to ${permissionLabel}, but this opinion does not assess operational readiness or compliance against COND beyond the perimeter characterisation.`
   );
-  return lines.join("\n");
+  return lines.join("\n\n");
 };
 
-const buildPermissionMappingContent = ({
+const buildRegulatedActivitiesAnalysisContent = ({
+  permission,
+  responses,
+  questionLookup,
+}: {
+  permission: string;
+  responses: Record<string, ProfileResponse>;
+  questionLookup: Map<string, ProfileQuestion>;
+}): string => {
+  const answer = (id: string, fallback = "") => {
+    const question = questionLookup.get(id);
+    if (!question) return fallback;
+    const value = formatResponse(question, responses[id], responses);
+    return normalizeText(value, fallback);
+  };
+
+  const lines: string[] = [];
+  lines.push("FACT:");
+  const factStatements: string[] = [];
+  const regulatedActivities = answer("core-regulated-activities");
+  if (isProvided(regulatedActivities)) {
+    factStatements.push(`The firm describes its regulated activities as ${regulatedActivities}.`);
+  }
+  if (permission === "payments") {
+    const payServices = answer("pay-services");
+    if (isProvided(payServices)) {
+      factStatements.push(`The firm identifies the payment services in scope as ${payServices}.`);
+    }
+    const fundsFlow = answer("pay-funds-flow");
+    if (isProvided(fundsFlow)) {
+      factStatements.push(`The firm describes the flow of funds as ${fundsFlow}.`);
+    }
+  }
+  if (!factStatements.length) {
+    factStatements.push("The information provided about regulated activities is limited.");
+  }
+  lines.push(factStatements.join(" "));
+
+  lines.push("");
+  lines.push("ANALYSIS:");
+  if (permission === "payments") {
+    const summary = buildPaymentPermissionSummary({ responses, questionLookup });
+    if (summary.engaged.length) {
+      lines.push(
+        `On the stated model, the activities are more likely than not to fall within ${summary.engaged.join(", ")} of PSRs 2017 Schedule 1, Part 1.`
+      );
+    } else {
+      lines.push(
+        "On the stated model, the information provided does not allow a complete mapping to the PSRs 2017 Schedule 1, Part 1 activities."
+      );
+    }
+    if (summary.conditional.length) {
+      lines.push(
+        `Elements described as under review or capable of extending scope include ${summary.conditional.join(", ")}.`
+      );
+    }
+    if (summary.outOfScope.length) {
+      lines.push(
+        `Activities corresponding to ${summary.outOfScope.join(", ")} are not stated as being provided on the current facts.`
+      );
+    }
+    if (summary.exemptions.length) {
+      lines.push(
+        `The firm indicates potential reliance on ${summary.exemptions.join(", ")}, which could affect the perimeter position and therefore qualifies this analysis.`
+      );
+    }
+    if (summary.emoneyStatus === "yes") {
+      lines.push(
+        "The firm indicates that it will issue electronic money; this would bring the model within scope of the Electronic Money Regulations 2011 and would require a separate regulatory analysis."
+      );
+    }
+  } else {
+    lines.push(
+      `On the stated model, the activities described appear to fall for consideration under the ${getRegimeLabel(permission)} perimeter. The analysis is limited to the services described and does not extend to activities not stated.`
+    );
+  }
+  return lines.join("\n\n");
+};
+
+const buildPermissionsMappingContent = ({
   permission,
   permissionLabel,
   responses,
@@ -196,391 +467,367 @@ const buildPermissionMappingContent = ({
   permissionLabel: string;
   responses: Record<string, ProfileResponse>;
   questionLookup: Map<string, ProfileQuestion>;
-}): { content: string; core: string[]; conditional: string[]; outOfScope: string[] } => {
-  if (permission !== "payments") {
-    const lines: string[] = [];
-    lines.push("**Permission mapping**");
+}): string => {
+  const lines: string[] = [];
+  lines.push("ANALYSIS:");
+  if (permission === "payments") {
+    const summary = buildPaymentPermissionSummary({ responses, questionLookup });
+    if (summary.engaged.length) {
+      lines.push(
+        `Based on the facts provided, the permissions engaged are likely to include ${summary.engaged.join(", ")} under the PSRs 2017.`
+      );
+    } else {
+      lines.push(
+        "Based on the facts provided, no definitive PSRs 2017 Schedule 1 permission can be confirmed without further detail on the services and flow of funds."
+      );
+    }
+    if (summary.conditional.length) {
+      lines.push(
+        `The permission set may expand if the firm proceeds with ${summary.conditional.join(", ")}.`
+      );
+    }
+    if (summary.outOfScope.length) {
+      lines.push(
+        `The firm does not state activities corresponding to ${summary.outOfScope.join(", ")}, and those permissions are therefore not indicated on the current model.`
+      );
+    }
+    if (summary.emoneyStatus === "yes") {
+      lines.push(
+        "If the firm issues electronic money, authorisation under the EMRs 2011 would be required in addition to the PSRs 2017 permissions."
+      );
+    }
+  } else {
     lines.push(
-      `Detailed PSRs 2017 Schedule 1 mapping is applicable to payment services only. For ${permissionLabel}, map the firm's activities to the relevant FCA permission set and PERG guidance, and document the specific permissions sought.`
+      `The permissions mapping is therefore characterised by the firm's stated activities within the ${permissionLabel} perimeter, with the precise FCA permission set to be confirmed against PERG guidance and the FCA authorisation form for that regime.`
     );
-    return { content: lines.join("\n"), core: [], conditional: [], outOfScope: [] };
   }
+  return lines.join("\n\n");
+};
 
-  const payServices = Array.isArray(responses["pay-services"]) ? (responses["pay-services"] as string[]) : [];
-  const hasService = (value: string) => payServices.includes(value);
+const buildRegulatoryImplicationsContent = ({
+  permission,
+  responses,
+  questionLookup,
+}: {
+  permission: string;
+  responses: Record<string, ProfileResponse>;
+  questionLookup: Map<string, ProfileQuestion>;
+}): string => {
+  const answer = (id: string, fallback = "") => {
+    const question = questionLookup.get(id);
+    if (!question) return fallback;
+    const value = formatResponse(question, responses[id], responses);
+    return normalizeText(value, fallback);
+  };
+
+  const lines: string[] = [];
+  lines.push("ANALYSIS:");
+  if (permission === "payments") {
+    const safeguarding = answer("pay-safeguarding");
+    if (isProvided(safeguarding)) {
+      lines.push(
+        `Safeguarding obligations will apply where the firm holds customer funds; the firm states that safeguarding is addressed as ${safeguarding}.`
+      );
+    } else {
+      lines.push(
+        "Safeguarding obligations will apply where the firm holds customer funds, and the precise safeguarding method will depend on the actual flow of funds."
+      );
+    }
+    const creditLine = responses["pay-credit-line"];
+    if (creditLine === "credit" || creditLine === "both") {
+      lines.push(
+        "Credit-funded execution is a material perimeter factor and would engage additional regulatory considerations under PSRs 2017 paragraph 1(d)."
+      );
+    }
+    lines.push(
+      "As a payment institution, the firm would be subject to high-level obligations on safeguarding, incident reporting, and operational resilience under the FCA approach to payment services, without prescriptive implementation detail in this opinion."
+    );
+    const payServices = Array.isArray(responses["pay-services"]) ? (responses["pay-services"] as string[]) : [];
+    if (payServices.includes("payment-initiation") || payServices.includes("account-info")) {
+      lines.push(
+        "If payment initiation or account information services are provided, the PSD2 RTS on strong customer authentication and secure communication will be relevant at a high level."
+      );
+    }
+  } else if (permission === "consumer-credit") {
+    lines.push(
+      "If the activities are within scope, CONC conduct obligations and relevant consumer protection requirements will apply at a high level, without assessment of implementation detail in this opinion."
+    );
+  } else {
+    lines.push(
+      "If the activities are within scope, COBS conduct obligations and any client asset protections relevant to the stated model will apply at a high level, without assessment of implementation detail in this opinion."
+    );
+  }
+  return lines.join("\n\n");
+};
+
+const buildAssumptionsLimitationsContent = ({
+  permission,
+  responses,
+  questionLookup,
+}: {
+  permission: string;
+  responses: Record<string, ProfileResponse>;
+  questionLookup: Map<string, ProfileQuestion>;
+}): string => {
   const answer = (id: string) => {
     const question = questionLookup.get(id);
     if (!question) return "";
-    return formatResponse(question, responses[id], responses);
-  };
-  const normalizeScope = (status: "yes" | "no" | "potential" | "unknown") => {
-    if (status === "yes") return "Yes (core)";
-    if (status === "no") return "No";
-    if (status === "potential") return "Potentially";
-    return "Not stated";
+    return normalizeText(formatResponse(question, responses[id], responses));
   };
 
-  const operateAccounts = responses["pay-operate-accounts"];
-  const creditLine = responses["pay-credit-line"];
-  const paymentInstruments = responses["pay-payment-instruments"];
+  const missing: string[] = [];
+  const checkMissing = (id: string, label: string) => {
+    const value = answer(id);
+    if (!isProvided(value) || value === "Not provided") {
+      missing.push(label);
+    }
+  };
 
-  const scopeFlags = [
+  checkMissing("core-regulated-activities", "a detailed description of regulated activities");
+  checkMissing("core-customer-segments", "primary customer segments");
+  checkMissing("core-distribution", "distribution model");
+  checkMissing("core-geography", "customer geography");
+  if (permission === "payments") {
+    checkMissing("pay-services", "payment services in scope");
+    checkMissing("pay-psp-record", "PSP of record allocation");
+    checkMissing("pay-operate-accounts", "payment account operation");
+    checkMissing("pay-funds-flow", "flow of funds");
+    checkMissing("pay-safeguarding", "safeguarding position");
+    checkMissing("pay-credit-line", "credit-funded execution status");
+    checkMissing("pay-payment-instruments", "payment initiation procedure status");
+  }
+
+  const assumptions: string[] = [];
+  if (permission === "payments") {
+    if (responses["pay-operate-accounts"] === "no") {
+      assumptions.push("The firm does not operate payment accounts.");
+    }
+    if (responses["pay-credit-line"] === "prefunded") {
+      assumptions.push("Payments are executed on a prefunded basis and not funded by credit.");
+    }
+    if (responses["pay-payment-instruments"] === "no") {
+      assumptions.push("The firm does not provide the payment initiation procedure or instrument.");
+    }
+    if (responses["pay-emoney"] === "no") {
+      assumptions.push("The firm does not issue electronic money.");
+    }
+  }
+  assumptions.push("The information provided by the firm is complete and accurate for the stated model.");
+
+  const changeTriggers: string[] = [];
+  if (permission === "payments") {
+    changeTriggers.push(
+      "Any change in PSP-of-record status, operation of payment accounts, flow of funds, or safeguarding arrangements."
+    );
+    changeTriggers.push(
+      "Introduction of payment initiation services, account information services, credit-funded execution, or e-money issuance."
+    );
+  } else {
+    changeTriggers.push("Any material change in the stated regulated activities or customer journey.");
+  }
+
+  const lines: string[] = [];
+  lines.push("ASSUMPTIONS:");
+  lines.push(assumptions.join(" "));
+  lines.push("");
+  lines.push("LIMITATIONS:");
+  if (missing.length) {
+    lines.push(
+      `This opinion is qualified by the absence of the following information: ${missing.join(", ")}.`
+    );
+  } else {
+    lines.push(
+      "This opinion is based solely on the information provided and does not include independent verification."
+    );
+  }
+  lines.push("");
+  lines.push("CHANGE TRIGGERS:");
+  lines.push(changeTriggers.join(" "));
+  return lines.join("\n\n");
+};
+
+const buildOpinionConclusionContent = ({
+  firmName,
+  permission,
+  permissionLabel,
+  responses,
+  questionLookup,
+  insights,
+}: {
+  firmName: string;
+  permission: string;
+  permissionLabel: string;
+  responses: Record<string, ProfileResponse>;
+  questionLookup: Map<string, ProfileQuestion>;
+  insights: ReturnType<typeof buildProfileInsights>;
+}): string => {
+  const verdict = insights.perimeterOpinion.verdict;
+  const verdictText = verdict.replace(/-/g, " ");
+  const summary = permission === "payments" ? buildPaymentPermissionSummary({ responses, questionLookup }) : null;
+  const permissionsText =
+    summary && summary.engaged.length
+      ? `The permissions engaged are likely to include ${summary.engaged.join(", ")}.`
+      : "The permissions engaged cannot be finalised on the information provided.";
+
+  let conclusion = "";
+  if (verdict === "in-scope") {
+    conclusion = `On the basis of the information provided and the assumptions set out above, it is our opinion that the activities described are within scope of the ${permissionLabel} perimeter.`;
+  } else if (verdict === "possible-exemption") {
+    conclusion = `On the basis of the information provided and the assumptions set out above, it is our opinion that the activities described are more likely than not within scope of the ${permissionLabel} perimeter, subject to the potential application of any stated exemptions.`;
+  } else if (verdict === "out-of-scope") {
+    conclusion = `On the basis of the information provided and the assumptions set out above, it is our opinion that the activities described are more likely than not outside the ${permissionLabel} perimeter.`;
+  } else {
+    conclusion = `On the basis of the information provided and the assumptions set out above, it is our opinion that the perimeter position cannot be concluded for ${firmName} without further detail.`;
+  }
+
+  const lines: string[] = [];
+  lines.push("OPINION:");
+  lines.push(conclusion);
+  lines.push(permissionsText);
+  lines.push(`Perimeter characterisation: ${verdictText}.`);
+  lines.push(`Regulatory basis: ${getRegimeLabel(permission)} and applicable FCA perimeter guidance.`);
+  return lines.join("\n\n");
+};
+
+type OpinionPackJobPayload = {
+  aiContent: Record<string, string>;
+  warnings: string[];
+};
+
+const parseOpinionPackJobPayload = (payload: Record<string, unknown> | undefined): OpinionPackJobPayload => {
+  const rawContent = payload?.aiContent;
+  const rawWarnings = payload?.warnings;
+  const aiContent =
+    rawContent && typeof rawContent === "object" && !Array.isArray(rawContent)
+      ? (rawContent as Record<string, string>)
+      : {};
+  const warnings = Array.isArray(rawWarnings) ? rawWarnings.filter((item) => typeof item === "string") : [];
+  return { aiContent, warnings };
+};
+
+const buildOpinionPackSections = ({
+  firmName,
+  permission,
+  permissionLabel,
+  responses,
+  questionLookup,
+  insights,
+}: {
+  firmName: string;
+  permission: string;
+  permissionLabel: string;
+  responses: Record<string, ProfileResponse>;
+  questionLookup: Map<string, ProfileQuestion>;
+  insights: ReturnType<typeof buildProfileInsights>;
+}) => {
+  const generatedDate = new Date().toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
+  const sections: OpinionSection[] = [
     {
-      code: "1(a)",
-      title: "Operating payment accounts",
-      activity: operateAccounts
-        ? `Firm response: ${answer("pay-operate-accounts")}.`
-        : "No payment account operation stated.",
-      scope:
-        operateAccounts === "yes"
-          ? "yes"
-          : operateAccounts === "no"
-          ? "no"
-          : operateAccounts
-          ? "potential"
-          : "unknown",
-      changes:
-        operateAccounts === "yes"
-          ? `Firm must be PSP of record for account services, own customer terms, account governance, access controls, and safeguarding accountability. PSP of record stated: ${normalizeText(answer("pay-psp-record"))}. Safeguarding: ${normalizeText(answer("pay-safeguarding"))}.`
-          : "If introduced, the firm must own account governance, access controls, disclosures, and safeguarding accountability.",
+      key: "instruction-scope",
+      title: "Instruction and Scope",
+      description: "Instruction, scope, and reliance for this opinion.",
+      inputs: [],
+      synthesizedContent: buildInstructionScopeContent({
+        firmName,
+        permission,
+        permissionLabel,
+        generatedDate,
+      }),
     },
     {
-      code: "1(b)",
-      title: "Cash withdrawals from a payment account",
-      activity: hasService("cash-withdrawal") ? "Cash withdrawals from payment accounts." : "No cash withdrawals stated.",
-      scope: hasService("cash-withdrawal") ? "yes" : "no",
-      changes:
-        hasService("cash-withdrawal")
-          ? "Requires end-to-end withdrawal controls, authentication, limits, dispute handling, and reconciliation."
-          : "Out of scope unless cash withdrawal functionality is introduced.",
+      key: "factual-background",
+      title: "Factual Background (Firm's Stated Model)",
+      description: "Neutral summary of the firm's stated activities and operating model.",
+      inputs: [],
+      synthesizedContent: buildFactualBackgroundContent({ permission, responses, questionLookup }),
     },
     {
-      code: "1(c)",
-      title: "Execution of payment transactions",
-      activity: hasService("execution-transfers") || hasService("execution-telecom")
-        ? `Execution of payment transactions: ${normalizeText(answer("pay-services"))}.`
-        : "No execution service stated.",
-      scope: hasService("execution-transfers") || hasService("execution-telecom") ? "yes" : "no",
-      changes:
-        hasService("execution-transfers") || hasService("execution-telecom")
-          ? "Firm must own execution outcomes, cut-offs, reconciliation, exception handling, and customer notifications. Any rails/sponsor PSP must be treated as outsourcing with oversight and audit rights."
-          : "Out of scope unless the firm executes payment transactions.",
+      key: "regulatory-framework",
+      title: "Regulatory Framework and Sources",
+      description: "Core regulatory instruments and FCA perimeter guidance relevant to the opinion.",
+      inputs: [],
+      synthesizedContent: buildRegulatoryFrameworkSourcesContent({
+        permission,
+        permissionLabel,
+        responses,
+      }),
     },
     {
-      code: "1(d)",
-      title: "Execution funded by a credit line",
-      activity: creditLine
-        ? `Firm response: ${answer("pay-credit-line")}.`
-        : "No credit-funded execution stated.",
-      scope:
-        creditLine === "credit" || creditLine === "both"
-          ? "yes"
-          : creditLine === "prefunded"
-          ? "no"
-          : creditLine
-          ? "potential"
-          : "unknown",
-      changes:
-        creditLine === "credit" || creditLine === "both"
-          ? "Requires credit governance, underwriting, limits, and clear disclosures. This is a material change trigger."
-          : "Out of scope unless payments can execute without prefunding.",
+      key: "regulated-activities",
+      title: "Analysis of Regulated Activities and Perimeter Position",
+      description: "Application of the stated facts to the FCA perimeter framework.",
+      inputs: [],
+      synthesizedContent: buildRegulatedActivitiesAnalysisContent({ permission, responses, questionLookup }),
     },
     {
-      code: "1(e)",
-      title: "Issuing payment instruments / acquiring",
-      activity: paymentInstruments
-        ? `Firm response: ${answer("pay-payment-instruments")}.`
-        : "No payment instrument/procedure stated.",
-      scope:
-        paymentInstruments === "yes"
-          ? "yes"
-          : paymentInstruments === "no"
-          ? "no"
-          : paymentInstruments
-          ? "potential"
-          : "unknown",
-      changes:
-        paymentInstruments === "yes"
-          ? "Firm must evidence secure authentication, approval workflows, fraud controls, and an auditable initiation trail."
-          : "Out of scope unless the firm provides the initiation procedure or payment instrument.",
+      key: "permissions-mapping",
+      title: "Permissions Mapping and Regulatory Characterisation",
+      description: "High-level mapping of activities to the permissions engaged.",
+      inputs: [],
+      synthesizedContent: buildPermissionsMappingContent({
+        permission,
+        permissionLabel,
+        responses,
+        questionLookup,
+      }),
     },
     {
-      code: "1(f)",
-      title: "Money remittance",
-      activity: hasService("money-remittance") ? "Money remittance service." : "No remittance service stated.",
-      scope: hasService("money-remittance") ? "yes" : "no",
-      changes:
-        hasService("money-remittance")
-          ? "Requires a remittance operating model, safeguarding arrangements, and customer disclosures."
-          : "Out of scope unless a remittance-only product is introduced.",
+      key: "regulatory-implications",
+      title: "Key Regulatory Implications (High-Level)",
+      description: "High-level obligations flowing directly from perimeter status.",
+      inputs: [],
+      synthesizedContent: buildRegulatoryImplicationsContent({ permission, responses, questionLookup }),
     },
     {
-      code: "1(g)",
-      title: "Payment initiation services (PIS)",
-      activity: hasService("payment-initiation")
-        ? "Initiation of payment orders from accounts held with another PSP."
-        : "No PIS activity stated.",
-      scope: hasService("payment-initiation") ? "yes" : "no",
-      changes:
-        hasService("payment-initiation")
-          ? "Requires consent flows, secure communications, and controls preventing access to customer credentials. Introduces ASPSP dependency and PIS liability framework."
-          : "Out of scope unless the firm initiates payments from accounts held with other PSPs.",
+      key: "assumptions-limitations",
+      title: "Assumptions, Limitations and Change Triggers",
+      description: "Explicit assumptions, limitations, and changes requiring a refreshed opinion.",
+      inputs: [],
+      synthesizedContent: buildAssumptionsLimitationsContent({ permission, responses, questionLookup }),
     },
     {
-      code: "1(h)",
-      title: "Account information services (AIS)",
-      activity: hasService("account-information")
-        ? "Accessing and presenting account information from accounts held with another PSP."
-        : "No AIS activity stated.",
-      scope: hasService("account-information") ? "yes" : "no",
-      changes:
-        hasService("account-information")
-          ? "Requires AIS consent, data minimisation, audit trails, and secure access controls."
-          : "Out of scope unless the firm retrieves or consolidates account data from other PSPs.",
+      key: "opinion",
+      title: "Opinion (Conclusion)",
+      description: "Concise perimeter and permissions conclusion.",
+      inputs: [],
+      synthesizedContent: buildOpinionConclusionContent({
+        firmName,
+        permission,
+        permissionLabel,
+        responses,
+        questionLookup,
+        insights,
+      }),
     },
   ];
 
-  const lines: string[] = [];
-  lines.push("**Permission mapping (PSRs 2017 Schedule 1, Part 1)**");
-  scopeFlags.forEach((entry) => {
-    lines.push("");
-    lines.push(`**Para ${entry.code} – ${entry.title}**`);
-    lines.push(`Firm activity: ${entry.activity}`);
-    lines.push(`In scope: ${normalizeScope(entry.scope)}`);
-    lines.push(`Key changes required: ${entry.changes}`);
+  return sections;
+};
+
+const applyAiContentToSections = (
+  sections: OpinionSection[],
+  aiContent: Record<string, string>
+) =>
+  sections.map((section) => {
+    const baseContent = section.synthesizedContent
+      ? sanitizeOpinionContent(section.synthesizedContent)
+      : "";
+    const supplemental = aiContent[section.key];
+    if (!supplemental) {
+      return baseContent ? { ...section, synthesizedContent: baseContent } : section;
+    }
+    const sanitizedSupplemental = sanitizeOpinionContent(supplemental);
+    const nextContent = sanitizedSupplemental || baseContent;
+    return {
+      ...section,
+      ...(nextContent ? { synthesizedContent: nextContent } : {}),
+    };
   });
-
-  const core = scopeFlags.filter((entry) => entry.scope === "yes").map((entry) => entry.code);
-  const conditional = scopeFlags.filter((entry) => entry.scope === "potential").map((entry) => entry.code);
-  const outOfScope = scopeFlags.filter((entry) => entry.scope === "no").map((entry) => entry.code);
-
-  return {
-    content: lines.join("\n"),
-    core,
-    conditional,
-    outOfScope,
-  };
-};
-
-const buildDetailedAssessmentContent = ({
-  permission,
-  responses,
-  questionLookup,
-}: {
-  permission: string;
-  responses: Record<string, ProfileResponse>;
-  questionLookup: Map<string, ProfileQuestion>;
-}): string => {
-  const answer = (id: string) => {
-    const question = questionLookup.get(id);
-    if (!question) return "";
-    return formatResponse(question, responses[id], responses);
-  };
-
-  const lines: string[] = [];
-  lines.push("**Detailed assessment and regulatory implications**");
-  if (permission === "payments") {
-    lines.push("");
-    lines.push("**Safeguarding and flow of funds**");
-    lines.push(`Safeguarding approach: ${normalizeText(answer("pay-safeguarding"))}.`);
-    lines.push(`Funds flow description: ${normalizeText(answer("pay-funds-flow"))}.`);
-    if (answer("pay-funds-flow-touchpoints")) {
-      lines.push(`Funds flow touchpoints: ${normalizeText(answer("pay-funds-flow-touchpoints"))}.`);
-    }
-    lines.push("");
-    lines.push("**Outsourcing and dependencies**");
-    lines.push(`Material outsourcing: ${normalizeText(answer("core-outsourcing"))}.`);
-    lines.push("Any critical supplier must be treated as outsourcing with oversight, audit rights, and exit planning.");
-    lines.push("");
-    lines.push("**Security and incident readiness**");
-    lines.push(`Security readiness: ${normalizeText(answer("pay-security"))}.`);
-    lines.push("Controls must align to PSD2 RTS, including incident reporting and secure communications.");
-    lines.push("");
-    lines.push("**Operational risk themes**");
-    lines.push(`Risk themes: ${normalizeText(answer("core-risk-areas"))}.`);
-    lines.push(`Top operational and compliance risks identified: ${normalizeText(answer("core-risk-theme"))}.`);
-    const mitigationNotes = normalizeText(answer("core-risk-mitigation"), "");
-    if (mitigationNotes) {
-      lines.push(`Risk mitigation notes: ${mitigationNotes}.`);
-    }
-    lines.push("");
-    lines.push("**Agents and distribution**");
-    lines.push(`Agents or distributors: ${normalizeText(answer("pay-agents"))}.`);
-  } else {
-    lines.push("");
-    lines.push("**Operating model and controls**");
-    lines.push(`Regulated activities: ${normalizeText(answer("core-regulated-activities"))}.`);
-    lines.push(`Material outsourcing: ${normalizeText(answer("core-outsourcing"))}.`);
-    lines.push("");
-    lines.push("**Operational risk themes**");
-    lines.push(`Risk themes: ${normalizeText(answer("core-risk-areas"))}.`);
-    lines.push(`Top operational and compliance risks identified: ${normalizeText(answer("core-risk-theme"))}.`);
-    const mitigationNotes = normalizeText(answer("core-risk-mitigation"), "");
-    if (mitigationNotes) {
-      lines.push(`Risk mitigation notes: ${mitigationNotes}.`);
-    }
-  }
-  return lines.join("\n");
-};
-
-const buildThresholdConditionsContent = ({
-  permission,
-  responses,
-  questionLookup,
-}: {
-  permission: string;
-  responses: Record<string, ProfileResponse>;
-  questionLookup: Map<string, ProfileQuestion>;
-}): string => {
-  const answer = (id: string) => {
-    const question = questionLookup.get(id);
-    if (!question) return "";
-    return formatResponse(question, responses[id], responses);
-  };
-
-  const lines: string[] = [];
-  lines.push("**Threshold conditions assessment (COND)**");
-  lines.push("");
-  lines.push("**Resources and capital adequacy**");
-  lines.push(`Capital position: ${normalizeText(answer("core-capital"))}.`);
-  if (permission === "payments") {
-    lines.push(`Capital method: ${normalizeText(answer("pay-capital-method"))}.`);
-    lines.push(`Estimated monthly operating expenditure: ${normalizeText(answer("pay-monthly-opex"))}.`);
-  }
-  lines.push(`Financial projections status: ${normalizeText(answer("core-projections"))}.`);
-  lines.push(`Wind-down planning status: ${normalizeText(answer("core-winddown"))}.`);
-  const winddownTriggers = normalizeText(answer("core-winddown-trigger"), "");
-  if (winddownTriggers) {
-    lines.push(`Wind-down triggers: ${winddownTriggers}.`);
-  }
-  const winddownPlan = normalizeText(answer("core-winddown-plan"), "");
-  if (winddownPlan) {
-    lines.push(`Wind-down execution plan: ${winddownPlan}.`);
-  }
-  lines.push("");
-  lines.push("**Suitability and governance**");
-  lines.push(`Governance readiness: ${normalizeText(answer("core-governance"))}.`);
-  if (permission === "payments") {
-    lines.push(`Planned headcount: ${normalizeText(answer("pay-headcount"))}.`);
-  }
-  lines.push("");
-  lines.push("**Effective supervision and systems**");
-  if (permission === "payments") {
-    lines.push(`Operational security readiness: ${normalizeText(answer("pay-security"))}.`);
-  }
-  lines.push(`Outsourcing oversight: ${normalizeText(answer("core-outsourcing"))}.`);
-  return lines.join("\n");
-};
-
-const buildOpinionContent = ({
-  firmName,
-  insights,
-  mapping,
-  responses,
-  questionLookup,
-}: {
-  firmName: string;
-  insights: ReturnType<typeof buildProfileInsights>;
-  mapping: { core: string[]; conditional: string[]; outOfScope: string[] };
-  responses: Record<string, ProfileResponse>;
-  questionLookup: Map<string, ProfileQuestion>;
-}): string => {
-  const answer = (id: string) => {
-    const question = questionLookup.get(id);
-    if (!question) return "";
-    return formatResponse(question, responses[id], responses);
-  };
-  const perimeterClarity = normalizeText(answer("core-perimeter-clarity"));
-
-  const lines: string[] = [];
-  lines.push("**Opinion and recommendations**");
-  lines.push(
-    `Based on the firm's stated operating model, ${firmName} is likely ${insights.perimeterOpinion.verdict.replace(/-/g, " ")} for the services described.`
-  );
-  lines.push(`Perimeter summary: ${insights.perimeterOpinion.summary}`);
-  lines.push("");
-  lines.push("**Summary position**");
-  if (responses["pay-operate-accounts"] || responses["pay-psp-record"]) {
-    const modelParts = [
-      normalizeText(answer("pay-psp-record")),
-      normalizeText(answer("pay-operate-accounts")),
-      normalizeText(answer("pay-services")),
-    ].filter((part) => part !== "Not provided");
-    lines.push(`Target operating model: ${modelParts.join(" | ") || "Not stated"}.`);
-  } else {
-    lines.push("Target operating model: Not stated.");
-  }
-  const changeTriggers: string[] = [];
-  if (responses["pay-services"] && Array.isArray(responses["pay-services"])) {
-    const services = responses["pay-services"] as string[];
-    if (services.includes("payment-initiation")) {
-      changeTriggers.push("PIS (para 1(g)) required if initiating payments from accounts held with other PSPs.");
-    }
-    if (services.includes("account-information")) {
-      changeTriggers.push("AIS (para 1(h)) required if accessing account information from other PSPs.");
-    }
-  }
-  if (responses["pay-credit-line"] === "credit" || responses["pay-credit-line"] === "both") {
-    changeTriggers.push("Credit-funded execution triggers para 1(d) and additional capital/credit controls.");
-  }
-  if (changeTriggers.length) {
-    lines.push(`Key dependencies/change triggers: ${changeTriggers.join(" ")}`);
-  } else {
-    lines.push("Key dependencies/change triggers: None stated.");
-  }
-  if (insights.perimeterOpinion.rationale.length) {
-    lines.push("");
-    lines.push("**Rationale**");
-    insights.perimeterOpinion.rationale.forEach((item) => lines.push(`- ${item}`));
-  }
-  if (insights.perimeterOpinion.obligations.length) {
-    lines.push("");
-    lines.push("**Key obligations**");
-    insights.perimeterOpinion.obligations.forEach((item) => lines.push(`- ${item}`));
-  }
-  lines.push("");
-  lines.push(`Recommended permissions (core): ${mapping.core.length ? mapping.core.join(", ") : "Not stated"}.`);
-  lines.push(
-    `Conditional permissions (triggered by model changes): ${mapping.conditional.length ? mapping.conditional.join(", ") : "None stated"}.`
-  );
-  lines.push(
-    `Permissions currently out of scope: ${mapping.outOfScope.length ? mapping.outOfScope.join(", ") : "None stated"}.`
-  );
-  lines.push("");
-  lines.push("**Perimeter assumptions**");
-  lines.push(`Out-of-scope documentation: ${perimeterClarity}.`);
-  lines.push(
-    "Applying for permissions not used in practice can create unnecessary regulatory scope; failing to include an in-scope permission can create a permission gap."
-  );
-  lines.push("");
-  lines.push("**Why this matters**");
-  lines.push(
-    "The permission set must match the implemented customer journeys and flow of funds. Over-scoping increases regulatory burden, while under-scoping can undermine the application narrative and delay authorisation."
-  );
-  return lines.join("\n");
-};
-
-const buildAppendixContent = (): string => {
-  const lines: string[] = [];
-  lines.push("**Appendix: Key statutory provisions and guidance**");
-  lines.push("");
-  lines.push("**PSRs 2017 Schedule 1, Part 1**");
-  lines.push("- Para 1(a): Operating payment accounts");
-  lines.push("- Para 1(b): Cash withdrawals");
-  lines.push("- Para 1(c): Execution of payment transactions");
-  lines.push("- Para 1(d): Execution funded by a credit line");
-  lines.push("- Para 1(e): Issuing payment instruments and/or acquiring");
-  lines.push("- Para 1(f): Money remittance");
-  lines.push("- Para 1(g): Payment initiation services");
-  lines.push("- Para 1(h): Account information services");
-  lines.push("");
-  lines.push("**FCA Perimeter Guidance (PERG)**");
-  lines.push("PERG 15: FCA perimeter guidance for the PSRs 2017.");
-  lines.push("");
-  lines.push("**FCA Approach Document**");
-  lines.push("FCA Approach to Payment Services and E-Money (PSRs 2017/EMRs 2011).");
-  return lines.join("\n");
-};
 
 async function synthesizeOpinionSection(
   section: OpinionSection,
@@ -611,25 +858,24 @@ async function synthesizeOpinionSection(
 
   const sanitizedTitle = section.title.replace(/["\n\r]/g, "");
 
+  const baseSystemPrompt = `You are a senior UK financial services regulatory consultant producing a professional regulatory perimeter and permissions opinion for the FCA framework. You must remain in opinion mode throughout.
+Non-negotiable rules:
+1) Write in third-person adviser voice (\"we\", \"our view\", \"it is our opinion\"), not as the firm.
+2) Do not use bullet points, numbered lists, tables, checklists, or action plans.
+3) Do not assess delivery maturity or implementation status.
+4) Do not include operational how-to content or control design detail.
+5) Avoid promotional or aspirational language.
+6) Clearly separate FACT from ANALYSIS and OPINION using short labels such as "FACT:" when relevant.
+7) State assumptions explicitly and ring-fence limitations and change triggers in the appropriate section.
+8) Do not invent facts; qualify the opinion if information is missing.
+9) Keep the conclusion concise and definitive with measured certainty.
+10) Use UK spelling and a regulator-facing tone.`;
+
   const systemPrompt = baseText
-    ? `You are a regulatory perimeter analyst. Expand and deepen an existing section of a RegAuth opinion pack.
-Guidelines:
-- Keep the existing facts and structure accurate; do NOT contradict or invent facts
-- Add additional regulatory analysis, PERG references, threshold condition implications, and change triggers
-- Use concise headings and bullet points where helpful
-- Keep output between 400-800 words
-- Use **bold** for headings
-- Add a short "**Additional analysis**" heading before any new material
-`
-    : `You are a regulatory perimeter analyst. Draft a concise section for a RegAuth opinion pack.
-Guidelines:
-- Write in formal business English, third person
-- Use short headings and bullet points where helpful
-- Map to PERG/PSD2/CONC/COBS where the references indicate relevance
-- Do NOT invent facts; only use the inputs provided
-- Keep output between 300-500 words
-- Use **bold** for headings
-`;
+    ? `${baseSystemPrompt}
+You are expanding an existing section. Keep the section's intent and structure, do not add new sections, and do not repeat verbatim.`
+    : `${baseSystemPrompt}
+Draft a concise section within the given title and purpose. Do not add headings beyond short labels such as "FACT:", "ANALYSIS:", "OPINION:", or "ASSUMPTIONS:" if needed.`;
 
   const userPrompt = baseText
     ? `Section: "${sanitizedTitle}"
@@ -705,25 +951,11 @@ ${promptContent}
   }
 }
 
-function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-// Helper to split an array into chunks of a given size
-function chunk<T>(array: T[], size: number): T[][] {
-  if (size <= 0) return [array];
-  if (!array.length) return [];
-  const chunks: T[][] = [];
-  for (let i = 0; i < array.length; i += size) {
-    chunks.push(array.slice(i, i + size));
-  }
-  return chunks;
-}
-
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  let jobForError: { id: string } | null = null;
   try {
     const { auth, error } = await requireAuth();
     if (error) return error;
@@ -750,6 +982,8 @@ export async function POST(
 
     const permission = isProfilePermissionCode(project.permissionCode)
       ? project.permissionCode
+      : project.permissionCode?.startsWith("payments")
+      ? "payments"
       : null;
     if (!permission) {
       return NextResponse.json({ error: "Unsupported permission for opinion pack" }, { status: 400 });
@@ -757,6 +991,20 @@ export async function POST(
 
     const profile = project.assessmentData?.businessPlanProfile;
     const responses = profile?.responses ?? {};
+
+    const body = await request.json().catch(() => ({}));
+    const action = typeof body?.action === "string" ? body.action : "start";
+    const jobId = typeof body?.jobId === "string" ? body.jobId : null;
+    const batchSize = typeof body?.batchSize === "number" && body.batchSize > 0 ? Math.floor(body.batchSize) : 1;
+    const force = Boolean(body?.force);
+
+    if (action === "status") {
+      const job = jobId
+        ? await getOpinionPackGenerationJob(jobId)
+        : await getLatestOpinionPackGenerationJob(packId);
+      return NextResponse.json({ job });
+    }
+
     if (!responses || Object.keys(responses).length === 0) {
       return NextResponse.json(
         { error: "Business plan profile responses are required before generating the opinion pack." },
@@ -764,9 +1012,44 @@ export async function POST(
       );
     }
 
+    if (action === "start") {
+      const activeJob = await getActiveOpinionPackGenerationJob(packId);
+      if (activeJob) {
+        return NextResponse.json({ job: activeJob });
+      }
+      const latestJob = await getLatestOpinionPackGenerationJob(packId);
+      if (!force && latestJob && latestJob.status === "completed") {
+        return NextResponse.json({ job: latestJob });
+      }
+      const createdJob = await createOpinionPackGenerationJob(packId);
+      if (!createdJob) {
+        return NextResponse.json({ error: "Unable to create generation job" }, { status: 500 });
+      }
+      return NextResponse.json({ job: createdJob }, { status: 201 });
+    }
+
+    if (action !== "run") {
+      return NextResponse.json({ error: "Unsupported action" }, { status: 400 });
+    }
+
+    let job =
+      (jobId ? await getOpinionPackGenerationJob(jobId) : null) ??
+      (await getActiveOpinionPackGenerationJob(packId)) ??
+      (await getLatestOpinionPackGenerationJob(packId));
+    if (!job) {
+      job = await createOpinionPackGenerationJob(packId);
+    }
+    if (!job) {
+      return NextResponse.json({ error: "Unable to initialize generation job" }, { status: 500 });
+    }
+    jobForError = job;
+
+    if (job.status === "completed") {
+      return NextResponse.json({ job });
+    }
+
     const questions = getProfileQuestions(permission);
     const insights = buildProfileInsights(permission, responses);
-
     const questionLookup = new Map<string, ProfileQuestion>();
     questions.forEach((question) => questionLookup.set(question.id, question));
 
@@ -774,84 +1057,20 @@ export async function POST(
     const firmName = firmBasics?.legalName || project.name || pack.name;
     const permissionLabel = project.permissionName || project.permissionCode;
 
-    const permissionMapping = buildPermissionMappingContent({
+    const sections = buildOpinionPackSections({
+      firmName,
       permission,
       permissionLabel,
       responses,
       questionLookup,
+      insights,
     });
-
-    const sections: OpinionSection[] = [
-      {
-        key: "executive-summary",
-        title: "Executive Summary",
-        description: "Summary of the firm's stated activities and the scope of this opinion.",
-        inputs: [],
-        synthesizedContent: buildExecutiveSummaryContent({
-          firmName,
-          permission,
-          permissionLabel,
-          responses,
-          questionLookup,
-          insights,
-        }),
-      },
-      {
-        key: "regulatory-framework",
-        title: "Regulatory Framework",
-        description: "Key regulatory sources and threshold conditions relevant to the assessment.",
-        inputs: [],
-        synthesizedContent: buildRegulatoryFrameworkContent({ permission, permissionLabel }),
-      },
-      {
-        key: "permission-mapping",
-        title: "Permission Mapping (PSRs 2017)",
-        description: "Mapping of stated activities to PSRs 2017 Schedule 1, Part 1 permissions.",
-        inputs: [],
-        synthesizedContent: permissionMapping.content,
-      },
-      {
-        key: "detailed-assessment",
-        title: "Detailed Assessment and Regulatory Implications",
-        description: "Safeguarding, outsourcing, security, and operational readiness implications.",
-        inputs: [],
-        synthesizedContent: buildDetailedAssessmentContent({ permission, responses, questionLookup }),
-      },
-      {
-        key: "threshold-conditions",
-        title: "Threshold Conditions Assessment",
-        description: "Assessment against FCA threshold conditions based on stated responses.",
-        inputs: [],
-        synthesizedContent: buildThresholdConditionsContent({ permission, responses, questionLookup }),
-      },
-      {
-        key: "opinion-recommendations",
-        title: "Opinion and Recommendations",
-        description: "Perimeter opinion and recommended permission set based on the stated model.",
-        inputs: [],
-        synthesizedContent: buildOpinionContent({
-          firmName,
-          insights,
-          mapping: permissionMapping,
-          responses,
-          questionLookup,
-        }),
-      },
-      {
-        key: "appendix",
-        title: "Appendix",
-        description: "Key statutory provisions and FCA guidance referenced.",
-        inputs: [],
-        synthesizedContent: buildAppendixContent(),
-      },
-    ];
 
     const contextLines = [
       `Firm: ${firmName}`,
       `Permission scope: ${permissionLabel}`,
       `Perimeter verdict: ${insights.perimeterOpinion.verdict.replace(/-/g, " ")}`,
       `Summary: ${insights.perimeterOpinion.summary}`,
-      `Profile completion: ${insights.completionPercent}%`,
     ];
     if (insights.activityHighlights.length) {
       contextLines.push(`Activity highlights: ${insights.activityHighlights.join(", ")}`);
@@ -859,38 +1078,66 @@ export async function POST(
     const context = contextLines.join("\n");
 
     const aiEligibleSections = new Set([
-      "executive-summary",
+      "instruction-scope",
+      "factual-background",
       "regulatory-framework",
-      "permission-mapping",
-      "detailed-assessment",
-      "threshold-conditions",
-      "opinion-recommendations",
+      "regulated-activities",
+      "permissions-mapping",
+      "regulatory-implications",
+      "assumptions-limitations",
+      "opinion",
     ]);
 
-    // Filter sections eligible for AI synthesis
     const eligibleSections = sections.filter((s) => aiEligibleSections.has(s.key));
+    const jobPayload = parseOpinionPackJobPayload(job.payload as Record<string, unknown>);
+    const aiContent: Record<string, string> = { ...jobPayload.aiContent };
+    const warnings = [...jobPayload.warnings];
 
-    // Process sections in parallel batches of 3 for better performance
-    const BATCH_SIZE = 3;
-    const batches = chunk(eligibleSections, BATCH_SIZE);
+    const pendingSections = eligibleSections.filter((section) => !(section.key in aiContent));
+    if (pendingSections.length > 0) {
+      const nextBatch = pendingSections.slice(0, Math.max(1, batchSize));
+      const stepLabel =
+        nextBatch.length === 1
+          ? `Drafting: ${nextBatch[0].title}`
+          : `Drafting ${nextBatch.length} sections`;
 
-    for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
-      const batch = batches[batchIndex];
-      await Promise.all(
-        batch.map(async (section) => {
-          const synthesized = await synthesizeOpinionSection(section, context, section.synthesizedContent);
-          if (synthesized) {
-            section.synthesizedContent = section.synthesizedContent
-              ? `${section.synthesizedContent}\n\n${synthesized}`
-              : synthesized;
-          }
-        })
-      );
-      // Small delay between batches to avoid rate limiting
-      if (batchIndex < batches.length - 1) {
-        await delay(200);
+      await updateOpinionPackGenerationJob(job.id, {
+        status: "processing",
+        currentStep: stepLabel,
+        progress: Math.max(job.progress ?? 0, 5),
+        errorMessage: null,
+      });
+
+      for (const section of nextBatch) {
+        const synthesized = await synthesizeOpinionSection(section, context, section.synthesizedContent);
+        if (synthesized) {
+          aiContent[section.key] = synthesized;
+        } else {
+          aiContent[section.key] = "";
+          warnings.push(`AI synthesis skipped for ${section.title}.`);
+        }
       }
+
+      const completed = Object.keys(aiContent).length;
+      const progress = Math.round((completed / eligibleSections.length) * 90);
+      const updatedJob = await updateOpinionPackGenerationJob(job.id, {
+        status: "processing",
+        currentStep: pendingSections.length === nextBatch.length ? "Building PDF" : "Drafting sections",
+        progress,
+        payload: { aiContent, warnings },
+        errorMessage: null,
+      });
+      return NextResponse.json({ job: updatedJob });
     }
+
+    await updateOpinionPackGenerationJob(job.id, {
+      status: "processing",
+      currentStep: "Building PDF",
+      progress: Math.max(job.progress ?? 0, 95),
+      errorMessage: null,
+    });
+
+    const hydratedSections = applyAiContentToSections(sections, aiContent);
 
     const pdfBytes = await buildPerimeterOpinionPack(
       {
@@ -902,13 +1149,13 @@ export async function POST(
         activityHighlights: insights.activityHighlights,
         firmBasics,
       },
-      sections
+      hydratedSections
     );
 
     const timestamp = new Date().toISOString().split("T")[0];
-    const documentName = `RegAuth Opinion - ${firmName} - ${timestamp}`;
+    const documentName = `Regulatory Perimeter and Permissions Opinion - ${firmName} - ${timestamp}`;
 
-    const description = `Perimeter opinion pack generated from profile responses. Completion: ${insights.completionPercent}%.`;
+    const description = "Perimeter opinion generated from profile responses.";
 
     const storageKey = buildStorageKey(packId, pack.name);
     const storedFile = await storeAuthorizationPackPdf(storageKey, pdfBytes);
@@ -939,23 +1186,32 @@ export async function POST(
       throw error;
     }
 
-    const filename = ensurePdfFilename(sanitizeFilename(documentName));
+    const completedJob = await updateOpinionPackGenerationJob(job.id, {
+      status: "completed",
+      currentStep: "Completed",
+      progress: 100,
+      payload: { aiContent, warnings },
+      documentId: packDocument.id,
+      documentName,
+      errorMessage: null,
+    });
 
-    return new NextResponse(Buffer.from(pdfBytes), {
-      status: 200,
-      headers: {
-        "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="${filename}"`,
-        "X-Document-Id": packDocument.id,
-        "X-Pack-Document-Id": packDocument.id,
-        "X-Document-Name": documentName,
-        "X-Document-Filename": filename,
-        "X-Section-Count": String(sections.length),
-        "X-Profile-Completion": String(insights.completionPercent),
+    return NextResponse.json({
+      job: completedJob,
+      document: {
+        id: packDocument.id,
+        name: documentName,
+        filename: ensurePdfFilename(sanitizeFilename(documentName)),
       },
     });
   } catch (error) {
     console.error("Perimeter opinion generation error:", error);
+    if (jobForError?.id) {
+      await updateOpinionPackGenerationJob(jobForError.id, {
+        status: "failed",
+        errorMessage: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
     return NextResponse.json(
       {
         error: "Failed to generate opinion pack",

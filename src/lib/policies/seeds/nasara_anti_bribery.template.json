@@ -1,0 +1,118 @@
+{
+  "code": "ANTI_BRIBERY",
+  "name": "Anti-Bribery & Corruption",
+  "category": "FinCrime",
+  "description": "Policy covering bribery prevention, third-party risk, and compliance with the UK Bribery Act.",
+  "sections": [
+    {
+      "id": "purpose",
+      "title": "Purpose and objectives",
+      "summary": "Set the objectives for bribery prevention.",
+      "suggestedClauses": [
+        "nasara_anti_bribery-purpose-purpose_and_objectives"
+      ]
+    },
+    {
+      "id": "scope",
+      "title": "Scope and applicability",
+      "summary": "Define who and what the policy covers.",
+      "suggestedClauses": [
+        "nasara_anti_bribery-scope-scope_and_applicability"
+      ]
+    },
+    {
+      "id": "definitions",
+      "title": "What is a bribe",
+      "summary": "Define bribery and improper advantage.",
+      "suggestedClauses": [
+        "nasara_anti_bribery-definitions-what_is_a_bribe"
+      ]
+    },
+    {
+      "id": "offences",
+      "title": "UK bribery offences",
+      "summary": "Summarize offences and corporate liability.",
+      "suggestedClauses": [
+        "nasara_anti_bribery-offences-uk_offences"
+      ]
+    },
+    {
+      "id": "principles",
+      "title": "Prevention principles",
+      "summary": "Set the six prevention principles.",
+      "suggestedClauses": [
+        "nasara_anti_bribery-principles-six_prevention_principles"
+      ]
+    },
+    {
+      "id": "gifts",
+      "title": "Gifts and hospitality",
+      "summary": "Define thresholds, approvals, and registers.",
+      "suggestedClauses": [
+        "nasara_anti_bribery-gifts-gifts_hospitality_and_donations"
+      ]
+    },
+    {
+      "id": "third_party",
+      "title": "Third-party risk",
+      "summary": "Define due diligence and red flag handling.",
+      "suggestedClauses": [
+        "nasara_anti_bribery-third_party-third_party_risk"
+      ]
+    },
+    {
+      "id": "facilitation",
+      "title": "Facilitation payments",
+      "summary": "Prohibit facilitation payments and set escalation routes.",
+      "suggestedClauses": [
+        "nasara_anti_bribery-facilitation-facilitation_payments"
+      ]
+    },
+    {
+      "id": "records",
+      "title": "Books and records",
+      "summary": "Define documentation and register requirements.",
+      "suggestedClauses": [
+        "nasara_anti_bribery-records-books_and_records"
+      ]
+    },
+    {
+      "id": "escalation",
+      "title": "Escalation and speak-up",
+      "summary": "Define escalation and whistleblowing routes.",
+      "suggestedClauses": [
+        "nasara_anti_bribery-escalation-escalation_and_speak_up"
+      ]
+    },
+    {
+      "id": "training",
+      "title": "Training and awareness",
+      "summary": "Require ongoing training and attestations.",
+      "suggestedClauses": [
+        "nasara_anti_bribery-training-training_and_awareness"
+      ]
+    },
+    {
+      "id": "governance",
+      "title": "Governance and review",
+      "summary": "Set oversight and review expectations.",
+      "suggestedClauses": [
+        "nasara_anti_bribery-governance-governance_and_review"
+      ]
+    }
+  ],
+  "mandatoryClauses": [
+    "nasara_anti_bribery-purpose-purpose_and_objectives",
+    "nasara_anti_bribery-scope-scope_and_applicability",
+    "nasara_anti_bribery-definitions-what_is_a_bribe",
+    "nasara_anti_bribery-offences-uk_offences",
+    "nasara_anti_bribery-principles-six_prevention_principles",
+    "nasara_anti_bribery-gifts-gifts_hospitality_and_donations",
+    "nasara_anti_bribery-third_party-third_party_risk",
+    "nasara_anti_bribery-facilitation-facilitation_payments",
+    "nasara_anti_bribery-records-books_and_records",
+    "nasara_anti_bribery-escalation-escalation_and_speak_up",
+    "nasara_anti_bribery-training-training_and_awareness",
+    "nasara_anti_bribery-governance-governance_and_review"
+  ]
+}

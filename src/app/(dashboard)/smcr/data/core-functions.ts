@@ -113,12 +113,173 @@ export const investmentSpecificSMFs: SeniorManagementFunction[] = [
   }
 ];
 
+// PSD (Payment Services Directive) Specific Functions
+// These are the key roles required under PSR/EMR regulations
+export interface PSDFunction {
+  id: string;
+  psd_number: string;
+  title: string;
+  description: string;
+  required_for: string[];
+  regime: 'psd';
+  regulatory_reference?: string;
+  key_responsibilities?: string[];
+}
+
+export const psdFunctions: PSDFunction[] = [
+  {
+    id: 'psd-director',
+    psd_number: 'PSD-DIR',
+    title: 'Director (Payment Services)',
+    description: 'Director responsible for the overall management and strategic direction of payment services activities',
+    required_for: ['Payment Institutions', 'Electronic Money Institutions'],
+    regime: 'psd',
+    regulatory_reference: 'PSR Reg 6',
+    key_responsibilities: [
+      'Oversight of safeguarding arrangements',
+      'Ensuring adequate capital maintenance',
+      'Strategic planning for payment services',
+      'Regulatory relationship management'
+    ]
+  },
+  {
+    id: 'psd-qualified',
+    psd_number: 'PSD-QP',
+    title: 'Qualified Person',
+    description: 'Individual with appropriate qualifications and experience to manage payment services operations',
+    required_for: ['Payment Institutions', 'Electronic Money Institutions'],
+    regime: 'psd',
+    regulatory_reference: 'PSR Reg 6(6)',
+    key_responsibilities: [
+      'Day-to-day management of payment services',
+      'Ensuring operational compliance',
+      'Staff competency and training oversight'
+    ]
+  },
+  {
+    id: 'psd-compliance',
+    psd_number: 'PSD-CO',
+    title: 'Compliance Officer (PSD)',
+    description: 'Individual responsible for compliance with payment services regulations and AML requirements',
+    required_for: ['Payment Institutions', 'Electronic Money Institutions', 'SPI/RAISPs'],
+    regime: 'psd',
+    regulatory_reference: 'PSR/EMR',
+    key_responsibilities: [
+      'Regulatory compliance monitoring',
+      'AML/CTF compliance',
+      'Regulatory reporting',
+      'Policy development and review'
+    ]
+  },
+  {
+    id: 'psd-safeguarding',
+    psd_number: 'PSD-SG',
+    title: 'Safeguarding Officer',
+    description: 'Individual responsible for ensuring proper safeguarding of customer funds',
+    required_for: ['Payment Institutions', 'Electronic Money Institutions'],
+    regime: 'psd',
+    regulatory_reference: 'PSR Reg 19-23 / EMR Reg 20-22',
+    key_responsibilities: [
+      'Daily safeguarding reconciliations',
+      'Segregation of customer funds',
+      'Safeguarding audits coordination',
+      'Insurance/guarantee arrangements'
+    ]
+  },
+  {
+    id: 'psd-operational',
+    psd_number: 'PSD-OP',
+    title: 'Operational Manager',
+    description: 'Individual responsible for the operational aspects of payment services',
+    required_for: ['Payment Institutions', 'Electronic Money Institutions'],
+    regime: 'psd',
+    key_responsibilities: [
+      'Transaction processing oversight',
+      'Operational risk management',
+      'Service level management',
+      'Incident management'
+    ]
+  },
+  {
+    id: 'psd-it-security',
+    psd_number: 'PSD-IT',
+    title: 'IT Security Officer',
+    description: 'Individual responsible for IT security and operational resilience under PSD2',
+    required_for: ['Payment Institutions', 'Electronic Money Institutions'],
+    regime: 'psd',
+    regulatory_reference: 'PSD2 RTS on SCA/CSC',
+    key_responsibilities: [
+      'Strong Customer Authentication compliance',
+      'Secure communication protocols',
+      'Fraud prevention systems',
+      'Incident reporting to FCA'
+    ]
+  }
+];
+
 // All SMFs combined
 export const allSMFs: SeniorManagementFunction[] = [
   ...universalSMFs,
   ...paymentSpecificSMFs,
   ...investmentSpecificSMFs
 ];
+
+// Combined SMF and PSD Functions for unified selection
+export type RegimeType = 'smcr' | 'psd' | 'both';
+
+export interface UnifiedRole {
+  id: string;
+  number: string;
+  title: string;
+  description: string;
+  regime: RegimeType;
+  type: 'SMF' | 'CF' | 'PSD';
+}
+
+export function getAllRolesForRegime(regime: RegimeType): UnifiedRole[] {
+  const roles: UnifiedRole[] = [];
+
+  // Add SM&CR roles
+  if (regime === 'smcr' || regime === 'both') {
+    allSMFs.forEach((smf) => {
+      roles.push({
+        id: smf.id,
+        number: smf.smf_number,
+        title: smf.title,
+        description: smf.description,
+        regime: 'smcr',
+        type: 'SMF',
+      });
+    });
+
+    certificationFunctions.forEach((cf) => {
+      roles.push({
+        id: cf.id,
+        number: cf.cf_number,
+        title: cf.title,
+        description: cf.description,
+        regime: 'smcr',
+        type: 'CF',
+      });
+    });
+  }
+
+  // Add PSD roles
+  if (regime === 'psd' || regime === 'both') {
+    psdFunctions.forEach((psd) => {
+      roles.push({
+        id: psd.id,
+        number: psd.psd_number,
+        title: psd.title,
+        description: psd.description,
+        regime: 'psd',
+        type: 'PSD',
+      });
+    });
+  }
+
+  return roles;
+}
 
 // Certification Functions
 export const certificationFunctions: CertificationFunction[] = [

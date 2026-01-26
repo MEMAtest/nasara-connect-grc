@@ -24,6 +24,8 @@ export interface Firm {
   id: string;
   name: string;
   createdAt: string;
+  authorizationProjectId?: string;
+  authorizationProjectName?: string;
 }
 
 export interface PersonAssessment {
@@ -271,6 +273,44 @@ export interface StatementOfResponsibilitiesDraft {
 export type FitnessAssessmentStatus = "draft" | "in_review" | "completed";
 export type FitnessBooleanAnswer = "yes" | "no" | "not_applicable";
 
+// Conduct Breach types
+export type BreachSeverity = "minor" | "serious" | "severe";
+export type BreachStatus = "open" | "investigating" | "resolved" | "escalated";
+
+export interface ConductBreach {
+  id: string;
+  firmId: string;
+  personId: string;
+  personName: string;
+  ruleId: string;
+  ruleName: string;
+  dateIdentified: string;
+  dateOccurred?: string;
+  description: string;
+  severity: BreachSeverity;
+  status: BreachStatus;
+  investigator?: string;
+  findings?: string;
+  recommendations?: string[];
+  disciplinaryAction?: string;
+  trainingRequired?: boolean;
+  fcaNotification?: boolean;
+  fcaNotificationDate?: string;
+  resolutionDate?: string;
+  lessonsLearned?: string;
+  timeline: BreachTimelineEntry[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BreachTimelineEntry {
+  id: string;
+  date: string;
+  action: string;
+  description: string;
+  performedBy?: string;
+}
+
 export interface FitnessAssessmentResponse {
   questionId: string;
   value: FitnessBooleanAnswer | string | null;
@@ -301,6 +341,7 @@ interface SmcrDataState {
   workflows: WorkflowInstance[];
   workflowDocuments: WorkflowDocument[];
   assessments: FitnessAssessmentRecord[];
+  breaches: ConductBreach[];
 }
 
 const STORAGE_KEY = "smcr-data-v1";
@@ -312,6 +353,7 @@ const emptyState: SmcrDataState = {
   workflows: [],
   workflowDocuments: [],
   assessments: [],
+  breaches: [],
 };
 
 interface SmcrContextValue {
@@ -321,6 +363,8 @@ interface SmcrContextValue {
   activeFirmId: string | null;
   setActiveFirm: (id: string) => void;
   addFirm: (name: string) => string;
+  linkAuthorizationProject: (firmId: string, projectId: string, projectName: string) => void;
+  unlinkAuthorizationProject: (firmId: string) => void;
   addPerson: (input: NewPersonInput) => string;
   updatePerson: (id: string, updates: Partial<PersonRecord>) => void;
   removePerson: (id: string) => Promise<void>;
@@ -346,6 +390,11 @@ interface SmcrContextValue {
   updateAssessmentResponse: (input: AssessmentResponseUpdate) => void;
   updateAssessmentStatus: (input: AssessmentStatusUpdate) => void;
   removeAssessment: (id: string) => void;
+  // Breach management
+  addBreach: (input: NewBreachInput) => ConductBreach;
+  updateBreach: (id: string, updates: Partial<ConductBreach>) => void;
+  addBreachTimelineEntry: (breachId: string, entry: Omit<BreachTimelineEntry, "id">) => void;
+  removeBreach: (id: string) => void;
 }
 
 type NewPersonInput = {
@@ -460,6 +509,17 @@ type AssessmentStatusUpdate = {
   assessmentDate?: string;
   nextDueDate?: string;
   reviewer?: string;
+};
+
+type NewBreachInput = {
+  personId: string;
+  personName: string;
+  ruleId: string;
+  ruleName: string;
+  dateIdentified: string;
+  dateOccurred?: string;
+  description: string;
+  severity: BreachSeverity;
 };
 
 const SmcrDataContext = createContext<SmcrContextValue | undefined>(undefined);
@@ -617,6 +677,7 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
               workflows: snapshot.data.workflows ?? [],
               workflowDocuments: snapshot.data.workflowDocuments ?? [],
               assessments: snapshot.data.assessments ?? [],
+              breaches: snapshot.data.breaches ?? [],
             });
             setFirms(snapshot.firms ?? []);
             setActiveFirmId(snapshot.activeFirmId ?? snapshot.firms?.[0]?.id ?? null);
@@ -651,6 +712,10 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
               assessments: (legacy.assessments ?? []).map((assessment) => ({
                 ...assessment,
                 firmId: (assessment as FitnessAssessmentRecord).firmId ?? defaultFirmId,
+              })),
+              breaches: ((legacy as unknown as { breaches?: ConductBreach[] }).breaches ?? []).map((breach) => ({
+                ...breach,
+                firmId: breach.firmId ?? defaultFirmId,
               })),
             });
             setFirms([defaultFirm]);
@@ -708,6 +773,29 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
 
   const setActiveFirm = useCallback((id: string) => {
     setActiveFirmId(id);
+  }, []);
+
+  const linkAuthorizationProject = useCallback(
+    (firmId: string, projectId: string, projectName: string) => {
+      setFirms((prev) =>
+        prev.map((firm) =>
+          firm.id === firmId
+            ? { ...firm, authorizationProjectId: projectId, authorizationProjectName: projectName }
+            : firm
+        )
+      );
+    },
+    []
+  );
+
+  const unlinkAuthorizationProject = useCallback((firmId: string) => {
+    setFirms((prev) =>
+      prev.map((firm) =>
+        firm.id === firmId
+          ? { ...firm, authorizationProjectId: undefined, authorizationProjectName: undefined }
+          : firm
+      )
+    );
   }, []);
 
   const addPerson = useCallback(
@@ -772,9 +860,11 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
     async (id: string) => {
       const documentsToRemove = state.documents.filter((doc) => doc.personId === id);
       setState((prev) => ({
+        ...prev,
         people: prev.people.filter((person) => person.id !== id),
         documents: prev.documents.filter((doc) => doc.personId !== id),
         roles: prev.roles.filter((role) => role.personId !== id),
+        breaches: prev.breaches.filter((breach) => breach.personId !== id),
       }));
       await Promise.all(documentsToRemove.map((doc) => removeDocumentBlob(doc.id)));
     },
@@ -822,6 +912,36 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
     if (!activeFirmId) {
       throw new Error("Select a firm before assigning roles");
     }
+
+    // Check for duplicate or overlapping role assignment
+    const newStart = new Date(input.startDate);
+    const newEnd = input.endDate ? new Date(input.endDate) : new Date("2099-12-31");
+
+    const overlappingRole = state.roles.find((role) => {
+      if (
+        role.personId !== input.personId ||
+        role.functionId !== input.functionId ||
+        role.firmId !== activeFirmId
+      ) {
+        return false;
+      }
+
+      // Check for date range overlap
+      const existingStart = new Date(role.startDate);
+      const existingEnd = role.endDate ? new Date(role.endDate) : new Date("2099-12-31");
+
+      // Overlap occurs if: newStart <= existingEnd AND newEnd >= existingStart
+      return newStart <= existingEnd && newEnd >= existingStart;
+    });
+
+    if (overlappingRole) {
+      if (!overlappingRole.endDate) {
+        throw new Error("This role is already assigned to this person");
+      } else {
+        throw new Error("This role assignment overlaps with an existing assignment period");
+      }
+    }
+
     const library =
       input.functionType === "SMF"
         ? allSMFs
@@ -1435,6 +1555,83 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  // Breach management functions
+  const addBreach = useCallback((input: NewBreachInput): ConductBreach => {
+    if (!activeFirmId) {
+      throw new Error("No active firm selected");
+    }
+    const timestamp = new Date().toISOString();
+    const breach: ConductBreach = {
+      id: createId("breach"),
+      firmId: activeFirmId,
+      personId: input.personId,
+      personName: input.personName,
+      ruleId: input.ruleId,
+      ruleName: input.ruleName,
+      dateIdentified: input.dateIdentified,
+      dateOccurred: input.dateOccurred,
+      description: input.description,
+      severity: input.severity,
+      status: "open",
+      timeline: [
+        {
+          id: createId("timeline"),
+          date: timestamp,
+          action: "Breach Reported",
+          description: `Breach of ${input.ruleName} reported for ${input.personName}`,
+        },
+      ],
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    };
+
+    setState((prev) => ({
+      ...prev,
+      breaches: [...prev.breaches, breach],
+    }));
+
+    return breach;
+  }, [activeFirmId]);
+
+  const updateBreach = useCallback((id: string, updates: Partial<ConductBreach>) => {
+    setState((prev) => ({
+      ...prev,
+      breaches: prev.breaches.map((breach) =>
+        breach.id === id
+          ? { ...breach, ...updates, updatedAt: new Date().toISOString() }
+          : breach
+      ),
+    }));
+  }, []);
+
+  const addBreachTimelineEntry = useCallback(
+    (breachId: string, entry: Omit<BreachTimelineEntry, "id">) => {
+      setState((prev) => ({
+        ...prev,
+        breaches: prev.breaches.map((breach) =>
+          breach.id === breachId
+            ? {
+                ...breach,
+                timeline: [
+                  ...breach.timeline,
+                  { ...entry, id: createId("timeline") },
+                ],
+                updatedAt: new Date().toISOString(),
+              }
+            : breach
+        ),
+      }));
+    },
+    []
+  );
+
+  const removeBreach = useCallback((id: string) => {
+    setState((prev) => ({
+      ...prev,
+      breaches: prev.breaches.filter((breach) => breach.id !== id),
+    }));
+  }, []);
+
   const value = useMemo<SmcrContextValue>(
     () => ({
       state,
@@ -1443,6 +1640,8 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
       activeFirmId,
       setActiveFirm,
       addFirm,
+      linkAuthorizationProject,
+      unlinkAuthorizationProject,
       addPerson,
       updatePerson,
       removePerson,
@@ -1468,6 +1667,10 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
       updateAssessmentResponse,
       updateAssessmentStatus,
       removeAssessment,
+      addBreach,
+      updateBreach,
+      addBreachTimelineEntry,
+      removeBreach,
     }),
     [
       state,
@@ -1476,6 +1679,8 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
       activeFirmId,
       setActiveFirm,
       addFirm,
+      linkAuthorizationProject,
+      unlinkAuthorizationProject,
       addPerson,
       updatePerson,
       removePerson,
@@ -1501,6 +1706,10 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
       updateAssessmentResponse,
       updateAssessmentStatus,
       removeAssessment,
+      addBreach,
+      updateBreach,
+      addBreachTimelineEntry,
+      removeBreach,
     ],
   );
 

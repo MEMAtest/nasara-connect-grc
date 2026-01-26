@@ -58,6 +58,21 @@ const policyMap: Record<string, IntegrationItem> = {
     label: "Financial Promotions",
     href: policyLink("FIN_PROMOTIONS"),
   },
+  "compliance-mon": {
+    key: "compliance-mon",
+    label: "Compliance Monitoring Plan (CMP)",
+    href: policyLink("COMPLIANCE_MON"),
+  },
+  "compliance-monitoring": {
+    key: "compliance-monitoring",
+    label: "Compliance Monitoring Plan (CMP)",
+    href: policyLink("COMPLIANCE_MON"),
+  },
+  "compliance-monitoring-plan": {
+    key: "compliance-monitoring-plan",
+    label: "Compliance Monitoring Plan (CMP)",
+    href: policyLink("COMPLIANCE_MON"),
+  },
   "operational-resilience": {
     key: "operational-resilience",
     label: "Business Continuity & Operational Resilience",
@@ -187,6 +202,66 @@ const policyMap: Record<string, IntegrationItem> = {
     key: "risk-management-framework",
     label: "Risk Management Framework",
     href: policyLink("RISK_MGMT"),
+  },
+  "outsourcing": {
+    key: "outsourcing",
+    label: "Outsourcing & Third-Party Risk",
+    href: policyLink("OUTSOURCING"),
+  },
+  "third-party-outsourcing": {
+    key: "third-party-outsourcing",
+    label: "Outsourcing & Third-Party Risk",
+    href: policyLink("OUTSOURCING"),
+  },
+  "information-security": {
+    key: "information-security",
+    label: "Information & Cyber Security",
+    href: policyLink("INFO_SECURITY"),
+  },
+  "info-security": {
+    key: "info-security",
+    label: "Information & Cyber Security",
+    href: policyLink("INFO_SECURITY"),
+  },
+  "operational-security-risk": {
+    key: "operational-security-risk",
+    label: "Operational & Security Risk",
+    href: policyLink("OP_SEC_RISK"),
+  },
+  "op-sec-risk": {
+    key: "op-sec-risk",
+    label: "Operational & Security Risk",
+    href: policyLink("OP_SEC_RISK"),
+  },
+  "market-abuse": {
+    key: "market-abuse",
+    label: "Market Abuse Policy",
+    href: policyLink("MARKET_ABUSE"),
+  },
+  "inducements": {
+    key: "inducements",
+    label: "Inducements Policy",
+    href: policyLink("INDUCEMENTS"),
+  },
+  cass: {
+    key: "cass",
+    label: "Client Assets (CASS)",
+    href: policyLink("CASS"),
+  },
+  "cass-resolution": {
+    key: "cass-resolution",
+    label: "CASS Resolution Pack",
+    href: policyLink("CASS_RESOLUTION"),
+  },
+  "product-gov": {
+    key: "product-gov",
+    label: "Product Governance",
+    href: policyLink("PRODUCT_GOV"),
+  },
+  "target-market": {
+    key: "target-market",
+    label: "Target Market Assessment",
+    href: policyLink("TARGET_MARKET"),
   },
   "vulnerable-customers": {
     key: "vulnerable-customers",
@@ -388,7 +463,6 @@ const baseRegisters: IntegrationItem[] = [
   { key: "risk-register", label: "Risk register", href: "/risk-assessment" },
   { key: "cmp-register", label: "Compliance monitoring plan", href: "/compliance-framework/monitoring" },
   { key: "smcr-register", label: "SMCR responsibilities", href: "/smcr" },
-  { key: "training-log", label: "Training records", href: "/training-library" },
   { key: "pep-register", label: "PEP register", href: "/registers/pep", description: "Politically exposed persons" },
   { key: "third-party-register", label: "Third-party register", href: "/registers/third-party", description: "Vendors & outsourcing" },
   { key: "complaints-register", label: "Complaints register", href: "/registers/complaints" },
@@ -403,6 +477,40 @@ const registerOverrides: Record<string, IntegrationItem[]> = {
     { key: "safeguarding-log", label: "Safeguarding log (evidence hub)" },
   ],
 };
+
+const psdItems: IntegrationItem[] = [
+  { key: "psd-directors", label: "PSD directors and key function holders" },
+  { key: "qualifying-shareholders", label: "Qualifying shareholders (10%+)" },
+  { key: "compliance-officer", label: "Compliance officer (SMF16)" },
+  { key: "mlro", label: "Money Laundering Reporting Officer (SMF17)" },
+];
+
+const controllerItems: IntegrationItem[] = [
+  { key: "controller-10", label: "Controllers with 10%+ ownership" },
+  { key: "controller-20", label: "Controllers with 20%+ ownership" },
+  { key: "controller-33", label: "Controllers with 33%+ ownership" },
+  { key: "controller-50", label: "Controllers with 50%+ ownership" },
+  { key: "beneficial-owners", label: "Ultimate beneficial owners" },
+];
+
+const governanceItems: IntegrationItem[] = [
+  { key: "risk-register", label: "Risk register" },
+  { key: "cmp", label: "Compliance Monitoring Plan (CMP)" },
+  { key: "org-structure-chart", label: "Organisation structure chart" },
+  { key: "governance-forums", label: "Governance forums and committees" },
+];
+
+const otherDocumentationItems: IntegrationItem[] = [
+  { key: "financial-forecasts", label: "Financial forecasts" },
+  { key: "pi-insurance", label: "PI insurance certificate" },
+  { key: "org-structure-chart", label: "Organisation structure chart" },
+  { key: "skills-assessment", label: "Skills assessment" },
+  { key: "cv-psd", label: "CVs for PSD individuals" },
+  { key: "dbs-checks", label: "DBS checks (PSD individuals)" },
+  { key: "cmp", label: "Compliance Monitoring Plan (CMP)" },
+  { key: "risk-register", label: "Risk register" },
+  { key: "employment-contracts", label: "Employment contracts" },
+];
 
 const permissionAliases: Record<string, string> = {
   "payments-emi": "payments",
@@ -431,12 +539,37 @@ const normalizeKey = (value?: string) =>
     .replace(/-+/g, "-")
     .replace(/(^-|-$)/g, "");
 
-function mapItems(values: string[] | undefined, lookup: Record<string, IntegrationItem>, fallbackHref?: string) {
+const appendQueryParam = (href: string, key: string, value: string) => {
+  const [path, query] = href.split("?");
+  const params = new URLSearchParams(query ?? "");
+  params.set(key, value);
+  return `${path}?${params.toString()}`;
+};
+
+function mapItems(
+  values: string[] | undefined,
+  lookup: Record<string, IntegrationItem>,
+  fallbackHref?: string,
+  options?: { projectId?: string }
+) {
   if (!values?.length) return [];
+  const projectId = options?.projectId;
   return values.map((raw) => {
     const key = normalizeKey(raw);
     const mapped = lookup[key];
-    if (mapped) return mapped;
+    if (mapped) {
+      if (projectId && mapped.href) {
+        return { ...mapped, href: appendQueryParam(mapped.href, "projectId", projectId) };
+      }
+      return mapped;
+    }
+    if (projectId && fallbackHref) {
+      return {
+        key: raw,
+        label: titleCase(raw),
+        href: appendQueryParam(fallbackHref, "projectId", projectId),
+      };
+    }
     return {
       key: raw,
       label: titleCase(raw),
@@ -445,8 +578,8 @@ function mapItems(values: string[] | undefined, lookup: Record<string, Integrati
   });
 }
 
-export function getPolicyItems(values?: string[]) {
-  return mapItems(values, policyMap, "/policies/wizard");
+export function getPolicyItems(values?: string[], options?: { projectId?: string }) {
+  return mapItems(values, policyMap, "/policies/wizard", options);
 }
 
 export function getTrainingItems(values?: string[]) {
@@ -465,4 +598,20 @@ export function getSmcrItems(values?: string[]) {
 export function getRegisterItems(permissionCode?: string) {
   const normalized = permissionAliases[permissionCode || ""] ?? permissionCode ?? "";
   return registerOverrides[normalized] ?? baseRegisters;
+}
+
+export function getPsdItems() {
+  return psdItems;
+}
+
+export function getControllerItems() {
+  return controllerItems;
+}
+
+export function getGovernanceItems() {
+  return governanceItems;
+}
+
+export function getOtherDocumentationItems() {
+  return otherDocumentationItems;
 }

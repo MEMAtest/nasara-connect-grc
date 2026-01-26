@@ -13,6 +13,7 @@ import { initDatabase, createPolicyActivity } from "@/lib/database";
 import { sanitizeString } from "@/lib/validation";
 import type { FirmPermissions } from "@/lib/policies";
 import type { PolicyClause, PolicyTemplate } from "@/lib/policies/templates";
+import { createNotification } from "@/lib/server/notifications-store";
 
 const fallbackPolicies: StoredPolicy[] = [];
 
@@ -97,14 +98,17 @@ export async function POST(request: Request) {
 
   const detailLevel = typeof body.detailLevel === "string" ? body.detailLevel : undefined;
 
+  const governance = typeof body.governance === "object" && body.governance !== null ? body.governance : undefined;
   const customContent = {
     firmProfile: body.firmProfile ?? {},
+    policyInputs: body.policyInputs ?? {},
     sectionClauses,
     sectionOptions: body.sectionOptions ?? {},
     sectionNotes: body.sectionNotes ?? {},
     clauseVariables: body.clauseVariables ?? {},
     detailLevel,
     approvals,
+    ...(governance ? { governance } : {}),
   };
 
   const suggestedMappings = Array.isArray((template as PolicyTemplate & { suggestedMappings?: unknown }).suggestedMappings)
@@ -165,6 +169,19 @@ export async function POST(request: Request) {
     } catch (linkError) {
       console.error("Failed to persist suggested policy mappings (non-blocking):", linkError);
     }
+    try {
+      await createNotification({
+        organizationId: DEFAULT_ORGANIZATION_ID,
+        title: "Policy created",
+        message: `Draft "${created.name}" created from template.`,
+        severity: "success",
+        source: "policies",
+        link: `/policies/${created.id}`,
+        metadata: { policyId: created.id, status: created.status },
+      });
+    } catch {
+      // Non-blocking notification failures
+    }
     return NextResponse.json(created, { status: 201 });
   } catch (error) {
     console.error("Error creating policy, falling back to mock store:", error);
@@ -181,6 +198,19 @@ export async function POST(request: Request) {
       await persistSuggestedMappings(fallback.id);
     } catch (linkError) {
       console.error("Failed to persist suggested policy mappings for fallback (non-blocking):", linkError);
+    }
+    try {
+      await createNotification({
+        organizationId: DEFAULT_ORGANIZATION_ID,
+        title: "Policy created",
+        message: `Draft "${fallback.name}" created from template.`,
+        severity: "success",
+        source: "policies",
+        link: `/policies/${fallback.id}`,
+        metadata: { policyId: fallback.id, status: fallback.status },
+      });
+    } catch {
+      // Non-blocking notification failures
     }
     return NextResponse.json(fallback, { status: 201 });
   }

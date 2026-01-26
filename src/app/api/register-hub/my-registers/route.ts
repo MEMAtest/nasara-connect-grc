@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { pool, getOrganizationSettings, getRegisterSubscriptions } from "@/lib/database";
-import { requireAuth } from "@/lib/auth-utils";
+import { requireAuth, isAuthDisabled } from "@/lib/auth-utils";
 
 interface RegisterStats {
   code: string;
@@ -10,21 +10,24 @@ interface RegisterStats {
 }
 
 // Map of register codes to their table names and status columns
-const REGISTER_TABLES: Record<string, { table: string; statusColumn: string; activeStatuses: string[]; pendingStatuses: string[] }> = {
-  pep: { table: "pep_records", statusColumn: "status", activeStatuses: ["active", "under_review"], pendingStatuses: ["pending"] },
-  sanctions: { table: "sanctions_records", statusColumn: "status", activeStatuses: ["in_review"], pendingStatuses: ["pending"] },
-  "aml-cdd": { table: "aml_cdd_records", statusColumn: "status", activeStatuses: ["active"], pendingStatuses: ["pending"] },
-  "edd-cases": { table: "edd_cases_records", statusColumn: "status", activeStatuses: ["open", "in_progress"], pendingStatuses: ["pending_approval"] },
-  "sar-nca": { table: "sar_nca_records", statusColumn: "status", activeStatuses: ["draft", "under_review"], pendingStatuses: ["consent_pending"] },
+const REGISTER_TABLES: Record<
+  string,
+  { table: string; statusColumn: string; activeStatuses: string[]; pendingStatuses: string[] }
+> = {
+  pep: { table: "pep_records", statusColumn: "status", activeStatuses: ["active", "under_review"], pendingStatuses: [] },
+  sanctions: { table: "sanctions_screening_records", statusColumn: "status", activeStatuses: ["in_review", "escalated"], pendingStatuses: ["pending"] },
+  "aml-cdd": { table: "aml_cdd_records", statusColumn: "overall_status", activeStatuses: ["in_progress"], pendingStatuses: ["pending_review"] },
+  "edd-cases": { table: "edd_cases_records", statusColumn: "status", activeStatuses: ["open", "under_review", "escalated"], pendingStatuses: [] },
+  "sar-nca": { table: "sar_nca_records", statusColumn: "status", activeStatuses: ["draft", "under_review", "consent_pending"], pendingStatuses: [] },
   "tx-monitoring": { table: "tx_monitoring_records", statusColumn: "status", activeStatuses: ["open", "investigating"], pendingStatuses: ["pending"] },
-  complaints: { table: "complaint_records", statusColumn: "status", activeStatuses: ["open", "investigating"], pendingStatuses: ["escalated"] },
-  conflicts: { table: "conflict_records", statusColumn: "status", activeStatuses: ["active"], pendingStatuses: ["pending_review"] },
-  "gifts-hospitality": { table: "gift_hospitality_records", statusColumn: "approval_status", activeStatuses: ["approved"], pendingStatuses: ["pending"] },
-  "fin-prom": { table: "fin_prom_records", statusColumn: "status", activeStatuses: ["live"], pendingStatuses: ["draft", "review"] },
+  complaints: { table: "complaints_records", statusColumn: "status", activeStatuses: ["open", "investigating", "escalated"], pendingStatuses: [] },
+  conflicts: { table: "coi_records", statusColumn: "status", activeStatuses: ["active", "mitigated"], pendingStatuses: [] },
+  "gifts-hospitality": { table: "gifts_hospitality_records", statusColumn: "approval_status", activeStatuses: ["approved"], pendingStatuses: ["pending"] },
+  "fin-prom": { table: "fin_prom_records", statusColumn: "status", activeStatuses: ["live"], pendingStatuses: ["draft"] },
   "vulnerable-customers": { table: "vulnerable_customers_records", statusColumn: "status", activeStatuses: ["active", "monitoring"], pendingStatuses: [] },
   "product-governance": { table: "product_governance_records", statusColumn: "status", activeStatuses: ["active"], pendingStatuses: ["draft", "review"] },
-  "tc-record": { table: "tc_record_records", statusColumn: "status", activeStatuses: ["competent"], pendingStatuses: ["in_training", "assessment_due"] },
-  "smcr-certification": { table: "smcr_certification_records", statusColumn: "status", activeStatuses: ["certified"], pendingStatuses: ["pending", "renewal_due"] },
+  "tc-record": { table: "tc_record_records", statusColumn: "status", activeStatuses: ["active", "competent"], pendingStatuses: ["in_training", "assessment_due"] },
+  "smcr-certification": { table: "smcr_certification_records", statusColumn: "status", activeStatuses: ["active", "certified"], pendingStatuses: ["pending", "renewal_due"] },
   "regulatory-returns": { table: "regulatory_returns_records", statusColumn: "status", activeStatuses: ["submitted"], pendingStatuses: ["pending", "overdue"] },
   "pa-dealing": { table: "pa_dealing_records", statusColumn: "status", activeStatuses: ["approved"], pendingStatuses: ["pending_approval"] },
   "insider-list": { table: "insider_list_records", statusColumn: "status", activeStatuses: ["active"], pendingStatuses: [] },
@@ -33,12 +36,16 @@ const REGISTER_TABLES: Record<string, { table: string; statusColumn: string; act
   "third-party": { table: "third_party_records", statusColumn: "status", activeStatuses: ["active"], pendingStatuses: ["pending", "under_review"] },
   "data-breach-dsar": { table: "data_breach_dsar_records", statusColumn: "status", activeStatuses: ["open", "investigating"], pendingStatuses: ["pending"] },
   "op-resilience": { table: "op_resilience_records", statusColumn: "status", activeStatuses: ["active"], pendingStatuses: ["testing", "review"] },
-  "regulatory-breach": { table: "regulatory_breach_records", statusColumn: "status", activeStatuses: ["identified", "investigating", "remediation"], pendingStatuses: [] },
+  "regulatory-breach": { table: "regulatory_breach_records", statusColumn: "status", activeStatuses: ["open", "investigating", "remediation"], pendingStatuses: [] },
 };
 
-async function getRegisterStats(organizationId: string, registerCodes: string[]): Promise<Record<string, RegisterStats>> {
+async function getRegisterStats(
+  organizationIds: string[],
+  registerCodes: string[]
+): Promise<Record<string, RegisterStats>> {
   const stats: Record<string, RegisterStats> = {};
   const client = await pool.connect();
+  const orgIds = Array.from(new Set(organizationIds.filter(Boolean)));
 
   try {
     for (const code of registerCodes) {
@@ -51,8 +58,8 @@ async function getRegisterStats(organizationId: string, registerCodes: string[])
       try {
         // Get total count
         const countResult = await client.query(
-          `SELECT COUNT(*) as count FROM ${tableConfig.table} WHERE organization_id = $1`,
-          [organizationId]
+          `SELECT COUNT(*) as count FROM ${tableConfig.table} WHERE organization_id = ANY($1)`,
+          [orgIds]
         );
         const count = parseInt(countResult.rows[0].count, 10);
 
@@ -60,8 +67,8 @@ async function getRegisterStats(organizationId: string, registerCodes: string[])
         let activeCount = 0;
         if (tableConfig.activeStatuses.length > 0) {
           const activeResult = await client.query(
-            `SELECT COUNT(*) as count FROM ${tableConfig.table} WHERE organization_id = $1 AND ${tableConfig.statusColumn} = ANY($2)`,
-            [organizationId, tableConfig.activeStatuses]
+            `SELECT COUNT(*) as count FROM ${tableConfig.table} WHERE organization_id = ANY($1) AND ${tableConfig.statusColumn} = ANY($2)`,
+            [orgIds, tableConfig.activeStatuses]
           );
           activeCount = parseInt(activeResult.rows[0].count, 10);
         }
@@ -70,8 +77,8 @@ async function getRegisterStats(organizationId: string, registerCodes: string[])
         let pendingCount = 0;
         if (tableConfig.pendingStatuses.length > 0) {
           const pendingResult = await client.query(
-            `SELECT COUNT(*) as count FROM ${tableConfig.table} WHERE organization_id = $1 AND ${tableConfig.statusColumn} = ANY($2)`,
-            [organizationId, tableConfig.pendingStatuses]
+            `SELECT COUNT(*) as count FROM ${tableConfig.table} WHERE organization_id = ANY($1) AND ${tableConfig.statusColumn} = ANY($2)`,
+            [orgIds, tableConfig.pendingStatuses]
           );
           pendingCount = parseInt(pendingResult.rows[0].count, 10);
         }
@@ -108,7 +115,10 @@ export async function GET(request: NextRequest) {
       .map((s) => s.register_code);
 
     // Get stats for enabled registers
-    const stats = await getRegisterStats(organizationId, enabledCodes);
+    const orgIds = isAuthDisabled() && organizationId !== "default-org"
+      ? [organizationId, "default-org"]
+      : [organizationId];
+    const stats = await getRegisterStats(orgIds, enabledCodes);
 
     return NextResponse.json({
       firmType: settings?.firm_type || null,

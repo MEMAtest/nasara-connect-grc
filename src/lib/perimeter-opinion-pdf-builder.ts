@@ -138,16 +138,16 @@ function buildCoverPage(ctx: DrawContext, config: OpinionPackConfig): void {
   const firmName = config.firmBasics?.legalName || config.packName;
 
   ctx.y = ctx.height - 100;
-  ctx.page.drawText("REGAUTH OPINION", {
+  ctx.page.drawText("Regulatory Perimeter and Permissions Opinion", {
     x: ctx.margin,
     y: ctx.y,
     font: ctx.fontBold,
-    size: 30,
+    size: 20,
     color: rgb(COLORS.primary.r, COLORS.primary.g, COLORS.primary.b),
   });
-  ctx.y -= 40;
+  ctx.y -= 32;
 
-  ctx.page.drawText(`Firm: ${firmName}`, {
+  ctx.page.drawText(firmName, {
     x: ctx.margin,
     y: ctx.y,
     font: ctx.fontBold,
@@ -174,62 +174,88 @@ function buildCoverPage(ctx: DrawContext, config: OpinionPackConfig): void {
   });
   ctx.y -= 30;
 
+  const boxPadding = 14;
+  const boxWidth = ctx.width - ctx.margin * 2;
+  const contentWidth = boxWidth - boxPadding * 2;
+  const verdictText = config.opinion.verdict.replace(/-/g, " ").toUpperCase();
+  const summaryText = config.opinion.summary;
+  const headerFontSize = 11;
+  const verdictFontSize = 12;
+  const summaryFontSize = 10;
+  const headerHeight = headerFontSize * 1.5;
+  const verdictLineHeight = verdictFontSize * 1.5;
+  const summaryLineHeight = summaryFontSize * 1.5;
+  const verdictLines = wrapText(verdictText, ctx.fontBold, verdictFontSize, contentWidth);
+  const summaryLines = wrapText(summaryText, ctx.fontRegular, summaryFontSize, contentWidth);
+  const boxHeight =
+    boxPadding * 2 +
+    headerHeight +
+    verdictLines.length * verdictLineHeight +
+    summaryLines.length * summaryLineHeight +
+    6;
+  const boxTop = ctx.y + 10;
+  const boxY = boxTop - boxHeight;
+
   ctx.page.drawRectangle({
     x: ctx.margin,
-    y: ctx.y - 90,
-    width: ctx.width - ctx.margin * 2,
-    height: 100,
+    y: boxY,
+    width: boxWidth,
+    height: boxHeight,
     borderColor: rgb(COLORS.primary.r, COLORS.primary.g, COLORS.primary.b),
     borderWidth: 1,
     color: rgb(0.97, 0.97, 1),
   });
 
-  ctx.y -= 15;
+  let cursorY = boxTop - boxPadding - headerFontSize;
   ctx.page.drawText("Perimeter verdict", {
-    x: ctx.margin + 15,
-    y: ctx.y,
+    x: ctx.margin + boxPadding,
+    y: cursorY,
     font: ctx.fontBold,
-    size: 11,
+    size: headerFontSize,
     color: rgb(COLORS.primary.r, COLORS.primary.g, COLORS.primary.b),
   });
-  ctx.y -= 20;
+  cursorY -= headerHeight;
 
-  drawText(ctx, config.opinion.verdict.replace(/-/g, " ").toUpperCase(), ctx.fontBold, 12, COLORS.text, 2, 10);
-  drawText(ctx, config.opinion.summary, ctx.fontRegular, 10, COLORS.text, 8, 10);
+  verdictLines.forEach((line) => {
+    ctx.page.drawText(line, {
+      x: ctx.margin + boxPadding,
+      y: cursorY,
+      font: ctx.fontBold,
+      size: verdictFontSize,
+      color: rgb(COLORS.text.r, COLORS.text.g, COLORS.text.b),
+    });
+    cursorY -= verdictLineHeight;
+  });
+
+  cursorY -= 4;
+  summaryLines.forEach((line) => {
+    ctx.page.drawText(line, {
+      x: ctx.margin + boxPadding,
+      y: cursorY,
+      font: ctx.fontRegular,
+      size: summaryFontSize,
+      color: rgb(COLORS.text.r, COLORS.text.g, COLORS.text.b),
+    });
+    cursorY -= summaryLineHeight;
+  });
+
+  ctx.y = boxY - 32;
 
   const highlights = config.activityHighlights.slice(0, 6);
   if (highlights.length) {
-    drawText(ctx, "Key regulated activities", ctx.fontBold, 10, COLORS.secondary, 4);
-    highlights.forEach((item) => drawText(ctx, `- ${item}`, ctx.fontRegular, 9, COLORS.text, 2, 10));
-    ctx.y -= 6;
+    drawText(ctx, `Key regulated activities: ${highlights.join(", ")}.`, ctx.fontRegular, 9, COLORS.text, 6);
   }
 
   const topSignals = config.regulatorySignals.slice(0, 5);
   if (topSignals.length) {
-    drawText(ctx, "Regulatory sources referenced", ctx.fontBold, 10, COLORS.secondary, 4);
-    topSignals.forEach((signal) =>
-      drawText(ctx, `- ${signal.label} (${signal.count})`, ctx.fontRegular, 9, COLORS.text, 2, 10)
-    );
-    ctx.y -= 6;
+    const sources = topSignals.map((signal) => `${signal.label} (${signal.count})`).join(", ");
+    drawText(ctx, `Regulatory sources referenced: ${sources}.`, ctx.fontRegular, 9, COLORS.text, 6);
   }
 
   if (config.opinion.obligations.length) {
-    drawText(ctx, "Key obligations", ctx.fontBold, 10, COLORS.secondary, 4);
-    config.opinion.obligations.slice(0, 6).forEach((item) =>
-      drawText(ctx, `- ${item}`, ctx.fontRegular, 9, COLORS.text, 2, 10)
-    );
+    const obligations = config.opinion.obligations.slice(0, 6).join(", ");
+    drawText(ctx, `Key obligations noted: ${obligations}.`, ctx.fontRegular, 9, COLORS.text, 6);
   }
-
-  ctx.y -= 6;
-  drawText(
-    ctx,
-    `Profile completion: ${config.profileCompletion}%`,
-    ctx.fontRegular,
-    9,
-    COLORS.muted,
-    4,
-    0
-  );
 
   ctx.y = 70;
   ctx.page.drawText(
@@ -250,9 +276,9 @@ function buildTableOfContents(ctx: DrawContext, sections: OpinionSection[]): voi
   drawText(ctx, "Contents", ctx.fontBold, 18, COLORS.primary, 18);
   drawHorizontalLine(ctx);
 
-  sections.forEach((section, index) => {
+  sections.forEach((section) => {
     ensureSpace(ctx, 20);
-    ctx.page.drawText(`${index + 1}. ${section.title}`, {
+    ctx.page.drawText(section.title, {
       x: ctx.margin,
       y: ctx.y,
       font: ctx.fontRegular,
@@ -268,13 +294,24 @@ function renderSynthesizedContent(ctx: DrawContext, content: string): void {
   for (const para of paragraphs) {
     const lines = para.split(/\n/).filter(Boolean);
     for (const line of lines) {
-      if (line.startsWith("**") && line.endsWith("**")) {
-        drawText(ctx, line.replace(/\*\*/g, ""), ctx.fontBold, 11, COLORS.text, 5, 0);
-      } else if (line.startsWith("- ") || line.startsWith("* ")) {
-        drawText(ctx, line, ctx.fontRegular, 10, COLORS.text, 3, 12);
-      } else {
-        drawText(ctx, line, ctx.fontRegular, 10, COLORS.text, 4, 0);
-      }
+      const normalizedLine = line
+        .replace(/\*\*/g, "")
+        .replace(/^\s*[-*•]\s+/, "")
+        .replace(/^\s*\d+[.)]\s+/, "")
+        .trim();
+      if (!normalizedLine) continue;
+      const isLabel = /^(fact|analysis|opinion|assumptions|limitations|change triggers):/i.test(
+        normalizedLine
+      );
+      drawText(
+        ctx,
+        normalizedLine,
+        isLabel ? ctx.fontBold : ctx.fontRegular,
+        isLabel ? 11 : 10,
+        COLORS.text,
+        isLabel ? 5 : 4,
+        0
+      );
     }
     ctx.y -= 6;
   }
@@ -295,13 +332,11 @@ function renderInputFallback(ctx: DrawContext, section: OpinionSection): void {
   });
 }
 
-function renderSection(ctx: DrawContext, section: OpinionSection, index: number): void {
+function renderSection(ctx: DrawContext, section: OpinionSection): void {
   addPage(ctx);
 
-  drawText(ctx, `Section ${index + 1}`, ctx.fontRegular, 9, COLORS.muted, 2);
   drawText(ctx, section.title, ctx.fontBold, 16, COLORS.primary, 8);
   drawHorizontalLine(ctx);
-  drawText(ctx, section.description, ctx.fontRegular, 10, COLORS.text, 10);
 
   if (section.synthesizedContent) {
     renderSynthesizedContent(ctx, section.synthesizedContent);
@@ -337,7 +372,7 @@ export async function buildPerimeterOpinionPack(
   buildCoverPage(ctx, config);
   buildTableOfContents(ctx, sections);
 
-  sections.forEach((section, index) => renderSection(ctx, section, index));
+  sections.forEach((section) => renderSection(ctx, section));
 
   return pdfDoc.save();
 }

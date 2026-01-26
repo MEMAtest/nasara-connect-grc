@@ -4,6 +4,7 @@ import { AlertTriangle, FileText, GraduationCap, Shield } from "lucide-react";
 import { PolicyDocumentActions } from "@/components/policies/PolicyDocumentActions";
 import { PolicyInlineEditor } from "@/components/policies/PolicyInlineEditor";
 import { PolicyReaderClient, type PolicyReaderOverview, type PolicyReaderSection } from "@/components/policies/PolicyReaderClient";
+import { PolicyStatusControl } from "@/components/policies/PolicyStatusControl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DEFAULT_ORGANIZATION_ID } from "@/lib/constants";
@@ -356,9 +357,7 @@ export default async function PolicyDetailPage({
             ) : null}
           </div>
           <div className="policy-actions flex flex-col items-start gap-3 lg:items-end">
-            <Badge variant="outline" className="capitalize text-sm">
-              {policy.status.replace("_", " ")}
-            </Badge>
+            <PolicyStatusControl policyId={policy.id} initialStatus={policy.status} />
             <div className="flex items-center gap-2">
               <Button asChild variant="outline">
                 <Link href="/policies/register">Back to register</Link>

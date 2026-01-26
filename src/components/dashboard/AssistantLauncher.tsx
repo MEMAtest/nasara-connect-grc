@@ -17,14 +17,19 @@ export function AssistantLauncher() {
   const pathname = usePathname();
 
   const isAuthPack = typeof pathname === "string" && pathname.startsWith("/authorization-pack");
+  const isSmcr = typeof pathname === "string" && pathname.startsWith("/smcr");
   const shouldAvoidBottomRight =
     typeof pathname === "string" &&
     (pathname.startsWith("/policies") ||
-      pathname.startsWith("/smcr") ||
       pathname.startsWith("/risk-assessment"));
 
+  // Position the launcher to avoid overlapping with sidebars and content
+  // SMCR has a fixed sidebar, so put it on the right side instead
+  // Policies/risk-assessment need left positioning to avoid bottom-right content
   const positionClasses = isAuthPack
     ? "right-5 top-24 md:top-28"
+    : isSmcr
+    ? "right-5 bottom-5 md:bottom-6"
     : shouldAvoidBottomRight
     ? "left-5 bottom-5 md:bottom-6"
     : "right-5 bottom-5";

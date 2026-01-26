@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { POLICY_TEMPLATES, POLICY_TEMPLATE_CLAUSES, getApplicableClauses } from "@/lib/policies/templates";
+import { POLICY_TEMPLATES, POLICY_TEMPLATE_CLAUSES, getApplicableClauses, type PolicyTemplate } from "@/lib/policies/templates";
 import { DETAIL_LEVEL_INFO, estimatePageCount, applyTiering, type DetailLevel } from "@/lib/policies/clause-tiers";
 import { assembleComplaintsPolicy, DEFAULT_COMPLAINTS_ANSWERS } from "@/lib/policies/assemblers/complaints";
 import { getOptionGroupsForSection, type SectionOptionGroup } from "@/lib/policies/section-options";
@@ -33,24 +33,31 @@ const DETAIL_LEVEL_ICONS = {
   comprehensive: Building2,
 };
 
-export function StepConfigure({ state, updateState, onNext, onBack }: WizardStepProps) {
+export function StepConfigure({
+  state,
+  updateState,
+  onNext,
+  onBack,
+  availableTemplates,
+}: WizardStepProps & { availableTemplates?: PolicyTemplate[] }) {
   const [searchQuery, setSearchQuery] = useState("");
+  const templateOptions = availableTemplates?.length ? availableTemplates : POLICY_TEMPLATES;
 
   // Filter templates based on search
   const filteredTemplates = useMemo(() => {
-    if (!searchQuery.trim()) return POLICY_TEMPLATES;
+    if (!searchQuery.trim()) return templateOptions;
     const query = searchQuery.toLowerCase();
-    return POLICY_TEMPLATES.filter(
+    return templateOptions.filter(
       (t) =>
         t.name.toLowerCase().includes(query) ||
         t.description.toLowerCase().includes(query) ||
         t.category.toLowerCase().includes(query)
     );
-  }, [searchQuery]);
+  }, [searchQuery, templateOptions]);
 
   // Group templates by category
   const groupedTemplates = useMemo(() => {
-    const groups: Record<string, typeof POLICY_TEMPLATES> = {};
+    const groups: Record<string, PolicyTemplate[]> = {};
     filteredTemplates.forEach((template) => {
       if (!groups[template.category]) {
         groups[template.category] = [];
@@ -89,7 +96,7 @@ export function StepConfigure({ state, updateState, onNext, onBack }: WizardStep
     };
   }, [state.selectedTemplate, detailLevel, state.sectionClauses]);
 
-  const handleSelectTemplate = (template: (typeof POLICY_TEMPLATES)[0]) => {
+  const handleSelectTemplate = (template: PolicyTemplate) => {
     const applicableClauses = getApplicableClauses(template.code, state.permissions);
     const complaintsAnswers = {
       ...(state.complaintsAnswers ?? DEFAULT_COMPLAINTS_ANSWERS),

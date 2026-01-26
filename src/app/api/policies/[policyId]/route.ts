@@ -6,6 +6,7 @@ import {
   getPolicyWithDetails,
   createPolicyActivity,
 } from "@/lib/database";
+import { createNotification } from "@/lib/server/notifications-store";
 import {
   isValidUUID,
   isValidEnum,
@@ -79,6 +80,7 @@ export async function PATCH(
       new: string;
       description: string;
     }> = [];
+    let statusChange: { from: string; to: string } | null = null;
 
     // Get current policy for tracking changes
     const current = await getPolicyById(DEFAULT_ORGANIZATION_ID, policyId);
@@ -112,6 +114,7 @@ export async function PATCH(
         new: body.status,
         description: `Status changed from ${current.status} to ${body.status}`,
       });
+      statusChange = { from: current.status, to: body.status };
     }
 
     // Handle name updates
@@ -246,6 +249,23 @@ export async function PATCH(
         new_value: change.new,
         performed_by: performedBy,
       });
+    }
+
+    if (statusChange) {
+      try {
+        const severity = statusChange.to === "approved" ? "success" : "info";
+        await createNotification({
+          organizationId: DEFAULT_ORGANIZATION_ID,
+          title: "Policy status updated",
+          message: `"${updated.name}" moved from ${statusChange.from} to ${statusChange.to}.`,
+          severity,
+          source: "policies",
+          link: `/policies/${updated.id}`,
+          metadata: { policyId: updated.id, from: statusChange.from, to: statusChange.to },
+        });
+      } catch {
+        // Non-blocking notification failures
+      }
     }
 
     return NextResponse.json(updated);

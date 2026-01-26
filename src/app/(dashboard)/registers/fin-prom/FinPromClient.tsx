@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
-import { generateTrendData } from "@/lib/chart-utils";
+import { generateTrendData, getMonthKey, type TrendPoint } from "@/lib/chart-utils";
 import { useToast } from "@/components/toast-provider";
 import { Plus, Loader2, Megaphone, AlertTriangle, CheckCircle, Clock, FileText, Sparkles, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -107,6 +107,7 @@ export function FinPromClient() {
   });
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [drillDownFilter, setDrillDownFilter] = useState<{ key: string; value: string } | null>(null);
+  const [monthFilter, setMonthFilter] = useState<{ key: string; label: string } | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingRecord, setEditingRecord] = useState<FinPromRecord | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -257,7 +258,7 @@ export function FinPromClient() {
   };
 
   // Filter records
-  const filteredRecords = useMemo(() => {
+  const baseFilteredRecords = useMemo(() => {
     return records.filter((r) => {
       const matchesSearch =
         r.promotion_reference.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -273,6 +274,11 @@ export function FinPromClient() {
     });
   }, [records, searchQuery, filterValues, drillDownFilter]);
 
+  const filteredRecords = useMemo(() => {
+    if (!monthFilter) return baseFilteredRecords;
+    return baseFilteredRecords.filter((r) => getMonthKey(r.created_date) === monthFilter.key);
+  }, [baseFilteredRecords, monthFilter]);
+
   // Pagination
   const {
     paginatedData,
@@ -282,13 +288,13 @@ export function FinPromClient() {
   // Statistics
   const stats = useMemo(
     () => ({
-      total: records.length,
-      live: records.filter((r) => r.status === "live").length,
-      draft: records.filter((r) => r.status === "draft").length,
-      pendingApproval: records.filter((r) => r.approval_status === "review").length,
-      approved: records.filter((r) => r.approval_status === "approved").length,
+      total: filteredRecords.length,
+      live: filteredRecords.filter((r) => r.status === "live").length,
+      draft: filteredRecords.filter((r) => r.status === "draft").length,
+      pendingApproval: filteredRecords.filter((r) => r.approval_status === "review").length,
+      approved: filteredRecords.filter((r) => r.approval_status === "approved").length,
     }),
-    [records]
+    [filteredRecords]
   );
 
   // Chart data
@@ -296,25 +302,25 @@ export function FinPromClient() {
     () => [
       { label: "Live", value: stats.live, color: chartColors.live },
       { label: "Draft", value: stats.draft, color: chartColors.draft },
-      { label: "Paused", value: records.filter((r) => r.status === "paused").length, color: chartColors.paused },
+      { label: "Paused", value: filteredRecords.filter((r) => r.status === "paused").length, color: chartColors.paused },
     ],
-    [stats, records]
+    [stats, filteredRecords]
   );
 
   const typeChartData = useMemo(() => {
     const counts: Record<string, number> = {};
-    records.forEach((r) => {
+    filteredRecords.forEach((r) => {
       counts[r.promotion_type] = (counts[r.promotion_type] || 0) + 1;
     });
     return Object.entries(counts).map(([type, count]) => ({
       label: typeLabels[type] || type,
       value: count,
     }));
-  }, [records]);
+  }, [filteredRecords]);
 
   const trendData = useMemo(() => {
-    return generateTrendData(records, 6, 'created_at');
-  }, [records]);
+    return generateTrendData(baseFilteredRecords, 6, 'created_date');
+  }, [baseFilteredRecords]);
 
   // Table columns
   const columns: Column<FinPromRecord>[] = [
@@ -404,6 +410,19 @@ export function FinPromClient() {
     } else {
       setDrillDownFilter({ key, value });
     }
+  };
+
+  const handleMonthFilter = (point: TrendPoint) => {
+    const key = point.monthKey || point.label;
+    if (!key) return;
+    if (monthFilter?.key === key) {
+      setMonthFilter(null);
+      return;
+    }
+    const label = point.startDate
+      ? new Date(point.startDate).toLocaleDateString("en-GB", { month: "short", year: "numeric" })
+      : point.label;
+    setMonthFilter({ key, label });
   };
 
   // AI Analysis handlers
@@ -622,6 +641,16 @@ export function FinPromClient() {
           </Button>
         </div>
       )}
+      {monthFilter && (
+        <div className="flex items-center gap-2 rounded-lg bg-slate-50 px-4 py-2">
+          <span className="text-sm text-slate-700">
+            Filtered by month: <strong>{monthFilter.label}</strong>
+          </span>
+          <Button variant="ghost" size="sm" onClick={() => setMonthFilter(null)} className="h-6 text-slate-600 hover:text-slate-700">
+            Clear month
+          </Button>
+        </div>
+      )}
 
       {/* Dashboard View */}
       {viewMode === "dashboard" && (
@@ -681,7 +710,13 @@ export function FinPromClient() {
             />
           </div>
 
-          <TrendChart data={trendData} title="Promotions Created (6 Months)" color="#3b82f6" />
+          <TrendChart
+            data={trendData}
+            title="Promotions Created (6 Months)"
+            color="#3b82f6"
+            onPointClick={handleMonthFilter}
+            activePointKey={monthFilter?.key}
+          />
         </div>
       )}
 

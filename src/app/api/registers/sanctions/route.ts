@@ -18,6 +18,7 @@ import {
   badRequestResponse,
   serverErrorResponse,
 } from "@/lib/api-auth";
+import { notifyRegisterCreated } from "@/lib/server/notification-builders";
 import { logError } from "@/lib/logger";
 
 const ENTITY_TYPES = ["individual", "company", "organization", "vessel", "aircraft", "other"] as const;
@@ -148,6 +149,16 @@ export async function POST(request: NextRequest) {
     };
 
     const record = await createSanctionsScreeningRecord(recordData);
+    try {
+      await notifyRegisterCreated({
+        organizationId: authResult.user.organizationId,
+        registerKey: "sanctions",
+        record,
+        actor: authResult.user.userEmail,
+      });
+    } catch {
+      // Non-blocking notification failures
+    }
 
     return NextResponse.json({ record }, { status: 201 });
   } catch (error) {

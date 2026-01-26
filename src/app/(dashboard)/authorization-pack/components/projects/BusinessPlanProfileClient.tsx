@@ -1,21 +1,33 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NasaraLoader } from "@/components/ui/nasara-loader";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Bar,
   BarChart,
   Cell,
+  Line,
+  LineChart,
   Pie,
   PieChart,
   ResponsiveContainer,
@@ -23,8 +35,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { AlertTriangle, Building2, Calculator, HelpCircle, Info, Loader2, Lock, Sparkles, XCircle } from "lucide-react";
-import { CompaniesHouseLookup } from "@/components/inputs/CompaniesHouseLookup";
+import { AlertTriangle, Calculator, ChevronDown, HelpCircle, Info, Loader2, Lock, Sparkles, XCircle } from "lucide-react";
 import {
   buildProfileInsights,
   getPackSectionLabel,
@@ -50,6 +61,67 @@ const verdictStyles: Record<string, string> = {
   "possible-exemption": "bg-amber-100 text-amber-700",
   "out-of-scope": "bg-slate-100 text-slate-600",
   unknown: "bg-slate-100 text-slate-600",
+};
+
+type PrefillEntry = { label: string; value: ProfileResponse };
+
+const PAYMENT_SERVICE_PREFILL_MAP: Record<string, string> = {
+  "ps-cash-payment-account": "cash-deposit",
+  "ps-cash-withdrawal": "cash-withdrawal",
+  "ps-execution-payment-account": "execution-transfers",
+  "ps-execution-credit-line": "execution-transfers",
+  "ps-issuing-acquiring": "issuing-acquiring",
+  "ps-money-remittance": "money-remittance",
+  "ps-pis": "payment-initiation",
+  "ps-ais": "account-info",
+  "payment-initiation": "payment-initiation",
+  "account-info-services": "account-info",
+  "money-transmission": "money-remittance",
+  "card-issuing": "issuing-acquiring",
+  acquiring: "issuing-acquiring",
+};
+
+const TARGET_MARKET_PREFILL_MAP: Record<string, string> = {
+  "uk-only": "uk",
+  "uk-eea": "uk-eea",
+  "uk-international": "global",
+  global: "global",
+};
+
+const parseCommaList = (value: unknown) => {
+  if (typeof value !== "string") return [];
+  return value
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+};
+
+const buildPrefilledResponses = (basics: Record<string, unknown> | null): Record<string, PrefillEntry> => {
+  if (!basics) return {};
+  const prefills: Record<string, PrefillEntry> = {};
+  const headcount = basics.headcount;
+  if ((typeof headcount === "string" || typeof headcount === "number") && String(headcount).trim().length) {
+    prefills["pay-headcount"] = { label: "project setup", value: String(headcount) };
+  }
+  const targetMarket = typeof basics.targetMarkets === "string" ? basics.targetMarkets : "";
+  const mappedTarget = TARGET_MARKET_PREFILL_MAP[targetMarket];
+  if (mappedTarget) {
+    prefills["core-geography"] = { label: "project setup", value: mappedTarget };
+  }
+  const regulatedActivities = parseCommaList(basics.regulatedActivities);
+  if (regulatedActivities.length) {
+    const mappedServices = Array.from(
+      new Set(
+        regulatedActivities
+          .map((activity) => PAYMENT_SERVICE_PREFILL_MAP[activity])
+          .filter((value): value is string => Boolean(value))
+      )
+    );
+    if (mappedServices.length) {
+      prefills["pay-services"] = { label: "project setup", value: mappedServices };
+    }
+  }
+  return prefills;
 };
 
 const SECTION_TAB_LABELS: Record<string, string> = {
@@ -83,30 +155,81 @@ function HelpTooltip({ label, description }: { label: string; description: strin
   );
 }
 
+function CollapsibleInsightCard({
+  title,
+  description,
+  helpLabel,
+  helpDescription,
+  defaultOpen = false,
+  children,
+}: {
+  title: string;
+  description: string;
+  helpLabel: string;
+  helpDescription: string;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+
+  return (
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <Card className="border border-slate-200">
+        <CardHeader className="flex flex-row items-start justify-between gap-2">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <span>{title}</span>
+              <HelpTooltip label={helpLabel} description={helpDescription} />
+            </CardTitle>
+            <CardDescription>{description}</CardDescription>
+          </div>
+          <CollapsibleTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="mt-1 text-slate-500 hover:text-slate-700"
+            >
+              <ChevronDown className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} />
+            </Button>
+          </CollapsibleTrigger>
+        </CardHeader>
+        <CollapsibleContent>
+          <CardContent className="space-y-2">{children}</CardContent>
+        </CollapsibleContent>
+      </Card>
+    </Collapsible>
+  );
+}
+
 export function BusinessPlanProfileClient({
   projectId,
   permissionCode,
   permissionName,
   onNextPhase,
 }: BusinessPlanProfileClientProps) {
-  const permission = isProfilePermissionCode(permissionCode) ? permissionCode : null;
+  const permission = isProfilePermissionCode(permissionCode)
+    ? permissionCode
+    : permissionCode?.startsWith("payments")
+    ? "payments"
+    : null;
   const sections = useMemo(() => getProfileSections(permission), [permission]);
   const questions = useMemo(() => getProfileQuestions(permission), [permission]);
 
   const [activeSectionId, setActiveSectionId] = useState(sections[0]?.id ?? "");
   const [responses, setResponses] = useState<Record<string, ProfileResponse>>({});
   const [isLoading, setIsLoading] = useState(true);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [loadingLabel, setLoadingLabel] = useState("Loading business plan profile...");
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [otherTextValues, setOtherTextValues] = useState<Record<string, string>>({});
-  const [companyNumber, setCompanyNumber] = useState("");
-  const [isLookingUp, setIsLookingUp] = useState(false);
-  const [lookupError, setLookupError] = useState<string | null>(null);
-  const companyLookupAbortRef = useRef<AbortController | null>(null);
-  const companyLookupRequestIdRef = useRef(0);
+  const [setupBasics, setSetupBasics] = useState<Record<string, unknown> | null>(null);
+  const [prefillOverrides, setPrefillOverrides] = useState<Set<string>>(new Set());
 
   const insights = useMemo(() => buildProfileInsights(permission, responses), [permission, responses]);
+  const prefilledResponses = useMemo(() => buildPrefilledResponses(setupBasics), [setupBasics]);
 
   // Calculate section dependencies
   const sectionReadiness = useMemo(() => {
@@ -156,19 +279,37 @@ export function BusinessPlanProfileClient({
   }, [sections, activeSectionId]);
 
   useEffect(() => {
-    const loadProfile = async () => {
+    let isActive = true;
+    const loadProfileAndBasics = async () => {
+      if (!projectId) {
+        if (isActive) {
+          setResponses({});
+          setOtherTextValues({});
+          setSetupBasics(null);
+          setIsLoading(false);
+        }
+        return;
+      }
+
       setIsLoading(true);
       setLoadError(null);
+      setLoadingProgress(10);
+      setLoadingLabel("Loading business plan profile...");
+
       try {
         const response = await fetch(`/api/authorization-pack/projects/${projectId}/business-plan-profile`);
         if (!response.ok) {
-          setLoadError("Unable to load business plan profile.");
+          if (isActive) {
+            setLoadError("Unable to load business plan profile.");
+          }
           return;
         }
+
         const data = await response.json();
+        if (!isActive) return;
+
         const nextResponses = data?.profile?.responses ?? {};
         setResponses(nextResponses);
-        // Extract "other" text values from responses
         const extractedOtherTexts: Record<string, string> = {};
         for (const key of Object.keys(nextResponses)) {
           if (key.endsWith("_other_text") && typeof nextResponses[key] === "string") {
@@ -177,16 +318,47 @@ export function BusinessPlanProfileClient({
           }
         }
         setOtherTextValues(extractedOtherTexts);
+
+        setLoadingProgress(60);
+        setLoadingLabel("Loading company setup...");
+
+        const basicsResponse = await fetch(`/api/authorization-pack/projects/${projectId}`);
+        const basicsData = await basicsResponse.json().catch(() => ({}));
+        if (!isActive) return;
+
+        if (basicsResponse.ok) {
+          const basics = basicsData?.project?.assessmentData?.basics;
+          if (basics && typeof basics === "object" && !Array.isArray(basics)) {
+            setSetupBasics(basics as Record<string, unknown>);
+          } else {
+            setSetupBasics(null);
+          }
+        } else {
+          setSetupBasics(null);
+        }
+
+        setLoadingProgress(90);
+        setLoadingLabel("Preparing profile insights...");
       } catch (error) {
-        setLoadError(error instanceof Error ? error.message : "Unable to load business plan profile.");
+        if (isActive) {
+          setLoadError(error instanceof Error ? error.message : "Unable to load business plan profile.");
+        }
       } finally {
-        setIsLoading(false);
+        if (isActive) {
+          setLoadingProgress(100);
+          setIsLoading(false);
+        }
       }
     };
 
-    if (projectId) {
-      loadProfile();
-    }
+    void loadProfileAndBasics();
+    return () => {
+      isActive = false;
+    };
+  }, [projectId]);
+
+  useEffect(() => {
+    setPrefillOverrides(new Set());
   }, [projectId]);
 
   const handleSave = async () => {
@@ -239,156 +411,38 @@ export function BusinessPlanProfileClient({
     }
   };
 
-  const handleCompaniesHouseLookup = async () => {
-    if (!companyNumber.trim()) return;
-
-    // Cancel any pending request to prevent race conditions
-    if (companyLookupAbortRef.current) {
-      companyLookupAbortRef.current.abort();
-    }
-    companyLookupAbortRef.current = new AbortController();
-
-    // Track request ID to ignore stale responses
-    const currentRequestId = ++companyLookupRequestIdRef.current;
-
-    setIsLookingUp(true);
-    setLookupError(null);
-    try {
-      const response = await fetch(
-        `/api/companies-house/${encodeURIComponent(companyNumber.trim())}`,
-        { signal: companyLookupAbortRef.current.signal }
-      );
-
-      // Ignore if a newer request was made
-      if (currentRequestId !== companyLookupRequestIdRef.current) return;
-
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({} as { error?: string }));
-        setLookupError(data.error || "Company not found");
-        return;
-      }
-      const data = await response.json();
-
-      // Ignore if a newer request was made
-      if (currentRequestId !== companyLookupRequestIdRef.current) return;
-
-      // Auto-fill relevant fields from Companies House data
-      const updates: Record<string, ProfileResponse> = {};
-
-      // Company name could be used in regulated activities description
-      if (data.company_name) {
-        const currentActivities = responses["core-regulated-activities"];
-        if (!currentActivities || (typeof currentActivities === "string" && currentActivities.trim().length === 0)) {
-          updates["core-regulated-activities"] = `${data.company_name} - describe the regulated services this firm provides.`;
-        }
-      }
-
-      // SIC codes can hint at business model
-      if (data.sic_codes?.length) {
-        const sicCodes = Array.isArray(data.sic_codes)
-          ? data.sic_codes.map((code: string | { code: string }) =>
-              typeof code === "string" ? code : code.code
-            )
-          : [];
-        if (sicCodes.length > 0) {
-          const sicDescription = sicCodes.join(", ");
-          const currentActivities = typeof responses["core-regulated-activities"] === "string"
-            ? responses["core-regulated-activities"]
-            : "";
-          if (!currentActivities.includes("SIC")) {
-            updates["core-regulated-activities"] = currentActivities
-              ? `${currentActivities}\n\nSIC codes: ${sicDescription}`
-              : `SIC codes: ${sicDescription}`;
-          }
-        }
-      }
-
-      // Company status can indicate governance readiness
-      if (data.company_status === "active" && data.date_of_creation) {
-        const creationDate = new Date(data.date_of_creation);
-        if (!isNaN(creationDate.getTime())) {
-          const creationYear = creationDate.getFullYear();
-          const yearsActive = new Date().getFullYear() - creationYear;
-          if (yearsActive >= 2 && !responses["core-governance"]) {
-            updates["core-governance"] = "identified";
-          }
-        }
-      }
-
-      const isMockData = data._mock === true;
-      const mockWarning = isMockData ? " (demo data - configure API key for live results)" : "";
-
-      if (Object.keys(updates).length > 0) {
-        setResponses((prev) => ({ ...prev, ...updates }));
-        setSaveMessage(`Imported data from Companies House: ${data.company_name}${mockWarning}`);
-        setTimeout(() => setSaveMessage(null), isMockData ? 5000 : 3000);
-      } else {
-        setSaveMessage(`Found: ${data.company_name || companyNumber}${mockWarning}`);
-        setTimeout(() => setSaveMessage(null), isMockData ? 5000 : 3000);
-      }
-    } catch (error) {
-      // Ignore aborted requests or if a newer request was made
-      if (error instanceof DOMException && error.name === "AbortError") {
-        return;
-      }
-      if (currentRequestId !== companyLookupRequestIdRef.current) return;
-      setLookupError(error instanceof Error ? error.message : "Lookup failed. Check company number.");
-    } finally {
-      // Only update loading state if this is still the latest request
-      if (currentRequestId === companyLookupRequestIdRef.current) {
-        setIsLookingUp(false);
-      }
-    }
+  const scrollToTop = () => {
+    if (typeof window === "undefined") return;
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Handler for CompaniesHouseLookup component selection
-  const handleCompanySearchSelect = (data: {
-    legalName: string;
-    companyNumber: string;
-    sicCodes: string[];
-    registeredAddress: string;
-  }) => {
-    const updates: Record<string, ProfileResponse> = {};
-
-    // Update company number state
-    setCompanyNumber(data.companyNumber);
-
-    // Auto-fill company name into regulated activities
-    if (data.legalName) {
-      const currentActivities = responses["core-regulated-activities"];
-      if (!currentActivities || (typeof currentActivities === "string" && currentActivities.trim().length === 0)) {
-        updates["core-regulated-activities"] = `${data.legalName} - describe the regulated services this firm provides.`;
-      }
-    }
-
-    // Add SIC codes to activities
-    if (data.sicCodes?.length > 0) {
-      const sicDescription = data.sicCodes.join(", ");
-      const currentActivities = typeof updates["core-regulated-activities"] === "string"
-        ? updates["core-regulated-activities"]
-        : typeof responses["core-regulated-activities"] === "string"
-        ? responses["core-regulated-activities"]
-        : "";
-      if (!currentActivities.includes("SIC")) {
-        updates["core-regulated-activities"] = currentActivities
-          ? `${currentActivities}\n\nSIC codes: ${sicDescription}`
-          : `SIC codes: ${sicDescription}`;
-      }
-    }
-
-    if (Object.keys(updates).length > 0) {
-      setResponses((prev) => ({ ...prev, ...updates }));
-      setSaveMessage(`Imported data from Companies House: ${data.legalName}`);
-      setTimeout(() => setSaveMessage(null), 3000);
-    } else {
-      setSaveMessage(`Selected: ${data.legalName} (${data.companyNumber})`);
-      setTimeout(() => setSaveMessage(null), 3000);
-    }
-    setLookupError(null);
+  const jumpToSection = (sectionId: string) => {
+    setActiveSectionId(sectionId);
+    scrollToTop();
   };
 
   const updateResponse = (questionId: string, value: ProfileResponse) => {
     setResponses((prev) => ({ ...prev, [questionId]: value }));
+  };
+
+  const enablePrefillOverride = (questionId: string) => {
+    setPrefillOverrides((prev) => {
+      const next = new Set(prev);
+      next.add(questionId);
+      return next;
+    });
+  };
+
+  const resetPrefillOverride = (questionId: string) => {
+    const prefill = prefilledResponses[questionId];
+    if (prefill) {
+      updateResponse(questionId, prefill.value);
+    }
+    setPrefillOverrides((prev) => {
+      const next = new Set(prev);
+      next.delete(questionId);
+      return next;
+    });
   };
 
   const parseNumericValue = (value: ProfileResponse | undefined) => {
@@ -485,6 +539,32 @@ export function BusinessPlanProfileClient({
     return true;
   };
 
+  const formatAnswer = (question: ProfileQuestion, response: ProfileResponse | undefined) => {
+    if (response === undefined || response === null) return "";
+    const resolveOption = (value: string) => {
+      if (value === "other") {
+        const otherText = otherTextValues[question.id]?.trim();
+        return otherText ? `Other: ${otherText}` : "Other";
+      }
+      const option = question.options?.find((opt) => opt.value === value);
+      return option?.label ?? value;
+    };
+    if (Array.isArray(response)) {
+      return response.map((value) => resolveOption(String(value))).filter(Boolean).join(", ");
+    }
+    if (typeof response === "boolean") return response ? "Yes" : "No";
+    if (typeof response === "number") return response.toLocaleString("en-GB");
+    if (typeof response === "string") {
+      if (response === "other") {
+        const otherText = otherTextValues[question.id]?.trim();
+        return otherText ? `Other: ${otherText}` : "Other";
+      }
+      const option = question.options?.find((opt) => opt.value === response);
+      return option?.label ?? response;
+    }
+    return String(response);
+  };
+
   const sectionProgress = useMemo(
     () =>
       sections.map((section) => {
@@ -514,6 +594,44 @@ export function BusinessPlanProfileClient({
     .filter((question) => question.required)
     .filter((question) => !isResponseComplete(question, responses[question.id])).length;
   const aiReady = remainingRequired === 0;
+  const answerSummary = useMemo(
+    () =>
+      sections
+        .map((section) => {
+          const sectionQuestions = questions.filter((question) => question.sectionId === section.id);
+          const answeredItems = sectionQuestions
+            .map((question) => {
+              const response = responses[question.id];
+              if (!isResponseComplete(question, response)) return null;
+              return {
+                id: question.id,
+                prompt: question.prompt,
+                value: formatAnswer(question, response),
+              };
+            })
+            .filter((item): item is { id: string; prompt: string; value: string } => Boolean(item && item.value));
+          return {
+            id: section.id,
+            label: SECTION_TAB_LABELS[section.id] ?? section.title,
+            items: answeredItems,
+          };
+        })
+        .filter((section) => section.items.length > 0),
+    [sections, questions, responses, otherTextValues]
+  );
+  const monthlyOpex = parseNumericValue(responses["pay-monthly-opex"]);
+  const monthlyVolume = parseNumericValue(responses["pay-volume"]);
+  const capitalEstimate = insights.capitalEstimate;
+  const volumeSeries = useMemo(
+    () =>
+      monthlyVolume && Number.isFinite(monthlyVolume)
+        ? Array.from({ length: 12 }, (_, idx) => ({
+            month: `M${idx + 1}`,
+            volume: monthlyVolume,
+          }))
+        : [],
+    [monthlyVolume]
+  );
 
   const toggleMultiChoice = (question: ProfileQuestion, optionValue: string) => {
     setResponses((prev) => {
@@ -550,11 +668,49 @@ export function BusinessPlanProfileClient({
 
   const renderQuestionInput = (question: ProfileQuestion) => {
     const value = responses[question.id];
+    const prefill = prefilledResponses[question.id];
+    const isPrefillLocked = Boolean(prefill) && !prefillOverrides.has(question.id);
     const implication = getSelectedImplication(question);
     const implicationList = Array.isArray(implication) ? implication : implication ? [implication] : [];
     const hasOtherSelected =
       question.allowOther &&
       ((Array.isArray(value) && value.includes("other")) || value === "other");
+
+    if (isPrefillLocked) {
+      const displayValue = formatAnswer(question, value ?? prefill?.value);
+      return (
+        <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+          <div className="flex items-center justify-between gap-2 text-xs text-slate-500">
+            <span>Imported from {prefill?.label ?? "project setup"}</span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-6 px-2 text-xs text-slate-600"
+              onClick={() => enablePrefillOverride(question.id)}
+            >
+              Edit here
+            </Button>
+          </div>
+          <p className="mt-1 text-sm text-slate-700">{displayValue || "Not provided in setup"}</p>
+        </div>
+      );
+    }
+
+    const prefillNote = prefill ? (
+      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
+        <span>Imported from {prefill.label}. Editing here overrides it.</span>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="h-6 px-2 text-xs text-slate-600"
+          onClick={() => resetPrefillOverride(question.id)}
+        >
+          Use setup value
+        </Button>
+      </div>
+    ) : null;
 
     if (question.type === "single-choice" && question.options) {
       return (
@@ -594,6 +750,7 @@ export function BusinessPlanProfileClient({
               </div>
             </div>
           )}
+          {prefillNote}
         </div>
       );
     }
@@ -647,6 +804,7 @@ export function BusinessPlanProfileClient({
               </div>
             </div>
           )}
+          {prefillNote}
         </div>
       );
     }
@@ -705,28 +863,31 @@ export function BusinessPlanProfileClient({
               <p>{question.threshold.message}</p>
             </div>
           )}
+          {prefillNote}
         </div>
       );
     }
 
     return (
-      <Textarea
-        value={typeof value === "string" ? value : value ? String(value) : ""}
-        onChange={(event) => updateResponse(question.id, event.target.value)}
-        placeholder={question.placeholder ?? "Type your response"}
-        rows={3}
-      />
+      <div className="space-y-2">
+        <Textarea
+          value={typeof value === "string" ? value : value ? String(value) : ""}
+          onChange={(event) => updateResponse(question.id, event.target.value)}
+          placeholder={question.placeholder ?? "Type your response"}
+          rows={3}
+        />
+        {prefillNote}
+      </div>
     );
   };
 
   if (isLoading) {
     return (
       <Card className="border border-slate-200">
-        <CardContent className="p-8 text-center">
-          <div className="flex flex-col items-center justify-center gap-3">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-teal-200 border-t-teal-600" />
-            <p className="text-slate-500">Loading business plan profile...</p>
-          </div>
+        <CardContent className="space-y-4 p-8">
+          <NasaraLoader label={loadingLabel} />
+          <Progress value={loadingProgress} className="h-2" />
+          <p className="text-xs text-slate-500">{loadingProgress}%</p>
         </CardContent>
       </Card>
     );
@@ -759,7 +920,6 @@ export function BusinessPlanProfileClient({
     .map((item) => ({ name: item.label, percent: item.percent }));
 
   const regulatoryChartData = insights.regulatorySignals.slice(0, 6);
-
   return (
     <div className="space-y-6">
       <Card className="border border-slate-200 bg-white">
@@ -833,23 +993,6 @@ export function BusinessPlanProfileClient({
                 : "All required responses are complete."} Use the next phase button to generate the opinion pack.
             </p>
           </div>
-          {/* Companies House Auto-Fill */}
-          <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
-              <Building2 className="h-4 w-4" />
-              <span>Companies House Auto-Fill</span>
-            </div>
-            <p className="mt-1 text-xs text-slate-500">
-              Search by company name or number to auto-fill profile fields from Companies House.
-            </p>
-            <div className="mt-2 max-w-md">
-              <CompaniesHouseLookup onSelect={handleCompanySearchSelect} />
-            </div>
-            {lookupError && (
-              <p className="mt-2 text-xs text-red-600">{lookupError}</p>
-            )}
-          </div>
-
           {/* Validation Conflicts */}
           {insights.conflicts.length > 0 && (
             <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3">
@@ -878,7 +1021,7 @@ export function BusinessPlanProfileClient({
                           type="button"
                           onClick={() => {
                             const question = questions.find((q) => q.id === qId);
-                            if (question) setActiveSectionId(question.sectionId);
+                            if (question) jumpToSection(question.sectionId);
                           }}
                           className="rounded bg-white/50 px-1.5 py-0.5 text-[10px] hover:bg-white"
                         >
@@ -888,24 +1031,6 @@ export function BusinessPlanProfileClient({
                     </div>
                   </div>
                 ))}
-              </div>
-            </div>
-          )}
-
-          {/* Capital Calculator (Enhanced) */}
-          {permission === "payments" && insights.capitalEstimate && (
-            <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3">
-              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-blue-600">
-                <Calculator className="h-4 w-4" />
-                <span>Capital Requirement Calculator</span>
-              </div>
-              <div className="mt-2 space-y-2">
-                {insights.capitalEstimate.breakdown?.map((line, idx) => (
-                  <p key={idx} className="text-xs text-blue-800">{line}</p>
-                ))}
-                <p className="text-xs font-medium text-blue-900 mt-2">
-                  {insights.capitalEstimate.recommendation}
-                </p>
               </div>
             </div>
           )}
@@ -975,7 +1100,7 @@ export function BusinessPlanProfileClient({
                   <button
                     key={section.id}
                     type="button"
-                    onClick={() => setActiveSectionId(section.id)}
+                    onClick={() => jumpToSection(section.id)}
                     className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-3 py-1 text-xs text-slate-600 hover:border-slate-300 hover:text-slate-800"
                   >
                     {SECTION_TAB_LABELS[section.id] ?? section.title}
@@ -1006,7 +1131,7 @@ export function BusinessPlanProfileClient({
                   <button
                     key={question.id}
                     type="button"
-                    onClick={() => setActiveSectionId(question.sectionId)}
+                    onClick={() => jumpToSection(question.sectionId)}
                     className="inline-flex items-center gap-2 rounded-full border border-amber-200 px-3 py-1 text-xs text-amber-800 hover:border-amber-300"
                   >
                     <span className="max-w-[220px] truncate">{question.prompt}</span>
@@ -1021,7 +1146,7 @@ export function BusinessPlanProfileClient({
               </div>
             </div>
           ) : null}
-          <Tabs value={activeSectionId} onValueChange={setActiveSectionId}>
+          <Tabs value={activeSectionId} onValueChange={jumpToSection}>
             <TabsList className="flex h-auto w-full flex-wrap items-center justify-start gap-2 rounded-lg border border-slate-200 bg-slate-100/70 p-2">
               {sections.map((section) => {
                 const readiness = sectionReadiness[section.id];
@@ -1079,12 +1204,12 @@ export function BusinessPlanProfileClient({
                 <TabsContent key={section.id} value={section.id} className="mt-4 space-y-6">
                   <div className="flex flex-wrap items-center justify-end gap-2">
                     {prevSection ? (
-                      <Button variant="outline" size="sm" onClick={() => setActiveSectionId(prevSection.id)}>
+                      <Button variant="outline" size="sm" onClick={() => jumpToSection(prevSection.id)}>
                         Previous section
                       </Button>
                     ) : null}
                     {nextSection ? (
-                      <Button variant="outline" size="sm" onClick={() => setActiveSectionId(nextSection.id)}>
+                      <Button variant="outline" size="sm" onClick={() => jumpToSection(nextSection.id)}>
                         Next section
                       </Button>
                     ) : null}
@@ -1140,18 +1265,176 @@ export function BusinessPlanProfileClient({
                     </div>
                   </div>
 
+                  {section.id === "payments" && permission === "payments" ? (
+                    <Dialog>
+                      <Card className="border border-blue-200 bg-blue-50">
+                        <CardHeader className="flex flex-row items-start justify-between gap-3">
+                          <div>
+                            <CardTitle className="flex items-center gap-2 text-base text-blue-900">
+                              <Calculator className="h-4 w-4 text-blue-600" />
+                              <span>Capital requirement calculator</span>
+                            </CardTitle>
+                            <CardDescription className="text-blue-700">
+                              Review your method, OpEx, and volume inputs before generating the opinion pack.
+                            </CardDescription>
+                          </div>
+                          <DialogTrigger asChild>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="border-blue-200 text-blue-700 hover:bg-blue-100"
+                            >
+                              Open calculator
+                            </Button>
+                          </DialogTrigger>
+                        </CardHeader>
+                        <CardContent className="space-y-2 text-sm text-blue-900">
+                          <div className="flex flex-wrap gap-3 text-xs text-blue-700">
+                            <span>
+                              Method: {capitalEstimate?.method ? `Method ${capitalEstimate.method}` : "Not selected"}
+                            </span>
+                            <span>
+                              Monthly OpEx:{" "}
+                              {monthlyOpex !== null
+                                ? `£${Math.round(monthlyOpex).toLocaleString("en-GB")}`
+                                : "Not set"}
+                            </span>
+                            <span>
+                              Monthly volume:{" "}
+                              {monthlyVolume !== null
+                                ? `£${Math.round(monthlyVolume).toLocaleString("en-GB")}`
+                                : "Not set"}
+                            </span>
+                          </div>
+                          {capitalEstimate?.recommendation ? (
+                            <p className="text-xs font-medium text-blue-900">{capitalEstimate.recommendation}</p>
+                          ) : (
+                            <p className="text-xs text-blue-700">
+                              Enter OpEx and transaction volume to see the calculation.
+                            </p>
+                          )}
+                        </CardContent>
+                      </Card>
+                      <DialogContent className="max-w-2xl">
+                        <DialogHeader>
+                          <DialogTitle>Capital requirement calculator</DialogTitle>
+                          <DialogDescription>
+                            Uses your payment services profile to estimate Method A/B and minimum capital in GBP.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4 text-sm text-slate-700">
+                          <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Current inputs</p>
+                            <div className="mt-2 grid gap-2 text-sm sm:grid-cols-3">
+                              <div>
+                                <p className="text-xs text-slate-500">Method</p>
+                                <p className="font-medium text-slate-900">
+                                  {capitalEstimate?.method ? `Method ${capitalEstimate.method}` : "Not selected"}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-slate-500">Monthly OpEx</p>
+                                <p className="font-medium text-slate-900">
+                                  {monthlyOpex !== null
+                                    ? `£${Math.round(monthlyOpex).toLocaleString("en-GB")}`
+                                    : "Not set"}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-slate-500">Monthly volume</p>
+                                <p className="font-medium text-slate-900">
+                                  {monthlyVolume !== null
+                                    ? `£${Math.round(monthlyVolume).toLocaleString("en-GB")}`
+                                    : "Not set"}
+                                </p>
+                              </div>
+                            </div>
+                            {typeof capitalEstimate?.minimumCapital === "number" ? (
+                              <p className="mt-3 text-xs text-slate-500">
+                                FCA minimum capital (GBP): £{capitalEstimate.minimumCapital.toLocaleString("en-GB")}
+                              </p>
+                            ) : null}
+                          </div>
+                          {capitalEstimate?.breakdown?.length ? (
+                            <div className="rounded-lg border border-slate-200 bg-white p-3">
+                              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                Calculation breakdown
+                              </p>
+                              <ul className="mt-2 space-y-1 text-sm text-slate-700">
+                                {capitalEstimate.breakdown.map((line) => (
+                                  <li key={line}>{line}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          ) : (
+                            <div className="rounded-lg border border-slate-200 bg-white p-3 text-sm text-slate-500">
+                              Enter OpEx and transaction volume to see the calculation breakdown.
+                            </div>
+                          )}
+                          {capitalEstimate?.recommendation ? (
+                            <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">
+                              {capitalEstimate.recommendation}
+                            </div>
+                          ) : null}
+                          {volumeSeries.length > 0 ? (
+                            <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-3">
+                              <p className="text-xs font-semibold uppercase tracking-wide text-indigo-600">
+                                Monthly volume preview
+                              </p>
+                              <div className="mt-3 h-[120px]">
+                                <ResponsiveContainer width="100%" height="100%">
+                                  <LineChart data={volumeSeries}>
+                                    <XAxis dataKey="month" hide />
+                                    <YAxis hide domain={["dataMin", "dataMax"]} />
+                                    <Line type="monotone" dataKey="volume" stroke="#4f46e5" strokeWidth={2} dot={false} />
+                                  </LineChart>
+                                </ResponsiveContainer>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-3 text-sm text-indigo-700">
+                              Enter monthly volume to preview the capital tier curve.
+                            </div>
+                          )}
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  ) : null}
+
                   <div className="space-y-4">
                     {sectionQuestions.map((question) => {
                       const meta = buildQuestionMeta(question);
+                      const response = responses[question.id];
+                      const isAnswered = isResponseComplete(question, response);
+                      const prefill = prefilledResponses[question.id];
+                      const isOverride = Boolean(prefill) && prefillOverrides.has(question.id);
+                      const explainer =
+                        question.description ||
+                        question.impact ||
+                        "This response informs the FCA scope mapping and the opinion pack narrative.";
+                      const showImpact = question.impact && question.impact !== explainer;
                       return (
                         <div key={question.id} className="rounded-lg border border-slate-200 p-4">
                           <div className="space-y-2">
                             <div className="flex items-start justify-between gap-3">
                               <div>
-                                <Label className="text-sm font-semibold text-slate-900">
-                                  {question.prompt}
-                                  {question.required ? " *" : ""}
-                                </Label>
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <Label className="text-sm font-semibold text-slate-900">
+                                    {question.prompt}
+                                    {question.required ? " *" : ""}
+                                  </Label>
+                                  {prefill ? (
+                                    <Badge variant="outline" className="border-teal-200 text-teal-700">
+                                      {isOverride ? "Overriding setup" : "Imported from setup"}
+                                    </Badge>
+                                  ) : null}
+                                  {!isAnswered ? (
+                                    <Badge variant="outline" className="border-amber-200 text-amber-700">
+                                      Not answered
+                                    </Badge>
+                                  ) : null}
+                                </div>
                                 {question.description && (
                                   <p className="text-xs text-slate-500">{question.description}</p>
                                 )}
@@ -1169,8 +1452,8 @@ export function BusinessPlanProfileClient({
                                 </TooltipTrigger>
                                 <TooltipContent side="right" sideOffset={6} className="max-w-xs text-left">
                                   <p className="font-semibold">Why we ask</p>
-                                  {question.description ? <p className="mt-1">{question.description}</p> : null}
-                                  {question.impact ? (
+                                  <p className="mt-1">{explainer}</p>
+                                  {showImpact ? (
                                     <p className="mt-2 font-medium text-amber-700">Impact: {question.impact}</p>
                                   ) : null}
                                   {question.aiHint ? <p className="mt-2">{question.aiHint}</p> : null}
@@ -1206,6 +1489,53 @@ export function BusinessPlanProfileClient({
             })}
           </Tabs>
           {onNextPhase ? (
+            <Collapsible>
+              <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50">
+                <div className="flex items-start justify-between px-4 py-3">
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">Answer summary</p>
+                    <p className="text-xs text-slate-500">
+                      Review what you've answered before generating the opinion pack.
+                    </p>
+                  </div>
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="text-slate-500 hover:text-slate-700"
+                    >
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </CollapsibleTrigger>
+                </div>
+                <CollapsibleContent>
+                  <div className="space-y-4 border-t border-slate-200 px-4 py-3">
+                    {answerSummary.length ? (
+                      answerSummary.map((section) => (
+                        <div key={section.id} className="space-y-2">
+                          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+                            {section.label}
+                          </p>
+                          <div className="space-y-2 text-sm text-slate-600">
+                            {section.items.map((item) => (
+                              <div key={item.id} className="flex flex-col gap-1 rounded-md bg-white px-3 py-2">
+                                <span className="text-xs font-semibold text-slate-500">{item.prompt}</span>
+                                <span className="text-sm text-slate-700">{item.value}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-slate-500">No answers saved yet.</p>
+                    )}
+                  </div>
+                </CollapsibleContent>
+              </div>
+            </Collapsible>
+          ) : null}
+          {onNextPhase ? (
             <div className="mt-6 flex justify-end">
               {(() => {
                 const currentIndex = sections.findIndex((s) => s.id === activeSectionId);
@@ -1225,7 +1555,7 @@ export function BusinessPlanProfileClient({
                   return (
                     <Button
                       className="bg-slate-600 hover:bg-slate-700"
-                      onClick={() => setActiveSectionId(nextSection.id)}
+                      onClick={() => jumpToSection(nextSection.id)}
                     >
                       Next Section
                     </Button>
@@ -1235,13 +1565,13 @@ export function BusinessPlanProfileClient({
                 return (
                   <Button
                     className="bg-slate-600 hover:bg-slate-700"
-                    onClick={() => {
-                      const firstIncomplete = incompleteSections[0];
-                      if (firstIncomplete) {
-                        setActiveSectionId(firstIncomplete.id);
-                      }
-                    }}
-                  >
+                      onClick={() => {
+                        const firstIncomplete = incompleteSections[0];
+                        if (firstIncomplete) {
+                          jumpToSection(firstIncomplete.id);
+                        }
+                      }}
+                    >
                     Complete Remaining Sections ({incompleteSections.length})
                   </Button>
                 );
@@ -1252,97 +1582,71 @@ export function BusinessPlanProfileClient({
       </Card>
 
       <div className="grid gap-4 md:grid-cols-3">
-        <Card className="border border-slate-200">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <span>Activity Highlights</span>
-              <HelpTooltip
-                label="Activity Highlights"
-                description="Signals pulled from your scope responses to spotlight regulated activity themes."
-              />
-            </CardTitle>
-            <CardDescription>Key regulated activities in scope.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {insights.activityHighlights.length ? (
-              <div className="flex flex-wrap gap-2">
-                {insights.activityHighlights.map((item) => (
-                  <Badge key={item} variant="outline" className="border-slate-200 text-slate-600">
-                    {item}
-                  </Badge>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-slate-500">Add activities to see highlights.</p>
-            )}
-          </CardContent>
-        </Card>
+        <CollapsibleInsightCard
+          title="Activity Highlights"
+          description="Key regulated activities in scope."
+          helpLabel="Activity Highlights"
+          helpDescription="Signals pulled from your scope responses to spotlight regulated activity themes."
+        >
+          {insights.activityHighlights.length ? (
+            <div className="flex flex-wrap gap-2">
+              {insights.activityHighlights.map((item) => (
+                <Badge key={item} variant="outline" className="border-slate-200 text-slate-600">
+                  {item}
+                </Badge>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-slate-500">Add activities to see highlights.</p>
+          )}
+        </CollapsibleInsightCard>
 
-        <Card className="border border-slate-200">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <span>Regulatory Drivers</span>
-              <HelpTooltip
-                label="Regulatory Drivers"
-                description="Counts of PERG/PSD2/CONC/COBS references behind your answers."
-              />
-            </CardTitle>
-            <CardDescription>Top referenced perimeter sources.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {regulatoryChartData.length ? (
-              <ul className="space-y-2 text-sm text-slate-600">
-                {regulatoryChartData.map((item) => (
-                  <li key={item.label} className="flex items-center justify-between">
-                    <span>{item.label}</span>
-                    <span className="text-xs text-slate-400">{item.count}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-slate-500">Answer scope questions to populate.</p>
-            )}
-          </CardContent>
-        </Card>
+        <CollapsibleInsightCard
+          title="Regulatory Drivers"
+          description="Top referenced perimeter sources."
+          helpLabel="Regulatory Drivers"
+          helpDescription="Counts of PERG/PSD2/CONC/COBS references behind your answers."
+        >
+          {regulatoryChartData.length ? (
+            <ul className="space-y-2 text-sm text-slate-600">
+              {regulatoryChartData.map((item) => (
+                <li key={item.label} className="flex items-center justify-between">
+                  <span>{item.label}</span>
+                  <span className="text-xs text-slate-400">{item.count}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-slate-500">Answer scope questions to populate.</p>
+          )}
+        </CollapsibleInsightCard>
 
-        <Card className="border border-slate-200">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <span>Focus Areas</span>
-              <HelpTooltip
-                label="Focus Areas"
-                description="Lowest-scoring sections based on what has been answered so far."
-              />
-            </CardTitle>
-            <CardDescription>Lowest coverage sections to address.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {insights.focusAreas.length ? (
-              <ul className="space-y-2 text-sm text-slate-600">
-                {insights.focusAreas.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-slate-500">Complete the profile to highlight focus areas.</p>
-            )}
-          </CardContent>
-        </Card>
+        <CollapsibleInsightCard
+          title="Focus Areas"
+          description="Lowest coverage sections to address."
+          helpLabel="Focus Areas"
+          helpDescription="Lowest-scoring sections based on what has been answered so far."
+        >
+          {insights.focusAreas.length ? (
+            <ul className="space-y-2 text-sm text-slate-600">
+              {insights.focusAreas.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-slate-500">Complete the profile to highlight focus areas.</p>
+          )}
+        </CollapsibleInsightCard>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="border border-slate-200 lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <span>Section Readiness</span>
-              <HelpTooltip
-                label="Section Readiness"
-                description="Scores rise when questions are answered. Higher-readiness selections lift the score. 100% means every mapped question is answered and marked ready."
-              />
-            </CardTitle>
-            <CardDescription>Scores by profile section. 100% means all mapped questions are answered with ready selections.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
+        <div className="lg:col-span-2">
+          <CollapsibleInsightCard
+            title="Section Readiness"
+            description="Scores by profile section. 100% means all mapped questions are answered with ready selections."
+            helpLabel="Section Readiness"
+            helpDescription="Scores rise when questions are answered. Higher-readiness selections lift the score. 100% means every mapped question is answered and marked ready."
+          >
             <div className="h-[240px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={sectionChartData} layout="vertical" margin={{ left: 16, right: 16 }}>
@@ -1356,95 +1660,81 @@ export function BusinessPlanProfileClient({
             <p className="text-xs text-slate-500">
               Tip: selecting "draft complete" or similar readiness options boosts the section score.
             </p>
-          </CardContent>
-        </Card>
+          </CollapsibleInsightCard>
+        </div>
 
-        <Card className="border border-slate-200">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <span>Regulatory Coverage</span>
-              <HelpTooltip
-                label="Regulatory Coverage"
-                description="Mix of referenced sources inferred from your responses. This is a signal chart, not a percentage."
-              />
-            </CardTitle>
-            <CardDescription>Signals by referenced sources.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {regulatoryChartData.length ? (
-              <>
-                <div className="h-[200px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie data={regulatoryChartData} dataKey="count" nameKey="label" innerRadius={44} outerRadius={84}>
-                        {regulatoryChartData.map((entry, index) => (
-                          <Cell key={entry.label} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <RechartsTooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="space-y-2 text-xs text-slate-600">
-                  {regulatoryChartData.map((entry, index) => (
-                    <div key={entry.label} className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className="h-2 w-2 rounded-full"
-                          style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }}
-                        />
-                        <span>{entry.label}</span>
-                      </div>
-                      <span className="text-slate-400">{entry.count}</span>
-                    </div>
-                  ))}
-                </div>
-                <p className="text-xs text-slate-500">
-                  Add more responses to surface additional regulatory drivers.
-                </p>
-              </>
-            ) : (
-              <div className="flex h-[240px] items-center justify-center text-sm text-slate-500">
-                No regulatory signals yet.
+        <CollapsibleInsightCard
+          title="Regulatory Coverage"
+          description="Signals by referenced sources."
+          helpLabel="Regulatory Coverage"
+          helpDescription="Mix of referenced sources inferred from your responses. This is a signal chart, not a percentage."
+        >
+          {regulatoryChartData.length ? (
+            <>
+              <div className="h-[200px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={regulatoryChartData} dataKey="count" nameKey="label" innerRadius={44} outerRadius={84}>
+                      {regulatoryChartData.map((entry, index) => (
+                        <Cell key={entry.label} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <RechartsTooltip />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card className="border border-slate-200">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <span>Gold Standard Coverage</span>
-            <HelpTooltip
-              label="Gold Standard Coverage"
-              description="Coverage gaps against the gold-standard narrative spine. 100% means every mapped question is answered and marked ready."
-            />
-          </CardTitle>
-          <CardDescription>Lowest coverage sections from the gold-standard narrative.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {focusCoverage.length ? (
-            <div className="h-[220px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={focusCoverage} layout="vertical" margin={{ left: 16, right: 16 }}>
-                  <XAxis type="number" domain={[0, 100]} tickFormatter={(value) => `${value}%`} />
-                  <YAxis type="category" dataKey="name" width={220} tick={{ fontSize: 12 }} />
-                  <RechartsTooltip formatter={(value) => `${value}%`} />
-                  <Bar dataKey="percent" fill="#2563eb" radius={[4, 4, 4, 4]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+              <div className="space-y-2 text-xs text-slate-600">
+                {regulatoryChartData.map((entry, index) => (
+                  <div key={entry.label} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="h-2 w-2 rounded-full"
+                        style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }}
+                      />
+                      <span>{entry.label}</span>
+                    </div>
+                    <span className="text-slate-400">{entry.count}</span>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-slate-500">
+                Add more responses to surface additional regulatory drivers.
+              </p>
+            </>
           ) : (
-            <div className="flex h-[220px] items-center justify-center text-sm text-slate-500">
-              Add profile responses to score coverage.
+            <div className="flex h-[240px] items-center justify-center text-sm text-slate-500">
+              No regulatory signals yet.
             </div>
           )}
-          <p className="text-xs text-slate-500">
-            Coverage rises as you answer questions mapped to each gold-standard narrative section.
-          </p>
-        </CardContent>
-      </Card>
+        </CollapsibleInsightCard>
+      </div>
+
+      <CollapsibleInsightCard
+        title="Gold Standard Coverage"
+        description="Lowest coverage sections from the gold-standard narrative."
+        helpLabel="Gold Standard Coverage"
+        helpDescription="Coverage gaps against the gold-standard narrative spine. 100% means every mapped question is answered and marked ready."
+      >
+        {focusCoverage.length ? (
+          <div className="h-[220px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={focusCoverage} layout="vertical" margin={{ left: 16, right: 16 }}>
+                <XAxis type="number" domain={[0, 100]} tickFormatter={(value) => `${value}%`} />
+                <YAxis type="category" dataKey="name" width={220} tick={{ fontSize: 12 }} />
+                <RechartsTooltip formatter={(value) => `${value}%`} />
+                <Bar dataKey="percent" fill="#2563eb" radius={[4, 4, 4, 4]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        ) : (
+          <div className="flex h-[220px] items-center justify-center text-sm text-slate-500">
+            Add profile responses to score coverage.
+          </div>
+        )}
+        <p className="text-xs text-slate-500">
+          Coverage rises as you answer questions mapped to each gold-standard narrative section.
+        </p>
+      </CollapsibleInsightCard>
 
       <Card className="border border-slate-200">
         <CardHeader>

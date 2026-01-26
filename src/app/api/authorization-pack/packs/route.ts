@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createPack, getPack, getPackTemplates, getPacks } from "@/lib/authorization-pack-db";
 import { requireAuth } from "@/lib/auth-utils";
+import { DEFAULT_ORGANIZATION_ID } from "@/lib/constants";
+import { createNotification } from "@/lib/server/notifications-store";
 
 export async function GET() {
   try {
@@ -68,6 +70,20 @@ export async function POST(request: NextRequest) {
       targetSubmissionDate,
     });
     const pack = await getPack(created.id);
+
+    try {
+      await createNotification({
+        organizationId: DEFAULT_ORGANIZATION_ID,
+        title: "Authorization pack created",
+        message: `Pack "${name}" created from ${template.name}.`,
+        severity: "success",
+        source: "authorization-pack",
+        link: "/authorization-pack",
+        metadata: { packId: created.id, templateType: template.type },
+      });
+    } catch {
+      // Non-blocking notification failures
+    }
 
     return NextResponse.json({ pack: pack ?? { id: created.id } }, { status: 201 });
   } catch (error) {

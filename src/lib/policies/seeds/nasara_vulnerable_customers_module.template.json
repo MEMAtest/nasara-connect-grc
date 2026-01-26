@@ -1,0 +1,109 @@
+{
+  "code": "VULNERABLE_CUST",
+  "name": "Vulnerable Customers",
+  "category": "Customer",
+  "description": "Policy covering identification, support, and evidence of fair outcomes for vulnerable customers.",
+  "sections": [
+    {
+      "id": "purpose",
+      "title": "Purpose and objectives",
+      "summary": "Set the objectives for vulnerable customer support.",
+      "suggestedClauses": [
+        "nasara_vulnerable_customers-purpose-purpose_and_objectives"
+      ]
+    },
+    {
+      "id": "scope",
+      "title": "Scope and applicability",
+      "summary": "Define which teams and journeys are covered.",
+      "suggestedClauses": [
+        "nasara_vulnerable_customers-scope-scope_and_applicability"
+      ]
+    },
+    {
+      "id": "definitions",
+      "title": "What is vulnerability",
+      "summary": "Define vulnerability and the FCA drivers.",
+      "suggestedClauses": [
+        "nasara_vulnerable_customers-definitions-what_is_vulnerability"
+      ]
+    },
+    {
+      "id": "identification",
+      "title": "Indicators and signals",
+      "summary": "Describe how vulnerability indicators are identified.",
+      "suggestedClauses": [
+        "nasara_vulnerable_customers-identification-indicators_and_signals"
+      ]
+    },
+    {
+      "id": "recording",
+      "title": "Recording needs",
+      "summary": "Record needs and adjustments, not diagnoses.",
+      "suggestedClauses": [
+        "nasara_vulnerable_customers-recording-recording_needs_not_diagnoses"
+      ]
+    },
+    {
+      "id": "adjustments",
+      "title": "Reasonable adjustments",
+      "summary": "Set expectations for reasonable adjustments.",
+      "suggestedClauses": [
+        "nasara_vulnerable_customers-adjustments-reasonable_adjustments"
+      ]
+    },
+    {
+      "id": "duty",
+      "title": "Consumer Duty alignment",
+      "summary": "Link vulnerable customer support to Duty outcomes.",
+      "suggestedClauses": [
+        "nasara_vulnerable_customers-duty-consumer_duty_alignment"
+      ]
+    },
+    {
+      "id": "escalation",
+      "title": "Escalation and safeguarding",
+      "summary": "Define escalation and safeguarding routes.",
+      "suggestedClauses": [
+        "nasara_vulnerable_customers-escalation-escalation_and_safeguarding"
+      ]
+    },
+    {
+      "id": "mi",
+      "title": "MI and evidence",
+      "summary": "Define outcomes MI and evidence requirements.",
+      "suggestedClauses": [
+        "nasara_vulnerable_customers-mi-management_information_and_evidence"
+      ]
+    },
+    {
+      "id": "training",
+      "title": "Training and awareness",
+      "summary": "Require training and attestations.",
+      "suggestedClauses": [
+        "nasara_vulnerable_customers-training-training_and_awareness"
+      ]
+    },
+    {
+      "id": "governance",
+      "title": "Governance and review",
+      "summary": "Set oversight and review expectations.",
+      "suggestedClauses": [
+        "nasara_vulnerable_customers-governance-governance_and_review"
+      ]
+    }
+  ],
+  "mandatoryClauses": [
+    "nasara_vulnerable_customers-purpose-purpose_and_objectives",
+    "nasara_vulnerable_customers-scope-scope_and_applicability",
+    "nasara_vulnerable_customers-definitions-what_is_vulnerability",
+    "nasara_vulnerable_customers-identification-indicators_and_signals",
+    "nasara_vulnerable_customers-recording-recording_needs_not_diagnoses",
+    "nasara_vulnerable_customers-adjustments-reasonable_adjustments",
+    "nasara_vulnerable_customers-duty-consumer_duty_alignment",
+    "nasara_vulnerable_customers-escalation-escalation_and_safeguarding",
+    "nasara_vulnerable_customers-mi-management_information_and_evidence",
+    "nasara_vulnerable_customers-training-training_and_awareness",
+    "nasara_vulnerable_customers-governance-governance_and_review"
+  ]
+}

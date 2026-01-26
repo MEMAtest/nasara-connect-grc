@@ -8,17 +8,27 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NasaraLoader } from "@/components/ui/nasara-loader";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 import {
   getPolicyItems,
+  getControllerItems,
+  getGovernanceItems,
+  getOtherDocumentationItems,
+  getPsdItems,
   getRegisterItems,
-  getSmcrItems,
-  getTrainingItems,
 } from "@/lib/authorization-pack-integrations";
-import { CheckCircle2, ChevronLeft, ChevronRight, Building2, FileText, Users, Shield } from "lucide-react";
+import {
+  deriveEntityTypeFromCompaniesHouse,
+  deriveFirmStageFromIncorporation,
+  deriveJurisdictionFromCompaniesHouse,
+  formatCompaniesHouseCompanyType,
+  normalizeCompaniesHouseCountry,
+} from "@/lib/companies-house-utils";
+import { CheckCircle2, ChevronLeft, ChevronRight, Building2, FileText, HelpCircle, Users, Shield } from "lucide-react";
 
 interface PermissionEcosystem {
   id: string;
@@ -79,51 +89,95 @@ const EMPLOYEE_RANGES = [
 
 // Primary regulated activities (multi-select)
 const BASE_REGULATED_ACTIVITIES = [
-  { value: "payment-services", label: "Payment Services" },
-  { value: "e-money-issuance", label: "E-money Issuance" },
-  { value: "account-info-services", label: "Account Information Services (AIS)" },
-  { value: "payment-initiation", label: "Payment Initiation Services (PIS)" },
-  { value: "fx-dealing", label: "Foreign Exchange Dealing" },
-  { value: "money-transmission", label: "Money Transmission" },
-  { value: "card-issuing", label: "Card Issuing" },
-  { value: "acquiring", label: "Merchant Acquiring" },
-  { value: "other", label: "Other (specify below)" },
+  {
+    value: "payment-services",
+    label: "Payment Services",
+    description: "Core payment services under PSR 2017. Drives FCA permission mapping.",
+  },
+  {
+    value: "e-money-issuance",
+    label: "E-money Issuance",
+    description: "Issuing stored value or prepaid funds as electronic money.",
+  },
+  {
+    value: "account-info-services",
+    label: "Account Information Services (AIS)",
+    description: "Accessing account data on behalf of customers.",
+  },
+  {
+    value: "payment-initiation",
+    label: "Payment Initiation Services (PIS)",
+    description: "Initiating payments from customer accounts.",
+  },
+  {
+    value: "fx-dealing",
+    label: "Foreign Exchange Dealing",
+    description: "FX conversion linked to payment execution or remittance.",
+  },
+  {
+    value: "money-transmission",
+    label: "Money Transmission",
+    description: "Domestic or cross-border money transfers for clients.",
+  },
+  {
+    value: "card-issuing",
+    label: "Card Issuing",
+    description: "Issuing payment cards or prepaid instruments.",
+  },
+  {
+    value: "acquiring",
+    label: "Merchant Acquiring",
+    description: "Merchant acquiring and card transaction processing.",
+  },
+  {
+    value: "other",
+    label: "Other (specify below)",
+    description: "Any regulated activity not listed here.",
+  },
 ];
 
 const PAYMENT_PERG_ACTIVITIES = [
   {
     value: "ps-cash-payment-account",
     label: "Cash placed on a payment account (and operating that account)",
+    description: "Depositing cash into a payment account you operate.",
   },
   {
     value: "ps-cash-withdrawal",
     label: "Cash withdrawals from a payment account (and operating that account)",
+    description: "Cash withdrawals from a payment account you operate.",
   },
   {
     value: "ps-execution-payment-account",
     label:
       "Execution of payment transactions where funds are on a payment account (direct debits, card payments, credit transfers, standing orders)",
+    description: "Executing payments from prefunded payment accounts.",
   },
   {
     value: "ps-execution-credit-line",
     label:
       "Execution of payment transactions where funds are covered by a credit line (direct debits, card payments, credit transfers, standing orders)",
+    description: "Executing payments funded by a credit line or overdraft.",
   },
   {
     value: "ps-issuing-acquiring",
     label: "Issuing payment instruments and/or acquiring payment transactions",
+    description: "Issuing payment instruments or acquiring card payments.",
   },
   {
     value: "ps-money-remittance",
     label: "Money remittance",
+    description: "Money remittance service without payment accounts.",
   },
   {
     value: "ps-pis",
     label: "Payment initiation services (PIS)",
+    description: "Initiating payments on behalf of payment service users.",
   },
   {
     value: "ps-ais",
     label: "Account information services (AIS)",
+    description: "Accessing account information with customer consent.",
   },
 ];
 
@@ -175,6 +229,8 @@ interface WizardData {
   companyNumber: string;
   incorporationDate: string;
   sicCode: string;
+  companyStatus: string;
+  companyType: string;
   jurisdiction: string;
   addressLine1: string;
   addressLine2: string;
@@ -197,7 +253,6 @@ interface WizardData {
   contactPhone: string;
   timelinePreference: string;
   targetSubmissionDate: string;
-  additionalNotes: string;
 }
 
 const initialData: WizardData = {
@@ -210,6 +265,8 @@ const initialData: WizardData = {
   companyNumber: "",
   incorporationDate: "",
   sicCode: "",
+  companyStatus: "",
+  companyType: "",
   jurisdiction: "",
   addressLine1: "",
   addressLine2: "",
@@ -228,7 +285,6 @@ const initialData: WizardData = {
   contactPhone: "",
   timelinePreference: "",
   targetSubmissionDate: "",
-  additionalNotes: "",
 };
 
 const STEPS = [
@@ -251,6 +307,7 @@ export function PermissionSelectorClient() {
   const [isCompanySearching, setIsCompanySearching] = useState(false);
   const [isCompanyLookup, setIsCompanyLookup] = useState(false);
   const [showEcosystemDetails, setShowEcosystemDetails] = useState(false);
+  const [creationStep, setCreationStep] = useState(0);
 
   const selected = useMemo(
     () => ecosystems.find((item) => item.permission_code === data.permissionType) || null,
@@ -260,18 +317,33 @@ export function PermissionSelectorClient() {
     () => (selected ? getPolicyItems(selected.policy_templates) : []),
     [selected]
   );
-  const trainingItems = useMemo(
-    () => (selected ? getTrainingItems(selected.training_requirements) : []),
-    [selected]
-  );
-  const smcrItems = useMemo(
-    () => (selected ? getSmcrItems(selected.smcr_roles) : []),
-    [selected]
-  );
   const registerItems = useMemo(
     () => getRegisterItems(selected?.permission_code || data.permissionType),
     [selected, data.permissionType]
   );
+  const psdItems = useMemo(() => getPsdItems(), []);
+  const controllerItems = useMemo(() => getControllerItems(), []);
+  const governanceItems = useMemo(() => getGovernanceItems(), []);
+  const otherDocumentationItems = useMemo(() => getOtherDocumentationItems(), []);
+
+  const creationSteps = [
+    { label: "Creating project...", progress: 25 },
+    { label: "Setting up pack...", progress: 60 },
+    { label: "Initializing sections...", progress: 85 },
+  ];
+
+  useEffect(() => {
+    if (!isSubmitting) {
+      setCreationStep(0);
+      return;
+    }
+    setCreationStep(0);
+    const timers = [
+      setTimeout(() => setCreationStep(1), 1200),
+      setTimeout(() => setCreationStep(2), 2400),
+    ];
+    return () => timers.forEach(clearTimeout);
+  }, [isSubmitting]);
 
   const loadEcosystems = async () => {
     setLoadError(null);
@@ -376,6 +448,13 @@ export function PermissionSelectorClient() {
       }
       const data = await response.json();
       const company = data.company;
+      const normalizedCountry = normalizeCompaniesHouseCountry(company?.address?.country);
+      const mappedJurisdiction = deriveJurisdictionFromCompaniesHouse(
+        company?.address?.region,
+        company?.address?.country
+      );
+      const derivedEntityType = deriveEntityTypeFromCompaniesHouse(company?.type);
+      const derivedFirmStage = deriveFirmStageFromIncorporation(company?.incorporationDate);
 
       setData((prev) => ({
         ...prev,
@@ -383,11 +462,16 @@ export function PermissionSelectorClient() {
         companyNumber: company?.number || item.company_number || prev.companyNumber,
         incorporationDate: company?.incorporationDate || prev.incorporationDate,
         sicCode: company?.sicCodes?.[0] || prev.sicCode,
+        companyStatus: company?.status || prev.companyStatus,
+        companyType: company?.type || prev.companyType,
+        entityType: prev.entityType || derivedEntityType || prev.entityType,
+        jurisdiction: mappedJurisdiction || prev.jurisdiction,
         addressLine1: company?.address?.line1 || prev.addressLine1,
         addressLine2: company?.address?.line2 || prev.addressLine2,
         city: company?.address?.city || prev.city,
         postcode: company?.address?.postcode || prev.postcode,
-        country: company?.address?.country || prev.country,
+        country: normalizedCountry || prev.country,
+        firmStage: prev.firmStage || derivedFirmStage || prev.firmStage,
       }));
       setCompanyResults([]);
     } catch (error) {
@@ -478,6 +562,7 @@ export function PermissionSelectorClient() {
     if (!canProceed) return;
     setIsSubmitting(true);
     setLoadError(null);
+    setCreationStep(0);
 
     try {
       const response = await fetch("/api/authorization-pack/projects", {
@@ -496,6 +581,8 @@ export function PermissionSelectorClient() {
               companyNumber: data.companyNumber,
               incorporationDate: data.incorporationDate,
               sicCode: data.sicCode,
+              companyStatus: data.companyStatus,
+              companyType: data.companyType,
               primaryJurisdiction: data.jurisdiction,
               addressLine1: data.addressLine1,
               addressLine2: data.addressLine2,
@@ -513,7 +600,6 @@ export function PermissionSelectorClient() {
               targetMarkets: data.targetMarkets,
               estimatedTransactionVolume: data.estimatedTransactionVolume,
               timelinePreference: data.timelinePreference,
-              consultantNotes: data.additionalNotes,
             },
           },
         }),
@@ -536,7 +622,7 @@ export function PermissionSelectorClient() {
 
   const progressPercentage = (currentStep / STEPS.length) * 100;
 
-  const renderIntegrationList = (items: ReturnType<typeof getPolicyItems>, emptyLabel: string) => {
+  const renderIntegrationList = (items: Array<{ key: string; label: string; href?: string }>, emptyLabel: string) => {
     if (!items.length) {
       return <p className="text-xs text-slate-400">{emptyLabel}</p>;
     }
@@ -579,9 +665,11 @@ export function PermissionSelectorClient() {
       <div className="space-y-2">
         <Label className="text-base font-medium">Select the regulatory permission you need</Label>
         <p className="text-sm text-slate-500">
-          Choose a permission type to instantly load the sections, policies, training, and Key Persons linked to that
-          FCA application.
+          This sets the FCA regime and drives the sections, policies, PSD roles, controllers, and documents we build for you.
         </p>
+      </div>
+      <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-600">
+        We remember this selection across the project and use it to pre-fill your assessment and pack scope.
       </div>
 
       {/* Show ecosystem preview if available */}
@@ -590,11 +678,11 @@ export function PermissionSelectorClient() {
           <CardHeader className="pb-3">
             <CardTitle className="text-base text-teal-800">Ecosystem Preview: {selected.name}</CardTitle>
             <CardDescription className="text-sm text-teal-700">
-              Policies, registers, training, and Key Person requirements linked to this permission.
+              Policies, PSD roles, controllers, governance documents, and registers linked to this permission.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 text-sm">
-            <div className="grid gap-3 md:grid-cols-3">
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
               <div className="rounded-md border border-teal-100 bg-white p-3">
                 <p className="text-xs uppercase tracking-[0.2em] text-teal-500">Sections</p>
                 <p className="mt-2 text-2xl font-semibold text-teal-900">{selected.section_keys.length}</p>
@@ -606,9 +694,24 @@ export function PermissionSelectorClient() {
                 <p className="text-xs text-teal-600">Templates to draft</p>
               </div>
               <div className="rounded-md border border-teal-100 bg-white p-3">
-                <p className="text-xs uppercase tracking-[0.2em] text-teal-500">Training</p>
-                <p className="mt-2 text-2xl font-semibold text-teal-900">{trainingItems.length}</p>
-                <p className="text-xs text-teal-600">Required modules</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-teal-500">PSD Roles</p>
+                <p className="mt-2 text-2xl font-semibold text-teal-900">{psdItems.length}</p>
+                <p className="text-xs text-teal-600">Key persons in scope</p>
+              </div>
+              <div className="rounded-md border border-teal-100 bg-white p-3">
+                <p className="text-xs uppercase tracking-[0.2em] text-teal-500">Controllers</p>
+                <p className="mt-2 text-2xl font-semibold text-teal-900">{controllerItems.length}</p>
+                <p className="text-xs text-teal-600">Ownership thresholds</p>
+              </div>
+              <div className="rounded-md border border-teal-100 bg-white p-3">
+                <p className="text-xs uppercase tracking-[0.2em] text-teal-500">Governance</p>
+                <p className="mt-2 text-2xl font-semibold text-teal-900">{governanceItems.length}</p>
+                <p className="text-xs text-teal-600">Boards & oversight</p>
+              </div>
+              <div className="rounded-md border border-teal-100 bg-white p-3">
+                <p className="text-xs uppercase tracking-[0.2em] text-teal-500">Other Docs</p>
+                <p className="mt-2 text-2xl font-semibold text-teal-900">{otherDocumentationItems.length}</p>
+                <p className="text-xs text-teal-600">Supporting evidence</p>
               </div>
             </div>
             <div className="flex items-center justify-between">
@@ -623,7 +726,7 @@ export function PermissionSelectorClient() {
               </Button>
             </div>
             {showEcosystemDetails ? (
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <div>
                   <p className="text-xs uppercase tracking-[0.2em] text-teal-500">
                     Policies ({policyItems.length})
@@ -632,15 +735,27 @@ export function PermissionSelectorClient() {
                 </div>
                 <div>
                   <p className="text-xs uppercase tracking-[0.2em] text-teal-500">
-                    Training ({trainingItems.length})
+                    PSD / Key Persons ({psdItems.length})
                   </p>
-                  {renderIntegrationList(trainingItems, "Training plan to be finalised once roles are assigned.")}
+                  {renderIntegrationList(psdItems, "PSD roles to be confirmed.")}
                 </div>
                 <div>
                   <p className="text-xs uppercase tracking-[0.2em] text-teal-500">
-                    Key Persons / PSD Roles ({smcrItems.length})
+                    Controllers ({controllerItems.length})
                   </p>
-                  {renderIntegrationList(smcrItems, "Role holders to be confirmed.")}
+                  {renderIntegrationList(controllerItems, "Controller details to be captured.")}
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-[0.2em] text-teal-500">
+                    Governance ({governanceItems.length})
+                  </p>
+                  {renderIntegrationList(governanceItems, "Governance docs to be uploaded later.")}
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-[0.2em] text-teal-500">
+                    Other Documentation ({otherDocumentationItems.length})
+                  </p>
+                  {renderIntegrationList(otherDocumentationItems, "Supporting docs to be added later.")}
                 </div>
                 <div>
                   <p className="text-xs uppercase tracking-[0.2em] text-teal-500">
@@ -717,7 +832,10 @@ export function PermissionSelectorClient() {
             Select a result to auto-fill company number and registered address.
           </p>
           {isCompanySearching ? (
-            <p className="text-xs text-slate-500">Searching Companies House...</p>
+            <NasaraLoader size="sm" label="Searching Companies House..." className="items-start" />
+          ) : null}
+          {isCompanyLookup ? (
+            <NasaraLoader size="sm" label="Loading company details..." className="items-start" />
           ) : null}
           {companySearchError ? (
             <p className="text-xs text-red-500">{companySearchError}</p>
@@ -806,6 +924,24 @@ export function PermissionSelectorClient() {
             placeholder="e.g., 64999"
           />
         </div>
+        <div className="space-y-2">
+          <Label>Company status (Companies House)</Label>
+          <Input
+            value={data.companyStatus}
+            placeholder="e.g., active"
+            readOnly
+            className="bg-slate-50"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label>Company type (Companies House)</Label>
+          <Input
+            value={formatCompaniesHouseCompanyType(data.companyType)}
+            placeholder="e.g., ltd"
+            readOnly
+            className="bg-slate-50"
+          />
+        </div>
 
         <div className="space-y-2">
           <Label>Jurisdiction *</Label>
@@ -871,7 +1007,10 @@ export function PermissionSelectorClient() {
       <div className="space-y-4">
         <div>
           <Label className="text-base font-medium">Primary Regulated Activities *</Label>
-          <p className="text-sm text-slate-500">Select all activities you intend to carry out</p>
+          <p className="text-sm text-slate-500">Select all activities you intend to carry out.</p>
+          <p className="text-xs text-slate-400">
+            These choices drive the FCA permission mapping and the perimeter opinion pack.
+          </p>
           {data.permissionType === "payments" ? (
             <p className="text-xs text-slate-400">
               Aligned to PSR 2017 Schedule 1, Part 1 payment services (PERG).
@@ -894,7 +1033,26 @@ export function PermissionSelectorClient() {
                 checked={data.regulatedActivities.includes(activity.value)}
                 onCheckedChange={() => toggleActivity(activity.value)}
               />
-              <Label className="cursor-pointer font-normal">{activity.label}</Label>
+              <div className="flex flex-1 items-start justify-between gap-2">
+                <Label className="cursor-pointer font-normal">{activity.label}</Label>
+                {activity.description ? (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        className="rounded-full p-1 text-slate-400 transition hover:text-slate-600"
+                        aria-label={`${activity.label} explainer`}
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        <HelpCircle className="h-4 w-4" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="right" sideOffset={6} className="max-w-xs text-left text-xs">
+                      {activity.description}
+                    </TooltipContent>
+                  </Tooltip>
+                ) : null}
+              </div>
             </div>
           ))}
         </div>
@@ -914,7 +1072,20 @@ export function PermissionSelectorClient() {
 
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
-          <Label>Target Markets</Label>
+          <div className="flex items-center gap-2">
+            <Label>Target Markets</Label>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button type="button" className="text-slate-400 hover:text-slate-600" aria-label="Target markets help">
+                  <HelpCircle className="h-4 w-4" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right" sideOffset={6} className="max-w-xs text-left text-xs">
+                Target market drives how the FCA expects you to design products, communications, and customer support.
+              </TooltipContent>
+            </Tooltip>
+          </div>
+          <p className="text-xs text-slate-400">Clarifies who the FCA expects you to serve and how you tailor governance.</p>
           <Select value={data.targetMarkets} onValueChange={(value) => updateField("targetMarkets", value)}>
             <SelectTrigger>
               <SelectValue placeholder="Select target market" />
@@ -929,7 +1100,22 @@ export function PermissionSelectorClient() {
         </div>
 
         <div className="space-y-2">
-          <Label>Estimated Annual Transaction Volume</Label>
+          <div className="flex items-center gap-2">
+            <Label>Estimated Annual Transaction Volume</Label>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button type="button" className="text-slate-400 hover:text-slate-600" aria-label="Transaction volume help">
+                  <HelpCircle className="h-4 w-4" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right" sideOffset={6} className="max-w-xs text-left text-xs">
+                Volume informs capital requirements and whether you qualify for Small Payment Institution status.
+              </TooltipContent>
+            </Tooltip>
+          </div>
+          <p className="text-xs text-slate-400">
+            Used to size prudential requirements and confirm SPI vs full authorisation thresholds.
+          </p>
           <Select
             value={data.estimatedTransactionVolume}
             onValueChange={(value) => updateField("estimatedTransactionVolume", value)}
@@ -1056,15 +1242,13 @@ export function PermissionSelectorClient() {
           />
         </div>
 
-        <div className="space-y-2 md:col-span-2">
-          <Label>Additional Notes for Consultants</Label>
-          <Textarea
-            value={data.additionalNotes}
-            onChange={(e) => updateField("additionalNotes", e.target.value)}
-            placeholder="Any specific requirements, concerns, or information that would help the consultant team..."
-            rows={3}
-          />
-        </div>
+        {isSubmitting ? (
+          <div className="space-y-2 md:col-span-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Creating project</p>
+            <p className="text-sm font-medium text-slate-700">{creationSteps[creationStep]?.label}</p>
+            <Progress value={creationSteps[creationStep]?.progress ?? 20} className="h-2" />
+          </div>
+        ) : null}
       </div>
 
       {/* Summary Card */}
@@ -1103,7 +1287,9 @@ export function PermissionSelectorClient() {
   if (isLoading) {
     return (
       <Card className="border border-slate-200">
-        <CardContent className="p-8 text-center text-slate-500">Loading setup wizard...</CardContent>
+        <CardContent className="p-8">
+          <NasaraLoader label="Loading setup wizard..." />
+        </CardContent>
       </Card>
     );
   }

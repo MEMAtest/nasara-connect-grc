@@ -1,0 +1,118 @@
+{
+  "code": "SMCR",
+  "name": "Senior Managers & Certification Regime",
+  "category": "Governance",
+  "description": "Policy covering SMCR responsibilities, certification, conduct rules, and accountability expectations.",
+  "sections": [
+    {
+      "id": "purpose",
+      "title": "Purpose and objectives",
+      "summary": "Define the objectives for SMCR implementation.",
+      "suggestedClauses": [
+        "nasara_smcr-purpose-purpose_and_objectives"
+      ]
+    },
+    {
+      "id": "scope",
+      "title": "Scope and applicability",
+      "summary": "Define who falls within the SMCR population.",
+      "suggestedClauses": [
+        "nasara_smcr-scope-scope_and_applicability"
+      ]
+    },
+    {
+      "id": "roles",
+      "title": "SMCR roles",
+      "summary": "Describe the SMF, Certification, and Conduct Rules populations.",
+      "suggestedClauses": [
+        "nasara_smcr-roles-smcr_roles_and_scope"
+      ]
+    },
+    {
+      "id": "sors",
+      "title": "SoRs and reasonable steps",
+      "summary": "Set expectations for SoRs and reasonable steps evidence.",
+      "suggestedClauses": [
+        "nasara_smcr-sors-statements_of_responsibility"
+      ]
+    },
+    {
+      "id": "duty",
+      "title": "Duty of Responsibility",
+      "summary": "Define senior manager accountability expectations.",
+      "suggestedClauses": [
+        "nasara_smcr-duty-duty_of_responsibility"
+      ]
+    },
+    {
+      "id": "certification",
+      "title": "Certification regime",
+      "summary": "Describe annual fit and proper assessments.",
+      "suggestedClauses": [
+        "nasara_smcr-certification-certification_regime"
+      ]
+    },
+    {
+      "id": "cocon",
+      "title": "COCON conduct rules",
+      "summary": "Set conduct rule expectations for staff.",
+      "suggestedClauses": [
+        "nasara_smcr-cocon-conduct_rules"
+      ]
+    },
+    {
+      "id": "nfm",
+      "title": "Non-financial misconduct",
+      "summary": "Define handling and reporting expectations.",
+      "suggestedClauses": [
+        "nasara_smcr-nfm-non_financial_misconduct"
+      ]
+    },
+    {
+      "id": "references",
+      "title": "Regulatory references",
+      "summary": "Define requirements for regulatory references.",
+      "suggestedClauses": [
+        "nasara_smcr-references-regulatory_references"
+      ]
+    },
+    {
+      "id": "records",
+      "title": "Records and evidence",
+      "summary": "Define evidence and record keeping expectations.",
+      "suggestedClauses": [
+        "nasara_smcr-records-records_and_evidence"
+      ]
+    },
+    {
+      "id": "training",
+      "title": "Training and awareness",
+      "summary": "Require training and attestations.",
+      "suggestedClauses": [
+        "nasara_smcr-training-training_and_awareness"
+      ]
+    },
+    {
+      "id": "governance",
+      "title": "Governance and review",
+      "summary": "Set oversight and review cadence.",
+      "suggestedClauses": [
+        "nasara_smcr-governance-governance_and_review"
+      ]
+    }
+  ],
+  "mandatoryClauses": [
+    "nasara_smcr-purpose-purpose_and_objectives",
+    "nasara_smcr-scope-scope_and_applicability",
+    "nasara_smcr-roles-smcr_roles_and_scope",
+    "nasara_smcr-sors-statements_of_responsibility",
+    "nasara_smcr-duty-duty_of_responsibility",
+    "nasara_smcr-certification-certification_regime",
+    "nasara_smcr-cocon-conduct_rules",
+    "nasara_smcr-nfm-non_financial_misconduct",
+    "nasara_smcr-references-regulatory_references",
+    "nasara_smcr-records-records_and_evidence",
+    "nasara_smcr-training-training_and_awareness",
+    "nasara_smcr-governance-governance_and_review"
+  ]
+}

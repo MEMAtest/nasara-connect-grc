@@ -1,0 +1,86 @@
+[
+  {
+    "id": "nasara_anti_bribery-purpose-purpose_and_objectives",
+    "policy_key": "anti_bribery",
+    "title": "Purpose and objectives",
+    "body_md": "This policy sets out how {{firm.name}} prevents bribery and corruption in line with the UK Bribery Act 2010, FCA expectations, and Ministry of Justice guidance.\n\nObjectives:\n- prohibit bribery, facilitation payments, and improper advantages.\n- apply proportionate prevention controls and due diligence.\n- manage gifts, hospitality, donations, and political activity.\n- ensure escalation, investigation, and record keeping.",
+    "source_template_filename": "MODULE_ANTI_BRIBERY_CORRUPTION.txt"
+  },
+  {
+    "id": "nasara_anti_bribery-scope-scope_and_applicability",
+    "policy_key": "anti_bribery",
+    "title": "Scope and applicability",
+    "body_md": "This policy applies to all employees, contractors, and associated persons acting on behalf of {{firm.name}}, including agents, introducers, and distributors.\n\nIt applies across all business lines and jurisdictions in which the firm operates.",
+    "source_template_filename": "MODULE_ANTI_BRIBERY_CORRUPTION.txt"
+  },
+  {
+    "id": "nasara_anti_bribery-definitions-what_is_a_bribe",
+    "policy_key": "anti_bribery",
+    "title": "What is a bribe",
+    "body_md": "A bribe is a financial or other advantage offered, promised, given, requested, or accepted with the intention of inducing or rewarding improper performance.\n\nImproper performance includes breaches of duty, dishonesty, or misuse of position.",
+    "source_template_filename": "MODULE_ANTI_BRIBERY_CORRUPTION.txt"
+  },
+  {
+    "id": "nasara_anti_bribery-offences-uk_offences",
+    "policy_key": "anti_bribery",
+    "title": "UK bribery offences",
+    "body_md": "The UK Bribery Act includes offences for bribing another person, being bribed, bribing a foreign public official, and the corporate offence of failure to prevent bribery (section 7).\n\n{{firm.name}} may be liable if an associated person bribes on its behalf unless adequate procedures are in place.",
+    "source_template_filename": "MODULE_ANTI_BRIBERY_CORRUPTION.txt"
+  },
+  {
+    "id": "nasara_anti_bribery-principles-six_prevention_principles",
+    "policy_key": "anti_bribery",
+    "title": "Six prevention principles",
+    "body_md": "{{firm.name}} applies the Ministry of Justice six principles: proportionate procedures, top-level commitment, risk assessment, due diligence, communication and training, and monitoring and review.\n\nControls must be proportionate to risk and documented.",
+    "source_template_filename": "MODULE_ANTI_BRIBERY_CORRUPTION.txt"
+  },
+  {
+    "id": "nasara_anti_bribery-gifts-gifts_hospitality_and_donations",
+    "policy_key": "anti_bribery",
+    "title": "Gifts, hospitality, and donations",
+    "body_md": "Gifts, hospitality, charitable donations, and political activity must never be used to secure improper advantage.\n\nControls include thresholds, pre-approvals, and mandatory recording in registers. Extra caution is required around public officials and live tenders.",
+    "source_template_filename": "MODULE_ANTI_BRIBERY_CORRUPTION.txt"
+  },
+  {
+    "id": "nasara_anti_bribery-third_party-third_party_risk",
+    "policy_key": "anti_bribery",
+    "title": "Third-party and introducer risk",
+    "body_md": "Associated persons such as agents and introducers create heightened risk. Red flags include success-only fees, opaque ownership, cash requests, or links to public officials.\n\nRisk-tiered due diligence and contract controls are required before engagement.",
+    "source_template_filename": "MODULE_ANTI_BRIBERY_CORRUPTION.txt"
+  },
+  {
+    "id": "nasara_anti_bribery-facilitation-facilitation_payments",
+    "policy_key": "anti_bribery",
+    "title": "Facilitation payments",
+    "body_md": "Facilitation payments, even if small or customary in another jurisdiction, are prohibited. Staff must refuse and escalate any request for such payments.",
+    "source_template_filename": "MODULE_ANTI_BRIBERY_CORRUPTION.txt"
+  },
+  {
+    "id": "nasara_anti_bribery-records-books_and_records",
+    "policy_key": "anti_bribery",
+    "title": "Books and records",
+    "body_md": "All transactions must be accurately described and supported by approvals, invoices, and deliverables. Registers for gifts and hospitality must be complete and reviewed.\n\nIf it is not recorded, it did not happen.",
+    "source_template_filename": "MODULE_ANTI_BRIBERY_CORRUPTION.txt"
+  },
+  {
+    "id": "nasara_anti_bribery-escalation-escalation_and_speak_up",
+    "policy_key": "anti_bribery",
+    "title": "Escalation and speak-up",
+    "body_md": "If something feels improper, pause and escalate via line management, Compliance, or the whistleblowing channel. Retaliation is not tolerated, and all concerns must be documented.",
+    "source_template_filename": "MODULE_ANTI_BRIBERY_CORRUPTION.txt"
+  },
+  {
+    "id": "nasara_anti_bribery-training-training_and_awareness",
+    "policy_key": "anti_bribery",
+    "title": "Training and awareness",
+    "body_md": "All staff must complete anti-bribery training relevant to their role. Training completion and attestations must be recorded and refreshed in line with the firm training plan.",
+    "source_template_filename": "MODULE_ANTI_BRIBERY_CORRUPTION.txt"
+  },
+  {
+    "id": "nasara_anti_bribery-governance-governance_and_review",
+    "policy_key": "anti_bribery",
+    "title": "Governance and review",
+    "body_md": "Compliance oversees the ABC framework. Senior management sets the tone from the top, reviews risk assessments, and ensures proportionate resources and monitoring.",
+    "source_template_filename": "MODULE_ANTI_BRIBERY_CORRUPTION.txt"
+  }
+]

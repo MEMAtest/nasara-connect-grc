@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,16 +35,37 @@ interface SectionSummary {
   reviewCompletion: number;
 }
 
-export function SectionsClient() {
+// Inner component with hooks - wrapped in Suspense
+function SectionsClientInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const packIdParam = searchParams.get("packId");
+  const packIdParam = searchParams?.get("packId") ?? null;
   const [pack, setPack] = useState<PackRow | null>(null);
   const [readiness, setReadiness] = useState<ReadinessSummary | null>(null);
   const [sections, setSections] = useState<SectionSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [showIncompleteOnly, setShowIncompleteOnly] = useState(true);
+
+  // All useMemo hooks must be called unconditionally before any early returns
+  const uniqueSections = useMemo(() => {
+    if (!sections || sections.length === 0) return [];
+    const seen = new Set<string>();
+    return sections.filter((section) => {
+      const key = section.section_key || section.title;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [sections]);
+
+  const remainingSections = useMemo(() => {
+    return uniqueSections.filter((section) => section.narrativeCompletion < 100);
+  }, [uniqueSections]);
+
+  const visibleSections = useMemo(() => {
+    return showIncompleteOnly ? remainingSections : uniqueSections;
+  }, [showIncompleteOnly, remainingSections, uniqueSections]);
 
   useEffect(() => {
     const load = async () => {
@@ -66,7 +87,7 @@ export function SectionsClient() {
         setPack(activePack);
         if (activePack) {
           if (packIdParam !== activePack.id) {
-            router.replace(`/authorization-pack/workspace?packId=${activePack.id}`);
+            router.replace(`/authorization-pack/sections?packId=${activePack.id}`);
           }
           const [readinessResponse, sectionResponse] = await Promise.all([
             fetchWithTimeout(`/api/authorization-pack/packs/${activePack.id}`).catch(() => null),
@@ -86,7 +107,7 @@ export function SectionsClient() {
       }
     };
     load();
-  }, [packIdParam]);
+  }, [packIdParam, router]);
 
   if (isLoading) {
     return (
@@ -135,19 +156,6 @@ export function SectionsClient() {
       </div>
     );
   }
-
-  const uniqueSections = useMemo(() => {
-    const seen = new Set<string>();
-    return sections.filter((section) => {
-      const key = section.section_key || section.title;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
-  }, [sections]);
-
-  const remainingSections = uniqueSections.filter((section) => section.narrativeCompletion < 100);
-  const visibleSections = showIncompleteOnly ? remainingSections : uniqueSections;
 
   return (
     <div className="space-y-6">
@@ -200,5 +208,25 @@ export function SectionsClient() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+// Main export with Suspense boundary for useSearchParams
+export function SectionsClient() {
+  return (
+    <Suspense fallback={
+      <div className="space-y-6">
+        <Card className="border border-slate-200">
+          <CardContent className="p-8 text-center text-slate-500">
+            <div className="flex items-center justify-center gap-2">
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-teal-500 border-t-transparent" />
+              Loading...
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    }>
+      <SectionsClientInner />
+    </Suspense>
   );
 }

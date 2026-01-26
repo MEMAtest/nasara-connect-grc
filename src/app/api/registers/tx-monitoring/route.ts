@@ -18,6 +18,7 @@ import {
   badRequestResponse,
   serverErrorResponse,
 } from "@/lib/api-auth";
+import { notifyRegisterCreated } from "@/lib/server/notification-builders";
 import { logError } from "@/lib/logger";
 
 const ALERT_TYPES = ["high_value", "unusual_pattern", "structuring", "rapid_movement", "dormant_account", "geographic", "other"] as const;
@@ -154,6 +155,16 @@ export async function POST(request: NextRequest) {
     };
 
     const record = await createTxMonitoringRecord(recordData);
+    try {
+      await notifyRegisterCreated({
+        organizationId: authResult.user.organizationId,
+        registerKey: "tx-monitoring",
+        record,
+        actor: authResult.user.userEmail,
+      });
+    } catch {
+      // Non-blocking notification failures
+    }
 
     return NextResponse.json({ record }, { status: 201 });
   } catch (error) {

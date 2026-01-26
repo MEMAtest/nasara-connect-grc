@@ -14,7 +14,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   AlertTriangle,
   Calendar as CalendarIcon,
+  CheckCircle2,
+  ExternalLink,
   FileText,
+  Info,
   Plus,
   Shield,
   Trash2,
@@ -23,6 +26,8 @@ import {
 import { cn } from "@/lib/utils";
 import { allSMFs } from "../data/core-functions";
 import { useSmcrData, RoleAssignment, RoleApprovalStatus } from "../context/SmcrDataContext";
+import { SmfIcon } from "../components/SmcrIcons";
+import { formATips, sorTips, formCTips } from "../forms/form-data";
 
 interface AssignmentRow {
   role: RoleAssignment;
@@ -162,9 +167,12 @@ export function SMFsClient() {
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Senior Management Functions</h1>
-          <p className="text-slate-600 mt-1">Track SMF appointments, approval status, and assessment cadence.</p>
+        <div className="flex items-center gap-4">
+          <SmfIcon size={48} />
+          <div>
+            <h1 className="text-2xl font-semibold text-slate-900">Senior Management Functions</h1>
+            <p className="text-slate-600 mt-1">Track SMF appointments, approval status, and assessment cadence.</p>
+          </div>
         </div>
         <Button onClick={() => setAssignDialogOpen(true)}>
           <Plus className="h-4 w-4 mr-2" />
@@ -310,13 +318,64 @@ export function SMFsClient() {
       </div>
 
       <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Assign Senior Management Function</DialogTitle>
             <DialogDescription>
               Link an SMF to a named individual and define entity responsibility.
             </DialogDescription>
           </DialogHeader>
+
+          {/* FCA Form A Explainer */}
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 space-y-3">
+            <div className="flex items-start gap-3">
+              <Info className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <h4 className="font-medium text-amber-900">{formATips.title}</h4>
+                <p className="text-sm text-amber-800 mt-1">{formATips.description}</p>
+              </div>
+            </div>
+            <ul className="space-y-1.5 ml-8">
+              {formATips.tips.map((tip, i) => (
+                <li key={i} className="flex items-center gap-2 text-sm text-amber-800">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-amber-600 flex-shrink-0" />
+                  {tip}
+                </li>
+              ))}
+            </ul>
+            <div className="ml-8">
+              <a
+                href={formATips.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-amber-700 hover:text-amber-900"
+              >
+                Open FCA Connect
+                <ExternalLink className="h-3.5 w-3.5" />
+              </a>
+            </div>
+          </div>
+
+          {/* Statement of Responsibilities Reminder */}
+          <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+            <div className="flex items-start gap-3">
+              <FileText className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <h4 className="font-medium text-blue-900">{sorTips.title}</h4>
+                <p className="text-sm text-blue-800 mt-1">{sorTips.description}</p>
+                <a
+                  href={sorTips.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-700 hover:text-blue-900 mt-2"
+                >
+                  FCA SoR Guidance
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </a>
+              </div>
+            </div>
+          </div>
+
           <form onSubmit={handleAssign} className="space-y-4">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>

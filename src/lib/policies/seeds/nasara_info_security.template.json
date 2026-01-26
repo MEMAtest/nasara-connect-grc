@@ -1,0 +1,127 @@
+{
+  "code": "INFO_SECURITY",
+  "name": "Data Protection & Information Security",
+  "category": "Ops",
+  "description": "Policy covering personal data protection, information security controls, and incident response expectations.",
+  "sections": [
+    {
+      "id": "purpose",
+      "title": "Purpose and objectives",
+      "summary": "Set the objectives for data protection and information security.",
+      "suggestedClauses": [
+        "nasara_info_security-purpose-purpose_and_objectives"
+      ]
+    },
+    {
+      "id": "scope",
+      "title": "Scope and applicability",
+      "summary": "Define who and what the policy covers.",
+      "suggestedClauses": [
+        "nasara_info_security-scope-scope_and_applicability"
+      ]
+    },
+    {
+      "id": "definitions",
+      "title": "Key definitions",
+      "summary": "Clarify core privacy and security terms.",
+      "suggestedClauses": [
+        "nasara_info_security-definitions-key_definitions"
+      ]
+    },
+    {
+      "id": "lawful",
+      "title": "Lawful bases and transparency",
+      "summary": "Define lawful processing and notice requirements.",
+      "suggestedClauses": [
+        "nasara_info_security-lawful-lawful_bases_and_transparency"
+      ]
+    },
+    {
+      "id": "minimisation",
+      "title": "Minimisation, purpose, and retention",
+      "summary": "Set expectations for data minimisation and retention.",
+      "suggestedClauses": [
+        "nasara_info_security-minimisation-data_minimisation_and_retention"
+      ]
+    },
+    {
+      "id": "rights",
+      "title": "Individual rights handling",
+      "summary": "Define how rights requests are handled.",
+      "suggestedClauses": [
+        "nasara_info_security-rights-individual_rights_handling"
+      ]
+    },
+    {
+      "id": "security",
+      "title": "Security by design",
+      "summary": "Set daily security control expectations.",
+      "suggestedClauses": [
+        "nasara_info_security-security-security_by_design"
+      ]
+    },
+    {
+      "id": "phishing",
+      "title": "Phishing and social engineering",
+      "summary": "Define detection and reporting expectations.",
+      "suggestedClauses": [
+        "nasara_info_security-phishing-phishing_and_social_engineering"
+      ]
+    },
+    {
+      "id": "sharing",
+      "title": "Data sharing and transfers",
+      "summary": "Define vendor and international transfer controls.",
+      "suggestedClauses": [
+        "nasara_info_security-sharing-data_sharing_and_transfers"
+      ]
+    },
+    {
+      "id": "incidents",
+      "title": "Incidents and breach reporting",
+      "summary": "Set incident response and reporting requirements.",
+      "suggestedClauses": [
+        "nasara_info_security-incidents-incidents_and_breach_reporting"
+      ]
+    },
+    {
+      "id": "records",
+      "title": "Records and evidence",
+      "summary": "Define documentation and evidence expectations.",
+      "suggestedClauses": [
+        "nasara_info_security-records-records_and_evidence"
+      ]
+    },
+    {
+      "id": "training",
+      "title": "Training and awareness",
+      "summary": "Require ongoing training and attestations.",
+      "suggestedClauses": [
+        "nasara_info_security-training-training_and_awareness"
+      ]
+    },
+    {
+      "id": "governance",
+      "title": "Governance and review",
+      "summary": "Set oversight and review expectations.",
+      "suggestedClauses": [
+        "nasara_info_security-governance-governance_and_review"
+      ]
+    }
+  ],
+  "mandatoryClauses": [
+    "nasara_info_security-purpose-purpose_and_objectives",
+    "nasara_info_security-scope-scope_and_applicability",
+    "nasara_info_security-definitions-key_definitions",
+    "nasara_info_security-lawful-lawful_bases_and_transparency",
+    "nasara_info_security-minimisation-data_minimisation_and_retention",
+    "nasara_info_security-rights-individual_rights_handling",
+    "nasara_info_security-security-security_by_design",
+    "nasara_info_security-phishing-phishing_and_social_engineering",
+    "nasara_info_security-sharing-data_sharing_and_transfers",
+    "nasara_info_security-incidents-incidents_and_breach_reporting",
+    "nasara_info_security-records-records_and_evidence",
+    "nasara_info_security-training-training_and_awareness",
+    "nasara_info_security-governance-governance_and_review"
+  ]
+}

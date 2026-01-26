@@ -11,6 +11,7 @@ import {
   initSmcrDatabase,
   CreateRoleInput,
 } from '@/lib/smcr-database';
+import { createNotification } from "@/lib/server/notifications-store";
 import { logError, logApiRequest } from '@/lib/logger';
 
 export async function GET(
@@ -89,6 +90,19 @@ export async function POST(
     };
 
     const role = await createRoleAssignment(input);
+    try {
+      await createNotification({
+        organizationId: "default-org",
+        title: "SMCR role assigned",
+        message: `${role.function_label || role.function_id} assigned to ${role.person_id}.`,
+        severity: "info",
+        source: "smcr",
+        link: "/smcr/smfs",
+        metadata: { firmId, roleId: role.id, personId },
+      });
+    } catch {
+      // Non-blocking notification failures
+    }
     return NextResponse.json(role, { status: 201 });
   } catch (error) {
     logError(error, 'Failed to create SMCR role assignment', { firmId });

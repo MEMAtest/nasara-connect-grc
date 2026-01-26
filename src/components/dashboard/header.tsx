@@ -22,7 +22,7 @@ import {
   AvatarImage,
 } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { CmpNotificationsBell } from "@/components/dashboard/CmpNotificationsBell";
+import { NotificationsBell } from "@/components/dashboard/NotificationsBell";
 
 interface HeaderProps {
   onToggleSidebar?: () => void;
@@ -169,7 +169,7 @@ export function Header({ onToggleSidebar, isSidebarOpen }: HeaderProps) {
             <GlobalSearch />
           </div>
 
-          <CmpNotificationsBell />
+          <NotificationsBell />
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

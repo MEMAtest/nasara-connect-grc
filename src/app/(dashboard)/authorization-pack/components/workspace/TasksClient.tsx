@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NasaraLoader } from "@/components/ui/nasara-loader";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { WorkspaceHeader } from "./WorkspaceHeader";
 import { PackType } from "@/lib/authorization-pack-templates";
@@ -265,11 +266,8 @@ export function TasksClient() {
       <div className="space-y-6">
         <WorkspaceHeader pack={pack} readiness={readiness} />
         <Card className="border border-slate-200">
-          <CardContent className="p-8 text-center text-slate-500">
-            <div className="flex items-center justify-center gap-2">
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-teal-500 border-t-transparent" />
-              Loading tasks...
-            </div>
+          <CardContent className="p-8">
+            <NasaraLoader label="Loading tasks..." />
           </CardContent>
         </Card>
       </div>

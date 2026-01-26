@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NasaraLoader } from "@/components/ui/nasara-loader";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -63,20 +64,20 @@ function ArrowRightIcon({ className }: { className?: string }) {
   );
 }
 
-function CircleIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <circle cx="12" cy="12" r="9" />
-    </svg>
-  );
-}
-
 function TargetIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <circle cx="12" cy="12" r="10" />
       <circle cx="12" cy="12" r="6" />
       <circle cx="12" cy="12" r="2" />
+    </svg>
+  );
+}
+
+function CircleIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <circle cx="12" cy="12" r="9" />
     </svg>
   );
 }
@@ -113,8 +114,17 @@ interface TaskItem {
   status: string;
   priority: string;
   section_title?: string | null;
+  sectionInstanceId?: string | null;
   due_date?: string | null;
   source?: string | null;
+}
+
+interface ReviewGate {
+  id: string;
+  stage: string;
+  state: string;
+  section_title: string;
+  section_instance_id?: string;
 }
 
 interface TemplateSummary {
@@ -123,6 +133,27 @@ interface TemplateSummary {
   name: string;
   description: string | null;
 }
+
+const QUICK_CHECKLIST = [
+  { id: "firm-profile", category: "Documents", label: "Firm profile complete (legal entity, permissions, scope)" },
+  { id: "business-plan", category: "Documents", label: "Business plan narrative drafted" },
+  { id: "financial-forecasts", category: "Documents", label: "Financial forecasts (3-year) uploaded" },
+  { id: "wind-down", category: "Documents", label: "Wind-down plan prepared" },
+  { id: "psd-individuals", category: "Governance", label: "PSD/key persons identified and documented" },
+  { id: "controllers", category: "Governance", label: "Controllers list verified (10%/20%/33%/50%)" },
+  { id: "governance-forums", category: "Governance", label: "Governance forums and committees documented" },
+  { id: "risk-register", category: "Governance", label: "Risk register completed" },
+  { id: "cmp", category: "Governance", label: "Compliance Monitoring Plan (CMP) approved" },
+  { id: "aml-ctf", category: "Policies", label: "AML/CTF policy approved" },
+  { id: "safeguarding", category: "Policies", label: "Safeguarding policy in place (if applicable)" },
+  { id: "complaints", category: "Policies", label: "Complaints handling policy approved" },
+  { id: "fin-promotions", category: "Policies", label: "Financial promotions policy approved" },
+  { id: "outsourcing", category: "Policies", label: "Outsourcing & third-party risk policy approved" },
+  { id: "info-security", category: "Policies", label: "Information & cyber security policy approved" },
+  { id: "op-resilience", category: "Operational", label: "Operational resilience & incident response documented" },
+  { id: "consumer-duty", category: "Operational", label: "Consumer duty & vulnerable customers plan documented" },
+  { id: "evidence-pack", category: "Operational", label: "Evidence pack assembled for FCA submission" },
+];
 
 // Status options for pack
 const PACK_STATUS_OPTIONS = [
@@ -197,7 +228,10 @@ export function OverviewClient() {
   const [readiness, setReadiness] = useState<ReadinessSummary | null>(null);
   const [sections, setSections] = useState<SectionSummary[]>([]);
   const [tasks, setTasks] = useState<TaskItem[]>([]);
+  const [review, setReview] = useState<ReviewGate[]>([]);
+  const [showChecklist, setShowChecklist] = useState(false);
   const [templates, setTemplates] = useState<TemplateSummary[]>([]);
+  const [compactView, setCompactView] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [wizardState, setWizardState] = useState({
@@ -209,6 +243,12 @@ export function OverviewClient() {
   // Mutation error state
   const [mutationError, setMutationError] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [checklistState, setChecklistState] = useState<Record<string, boolean>>(() =>
+    QUICK_CHECKLIST.reduce((acc, item) => {
+      acc[item.id] = false;
+      return acc;
+    }, {} as Record<string, boolean>)
+  );
 
   const loadPack = async () => {
     setIsLoading(true);
@@ -227,15 +267,15 @@ export function OverviewClient() {
         packData.packs?.[0] ??
         null;
       setPack(activePack);
-
       if (activePack) {
         if (packIdParam !== activePack.id) {
           router.replace(`/authorization-pack/workspace?packId=${activePack.id}`);
         }
-        const [readinessResponse, sectionResponse, taskResponse] = await Promise.all([
+        const [readinessResponse, sectionResponse, taskResponse, reviewResponse] = await Promise.all([
           fetchWithTimeout(`/api/authorization-pack/packs/${activePack.id}`).catch(() => null),
           fetchWithTimeout(`/api/authorization-pack/packs/${activePack.id}/sections`).catch(() => null),
           fetchWithTimeout(`/api/authorization-pack/packs/${activePack.id}/tasks`).catch(() => null),
+          fetchWithTimeout(`/api/authorization-pack/packs/${activePack.id}/review`).catch(() => null),
         ]);
 
         if (readinessResponse?.ok) {
@@ -252,7 +292,18 @@ export function OverviewClient() {
           const taskData = await taskResponse.json();
           setTasks(taskData.tasks || []);
         }
+
+        if (reviewResponse?.ok) {
+          const reviewData = await reviewResponse.json();
+          setReview(reviewData.review || []);
+        } else {
+          setReview([]);
+        }
       } else {
+        setReadiness(null);
+        setSections([]);
+        setTasks([]);
+        setReview([]);
         const templateResponse = await fetchWithTimeout("/api/authorization-pack/templates").catch(() => null);
         if (!templateResponse || !templateResponse.ok) {
           setLoadError("Unable to load templates. Check the database connection and try again.");
@@ -298,6 +349,12 @@ export function OverviewClient() {
     };
   }, [uniqueSections]);
 
+  const incompleteSections = useMemo(() => {
+    return uniqueSections.filter((section) => section.narrativeCompletion < 100);
+  }, [uniqueSections]);
+
+  const nextSection = incompleteSections[0] || uniqueSections[0] || null;
+
   // Task statistics
   const visibleTasks = useMemo(() => tasks.filter((task) => task.source !== "auto-evidence"), [tasks]);
   const taskStats = useMemo(() => {
@@ -310,6 +367,44 @@ export function OverviewClient() {
       highPriority: visibleTasks.filter((t) => ["high", "critical"].includes(t.priority) && t.status !== "completed").length,
     };
   }, [visibleTasks]);
+
+  const reviewStats = useMemo(() => {
+    return {
+      total: review.length,
+      pending: review.filter((r) => r.state === "pending").length,
+      inReview: review.filter((r) => r.state === "in-review").length,
+      changesRequested: review.filter((r) => r.state === "changes_requested").length,
+      approved: review.filter((r) => r.state === "approved").length,
+    };
+  }, [review]);
+
+  const reviewActionItems = useMemo(() => {
+    const order: Record<string, number> = {
+      changes_requested: 0,
+      pending: 1,
+      "in-review": 2,
+      approved: 3,
+    };
+    return [...review]
+      .filter((item) => item.state !== "approved")
+      .sort((a, b) => (order[a.state] ?? 99) - (order[b.state] ?? 99))
+      .slice(0, 6);
+  }, [review]);
+
+  const checklistGroups = useMemo(() => {
+    const groups = new Map<string, typeof QUICK_CHECKLIST>();
+    QUICK_CHECKLIST.forEach((item) => {
+      const existing = groups.get(item.category) ?? [];
+      existing.push(item);
+      groups.set(item.category, existing);
+    });
+    return Array.from(groups.entries());
+  }, []);
+
+  const completedChecklistCount = QUICK_CHECKLIST.filter((item) => checklistState[item.id]).length;
+  const toggleChecklistItem = (id: string) => {
+    setChecklistState((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
 
   const blockers = useMemo(() => {
     if (!uniqueSections.length) return [];
@@ -422,16 +517,35 @@ export function OverviewClient() {
     }
   };
 
+  const handleReviewUpdate = async (gateId: string, state: string) => {
+    if (!pack) return;
+    setMutationError(null);
+
+    const previousReview = [...review];
+    setReview((prev) => prev.map((item) => (item.id === gateId ? { ...item, state } : item)));
+
+    try {
+      const response = await fetch(`/api/authorization-pack/packs/${pack.id}/review`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ gateId, state }),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to update review status");
+      }
+    } catch (error) {
+      setReview(previousReview);
+      setMutationError(error instanceof Error ? error.message : "Failed to update review status.");
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-6">
         <WorkspaceHeader pack={pack} readiness={readiness} />
         <Card className="border border-slate-200">
-          <CardContent className="p-8 text-center text-slate-500">
-            <div className="flex items-center justify-center gap-2">
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-teal-500 border-t-transparent" />
-              Loading dashboard...
-            </div>
+          <CardContent className="p-8">
+            <NasaraLoader label="Loading dashboard..." />
           </CardContent>
         </Card>
       </div>
@@ -586,9 +700,352 @@ export function OverviewClient() {
     );
   }
 
+  if (compactView) {
+    const reviewHref = pack
+      ? `/authorization-pack/workspace?packId=${pack.id}#review`
+      : "/authorization-pack/workspace#review";
+    const exportHref = pack ? `/authorization-pack/export?packId=${pack.id}` : "/authorization-pack/export";
+    const taskHref = (task: TaskItem) => {
+      if (task.sectionInstanceId) {
+        return pack
+          ? `/authorization-pack/sections/${task.sectionInstanceId}?packId=${pack.id}`
+          : `/authorization-pack/sections/${task.sectionInstanceId}`;
+      }
+      return reviewHref;
+    };
+
+    return (
+      <div className="space-y-6">
+        <WorkspaceHeader pack={pack} readiness={readiness} />
+
+        {mutationError && (
+          <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {mutationError}
+            <button
+              onClick={() => setMutationError(null)}
+              className="ml-2 text-red-500 underline hover:text-red-700"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card className="border border-slate-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-slate-500">Pack Status</p>
+                  <div className="mt-1">
+                    <Select value={pack.status} onValueChange={handleStatusChange}>
+                      <SelectTrigger className="w-[200px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {PACK_STATUS_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            <span className={`inline-flex items-center rounded px-2 py-0.5 text-xs ${opt.color}`}>
+                              {opt.label}
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <Badge className={`text-sm ${getPackStatusColor(pack.status)}`}>
+                  {pack.status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border border-slate-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-slate-500">Target Submission</p>
+                  {pack.target_submission_date ? (
+                    <>
+                      <p className="text-lg font-semibold text-slate-900">
+                        {new Date(pack.target_submission_date).toLocaleDateString("en-GB", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })}
+                      </p>
+                      {daysUntilTarget !== null && (
+                        <p
+                          className={`text-xs ${
+                            daysUntilTarget < 14
+                              ? "text-red-600"
+                              : daysUntilTarget < 30
+                              ? "text-amber-600"
+                              : "text-slate-500"
+                          }`}
+                        >
+                          {daysUntilTarget > 0
+                            ? `${daysUntilTarget} days remaining`
+                            : daysUntilTarget === 0
+                            ? "Due today"
+                            : `${Math.abs(daysUntilTarget)} days overdue`}
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-sm text-slate-400">Not set</p>
+                  )}
+                </div>
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100">
+                  <TargetIcon className="h-5 w-5 text-slate-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Card className="border border-slate-200">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <ArrowRightIcon className="h-4 w-4 text-teal-500" />
+              Quick Actions
+            </CardTitle>
+            <CardDescription>Jump into the key workspace areas.</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-wrap gap-2">
+            {nextSection ? (
+              <Button asChild variant="outline" size="sm">
+                <Link href={`/authorization-pack/sections/${nextSection.id}?packId=${pack.id}`}>
+                  Open next section
+                </Link>
+              </Button>
+            ) : null}
+            <Button asChild variant="outline" size="sm">
+              <Link href={reviewHref}>Review Checklist</Link>
+            </Button>
+            <Button asChild variant="outline" size="sm">
+              <Link href={exportHref}>Export Pack</Link>
+            </Button>
+          </CardContent>
+        </Card>
+
+        <div className="grid gap-4 lg:grid-cols-2">
+          <Card className="border border-slate-200">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <ChartIcon className="h-4 w-4 text-teal-600" />
+                Readiness Snapshot
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-center justify-between text-sm text-slate-500">
+                <span>Overall</span>
+                <span className="font-semibold text-slate-900">{readinessSummary?.overall ?? 0}%</span>
+              </div>
+              <Progress value={readinessSummary?.overall ?? 0} className="h-2" />
+              <div className="flex items-center justify-between text-xs text-slate-500">
+                <span>Narrative {readinessSummary?.narrative ?? 0}%</span>
+                <span>Review {readinessSummary?.review ?? 0}%</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border border-slate-200">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <CheckCircleIcon className="h-4 w-4 text-green-600" />
+                Tasks
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm text-slate-600">
+              <div className="flex items-center justify-between">
+                <span>Total</span>
+                <span className="font-semibold text-slate-900">{taskStats.total}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Pending</span>
+                <span className="font-semibold text-slate-900">{taskStats.pending}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Blocked</span>
+                <span className="font-semibold text-slate-900">{taskStats.blocked}</span>
+              </div>
+              <Button asChild variant="outline" size="sm" className="mt-2 w-full">
+                <Link href={reviewHref}>Open Review</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid gap-4 lg:grid-cols-2">
+          <Card className="border border-slate-200">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <AlertIcon className="h-4 w-4 text-amber-500" />
+                Blockers
+              </CardTitle>
+              <CardDescription>Issues needing attention.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm text-slate-600">
+              {blockers.length ? (
+                blockers.map((blocker, index) => (
+                  <div
+                    key={index}
+                    className={`rounded-md border px-3 py-2 ${
+                      blocker.severity === "error"
+                        ? "border-red-200 bg-red-50 text-red-700"
+                        : "border-amber-200 bg-amber-50 text-amber-700"
+                    }`}
+                  >
+                    {blocker.label}
+                  </div>
+                ))
+              ) : (
+                <div className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-green-700">
+                  No blockers detected.
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="border border-slate-200">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <ArrowRightIcon className="h-4 w-4 text-teal-500" />
+                Next Actions
+              </CardTitle>
+              <CardDescription>Priority tasks to focus on.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {nextActions.length ? (
+                nextActions.map((task) => (
+                  <Link
+                    key={task.id}
+                    href={taskHref(task)}
+                    className="flex items-center justify-between rounded-lg border border-slate-100 bg-white px-3 py-2 text-sm hover:border-slate-200"
+                  >
+                    <div>
+                      <p className="font-medium text-slate-900">{task.title}</p>
+                      <p className="text-xs text-slate-500">{task.section_title ?? "General"}</p>
+                    </div>
+                    <Badge variant="outline" className="text-xs">
+                      {task.status.replace(/_/g, " ")}
+                    </Badge>
+                  </Link>
+                ))
+              ) : (
+                <div className="py-4 text-center text-sm text-slate-400">No pending tasks.</div>
+              )}
+              <Button asChild variant="outline" className="mt-2 w-full" size="sm">
+                <Link href={reviewHref}>
+                  View Review Queue
+                  <ArrowRightIcon className="ml-1.5 h-3 w-3" />
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+        <div id="review">
+          <Card className="border border-slate-200">
+            <CardHeader className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+              <div>
+                <CardTitle>Review &amp; Sign-off</CardTitle>
+                <CardDescription>Track approvals and confirm submission readiness.</CardDescription>
+              </div>
+              <Badge variant="outline" className="border-slate-200 text-slate-600">
+                {reviewStats.approved}/{reviewStats.total} approved
+              </Badge>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex flex-wrap gap-2 text-xs text-slate-600">
+                <Badge variant="outline">Pending {reviewStats.pending}</Badge>
+                <Badge variant="outline">In review {reviewStats.inReview}</Badge>
+                <Badge variant="outline">Changes {reviewStats.changesRequested}</Badge>
+              </div>
+              {reviewActionItems.length ? (
+                reviewActionItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex flex-col gap-3 rounded-lg border border-slate-100 p-3 md:flex-row md:items-center md:justify-between"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-slate-900">{item.section_title}</p>
+                      <p className="text-xs text-slate-500">
+                        {item.stage.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Select value={item.state} onValueChange={(value) => handleReviewUpdate(item.id, value)}>
+                        <SelectTrigger className="h-8 w-[160px] text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="in-review">In Review</SelectItem>
+                          <SelectItem value="changes_requested">Changes Requested</SelectItem>
+                          <SelectItem value="approved">Approved</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {item.section_instance_id ? (
+                        <Button asChild variant="outline" size="sm">
+                          <Link href={`/authorization-pack/sections/${item.section_instance_id}?packId=${pack.id}`}>
+                            Open Section
+                          </Link>
+                        </Button>
+                      ) : null}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                  All review items are approved.
+                </div>
+              )}
+              <div className="flex items-center justify-between gap-3">
+                <div className="text-xs text-slate-500">
+                  Checklist: {completedChecklistCount}/{QUICK_CHECKLIST.length} complete
+                </div>
+                <Button variant="outline" size="sm" onClick={() => setShowChecklist((prev) => !prev)}>
+                  {showChecklist ? "Hide checklist" : "Show checklist"}
+                </Button>
+              </div>
+              {showChecklist ? (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {checklistGroups.map(([category, items]) => (
+                    <div key={category} className="space-y-2">
+                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">{category}</p>
+                      <div className="space-y-2">
+                        {items.map((item) => (
+                          <label key={item.id} className="flex items-start gap-2 text-sm text-slate-600">
+                            <input
+                              type="checkbox"
+                              className="mt-1 h-4 w-4 rounded border-slate-300 text-teal-600"
+                              checked={Boolean(checklistState[item.id])}
+                              onChange={() => toggleChecklistItem(item.id)}
+                            />
+                            <span>{item.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <WorkspaceHeader pack={pack} readiness={readiness} />
+
+      <div className="flex justify-end">
+        <Button variant="outline" size="sm" onClick={() => setCompactView(true)}>
+          Switch to lean view
+        </Button>
+      </div>
 
       {/* Mutation Error Display */}
       {mutationError && (
@@ -824,7 +1281,9 @@ export function OverviewClient() {
               <div className="py-4 text-center text-sm text-slate-400">No pending tasks.</div>
             )}
             <Button asChild variant="outline" className="mt-2 w-full" size="sm">
-              <Link href={pack ? `/authorization-pack/review?packId=${pack.id}` : "/authorization-pack/review"}>
+              <Link
+                href={pack ? `/authorization-pack/workspace?packId=${pack.id}#review` : "/authorization-pack/workspace#review"}
+              >
                 View Review Queue
                 <ArrowRightIcon className="ml-1.5 h-3 w-3" />
               </Link>
@@ -833,74 +1292,6 @@ export function OverviewClient() {
         </Card>
       </div>
 
-      {/* Section Progress */}
-      <Card className="border border-slate-200">
-        <CardHeader className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-          <div>
-            <CardTitle>Draft Coverage</CardTitle>
-            <CardDescription>Snapshot of narrative readiness across the pack.</CardDescription>
-          </div>
-          <Button asChild variant="outline" size="sm" className="w-fit">
-            <Link href={`/authorization-pack/sections?packId=${pack.id}`}>View all sections</Link>
-          </Button>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {uniqueSections.slice(0, 8).map((section) => {
-              const status =
-                section.narrativeCompletion >= 100
-                  ? "completed"
-                  : section.narrativeCompletion > 0
-                  ? "in-progress"
-                  : "not-started";
-              return (
-                <Link
-                  key={section.id}
-                  href={`/authorization-pack/sections/${section.id}?packId=${pack.id}`}
-                  className="group flex items-center gap-4 rounded-lg border border-slate-100 p-3 transition-all hover:border-slate-200 hover:shadow-sm"
-                >
-                  <div className="flex-shrink-0">
-                    {status === "completed" ? (
-                      <CheckCircleIcon className="h-5 w-5 text-green-500" />
-                    ) : status === "in-progress" ? (
-                      <ClockIcon className="h-5 w-5 text-blue-500" />
-                    ) : (
-                      <CircleIcon className="h-5 w-5 text-slate-300" />
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-slate-900 group-hover:text-teal-600">
-                      {section.title}
-                    </p>
-                    <div className="mt-1 flex items-center gap-2">
-                      <div className="h-1.5 flex-1 rounded-full bg-slate-100">
-                        <div
-                          className={`h-1.5 rounded-full transition-all ${
-                            status === "completed"
-                              ? "bg-green-500"
-                              : status === "in-progress"
-                              ? "bg-blue-500"
-                              : "bg-slate-200"
-                          }`}
-                          style={{ width: `${section.narrativeCompletion}%` }}
-                        />
-                      </div>
-                      <span className="w-10 text-right text-xs text-slate-500">
-                        {section.narrativeCompletion}%
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
-            {uniqueSections.length > 8 && (
-              <p className="pt-2 text-center text-sm text-slate-400">
-                + {uniqueSections.length - 8} more sections
-              </p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

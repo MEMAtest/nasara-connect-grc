@@ -61,6 +61,7 @@ import {
   TrendChart,
 } from "@/components/registers/RegisterCharts";
 import { exportToCSV, ExportColumn, transforms } from "@/lib/export-utils";
+import { generateTrendData, getMonthKey, type TrendPoint } from "@/lib/chart-utils";
 import { PaginationControls, usePagination } from "@/components/ui/pagination-controls";
 
 interface ThirdPartyRecord {
@@ -238,6 +239,7 @@ export function ThirdPartyRegisterClient() {
     key: string;
     value: string;
   } | null>(null);
+  const [monthFilter, setMonthFilter] = useState<{ key: string; label: string } | null>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -395,7 +397,7 @@ export function ThirdPartyRegisterClient() {
   };
 
   // Filter records with drill-down
-  const filteredRecords = useMemo(() => {
+  const baseFilteredRecords = useMemo(() => {
     return records.filter((record) => {
       const matchesSearch =
         record.vendor_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -430,6 +432,11 @@ export function ThirdPartyRegisterClient() {
     });
   }, [records, searchQuery, statusFilter, criticalityFilter, drillDownFilter]);
 
+  const filteredRecords = useMemo(() => {
+    if (!monthFilter) return baseFilteredRecords;
+    return baseFilteredRecords.filter((record) => getMonthKey(record.created_at) === monthFilter.key);
+  }, [baseFilteredRecords, monthFilter]);
+
   // Pagination
   const {
     paginatedData,
@@ -439,15 +446,15 @@ export function ThirdPartyRegisterClient() {
   // Statistics
   const stats = useMemo(() => {
     return {
-      total: records.length,
-      active: records.filter((r) => r.status === "active").length,
-      critical: records.filter(
+      total: filteredRecords.length,
+      active: filteredRecords.filter((r) => r.status === "active").length,
+      critical: filteredRecords.filter(
         (r) => r.criticality === "critical" || r.criticality === "high"
       ).length,
-      materialOutsourcing: records.filter((r) => r.is_material_outsourcing).length,
-      pendingDD: records.filter((r) => !r.due_diligence_completed).length,
+      materialOutsourcing: filteredRecords.filter((r) => r.is_material_outsourcing).length,
+      pendingDD: filteredRecords.filter((r) => !r.due_diligence_completed).length,
     };
-  }, [records]);
+  }, [filteredRecords]);
 
   // Chart data
   const criticalityChartData = useMemo(() => {
@@ -457,7 +464,7 @@ export function ThirdPartyRegisterClient() {
       high: 0,
       critical: 0,
     };
-    records.forEach((r) => {
+    filteredRecords.forEach((r) => {
       counts[r.criticality] = (counts[r.criticality] || 0) + 1;
     });
     return [
@@ -466,11 +473,11 @@ export function ThirdPartyRegisterClient() {
       { label: "High", value: counts.high, color: "#f97316" },
       { label: "Critical", value: counts.critical, color: "#ef4444" },
     ].filter((d) => d.value > 0);
-  }, [records]);
+  }, [filteredRecords]);
 
   const vendorTypeChartData = useMemo(() => {
     const counts: Record<string, number> = {};
-    records.forEach((r) => {
+    filteredRecords.forEach((r) => {
       counts[r.vendor_type] = (counts[r.vendor_type] || 0) + 1;
     });
     return Object.entries(counts)
@@ -481,25 +488,11 @@ export function ThirdPartyRegisterClient() {
       }))
       .sort((a, b) => b.value - a.value)
       .slice(0, 6);
-  }, [records]);
+  }, [filteredRecords]);
 
   const trendData = useMemo(() => {
-    const months: Record<string, number> = {};
-    const now = new Date();
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const key = d.toLocaleDateString("en-GB", { month: "short" });
-      months[key] = 0;
-    }
-    records.forEach((r) => {
-      const date = new Date(r.created_at);
-      const key = date.toLocaleDateString("en-GB", { month: "short" });
-      if (key in months) {
-        months[key]++;
-      }
-    });
-    return Object.entries(months).map(([label, value]) => ({ label, value }));
-  }, [records]);
+    return generateTrendData(baseFilteredRecords, 6, "created_at");
+  }, [baseFilteredRecords]);
 
   // Drill-down handlers
   const handleDrillDown = (key: string, value: string) => {
@@ -513,6 +506,19 @@ export function ThirdPartyRegisterClient() {
 
   const clearDrillDown = () => {
     setDrillDownFilter(null);
+  };
+
+  const handleMonthFilter = (point: TrendPoint) => {
+    const key = point.monthKey || point.label;
+    if (!key) return;
+    if (monthFilter?.key === key) {
+      setMonthFilter(null);
+      return;
+    }
+    const label = point.startDate
+      ? new Date(point.startDate).toLocaleDateString("en-GB", { month: "short", year: "numeric" })
+      : point.label;
+    setMonthFilter({ key, label });
   };
 
   // Export handlers
@@ -1127,6 +1133,22 @@ export function ThirdPartyRegisterClient() {
           </Button>
         </div>
       )}
+      {monthFilter && (
+        <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-4 py-2">
+          <span className="text-sm text-slate-700">
+            Filtered by month: <strong>{monthFilter.label}</strong>
+          </span>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setMonthFilter(null)}
+            className="ml-auto h-6 text-slate-700 hover:text-slate-900"
+          >
+            <X className="mr-1 h-3 w-3" />
+            Clear
+          </Button>
+        </div>
+      )}
 
       {/* Dashboard View */}
       {viewMode === "dashboard" && (
@@ -1207,7 +1229,13 @@ export function ThirdPartyRegisterClient() {
                   : undefined
               }
             />
-            <TrendChart data={trendData} title="Vendors Added (6 Months)" color="#0d9488" />
+            <TrendChart
+              data={trendData}
+              title="Vendors Added (6 Months)"
+              color="#0d9488"
+              onPointClick={handleMonthFilter}
+              activePointKey={monthFilter?.key}
+            />
           </div>
         </div>
       )}

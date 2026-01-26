@@ -14,8 +14,8 @@
     },
     {
       "id": "mfs_risk_appetite_statement",
-      "title": "MFS Risk Appetite Statement",
-      "summary": "OverviewMema Financial Services (“{{firm.name}}”) risk appetite reflects its strategic focus on providing secure, com…",
+      "title": "Risk Appetite Statement",
+      "summary": "Overview: {{firm.name}} risk appetite reflects its strategic focus on providing secure, compliant financial services…",
       "suggestedClauses": [
         "mfs_financial_crime-mfs_risk_appetite_statement-mfs_risk_appetite_statement"
       ]

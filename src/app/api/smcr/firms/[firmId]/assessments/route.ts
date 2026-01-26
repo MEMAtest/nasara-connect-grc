@@ -11,6 +11,7 @@ import {
   initSmcrDatabase,
   CreateAssessmentInput,
 } from '@/lib/smcr-database';
+import { createNotification } from "@/lib/server/notifications-store";
 import { logError, logApiRequest } from '@/lib/logger';
 
 export async function GET(
@@ -75,6 +76,19 @@ export async function POST(
     };
 
     const assessment = await createFitnessAssessment(input);
+    try {
+      await createNotification({
+        organizationId: "default-org",
+        title: "SMCR assessment logged",
+        message: `Fitness & propriety assessment created for ${personName}.`,
+        severity: "info",
+        source: "smcr",
+        link: "/smcr/fitness-propriety",
+        metadata: { firmId, assessmentId: assessment.id, personId },
+      });
+    } catch {
+      // Non-blocking notification failures
+    }
     return NextResponse.json(assessment, { status: 201 });
   } catch (error) {
     logError(error, 'Failed to create SMCR assessment', { firmId });

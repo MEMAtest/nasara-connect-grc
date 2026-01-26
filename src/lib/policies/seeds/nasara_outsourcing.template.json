@@ -1,0 +1,136 @@
+{
+  "code": "OUTSOURCING",
+  "name": "Outsourcing & Third-Party Risk",
+  "category": "Ops",
+  "description": "Policy governing outsourcing lifecycle controls, third-party risk, and operational resilience expectations.",
+  "sections": [
+    {
+      "id": "purpose",
+      "title": "Purpose and objectives",
+      "summary": "Set the objectives for outsourcing and third-party risk management.",
+      "suggestedClauses": [
+        "nasara_outsourcing-purpose-purpose_and_objectives"
+      ]
+    },
+    {
+      "id": "scope",
+      "title": "Scope and applicability",
+      "summary": "Define which services and arrangements are covered.",
+      "suggestedClauses": [
+        "nasara_outsourcing-scope-scope_and_applicability"
+      ]
+    },
+    {
+      "id": "definitions",
+      "title": "Definitions and criticality",
+      "summary": "Clarify outsourcing and critical function definitions.",
+      "suggestedClauses": [
+        "nasara_outsourcing-definitions-definitions_and_criticality"
+      ]
+    },
+    {
+      "id": "lifecycle",
+      "title": "TPRM lifecycle",
+      "summary": "Define the end-to-end outsourcing lifecycle.",
+      "suggestedClauses": [
+        "nasara_outsourcing-lifecycle-tprm_lifecycle"
+      ]
+    },
+    {
+      "id": "due_diligence",
+      "title": "Due diligence",
+      "summary": "Set minimum due diligence requirements.",
+      "suggestedClauses": [
+        "nasara_outsourcing-dd-due_diligence_requirements"
+      ]
+    },
+    {
+      "id": "contracts",
+      "title": "Contract controls",
+      "summary": "Define contractual controls for outsourcing.",
+      "suggestedClauses": [
+        "nasara_outsourcing-contracts-contract_controls"
+      ]
+    },
+    {
+      "id": "onboarding",
+      "title": "Onboarding and handover",
+      "summary": "Set readiness and go-live requirements.",
+      "suggestedClauses": [
+        "nasara_outsourcing-onboarding-onboarding_and_handover"
+      ]
+    },
+    {
+      "id": "monitoring",
+      "title": "Ongoing monitoring",
+      "summary": "Define monitoring and MI expectations.",
+      "suggestedClauses": [
+        "nasara_outsourcing-monitoring-ongoing_monitoring_and_mi"
+      ]
+    },
+    {
+      "id": "subcontractors",
+      "title": "Subcontractors and chain risk",
+      "summary": "Set controls for subcontractor risk.",
+      "suggestedClauses": [
+        "nasara_outsourcing-subcontractors-chain_risk"
+      ]
+    },
+    {
+      "id": "concentration",
+      "title": "Concentration and exit",
+      "summary": "Define concentration risk and exit planning.",
+      "suggestedClauses": [
+        "nasara_outsourcing-concentration-concentration_and_exit"
+      ]
+    },
+    {
+      "id": "incidents",
+      "title": "Incident management",
+      "summary": "Set incident response requirements for vendors.",
+      "suggestedClauses": [
+        "nasara_outsourcing-incidents-incident_management"
+      ]
+    },
+    {
+      "id": "records",
+      "title": "Records and evidence",
+      "summary": "Define evidence retention requirements.",
+      "suggestedClauses": [
+        "nasara_outsourcing-records-records_and_evidence"
+      ]
+    },
+    {
+      "id": "training",
+      "title": "Training and awareness",
+      "summary": "Require training for staff involved in outsourcing.",
+      "suggestedClauses": [
+        "nasara_outsourcing-training-training_and_awareness"
+      ]
+    },
+    {
+      "id": "governance",
+      "title": "Governance and review",
+      "summary": "Set oversight and review cadence.",
+      "suggestedClauses": [
+        "nasara_outsourcing-governance-governance_and_review"
+      ]
+    }
+  ],
+  "mandatoryClauses": [
+    "nasara_outsourcing-purpose-purpose_and_objectives",
+    "nasara_outsourcing-scope-scope_and_applicability",
+    "nasara_outsourcing-definitions-definitions_and_criticality",
+    "nasara_outsourcing-lifecycle-tprm_lifecycle",
+    "nasara_outsourcing-dd-due_diligence_requirements",
+    "nasara_outsourcing-contracts-contract_controls",
+    "nasara_outsourcing-onboarding-onboarding_and_handover",
+    "nasara_outsourcing-monitoring-ongoing_monitoring_and_mi",
+    "nasara_outsourcing-subcontractors-chain_risk",
+    "nasara_outsourcing-concentration-concentration_and_exit",
+    "nasara_outsourcing-incidents-incident_management",
+    "nasara_outsourcing-records-records_and_evidence",
+    "nasara_outsourcing-training-training_and_awareness",
+    "nasara_outsourcing-governance-governance_and_review"
+  ]
+}

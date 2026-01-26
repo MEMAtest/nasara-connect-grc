@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { generateTrendData } from "@/lib/chart-utils";
+import { generateTrendData, getMonthKey, type TrendPoint } from "@/lib/chart-utils";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useToast } from "@/components/toast-provider";
 import {
@@ -118,6 +118,7 @@ export function ComplaintsRegisterClient() {
   });
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [drillDownFilter, setDrillDownFilter] = useState<{ key: string; value: string } | null>(null);
+  const [monthFilter, setMonthFilter] = useState<{ key: string; label: string } | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingRecord, setEditingRecord] = useState<ComplaintRecord | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -279,7 +280,7 @@ export function ComplaintsRegisterClient() {
   };
 
   // Filter and search records
-  const filteredRecords = useMemo(() => {
+  const baseFilteredRecords = useMemo(() => {
     return records.filter((r) => {
       const matchesSearch =
         r.complainant_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -294,6 +295,11 @@ export function ComplaintsRegisterClient() {
     });
   }, [records, searchQuery, filterValues, drillDownFilter]);
 
+  const filteredRecords = useMemo(() => {
+    if (!monthFilter) return baseFilteredRecords;
+    return baseFilteredRecords.filter((r) => getMonthKey(r.received_date) === monthFilter.key);
+  }, [baseFilteredRecords, monthFilter]);
+
   // Pagination
   const {
     paginatedData,
@@ -302,13 +308,13 @@ export function ComplaintsRegisterClient() {
 
   // Statistics
   const stats = useMemo(() => ({
-    total: records.length,
-    open: records.filter((r) => r.status === "open").length,
-    investigating: records.filter((r) => r.status === "investigating").length,
-    resolved: records.filter((r) => r.status === "resolved" || r.status === "closed").length,
-    escalated: records.filter((r) => r.status === "escalated").length,
-    urgent: records.filter((r) => r.priority === "urgent" || r.priority === "high").length,
-  }), [records]);
+    total: filteredRecords.length,
+    open: filteredRecords.filter((r) => r.status === "open").length,
+    investigating: filteredRecords.filter((r) => r.status === "investigating").length,
+    resolved: filteredRecords.filter((r) => r.status === "resolved" || r.status === "closed").length,
+    escalated: filteredRecords.filter((r) => r.status === "escalated").length,
+    urgent: filteredRecords.filter((r) => r.priority === "urgent" || r.priority === "high").length,
+  }), [filteredRecords]);
 
   // Chart data
   const statusChartData = useMemo(() => [
@@ -320,18 +326,18 @@ export function ComplaintsRegisterClient() {
 
   const typeChartData = useMemo(() => {
     const counts: Record<string, number> = {};
-    records.forEach((r) => {
+    filteredRecords.forEach((r) => {
       counts[r.complaint_type] = (counts[r.complaint_type] || 0) + 1;
     });
     return Object.entries(counts).map(([type, count]) => ({
       label: typeLabels[type] || type,
       value: count,
     }));
-  }, [records]);
+  }, [filteredRecords]);
 
   const trendData = useMemo(() => {
-    return generateTrendData(records, 6, 'date_received');
-  }, [records]);
+    return generateTrendData(baseFilteredRecords, 6, 'received_date');
+  }, [baseFilteredRecords]);
 
   // Table columns
   const columns: Column<ComplaintRecord>[] = [
@@ -440,6 +446,19 @@ export function ComplaintsRegisterClient() {
     }
   };
 
+  const handleMonthFilter = (point: TrendPoint) => {
+    const key = point.monthKey || point.label;
+    if (!key) return;
+    if (monthFilter?.key === key) {
+      setMonthFilter(null);
+      return;
+    }
+    const label = point.startDate
+      ? new Date(point.startDate).toLocaleDateString("en-GB", { month: "short", year: "numeric" })
+      : point.label;
+    setMonthFilter({ key, label });
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -519,6 +538,21 @@ export function ComplaintsRegisterClient() {
           </Button>
         </div>
       )}
+      {monthFilter && (
+        <div className="flex items-center gap-2 rounded-lg bg-slate-50 px-4 py-2">
+          <span className="text-sm text-slate-700">
+            Filtered by month: <strong>{monthFilter.label}</strong>
+          </span>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setMonthFilter(null)}
+            className="h-6 text-slate-600 hover:text-slate-700"
+          >
+            Clear month
+          </Button>
+        </div>
+      )}
 
       {/* Dashboard View */}
       {viewMode === "dashboard" && (
@@ -583,6 +617,8 @@ export function ComplaintsRegisterClient() {
               data={trendData}
               title="Complaints Trend (6 Months)"
               color="#f59e0b"
+              onPointClick={handleMonthFilter}
+              activePointKey={monthFilter?.key}
             />
             <StatCard
               title="High Priority"

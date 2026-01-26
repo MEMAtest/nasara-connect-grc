@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
-import { generateTrendData } from "@/lib/chart-utils";
+import { generateTrendData, getMonthKey, type TrendPoint } from "@/lib/chart-utils";
 import { useToast } from "@/components/toast-provider";
 import { Plus, Loader2, AlertOctagon, AlertTriangle, CheckCircle, Clock, FileWarning } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -92,6 +92,7 @@ export function RegulatoryBreachClient() {
   });
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [drillDownFilter, setDrillDownFilter] = useState<{ key: string; value: string } | null>(null);
+  const [monthFilter, setMonthFilter] = useState<{ key: string; label: string } | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingRecord, setEditingRecord] = useState<RegulatoryBreachRecord | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -245,7 +246,7 @@ export function RegulatoryBreachClient() {
   };
 
   // Filter records
-  const filteredRecords = useMemo(() => {
+  const baseFilteredRecords = useMemo(() => {
     return records.filter((r) => {
       const matchesSearch =
         r.breach_reference.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -261,6 +262,11 @@ export function RegulatoryBreachClient() {
     });
   }, [records, searchQuery, filterValues, drillDownFilter]);
 
+  const filteredRecords = useMemo(() => {
+    if (!monthFilter) return baseFilteredRecords;
+    return baseFilteredRecords.filter((r) => getMonthKey(r.identified_date) === monthFilter.key);
+  }, [baseFilteredRecords, monthFilter]);
+
   // Pagination
   const {
     paginatedData,
@@ -270,14 +276,14 @@ export function RegulatoryBreachClient() {
   // Statistics
   const stats = useMemo(
     () => ({
-      total: records.length,
-      open: records.filter((r) => r.status === "open").length,
-      investigating: records.filter((r) => r.status === "investigating").length,
-      remediation: records.filter((r) => r.status === "remediation").length,
-      critical: records.filter((r) => r.severity === "critical").length,
-      reportedToRegulator: records.filter((r) => r.reported_to_regulator).length,
+      total: filteredRecords.length,
+      open: filteredRecords.filter((r) => r.status === "open").length,
+      investigating: filteredRecords.filter((r) => r.status === "investigating").length,
+      remediation: filteredRecords.filter((r) => r.status === "remediation").length,
+      critical: filteredRecords.filter((r) => r.severity === "critical").length,
+      reportedToRegulator: filteredRecords.filter((r) => r.reported_to_regulator).length,
     }),
-    [records]
+    [filteredRecords]
   );
 
   // Chart data
@@ -292,18 +298,18 @@ export function RegulatoryBreachClient() {
 
   const typeChartData = useMemo(() => {
     const counts: Record<string, number> = {};
-    records.forEach((r) => {
+    filteredRecords.forEach((r) => {
       counts[r.breach_type] = (counts[r.breach_type] || 0) + 1;
     });
     return Object.entries(counts).map(([type, count]) => ({
       label: typeLabels[type] || type,
       value: count,
     }));
-  }, [records]);
+  }, [filteredRecords]);
 
   const trendData = useMemo(() => {
-    return generateTrendData(records, 6, 'created_at');
-  }, [records]);
+    return generateTrendData(baseFilteredRecords, 6, 'identified_date');
+  }, [baseFilteredRecords]);
 
   // Table columns
   const columns: Column<RegulatoryBreachRecord>[] = [
@@ -400,6 +406,19 @@ export function RegulatoryBreachClient() {
     }
   };
 
+  const handleMonthFilter = (point: TrendPoint) => {
+    const key = point.monthKey || point.label;
+    if (!key) return;
+    if (monthFilter?.key === key) {
+      setMonthFilter(null);
+      return;
+    }
+    const label = point.startDate
+      ? new Date(point.startDate).toLocaleDateString("en-GB", { month: "short", year: "numeric" })
+      : point.label;
+    setMonthFilter({ key, label });
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center py-12">
@@ -484,6 +503,16 @@ export function RegulatoryBreachClient() {
           </Button>
         </div>
       )}
+      {monthFilter && (
+        <div className="flex items-center gap-2 rounded-lg bg-slate-50 px-4 py-2">
+          <span className="text-sm text-slate-700">
+            Filtered by month: <strong>{monthFilter.label}</strong>
+          </span>
+          <Button variant="ghost" size="sm" onClick={() => setMonthFilter(null)} className="h-6 text-slate-600 hover:text-slate-700">
+            Clear month
+          </Button>
+        </div>
+      )}
 
       {/* Dashboard View */}
       {viewMode === "dashboard" && (
@@ -543,7 +572,13 @@ export function RegulatoryBreachClient() {
             />
           </div>
 
-          <TrendChart data={trendData} title="Breaches Trend (6 Months)" color="#ef4444" />
+          <TrendChart
+            data={trendData}
+            title="Breaches Trend (6 Months)"
+            color="#ef4444"
+            onPointClick={handleMonthFilter}
+            activePointKey={monthFilter?.key}
+          />
         </div>
       )}
 

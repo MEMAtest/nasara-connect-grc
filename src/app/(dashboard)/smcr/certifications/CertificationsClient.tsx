@@ -15,14 +15,19 @@ import {
   AlertTriangle,
   Award,
   Calendar as CalendarIcon,
+  CheckCircle2,
   Clock,
+  ExternalLink,
   FileText,
+  Info,
   Plus,
   Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { certificationFunctions } from "../data/core-functions";
 import { useSmcrData, RoleApprovalStatus } from "../context/SmcrDataContext";
+import { CertificationIcon } from "../components/SmcrIcons";
+import { certificationTips } from "../forms/form-data";
 
 const approvalColours: Record<RoleApprovalStatus, string> = {
   approved: "bg-emerald-100 text-emerald-800",
@@ -144,9 +149,12 @@ export function CertificationsClient() {
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Certification Functions</h1>
-          <p className="text-slate-600 mt-1">Monitor certification population, review cadence, and approvals.</p>
+        <div className="flex items-center gap-4">
+          <CertificationIcon size={48} />
+          <div>
+            <h1 className="text-2xl font-semibold text-slate-900">Certification Functions</h1>
+            <p className="text-slate-600 mt-1">Monitor certification population, review cadence, and approvals.</p>
+          </div>
         </div>
         <Button onClick={() => setAssignDialogOpen(true)}>
           <Plus className="h-4 w-4 mr-2" />
@@ -291,13 +299,44 @@ export function CertificationsClient() {
       </div>
 
       <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Certify Person for Function</DialogTitle>
             <DialogDescription>
               Assign a certification function and record assessment cadence.
             </DialogDescription>
           </DialogHeader>
+
+          {/* Certification Requirements Explainer */}
+          <div className="rounded-lg border border-teal-200 bg-teal-50 p-4 space-y-3">
+            <div className="flex items-start gap-3">
+              <Info className="h-5 w-5 text-teal-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <h4 className="font-medium text-teal-900">{certificationTips.title}</h4>
+                <p className="text-sm text-teal-800 mt-1">{certificationTips.description}</p>
+              </div>
+            </div>
+            <ul className="space-y-1.5 ml-8">
+              {certificationTips.tips.map((tip, i) => (
+                <li key={i} className="flex items-center gap-2 text-sm text-teal-800">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-teal-600 flex-shrink-0" />
+                  {tip}
+                </li>
+              ))}
+            </ul>
+            <div className="ml-8">
+              <a
+                href={certificationTips.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-teal-700 hover:text-teal-900"
+              >
+                FCA Certification Guidance
+                <ExternalLink className="h-3.5 w-3.5" />
+              </a>
+            </div>
+          </div>
+
           <form onSubmit={handleAssign} className="space-y-4">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>

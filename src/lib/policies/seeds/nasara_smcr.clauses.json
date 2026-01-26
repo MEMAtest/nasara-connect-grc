@@ -1,0 +1,86 @@
+[
+  {
+    "id": "nasara_smcr-purpose-purpose_and_objectives",
+    "policy_key": "smcr",
+    "title": "Purpose and objectives",
+    "body_md": "This policy sets out how {{firm.name}} implements the Senior Managers and Certification Regime (SMCR) to strengthen accountability, conduct, and governance.\n\nObjectives:\n- define roles within the SMCR population.\n- maintain Statements of Responsibilities (SoRs) and evidence of reasonable steps.\n- assess certification staff annually as fit and proper.\n- embed COCON conduct rules across the firm.",
+    "source_template_filename": "MODULE_SMCR.txt"
+  },
+  {
+    "id": "nasara_smcr-scope-scope_and_applicability",
+    "policy_key": "smcr",
+    "title": "Scope and applicability",
+    "body_md": "This policy applies to Senior Managers (SMFs), Certification Staff, and Conduct Rules staff. It covers all areas where regulated activities are performed and extends to relevant contractors and appointed representatives where required.",
+    "source_template_filename": "MODULE_SMCR.txt"
+  },
+  {
+    "id": "nasara_smcr-roles-smcr_roles_and_scope",
+    "policy_key": "smcr",
+    "title": "SMCR roles and scope",
+    "body_md": "Roles are grouped into three populations:\n- Senior Managers (SMFs) with FCA approval and defined responsibilities.\n- Certification Staff assessed annually by the firm for fitness and propriety.\n- Conduct Rules staff who must comply with COCON.\n\nRole allocation must follow the firm role catalogue and responsibility map.",
+    "source_template_filename": "MODULE_SMCR.txt"
+  },
+  {
+    "id": "nasara_smcr-sors-statements_of_responsibility",
+    "policy_key": "smcr",
+    "title": "Statements of Responsibilities and reasonable steps",
+    "body_md": "Each Senior Manager must have a clear, up-to-date Statement of Responsibilities (SoR).\n\nReasonable steps include effective governance, appropriate delegation with oversight, documented challenge and decisions, and timely escalation of issues. Evidence should include MI packs, action logs, and handover records.",
+    "source_template_filename": "MODULE_SMCR.txt"
+  },
+  {
+    "id": "nasara_smcr-duty-duty_of_responsibility",
+    "policy_key": "smcr",
+    "title": "Duty of Responsibility",
+    "body_md": "A Senior Manager may be held accountable if a breach occurs in their area and they did not take reasonable steps to prevent or stop it.\n\nReasonable steps must be proportionate, documented, and timely.",
+    "source_template_filename": "MODULE_SMCR.txt"
+  },
+  {
+    "id": "nasara_smcr-certification-certification_regime",
+    "policy_key": "smcr",
+    "title": "Certification regime",
+    "body_md": "Certification Staff must be assessed annually as fit and proper based on honesty and integrity, competence and capability, and financial soundness.\n\nEvidence includes training and competence logs, QA outcomes, role profiles, and regulatory references.",
+    "source_template_filename": "MODULE_SMCR.txt"
+  },
+  {
+    "id": "nasara_smcr-cocon-conduct_rules",
+    "policy_key": "smcr",
+    "title": "COCON conduct rules",
+    "body_md": "COCON applies to all Conduct Rules staff (Tier 1) with additional rules for Senior Managers (Tier 2).\n\nTier 1 includes acting with integrity, due skill and care, treating customers fairly, and cooperating with regulators. Tier 2 includes ensuring effective control of the business, oversight, and appropriate disclosure to regulators.",
+    "source_template_filename": "MODULE_SMCR.txt"
+  },
+  {
+    "id": "nasara_smcr-nfm-non_financial_misconduct",
+    "policy_key": "smcr",
+    "title": "Non-financial misconduct",
+    "body_md": "Serious, substantiated non-financial misconduct (such as bullying or harassment) can affect fitness and propriety.\n\nCases must be assessed with HR and Compliance, and may trigger certification decisions and notifications as required.",
+    "source_template_filename": "MODULE_SMCR.txt"
+  },
+  {
+    "id": "nasara_smcr-references-regulatory_references",
+    "policy_key": "smcr",
+    "title": "Regulatory references",
+    "body_md": "Regulatory references are required for certain roles, including Senior Managers and Certification Staff.\n\nReferences and responses must be retained and used in fit and proper decisions.",
+    "source_template_filename": "MODULE_SMCR.txt"
+  },
+  {
+    "id": "nasara_smcr-records-records_and_evidence",
+    "policy_key": "smcr",
+    "title": "Records and evidence",
+    "body_md": "Records must include SoRs, responsibility maps, fit and proper assessments, conduct rule training records, disciplinary outcomes, and notification decisions.\n\nRecords must be retained in line with regulatory requirements.",
+    "source_template_filename": "MODULE_SMCR.txt"
+  },
+  {
+    "id": "nasara_smcr-training-training_and_awareness",
+    "policy_key": "smcr",
+    "title": "Training and awareness",
+    "body_md": "All staff must receive conduct rules training relevant to their role. Senior Managers and Certification Staff must complete enhanced training, with completion recorded and refreshed as required.",
+    "source_template_filename": "MODULE_SMCR.txt"
+  },
+  {
+    "id": "nasara_smcr-governance-governance_and_review",
+    "policy_key": "smcr",
+    "title": "Governance and review",
+    "body_md": "Compliance and HR oversee SMCR governance. Senior management reviews SMCR MI, breach reporting, and training completion on a defined cadence.",
+    "source_template_filename": "MODULE_SMCR.txt"
+  }
+]

@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { ChevronRight, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import type { TrendPoint } from "@/lib/chart-utils";
 
 // Stat Card with drill-down
 interface StatCardProps {
@@ -170,28 +171,18 @@ export function DonutChart({
   size = 180,
 }: DonutChartProps) {
   const total = data.reduce((sum, d) => sum + d.value, 0);
-  const radius = size / 2 - 10;
-  const strokeWidth = 24;
-  const circumference = 2 * Math.PI * radius;
 
   const segments = useMemo(() => {
-    let currentAngle = -90;
     return data.map((item) => {
       const percentage = total > 0 ? item.value / total : 0;
-      const angle = percentage * 360;
-      const startAngle = currentAngle;
-      currentAngle += angle;
-
       return {
         ...item,
         percentage,
-        startAngle,
-        endAngle: currentAngle,
-        dashArray: `${percentage * circumference} ${circumference}`,
-        dashOffset: -((startAngle + 90) / 360) * circumference,
       };
     });
-  }, [data, total, circumference]);
+  }, [data, total]);
+
+  const chartSegments = segments.filter((segment) => segment.value > 0);
 
   return (
     <Card className="min-h-[280px]">
@@ -199,35 +190,39 @@ export function DonutChart({
         <CardTitle className="text-sm font-medium text-slate-600">{title}</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex items-center gap-8">
-          <div className="relative flex-shrink-0" style={{ width: size, height: size }}>
-            <svg width={size} height={size} className="-rotate-90">
-              {segments.map((segment, i) => (
-                <motion.circle
+        <div className="flex items-start gap-8">
+          <div className="flex-shrink-0" style={{ width: size }}>
+            <div className="mb-3 flex items-end justify-between">
+              <div>
+                <span className="text-2xl font-bold text-slate-900">{total}</span>
+                <span className="ml-2 text-xs text-slate-500">Total</span>
+              </div>
+              <span className="text-xs text-slate-400">
+                {total > 0 ? "Distribution" : "No data yet"}
+              </span>
+            </div>
+            <div className="flex h-3 w-full overflow-hidden rounded-full bg-slate-100">
+              {chartSegments.map((segment, i) => (
+                <motion.button
                   key={segment.label}
-                  cx={size / 2}
-                  cy={size / 2}
-                  r={radius}
-                  fill="none"
-                  stroke={segment.color}
-                  strokeWidth={strokeWidth}
-                  strokeDasharray={segment.dashArray}
-                  strokeDashoffset={segment.dashOffset}
-                  strokeLinecap="round"
+                  type="button"
                   className={cn(
-                    "cursor-pointer transition-opacity",
+                    "h-full transition-opacity",
                     activeSegment && activeSegment !== segment.label && "opacity-40"
                   )}
+                  style={{ backgroundColor: segment.color }}
                   onClick={() => onSegmentClick?.(segment.label)}
-                  initial={{ strokeDashoffset: circumference }}
-                  animate={{ strokeDashoffset: segment.dashOffset }}
-                  transition={{ duration: 0.8, delay: i * 0.1, ease: "easeOut" }}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${segment.percentage * 100}%` }}
+                  transition={{ duration: 0.6, delay: i * 0.08, ease: "easeOut" }}
+                  aria-label={`${segment.label} ${segment.value}`}
                 />
               ))}
-            </svg>
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-2xl font-bold text-slate-900">{total}</span>
-              <span className="text-xs text-slate-500">Total</span>
+              {total === 0 && <div className="h-full w-full" />}
+            </div>
+            <div className="mt-2 flex justify-between text-[11px] text-slate-400">
+              <span>0%</span>
+              <span>100%</span>
             </div>
           </div>
 
@@ -325,12 +320,20 @@ export function BarChart({
 
 // Trend Line Chart
 interface TrendChartProps {
-  data: { label: string; value: number }[];
+  data: TrendPoint[];
   title: string;
   color?: string;
+  onPointClick?: (point: TrendPoint) => void;
+  activePointKey?: string;
 }
 
-export function TrendChart({ data, title, color = "#0d9488" }: TrendChartProps) {
+export function TrendChart({
+  data,
+  title,
+  color = "#0d9488",
+  onPointClick,
+  activePointKey,
+}: TrendChartProps) {
   const max = Math.max(...data.map((d) => d.value), 1);
   const min = Math.min(...data.map((d) => d.value), 0);
   const range = max - min || 1;
@@ -341,7 +344,14 @@ export function TrendChart({ data, title, color = "#0d9488" }: TrendChartProps) 
   const points = data.map((d, i) => {
     const x = padding + (i / (data.length - 1)) * (width - 2 * padding);
     const y = height - padding - ((d.value - min) / range) * (height - 2 * padding);
-    return { x, y, value: d.value, label: d.label };
+    return {
+      x,
+      y,
+      value: d.value,
+      label: d.label,
+      point: d,
+      key: d.monthKey || d.label,
+    };
   });
 
   const pathD = points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ");
@@ -396,26 +406,45 @@ export function TrendChart({ data, title, color = "#0d9488" }: TrendChartProps) 
           />
 
           {/* Points */}
-          {points.map((p, i) => (
+          {points.map((p, i) => {
+            const isActive = activePointKey && p.key === activePointKey;
+            return (
             <motion.circle
               key={i}
               cx={p.x}
               cy={p.y}
-              r={4}
+              r={isActive ? 5 : 4}
               fill="white"
               stroke={color}
-              strokeWidth={2}
+              strokeWidth={isActive ? 3 : 2}
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.8 + i * 0.1 }}
+              onClick={() => onPointClick?.(p.point)}
+              className={cn(onPointClick && "cursor-pointer")}
             />
-          ))}
+            );
+          })}
         </svg>
 
         <div className="mt-2 flex justify-between text-xs text-slate-500">
-          {data.map((d, i) => (
-            <span key={i}>{d.label}</span>
-          ))}
+          {data.map((d, i) => {
+            const isActive = activePointKey && (d.monthKey || d.label) === activePointKey;
+            return (
+              <button
+                key={i}
+                type="button"
+                onClick={() => onPointClick?.(d)}
+                className={cn(
+                  "border-0 bg-transparent p-0 transition-colors",
+                  onPointClick && "hover:text-slate-700",
+                  isActive ? "font-semibold text-slate-700" : "text-slate-500"
+                )}
+              >
+                {d.label}
+              </button>
+            );
+          })}
         </div>
       </CardContent>
     </Card>

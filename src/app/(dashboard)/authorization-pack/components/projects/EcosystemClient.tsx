@@ -6,12 +6,15 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { NasaraLoader } from "@/components/ui/nasara-loader";
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 import {
   getPolicyItems,
+  getControllerItems,
+  getGovernanceItems,
+  getOtherDocumentationItems,
+  getPsdItems,
   getRegisterItems,
-  getSmcrItems,
-  getTrainingItems,
 } from "@/lib/authorization-pack-integrations";
 import { ProjectHeader } from "./ProjectHeader";
 
@@ -87,8 +90,6 @@ interface ProjectDetail {
   packId?: string | null;
   typicalTimelineWeeks?: number | null;
   policyTemplates?: string[];
-  trainingRequirements?: string[];
-  smcrRoles?: string[];
   sections?: SectionSummary[];
 }
 
@@ -197,11 +198,8 @@ export function EcosystemClient() {
   if (isLoading) {
     return (
       <Card className="border border-slate-200">
-        <CardContent className="p-8 text-center text-slate-500">
-          <div className="flex items-center justify-center gap-2">
-            <div className="h-4 w-4 animate-spin rounded-full border-2 border-teal-500 border-t-transparent" />
-            Loading ecosystem...
-          </div>
+        <CardContent className="p-8">
+          <NasaraLoader label="Loading ecosystem..." />
         </CardContent>
       </Card>
     );
@@ -228,14 +226,29 @@ export function EcosystemClient() {
     const key = section.section_key || section.title;
     return list.findIndex((item) => (item.section_key || item.title) === key) === index;
   });
-  const policyItems = getPolicyItems(project.policyTemplates);
-  const trainingItems = getTrainingItems(project.trainingRequirements);
-  const smcrItems = getSmcrItems(project.smcrRoles);
+  const policyItems = getPolicyItems(project.policyTemplates, { projectId: project.id });
+  const psdItems = getPsdItems();
+  const controllerItems = getControllerItems();
+  const governanceItems = getGovernanceItems();
+  const otherDocumentationItems = getOtherDocumentationItems();
   const registerItems = getRegisterItems(project.permissionCode);
 
   // Calculate completion stats
-  const totalItems = policyItems.length + trainingItems.length + smcrItems.length + registerItems.length;
-  const completedItems = [...policyItems, ...trainingItems, ...smcrItems, ...registerItems].filter(
+  const totalItems =
+    policyItems.length +
+    psdItems.length +
+    controllerItems.length +
+    governanceItems.length +
+    otherDocumentationItems.length +
+    registerItems.length;
+  const completedItems = [
+    ...policyItems,
+    ...psdItems,
+    ...controllerItems,
+    ...governanceItems,
+    ...otherDocumentationItems,
+    ...registerItems,
+  ].filter(
     (item) => item.href
   ).length;
   const completionPercent = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
@@ -256,7 +269,7 @@ export function EcosystemClient() {
                 </Badge>
               </CardTitle>
               <CardDescription className="mt-1">
-                Policies, training, key persons, and registers required for authorisation.
+                Policies, PSD roles, controllers, governance documents, and registers required for authorisation.
               </CardDescription>
             </div>
             <div className="flex items-center gap-4">
@@ -287,10 +300,7 @@ export function EcosystemClient() {
               </Button>
             )}
             <Button asChild variant="outline">
-              <Link href="/policies">Policy Templates</Link>
-            </Button>
-            <Button asChild variant="outline">
-              <Link href="/training-library">Training Library</Link>
+              <Link href={`/policies/wizard?projectId=${project.id}`}>Policy Wizard</Link>
             </Button>
             <Button asChild variant="outline">
               <Link href="/smcr">Key Persons Setup</Link>
@@ -327,8 +337,8 @@ export function EcosystemClient() {
         </Card>
       )}
 
-      {/* Ecosystem Grid - 2x2 */}
-      <div className="grid gap-4 md:grid-cols-2">
+      {/* Ecosystem Grid */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <EcosystemItemCard
           icon={DocumentIcon}
           title="Policies"
@@ -339,22 +349,40 @@ export function EcosystemClient() {
           accentColor="teal"
         />
         <EcosystemItemCard
-          icon={BookOpenIcon}
-          title="Training"
-          description="Mandatory training modules"
-          count={trainingItems.length}
-          items={trainingItems}
-          emptyLabel="Training plan pending assessment"
+          icon={UserGroupIcon}
+          title="Key Persons (PSD)"
+          description="PSD roles to be assigned"
+          count={psdItems.length}
+          items={psdItems}
+          emptyLabel="PSD roles to be confirmed"
+          accentColor="purple"
+        />
+        <EcosystemItemCard
+          icon={ClipboardListIcon}
+          title="Controllers"
+          description="Ownership thresholds to track"
+          count={controllerItems.length}
+          items={controllerItems}
+          emptyLabel="Controllers to be captured"
           accentColor="blue"
         />
         <EcosystemItemCard
-          icon={UserGroupIcon}
-          title="Key Persons / PSD Roles"
-          description="Responsible persons required"
-          count={smcrItems.length}
-          items={smcrItems}
-          emptyLabel="Key person roles to be assigned"
-          accentColor="purple"
+          icon={BookOpenIcon}
+          title="Governance"
+          description="Boards, oversight, and forums"
+          count={governanceItems.length}
+          items={governanceItems}
+          emptyLabel="Governance docs to be added"
+          accentColor="amber"
+        />
+        <EcosystemItemCard
+          icon={DocumentIcon}
+          title="Other Documentation"
+          description="Supporting evidence to collect"
+          count={otherDocumentationItems.length}
+          items={otherDocumentationItems}
+          emptyLabel="Other documents to be tracked"
+          accentColor="teal"
         />
         <EcosystemItemCard
           icon={ClipboardListIcon}

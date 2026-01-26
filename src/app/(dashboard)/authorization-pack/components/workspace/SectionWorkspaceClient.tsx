@@ -119,7 +119,6 @@ interface ReviewGate {
   stage: string;
   state: string;
   reviewer_role: string;
-  notes?: string | null;
   client_notes?: string | null;
 }
 
@@ -168,7 +167,7 @@ export function SectionWorkspaceClient() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [mutationError, setMutationError] = useState<string | null>(null);
   const [savingPrompts, setSavingPrompts] = useState<Record<string, boolean | "error">>({});
-  const [reviewNotes, setReviewNotes] = useState<Record<string, { notes: string; clientNotes: string }>>({});
+  const [reviewNotes, setReviewNotes] = useState<Record<string, { clientNotes: string }>>({});
   const [generatingPrompts, setGeneratingPrompts] = useState<Record<string, boolean>>({});
   const [aiError, setAiError] = useState<string | null>(null);
 
@@ -421,7 +420,7 @@ export function SectionWorkspaceClient() {
     setMutationError(null);
     const previousReviewGates = [...reviewGates];
     const previousSectionMeta = sectionMeta;
-    const payload = reviewNotes[gateId] || { notes: "", clientNotes: "" };
+    const payload = reviewNotes[gateId] || { clientNotes: "" };
 
     // Optimistic update
     setReviewGates((prev) => {
@@ -446,7 +445,7 @@ export function SectionWorkspaceClient() {
       const response = await fetch(`/api/authorization-pack/packs/${pack.id}/review`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ gateId, state, notes: payload.notes, clientNotes: payload.clientNotes }),
+        body: JSON.stringify({ gateId, state, clientNotes: payload.clientNotes }),
       });
 
       if (!response.ok) {
@@ -815,7 +814,7 @@ export function SectionWorkspaceClient() {
           <Card className="border border-slate-200">
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Review Gates</CardTitle>
-              <CardDescription>Manage client and consultant review stages.</CardDescription>
+              <CardDescription>Manage review stages for this section.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               {reviewGates.length === 0 ? (
@@ -856,38 +855,18 @@ export function SectionWorkspaceClient() {
                       </Select>
                     </div>
 
-                    {/* Notes Fields */}
                     <div className="space-y-2">
-                      <div>
-                        <Label className="text-xs text-slate-500">Internal Notes</Label>
-                        <Textarea
-                          className="mt-1 text-xs"
-                          rows={2}
-                          placeholder="Notes visible to consultants only..."
-                          value={reviewNotes[gate.id]?.notes ?? ""}
-                          onChange={(e) =>
-                            setReviewNotes((prev) => ({
-                              ...prev,
-                              [gate.id]: {
-                                notes: e.target.value,
-                                clientNotes: prev[gate.id]?.clientNotes ?? "",
-                              },
-                            }))
-                          }
-                        />
-                      </div>
                       <div>
                         <Label className="text-xs text-slate-500">Client Notes</Label>
                         <Textarea
                           className="mt-1 text-xs"
                           rows={2}
                           placeholder="Notes visible to the client..."
-                          value={reviewNotes[gate.id]?.clientNotes ?? ""}
+                          value={reviewNotes[gate.id]?.clientNotes ?? gate.client_notes ?? ""}
                           onChange={(e) =>
                             setReviewNotes((prev) => ({
                               ...prev,
                               [gate.id]: {
-                                notes: prev[gate.id]?.notes ?? "",
                                 clientNotes: e.target.value,
                               },
                             }))

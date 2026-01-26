@@ -10,6 +10,14 @@ interface CompanyProfile {
   company_status: string;
   date_of_creation: string;
   sic_codes?: string[];
+  accounts?: {
+    next_due?: string;
+    next_made_up_to?: string;
+  };
+  confirmation_statement?: {
+    next_due?: string;
+    next_made_up_to?: string;
+  };
   registered_office_address?: {
     address_line_1?: string;
     address_line_2?: string;
@@ -50,6 +58,12 @@ export async function GET(request: NextRequest) {
           status: "active",
           incorporationDate: "2020-01-15",
           sicCodes: ["64999"],
+          filings: {
+            confirmationStatementDue: "2025-12-31",
+            confirmationStatementMadeUpTo: "2024-12-31",
+            accountsDue: "2025-09-30",
+            accountsMadeUpTo: "2024-09-30",
+          },
           address: {
             line1: "123 Example Street",
             line2: "",
@@ -98,6 +112,12 @@ export async function GET(request: NextRequest) {
       incorporationDate: data.date_of_creation,
       sicCodes: data.sic_codes || [],
       type: data.type,
+      filings: {
+        confirmationStatementDue: data.confirmation_statement?.next_due || "",
+        confirmationStatementMadeUpTo: data.confirmation_statement?.next_made_up_to || "",
+        accountsDue: data.accounts?.next_due || "",
+        accountsMadeUpTo: data.accounts?.next_made_up_to || "",
+      },
       address: {
         line1: data.registered_office_address?.address_line_1 || "",
         line2: data.registered_office_address?.address_line_2 || "",

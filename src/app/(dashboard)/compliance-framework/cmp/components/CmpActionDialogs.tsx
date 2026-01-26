@@ -92,7 +92,7 @@ export function LogTestDialog({ organizationId, control, open, onClose, onSucces
         }),
       });
       if (!response.ok) throw new Error("Unable to log test");
-      toast({ title: "Test recorded", description: `${control.id} updated`, variant: "default" });
+      toast({ title: "Test recorded", description: `${control.id} updated`, variant: "success" });
       await onSuccess();
       onClose();
     } catch (error) {
@@ -303,7 +303,7 @@ export function RaiseFindingDialog({ organizationId, control, open, onClose, onS
         body: JSON.stringify(values),
       });
       if (!response.ok) throw new Error("Unable to raise finding");
-      toast({ title: "Finding created", description: `${control.id} assigned`, variant: "default" });
+      toast({ title: "Finding created", description: `${control.id} assigned`, variant: "success" });
       await onSuccess();
       onClose();
     } catch (error) {

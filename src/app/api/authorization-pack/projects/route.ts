@@ -3,6 +3,8 @@ import { createAuthorizationProject, getAuthorizationProjects } from "@/lib/auth
 import { PermissionCode } from "@/lib/authorization-pack-ecosystems";
 import { logError } from "@/lib/logger";
 import { requireAuth } from "@/lib/auth-utils";
+import { createNotification } from "@/lib/server/notifications-store";
+import { DEFAULT_ORGANIZATION_ID } from "@/lib/constants";
 
 export async function GET(request: NextRequest) {
   try {
@@ -49,6 +51,20 @@ export async function POST(request: NextRequest) {
       targetSubmissionDate: targetSubmissionDate ?? null,
       assessmentData,
     });
+
+    try {
+      await createNotification({
+        organizationId: DEFAULT_ORGANIZATION_ID,
+        title: "Authorization project created",
+        message: `Project "${project.name}" created for ${permissionCode}.`,
+        severity: "success",
+        source: "authorization-pack",
+        link: "/authorization-pack",
+        metadata: { projectId: project.id, permissionCode },
+      });
+    } catch {
+      // Non-blocking notification failures
+    }
 
     return NextResponse.json({ project }, { status: 201 });
   } catch (error) {

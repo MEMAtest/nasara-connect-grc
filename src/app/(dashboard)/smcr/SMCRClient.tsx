@@ -1,19 +1,29 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { AlertTriangle, Award, ClipboardCheck, FileText, Shield, Target, Users } from "lucide-react";
+import { AlertTriangle, Award, Check, ChevronRight, ClipboardCheck, FileText, Plus, Shield, Target, Users, UserPlus, Play, Flag } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSmcrData } from "./context/SmcrDataContext";
 import { allSMFs, certificationFunctions } from "./data/core-functions";
 import { workflowTemplates } from "./data/workflow-templates";
 import { ResponsiveContainer, BarChart, Bar, XAxis, Tooltip } from "recharts";
 import { FirmSwitcher } from "./components/FirmSwitcher";
+import {
+  DashboardIcon,
+  PeopleIcon,
+  SmfIcon,
+  CertificationIcon,
+  FitnessProprietyIcon,
+  ConductRulesIcon,
+  WorkflowsIcon,
+} from "./components/SmcrIcons";
 
 const statusClass = {
   current: "bg-emerald-100 text-emerald-800",
@@ -44,8 +54,20 @@ function parseDate(value?: string | null) {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
+type OnboardingStep = "firm" | "person" | "role" | "workflow" | "done";
+
+function getOnboardingStep(hasFirm: boolean, hasPeople: boolean, hasRoles: boolean, hasWorkflows: boolean): OnboardingStep {
+  if (!hasFirm) return "firm";
+  if (!hasPeople) return "person";
+  if (!hasRoles) return "role";
+  if (!hasWorkflows) return "workflow";
+  return "done";
+}
+
 export function SMCRClient() {
   const { state, firms, activeFirmId } = useSmcrData();
+  const router = useRouter();
+  const [showOnboarding, setShowOnboarding] = useState(true);
   const scopedPeople = useMemo(
     () => state.people.filter((person) => !activeFirmId || person.firmId === activeFirmId),
     [state.people, activeFirmId],
@@ -182,50 +204,139 @@ export function SMCRClient() {
   }, [cfRoles]);
 
   const hasFirm = Boolean(activeFirmId && firms.length > 0);
+  const hasPeople = scopedPeople.length > 0;
+  const hasRoles = scopedRoles.length > 0;
+  const hasWorkflows = scopedWorkflows.length > 0;
+  const onboardingStep = getOnboardingStep(hasFirm, hasPeople, hasRoles, hasWorkflows);
+
+  const handleWidgetClick = (filter: string, status?: string) => {
+    const params = new URLSearchParams();
+    if (status) params.set("status", status);
+    router.push(`/smcr/${filter}?${params.toString()}`);
+  };
 
   return (
     <div className="space-y-6">
-      <Card className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white">
-        <CardContent className="flex flex-col gap-6 p-6 md:flex-row md:items-center md:justify-between">
-          <div className="flex flex-col gap-4">
-            <FirmSwitcher />
-            <p className="text-xs uppercase tracking-[0.3em] text-slate-300">SM&CR Command Center</p>
-            <h1 className="mt-3 text-3xl font-semibold">Orchestrate your SMF & Certification lifecycle</h1>
-            <p className="mt-3 max-w-2xl text-sm text-slate-200">
-              Launch guided workflows, capture evidence, and keep fitness &amp; propriety obligations on schedule. Pick a
-              workflow to get started or jump straight to assessments.
-            </p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <Link href="/smcr/workflows">
-                <Button size="sm" variant="secondary">
-                  Launch Workflow Hub
-                </Button>
-              </Link>
-              <Link href="/smcr/fitness-propriety">
-                <Button size="sm" variant="outline" className="bg-transparent text-white hover:bg-white/10">
-                  Review Assessments
-                </Button>
-              </Link>
-            </div>
-          </div>
-          <div className="grid w-full gap-3 sm:grid-cols-3 md:w-auto">
-            {quickWorkflowTemplates.map((template) => (
-              <Link
-                key={template.id}
-                href={`/smcr/workflows?template=${encodeURIComponent(template.id)}`}
-                className="rounded-2xl border border-white/10 bg-white/10 p-4 text-left transition hover:border-white/40 hover:bg-white/20"
+      {/* Compact Header */}
+      <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-4 py-3">
+        <div className="flex items-center gap-3">
+          <DashboardIcon size={24} />
+          <h1 className="text-lg font-semibold text-slate-900">SM&CR Dashboard</h1>
+        </div>
+        <div className="flex items-center gap-3">
+          <FirmSwitcher />
+        </div>
+      </div>
+
+      {/* Onboarding Wizard */}
+      {showOnboarding && onboardingStep !== "done" && (
+        <Card className="border-teal-200 bg-gradient-to-r from-teal-50 to-emerald-50">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-slate-900">Getting Started with SM&CR</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowOnboarding(false)}
+                className="text-slate-500 hover:text-slate-700"
               >
-                <p className="text-xs uppercase tracking-wide text-slate-200">
-                  {template.category.replace("_", " ")}
-                </p>
-                <p className="mt-1 text-sm font-semibold text-white">{template.title}</p>
-                <p className="mt-2 text-[11px] text-slate-200/80">Duration · {template.durationDays} days</p>
-                <p className="text-[11px] text-slate-200/80">Steps · {template.steps.length}</p>
-              </Link>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+                Dismiss
+              </Button>
+            </div>
+            <div className="flex items-center gap-2 mb-6">
+              {["firm", "person", "role", "workflow"].map((step, index) => (
+                <React.Fragment key={step}>
+                  <div
+                    className={cn(
+                      "flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition-colors",
+                      step === onboardingStep
+                        ? "bg-teal-600 text-white"
+                        : getOnboardingStep(hasFirm, hasPeople, hasRoles, hasWorkflows) === "done" ||
+                          ["firm", "person", "role", "workflow"].indexOf(step) <
+                            ["firm", "person", "role", "workflow"].indexOf(onboardingStep)
+                        ? "bg-teal-100 text-teal-700"
+                        : "bg-slate-100 text-slate-400"
+                    )}
+                  >
+                    {["firm", "person", "role", "workflow"].indexOf(step) <
+                    ["firm", "person", "role", "workflow"].indexOf(onboardingStep) ? (
+                      <Check className="h-4 w-4" />
+                    ) : (
+                      index + 1
+                    )}
+                  </div>
+                  {index < 3 && (
+                    <div
+                      className={cn(
+                        "flex-1 h-0.5 transition-colors",
+                        ["firm", "person", "role", "workflow"].indexOf(step) <
+                          ["firm", "person", "role", "workflow"].indexOf(onboardingStep)
+                          ? "bg-teal-300"
+                          : "bg-slate-200"
+                      )}
+                    />
+                  )}
+                </React.Fragment>
+              ))}
+            </div>
+            <div className="space-y-3">
+              {onboardingStep === "firm" && (
+                <div className="flex items-center justify-between rounded-lg border border-teal-200 bg-white p-4">
+                  <div>
+                    <p className="font-medium text-slate-900">Create your firm</p>
+                    <p className="text-sm text-slate-500">
+                      Set up your firm profile to begin managing SM&CR records
+                    </p>
+                  </div>
+                  <ChevronRight className="h-5 w-5 text-teal-600" />
+                </div>
+              )}
+              {onboardingStep === "person" && (
+                <Link href="/smcr/people" className="flex items-center justify-between rounded-lg border border-teal-200 bg-white p-4 hover:border-teal-400 transition-colors">
+                  <div>
+                    <p className="font-medium text-slate-900">Add your first person</p>
+                    <p className="text-sm text-slate-500">
+                      Create personnel records for individuals holding SM&CR roles
+                    </p>
+                  </div>
+                  <Button size="sm" className="bg-teal-600 hover:bg-teal-700">
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    Add Person
+                  </Button>
+                </Link>
+              )}
+              {onboardingStep === "role" && (
+                <Link href="/smcr/smfs" className="flex items-center justify-between rounded-lg border border-teal-200 bg-white p-4 hover:border-teal-400 transition-colors">
+                  <div>
+                    <p className="font-medium text-slate-900">Assign SMF/CF roles</p>
+                    <p className="text-sm text-slate-500">
+                      Assign Senior Manager or Certification Function roles to your people
+                    </p>
+                  </div>
+                  <Button size="sm" className="bg-teal-600 hover:bg-teal-700">
+                    <Shield className="h-4 w-4 mr-2" />
+                    Assign Roles
+                  </Button>
+                </Link>
+              )}
+              {onboardingStep === "workflow" && (
+                <Link href="/smcr/workflows" className="flex items-center justify-between rounded-lg border border-teal-200 bg-white p-4 hover:border-teal-400 transition-colors">
+                  <div>
+                    <p className="font-medium text-slate-900">Launch onboarding workflow</p>
+                    <p className="text-sm text-slate-500">
+                      Start a guided workflow to complete all SM&CR requirements
+                    </p>
+                  </div>
+                  <Button size="sm" className="bg-teal-600 hover:bg-teal-700">
+                    <Play className="h-4 w-4 mr-2" />
+                    Launch Workflow
+                  </Button>
+                </Link>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {!hasFirm ? (
         <Card>
@@ -236,45 +347,107 @@ export function SMCRClient() {
       ) : (
         <>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <SummaryCard icon={Users} label="Total People" value={totalPeople} accent="text-sky-500" />
-            <SummaryCard icon={Shield} label="SMF Assignments" value={smfRoles.length} accent="text-emerald-500" />
-            <SummaryCard icon={Award} label="Certified Roles" value={cfRoles.length} accent="text-amber-500" />
-            <SummaryCard icon={AlertTriangle} label="Overdue Assessments" value={overdue} accent="text-rose-500" />
+            <ClickableSummaryCard
+              icon={Users}
+              label="Total People"
+              value={totalPeople}
+              accent="text-sky-500"
+              onClick={() => router.push("/smcr/people")}
+            />
+            <ClickableSummaryCard
+              icon={Shield}
+              label="SMF Assignments"
+              value={smfRoles.length}
+              accent="text-emerald-500"
+              onClick={() => router.push("/smcr/smfs")}
+            />
+            <ClickableSummaryCard
+              icon={Award}
+              label="Certified Roles"
+              value={cfRoles.length}
+              accent="text-amber-500"
+              onClick={() => router.push("/smcr/certifications")}
+            />
+            <ClickableSummaryCard
+              icon={AlertTriangle}
+              label="Overdue Assessments"
+              value={overdue}
+              accent="text-rose-500"
+              onClick={() => router.push("/smcr/fitness-propriety?status=overdue")}
+            />
           </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Operational Metrics</CardTitle>
-              <CardDescription>Visualise workflow throughput and training readiness.</CardDescription>
+          {/* Launch Workflows Section */}
+          <Card className="border-slate-200">
+            <CardHeader className="flex flex-row items-center justify-between pb-3">
+              <CardTitle className="text-base">Launch Workflows</CardTitle>
+              <Link href="/smcr/workflows" className="text-sm text-sky-600 hover:underline flex items-center gap-1">
+                View All <ChevronRight className="h-4 w-4" />
+              </Link>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              <div className="space-y-2">
-                <p className="text-sm font-semibold text-slate-700">Workflow status</p>
-                <div className="h-48">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={workflowStatusChart} barSize={28}>
-                      <XAxis dataKey="name" stroke="#94a3b8" tickLine={false} axisLine={false} />
-                      <Tooltip cursor={{ fill: "rgba(148,163,184,0.15)" }} />
-                      <Bar dataKey="value" fill="#0ea5e9" radius={[6, 6, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <p className="text-sm font-semibold text-slate-700">Training completion distribution</p>
-                <div className="h-48">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={trainingDistribution} barGap={8}>
-                      <XAxis dataKey="name" stroke="#94a3b8" tickLine={false} axisLine={false} />
-                      <Tooltip cursor={{ fill: "rgba(148,163,184,0.15)" }} />
-                      <Bar dataKey="value" fill="#22c55e" radius={[6, 6, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
+            <CardContent>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {quickWorkflowTemplates.map((template) => (
+                  <Link
+                    key={template.id}
+                    href={`/smcr/workflows?template=${encodeURIComponent(template.id)}`}
+                    className="group rounded-xl border border-slate-200 bg-slate-50 p-4 text-left transition hover:border-teal-300 hover:bg-teal-50"
+                  >
+                    <p className="text-xs uppercase tracking-wide text-slate-500">
+                      {template.category.replace("_", " ")}
+                    </p>
+                    <p className="mt-1 text-sm font-semibold text-slate-900 group-hover:text-teal-700">{template.title}</p>
+                    <div className="mt-2 flex items-center gap-3 text-[11px] text-slate-500">
+                      <span>{template.durationDays} days</span>
+                      <span>•</span>
+                      <span>{template.steps.length} steps</span>
+                    </div>
+                  </Link>
+                ))}
               </div>
             </CardContent>
           </Card>
 
+          {/* Quick Actions Panel */}
+          <Card className="border-slate-200">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Quick Actions</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-wrap gap-2">
+              <Link href="/smcr/people">
+                <Button variant="outline" size="sm" className="gap-2">
+                  <UserPlus className="h-4 w-4" />
+                  Add New Person
+                </Button>
+              </Link>
+              <Link href="/smcr/workflows">
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Play className="h-4 w-4" />
+                  Launch Workflow
+                </Button>
+              </Link>
+              <Link href="/smcr/conduct-rules">
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Flag className="h-4 w-4" />
+                  Report Breach
+                </Button>
+              </Link>
+              <Link href="/smcr/smfs">
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Shield className="h-4 w-4" />
+                  Assign SMF
+                </Button>
+              </Link>
+              <Link href="/smcr/fitness-propriety">
+                <Button variant="outline" size="sm" className="gap-2">
+                  <ClipboardCheck className="h-4 w-4" />
+                  Start Assessment
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          {/* Main Content Grid - Upcoming Assessments (left) + F&P Status & Workflow Pulse (right) */}
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
             <Card className="lg:col-span-2">
               <CardHeader className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
@@ -313,48 +486,81 @@ export function SMCRClient() {
               </CardContent>
             </Card>
 
+            {/* Combined F&P Status + Workflow Pulse */}
             <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">F&P Status Overview</CardTitle>
-                <CardDescription>Track completion pipeline and training readiness.</CardDescription>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">F&P Status & Workflow Pulse</CardTitle>
+                <CardDescription>Track assessments and active workflows.</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-3 text-sm">
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-500">Current</span>
-                  <span className="font-semibold text-emerald-600">{current}</span>
+              <CardContent className="space-y-4 text-sm">
+                {/* F&P Status */}
+                <div className="space-y-2">
+                  <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Assessment Status</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500">Current</span>
+                    <span className="font-semibold text-emerald-600">{current}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500">Due Soon</span>
+                    <span className="font-semibold text-amber-500">{dueSoon}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500">Overdue</span>
+                    <span className="font-semibold text-rose-500">{overdue}</span>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-500">Due Soon</span>
-                  <span className="font-semibold text-amber-500">{dueSoon}</span>
+
+                <div className="border-t border-slate-100 pt-3" />
+
+                {/* Workflow Pulse */}
+                <div className="space-y-2">
+                  <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Workflow Status</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500">Active</span>
+                    <span className="font-semibold text-sky-600">{activeWorkflows.length}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500">In progress</span>
+                    <span className="font-semibold text-emerald-600">{workflowsInProgress}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500">Completed</span>
+                    <span className="font-semibold text-slate-600">{workflowsCompleted}</span>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-500">Overdue</span>
-                  <span className="font-semibold text-rose-500">{overdue}</span>
-                </div>
-                <div className="flex items-center justify-between pt-2 text-xs uppercase tracking-wide text-slate-400">
-                  <span>Assessment pipeline</span>
-                  <span>{totalAssessments}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-500">Draft</span>
-                  <span className="font-semibold text-slate-700">{assessmentsDraft}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-500">In review</span>
-                  <span className="font-semibold text-slate-700">{assessmentsInReview}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-500">Completed</span>
-                  <span className="font-semibold text-slate-700">{assessmentsCompleted}</span>
-                </div>
-                <div className="mt-4 rounded-lg bg-slate-50 p-3">
-                  <p className="text-xs uppercase tracking-wide text-slate-500">Average Training Completion</p>
-                  <p className="text-xl font-semibold text-slate-900">{trainingAverage}%</p>
-                </div>
+
+                {activeWorkflows.length > 0 && (
+                  <>
+                    <div className="border-t border-slate-100 pt-3" />
+                    <div className="space-y-2">
+                      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Top Workflows</p>
+                      {activeWorkflows.slice(0, 2).map((workflow) => {
+                        const totalSteps = workflow.steps.length || 1;
+                        const completedSteps = workflow.steps.filter((step) => step.status === "completed").length;
+                        const progress = Math.round((completedSteps / totalSteps) * 100);
+                        return (
+                          <div key={workflow.id} className="rounded-lg border border-slate-200 p-2">
+                            <div className="flex items-center justify-between gap-2">
+                              <p className="text-xs font-medium text-slate-800 truncate">{workflow.name}</p>
+                              <span className="text-xs text-slate-500">{progress}%</span>
+                            </div>
+                            <Progress value={progress} className="h-1 mt-1.5" />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+
+                <Link href="/smcr/workflows" className="block text-xs text-sky-600 hover:underline pt-1">
+                  View all workflows →
+                </Link>
               </CardContent>
             </Card>
           </div>
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+
+          {/* Secondary Content Row */}
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Overdue or Missed Reviews</CardTitle>
@@ -384,59 +590,6 @@ export function SMCRClient() {
                     ))}
                   </div>
                 )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Workflow Pulse</CardTitle>
-                <CardDescription>Monitor the guided processes driving SM&CR compliance.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm">
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-500">Active workflows</span>
-                  <span className="font-semibold text-sky-600">{activeWorkflows.length}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-500">In progress</span>
-                  <span className="font-semibold text-emerald-600">{workflowsInProgress}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-500">Completed</span>
-                  <span className="font-semibold text-slate-600">{workflowsCompleted}</span>
-                </div>
-                <div className="pt-3 text-xs uppercase tracking-wide text-slate-400">Top workflows</div>
-                {activeWorkflows.length === 0 ? (
-                  <p className="text-sm text-slate-500">No workflows running.</p>
-                ) : (
-                  <div className="space-y-3">
-                    {activeWorkflows.slice(0, 3).map((workflow) => {
-                      const totalSteps = workflow.steps.length || 1;
-                      const completedSteps = workflow.steps.filter((step) => step.status === "completed").length;
-                      const progress = Math.round((completedSteps / totalSteps) * 100);
-                      return (
-                        <div key={workflow.id} className="rounded-lg border border-slate-200 p-3">
-                          <div className="flex items-center justify-between gap-2">
-                            <p className="text-sm font-semibold text-slate-800">{workflow.name}</p>
-                            <Badge variant="outline" className="text-[10px] uppercase">
-                              {workflow.status.replace("_", " ")}
-                            </Badge>
-                          </div>
-                          <div className="mt-2 flex items-center gap-3">
-                            <Progress value={progress} className="h-1.5 flex-1" />
-                            <span className="text-xs text-slate-500">{progress}%</span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                    {activeWorkflows.length > 3 && (
-                      <p className="text-xs text-slate-500">+ {activeWorkflows.length - 3} more running</p>
-                    )}
-                  </div>
-                )}
-                <Link href="/smcr/workflows" className="text-xs text-sky-600 hover:underline">
-                  View workflows
-                </Link>
               </CardContent>
             </Card>
 
@@ -476,18 +629,62 @@ export function SMCRClient() {
             </Card>
           </div>
 
+          {/* Analytics Section - Collapsible */}
+          <details className="group">
+            <summary className="cursor-pointer list-none">
+              <Card className="border-slate-200">
+                <CardHeader className="flex flex-row items-center justify-between py-3">
+                  <div className="flex items-center gap-2">
+                    <CardTitle className="text-base">Analytics</CardTitle>
+                    <CardDescription className="text-xs">Workflow throughput and training readiness</CardDescription>
+                  </div>
+                  <ChevronRight className="h-5 w-5 text-slate-400 transition-transform group-open:rotate-90" />
+                </CardHeader>
+              </Card>
+            </summary>
+            <Card className="mt-2 border-slate-200">
+              <CardContent className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
+                <div className="space-y-2">
+                  <p className="text-sm font-semibold text-slate-700">Workflow status</p>
+                  <div className="h-48">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={workflowStatusChart} barSize={28}>
+                        <XAxis dataKey="name" stroke="#94a3b8" tickLine={false} axisLine={false} />
+                        <Tooltip cursor={{ fill: "rgba(148,163,184,0.15)" }} />
+                        <Bar dataKey="value" fill="#0ea5e9" radius={[6, 6, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-sm font-semibold text-slate-700">Training completion distribution</p>
+                  <div className="h-48">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={trainingDistribution} barGap={8}>
+                        <XAxis dataKey="name" stroke="#94a3b8" tickLine={false} axisLine={false} />
+                        <Tooltip cursor={{ fill: "rgba(148,163,184,0.15)" }} />
+                        <Bar dataKey="value" fill="#22c55e" radius={[6, 6, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </details>
+
+          {/* Next Actions */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Next Actions</CardTitle>
               <CardDescription>Shortcuts across the SM&CR workspace.</CardDescription>
             </CardHeader>
             <CardContent className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
-              <ActionLink href="/smcr/people" label="Update F&P Records" icon={ClipboardCheck} description="Capture assessment outcomes, attach supporting evidence, and update documentation." />
-              <ActionLink href="/smcr/smfs" label="Assign SMFs" icon={Shield} description="Record statements of responsibility and ensure SMF coverage." />
-              <ActionLink href="/smcr/certifications" label="Manage Certification" icon={FileText} description="Track certification renewals and CPD evidence." />
-              <ActionLink href="/smcr/fitness-propriety" label="Fitness & Propriety" icon={Target} description="Review detailed fitness and propriety assessments." />
-              <ActionLink href="/smcr/conduct-rules" label="Conduct Rules" icon={Award} description="Monitor conduct rule attestations and breaches." />
-              <ActionLink href="/smcr/workflows" label="Workflow Templates" icon={Users} description="Launch SM&CR workflow checklists and attestations." />
+              <ActionLinkWithIcon href="/smcr/people" label="Update F&P Records" Icon={PeopleIcon} description="Capture assessment outcomes, attach supporting evidence, and update documentation." />
+              <ActionLinkWithIcon href="/smcr/smfs" label="Assign SMFs" Icon={SmfIcon} description="Record statements of responsibility and ensure SMF coverage." />
+              <ActionLinkWithIcon href="/smcr/certifications" label="Manage Certification" Icon={CertificationIcon} description="Track certification renewals and CPD evidence." />
+              <ActionLinkWithIcon href="/smcr/fitness-propriety" label="Fitness & Propriety" Icon={FitnessProprietyIcon} description="Review detailed fitness and propriety assessments." />
+              <ActionLinkWithIcon href="/smcr/conduct-rules" label="Conduct Rules" Icon={ConductRulesIcon} description="Monitor conduct rule attestations and breaches." />
+              <ActionLinkWithIcon href="/smcr/workflows" label="Workflow Templates" Icon={WorkflowsIcon} description="Launch SM&CR workflow checklists and attestations." />
             </CardContent>
           </Card>
         </>
@@ -510,6 +707,27 @@ function SummaryCard({ icon: Icon, label, value, accent }: SummaryCardProps) {
   );
 }
 
+type ClickableSummaryCardProps = SummaryCardProps & {
+  onClick: () => void;
+};
+
+function ClickableSummaryCard({ icon: Icon, label, value, accent, onClick }: ClickableSummaryCardProps) {
+  return (
+    <Card
+      className="cursor-pointer transition-all hover:shadow-md hover:border-slate-300"
+      onClick={onClick}
+    >
+      <CardContent className="flex items-center justify-between p-4">
+        <div>
+          <p className="text-sm text-slate-500">{label}</p>
+          <p className="text-2xl font-bold text-slate-900">{value}</p>
+        </div>
+        <Icon className={cn("h-9 w-9", accent)} />
+      </CardContent>
+    </Card>
+  );
+}
+
 function ActionLink({ href, label, description, icon: Icon }: ActionLinkProps) {
   return (
     <Link
@@ -521,6 +739,28 @@ function ActionLink({ href, label, description, icon: Icon }: ActionLinkProps) {
         <span className="text-sm font-semibold text-slate-900 group-hover:text-sky-600">{label}</span>
       </div>
       <p className="text-xs text-slate-500">{description}</p>
+    </Link>
+  );
+}
+
+type ActionLinkWithIconProps = {
+  href: string;
+  label: string;
+  description: string;
+  Icon: React.ComponentType<{ size?: number; className?: string }>;
+};
+
+function ActionLinkWithIcon({ href, label, description, Icon }: ActionLinkWithIconProps) {
+  return (
+    <Link
+      href={href}
+      className="group flex items-start gap-3 rounded-xl border border-slate-200 p-4 transition hover:border-sky-300 hover:shadow-sm"
+    >
+      <Icon size={40} className="flex-shrink-0" />
+      <div className="flex flex-col gap-1">
+        <span className="text-sm font-semibold text-slate-900 group-hover:text-sky-600">{label}</span>
+        <p className="text-xs text-slate-500">{description}</p>
+      </div>
     </Link>
   );
 }

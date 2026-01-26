@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
-import { generateTrendData } from "@/lib/chart-utils";
+import { generateTrendData, getMonthKey, type TrendPoint } from "@/lib/chart-utils";
 import { useToast } from "@/components/toast-provider";
 import { Plus, Loader2, User, Shield, AlertTriangle, CheckCircle, Clock, FileCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -95,6 +95,7 @@ export function PEPRegisterClient() {
   });
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [drillDownFilter, setDrillDownFilter] = useState<{ key: string; value: string } | null>(null);
+  const [monthFilter, setMonthFilter] = useState<{ key: string; label: string } | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingRecord, setEditingRecord] = useState<PEPRecord | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -237,7 +238,7 @@ export function PEPRegisterClient() {
   };
 
   // Filter records
-  const filteredRecords = useMemo(() => {
+  const baseFilteredRecords = useMemo(() => {
     return records.filter((r) => {
       const matchesSearch =
         r.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -255,6 +256,11 @@ export function PEPRegisterClient() {
     });
   }, [records, searchQuery, filterValues, drillDownFilter]);
 
+  const filteredRecords = useMemo(() => {
+    if (!monthFilter) return baseFilteredRecords;
+    return baseFilteredRecords.filter((r) => getMonthKey(r.identification_date) === monthFilter.key);
+  }, [baseFilteredRecords, monthFilter]);
+
   // Pagination
   const {
     paginatedData,
@@ -264,40 +270,40 @@ export function PEPRegisterClient() {
   // Statistics
   const stats = useMemo(
     () => ({
-      total: records.length,
-      active: records.filter((r) => r.status === "active").length,
-      highRisk: records.filter((r) => r.risk_rating === "high" || r.risk_rating === "critical").length,
-      pendingEDD: records.filter((r) => !r.edd_completed).length,
-      eddCompleted: records.filter((r) => r.edd_completed).length,
+      total: filteredRecords.length,
+      active: filteredRecords.filter((r) => r.status === "active").length,
+      highRisk: filteredRecords.filter((r) => r.risk_rating === "high" || r.risk_rating === "critical").length,
+      pendingEDD: filteredRecords.filter((r) => !r.edd_completed).length,
+      eddCompleted: filteredRecords.filter((r) => r.edd_completed).length,
     }),
-    [records]
+    [filteredRecords]
   );
 
   // Chart data
   const riskChartData = useMemo(
     () => [
-      { label: "Critical", value: records.filter((r) => r.risk_rating === "critical").length, color: riskChartColors.critical },
-      { label: "High", value: records.filter((r) => r.risk_rating === "high").length, color: riskChartColors.high },
-      { label: "Medium", value: records.filter((r) => r.risk_rating === "medium").length, color: riskChartColors.medium },
-      { label: "Low", value: records.filter((r) => r.risk_rating === "low").length, color: riskChartColors.low },
+      { label: "Critical", value: filteredRecords.filter((r) => r.risk_rating === "critical").length, color: riskChartColors.critical },
+      { label: "High", value: filteredRecords.filter((r) => r.risk_rating === "high").length, color: riskChartColors.high },
+      { label: "Medium", value: filteredRecords.filter((r) => r.risk_rating === "medium").length, color: riskChartColors.medium },
+      { label: "Low", value: filteredRecords.filter((r) => r.risk_rating === "low").length, color: riskChartColors.low },
     ],
-    [records]
+    [filteredRecords]
   );
 
   const categoryChartData = useMemo(() => {
     const counts: Record<string, number> = {};
-    records.forEach((r) => {
+    filteredRecords.forEach((r) => {
       counts[r.pep_category] = (counts[r.pep_category] || 0) + 1;
     });
     return Object.entries(counts).map(([cat, count]) => ({
       label: pepCategoryLabels[cat] || cat,
       value: count,
     }));
-  }, [records]);
+  }, [filteredRecords]);
 
   const trendData = useMemo(() => {
-    return generateTrendData(records, 6, 'created_at');
-  }, [records]);
+    return generateTrendData(baseFilteredRecords, 6, 'identification_date');
+  }, [baseFilteredRecords]);
 
   // Table columns
   const columns: Column<PEPRecord>[] = [
@@ -403,6 +409,19 @@ export function PEPRegisterClient() {
     }
   };
 
+  const handleMonthFilter = (point: TrendPoint) => {
+    const key = point.monthKey || point.label;
+    if (!key) return;
+    if (monthFilter?.key === key) {
+      setMonthFilter(null);
+      return;
+    }
+    const label = point.startDate
+      ? new Date(point.startDate).toLocaleDateString("en-GB", { month: "short", year: "numeric" })
+      : point.label;
+    setMonthFilter({ key, label });
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center py-12">
@@ -483,6 +502,16 @@ export function PEPRegisterClient() {
           </Button>
         </div>
       )}
+      {monthFilter && (
+        <div className="flex items-center gap-2 rounded-lg bg-slate-50 px-4 py-2">
+          <span className="text-sm text-slate-700">
+            Filtered by month: <strong>{monthFilter.label}</strong>
+          </span>
+          <Button variant="ghost" size="sm" onClick={() => setMonthFilter(null)} className="h-6 text-slate-600 hover:text-slate-700">
+            Clear month
+          </Button>
+        </div>
+      )}
 
       {/* Dashboard View */}
       {viewMode === "dashboard" && (
@@ -542,7 +571,13 @@ export function PEPRegisterClient() {
             />
           </div>
 
-          <TrendChart data={trendData} title="PEP Identifications (6 Months)" color="#f43f5e" />
+          <TrendChart
+            data={trendData}
+            title="PEP Identifications (6 Months)"
+            color="#f43f5e"
+            onPointClick={handleMonthFilter}
+            activePointKey={monthFilter?.key}
+          />
         </div>
       )}
 

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -94,7 +95,6 @@ interface ReviewGate {
   section_instance_id?: string;
   reviewer_id?: string | null;
   reviewed_at?: string | null;
-  notes?: string | null;
   client_notes?: string | null;
 }
 
@@ -110,6 +110,27 @@ const REVIEWER_ROLE_OPTIONS = [
   { value: "all", label: "All Roles" },
   { value: "client", label: "Client Review" },
   { value: "consultant", label: "Consultant Review" },
+];
+
+const QUICK_CHECKLIST = [
+  { id: "firm-profile", category: "Documents", label: "Firm profile complete (legal entity, permissions, scope)" },
+  { id: "business-plan", category: "Documents", label: "Business plan narrative drafted" },
+  { id: "financial-forecasts", category: "Documents", label: "Financial forecasts (3-year) uploaded" },
+  { id: "wind-down", category: "Documents", label: "Wind-down plan prepared" },
+  { id: "psd-individuals", category: "Governance", label: "PSD/key persons identified and documented" },
+  { id: "controllers", category: "Governance", label: "Controllers list verified (10%/20%/33%/50%)" },
+  { id: "governance-forums", category: "Governance", label: "Governance forums and committees documented" },
+  { id: "risk-register", category: "Governance", label: "Risk register completed" },
+  { id: "cmp", category: "Governance", label: "Compliance Monitoring Plan (CMP) approved" },
+  { id: "aml-ctf", category: "Policies", label: "AML/CTF policy approved" },
+  { id: "safeguarding", category: "Policies", label: "Safeguarding policy in place (if applicable)" },
+  { id: "complaints", category: "Policies", label: "Complaints handling policy approved" },
+  { id: "fin-promotions", category: "Policies", label: "Financial promotions policy approved" },
+  { id: "outsourcing", category: "Policies", label: "Outsourcing & third-party risk policy approved" },
+  { id: "info-security", category: "Policies", label: "Information & cyber security policy approved" },
+  { id: "op-resilience", category: "Operational", label: "Operational resilience & incident response documented" },
+  { id: "consumer-duty", category: "Operational", label: "Consumer duty & vulnerable customers plan documented" },
+  { id: "evidence-pack", category: "Operational", label: "Evidence pack assembled for FCA submission" },
 ];
 
 function getStateColor(state: string) {
@@ -136,8 +157,8 @@ function ReviewSectionGroup({
   sectionTitle: string;
   items: ReviewGate[];
   pack: PackRow;
-  notes: Record<string, { notes: string; clientNotes: string }>;
-  setNotes: React.Dispatch<React.SetStateAction<Record<string, { notes: string; clientNotes: string }>>>;
+  notes: Record<string, { clientNotes: string }>;
+  setNotes: React.Dispatch<React.SetStateAction<Record<string, { clientNotes: string }>>>;
   onUpdate: (gateId: string, state: string) => Promise<void>;
   onBulkApprove: (ids: string[]) => Promise<void>;
   isApproving: boolean;
@@ -280,29 +301,11 @@ function ReviewSectionGroup({
                   </div>
                 </div>
 
-                {/* Notes section (collapsed by default) */}
                 <details className="mt-2">
                   <summary className="cursor-pointer text-xs text-slate-400 hover:text-slate-600">
-                    Notes & details
+                    Client notes
                   </summary>
-                  <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                    <div className="space-y-1">
-                      <Label className="text-xs text-slate-500">Internal Notes</Label>
-                      <Textarea
-                        className="text-xs h-16"
-                        placeholder="Internal notes..."
-                        value={notes[gate.id]?.notes ?? gate.notes ?? ""}
-                        onChange={(e) =>
-                          setNotes((prev) => ({
-                            ...prev,
-                            [gate.id]: {
-                              notes: e.target.value,
-                              clientNotes: prev[gate.id]?.clientNotes ?? gate.client_notes ?? "",
-                            },
-                          }))
-                        }
-                      />
-                    </div>
+                  <div className="mt-2 space-y-2">
                     <div className="space-y-1">
                       <Label className="text-xs text-slate-500">Client Notes</Label>
                       <Textarea
@@ -313,7 +316,6 @@ function ReviewSectionGroup({
                           setNotes((prev) => ({
                             ...prev,
                             [gate.id]: {
-                              notes: prev[gate.id]?.notes ?? gate.notes ?? "",
                               clientNotes: e.target.value,
                             },
                           }))
@@ -353,7 +355,7 @@ export function ReviewClient() {
   const [pack, setPack] = useState<PackRow | null>(null);
   const [readiness, setReadiness] = useState<ReadinessSummary | null>(null);
   const [review, setReview] = useState<ReviewGate[]>([]);
-  const [notes, setNotes] = useState<Record<string, { notes: string; clientNotes: string }>>({});
+  const [notes, setNotes] = useState<Record<string, { clientNotes: string }>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isApproving, setIsApproving] = useState(false);
@@ -364,6 +366,12 @@ export function ReviewClient() {
 
   // Mutation error state
   const [mutationError, setMutationError] = useState<string | null>(null);
+  const [checklistState, setChecklistState] = useState<Record<string, boolean>>(() =>
+    QUICK_CHECKLIST.reduce((acc, item) => {
+      acc[item.id] = false;
+      return acc;
+    }, {} as Record<string, boolean>)
+  );
 
   useEffect(() => {
     const load = async () => {
@@ -417,11 +425,11 @@ export function ReviewClient() {
     setReview((prev) => prev.map((item) => (item.id === gateId ? { ...item, state } : item)));
 
     try {
-      const payload = notes[gateId] || { notes: "", clientNotes: "" };
+      const payload = notes[gateId] || { clientNotes: "" };
       const response = await fetch(`/api/authorization-pack/packs/${pack.id}/review`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ gateId, state, notes: payload.notes, clientNotes: payload.clientNotes }),
+        body: JSON.stringify({ gateId, state, clientNotes: payload.clientNotes }),
       });
       if (!response.ok) {
         throw new Error("Failed to update review status");
@@ -512,6 +520,19 @@ export function ReviewClient() {
   }, [review]);
 
   const completionPercent = stats.total > 0 ? Math.round((stats.approved / stats.total) * 100) : 0;
+  const checklistGroups = useMemo(() => {
+    const groups = new Map<string, typeof QUICK_CHECKLIST>();
+    QUICK_CHECKLIST.forEach((item) => {
+      const existing = groups.get(item.category) ?? [];
+      existing.push(item);
+      groups.set(item.category, existing);
+    });
+    return Array.from(groups.entries());
+  }, []);
+  const completedChecklistCount = QUICK_CHECKLIST.filter((item) => checklistState[item.id]).length;
+  const toggleChecklistItem = (id: string) => {
+    setChecklistState((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
 
   if (isLoading) {
     return (
@@ -603,6 +624,36 @@ export function ReviewClient() {
           </CardContent>
         </Card>
       </div>
+
+      <Card className="border border-slate-200">
+        <CardHeader className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          <div>
+            <CardTitle>Application Ready Checklist</CardTitle>
+            <CardDescription>Quick 15-20 item sweep before submission.</CardDescription>
+          </div>
+          <Badge variant="outline" className="border-slate-200 text-slate-600">
+            {completedChecklistCount}/{QUICK_CHECKLIST.length} complete
+          </Badge>
+        </CardHeader>
+        <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {checklistGroups.map(([category, items]) => (
+            <div key={category} className="space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">{category}</p>
+              <div className="space-y-2">
+                {items.map((item) => (
+                  <label key={item.id} className="flex items-start gap-2 text-sm text-slate-600">
+                    <Checkbox
+                      checked={Boolean(checklistState[item.id])}
+                      onCheckedChange={() => toggleChecklistItem(item.id)}
+                    />
+                    <span>{item.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
 
       {/* Filters */}
       <Card className="border border-slate-200">

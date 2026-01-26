@@ -24,8 +24,10 @@ export interface LearningObjective {
 export interface MicroLesson {
   id: string;
   title: string;
+  type?: 'content' | 'quiz' | 'scenario' | 'video'; // lesson type for content modules
   duration: number; // in minutes
-  components: {
+  content?: Record<string, unknown>; // flexible content structure for content modules
+  components?: {
     hook: {
       type: 'scenario' | 'question' | 'statistic';
       content: string;
@@ -47,24 +49,41 @@ export interface MicroLesson {
     };
   };
   prerequisites?: string[];
-  learningObjectives: string[];
+  learningObjectives?: string[];
 }
 
 export interface TrainingModule {
   id: string;
   title: string;
   description: string;
-  pathway: string;
-  estimatedDuration: number; // total hours
+  pathway?: string;
+  category?: string; // alternative to pathway
+  estimatedDuration?: number; // total hours
+  duration?: number; // alternative to estimatedDuration (in minutes)
+  difficulty?: 'beginner' | 'intermediate' | 'advanced';
   lessons: MicroLesson[];
-  assessments: Assessment[];
+  assessments?: Assessment[];
   prerequisites?: string[];
+  prerequisiteModules?: string[]; // alternative to prerequisites
   targetPersonas: string[];
-  regulatoryMapping: string[];
-  competencies: Record<string, CompetencyLevel>;
-  version: string;
-  lastUpdated: Date;
-  status: 'draft' | 'review' | 'published' | 'archived';
+  tags?: string[];
+  learningOutcomes?: string[];
+  regulatoryMapping?: string[];
+  competencies?: Record<string, CompetencyLevel>;
+  version?: string;
+  lastUpdated?: Date;
+  status?: 'draft' | 'review' | 'published' | 'archived';
+  hook?: {
+    type: string;
+    title: string;
+    content: string;
+    keyQuestion?: string;
+  };
+  practiceScenarios?: Array<Record<string, unknown>>;
+  assessmentQuestions?: Array<Record<string, unknown>>;
+  resources?: Array<Record<string, unknown>>;
+  summary?: Record<string, unknown>;
+  visualAssets?: Record<string, unknown>;
 }
 
 export interface LearningPathway {

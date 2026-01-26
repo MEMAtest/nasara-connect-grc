@@ -24,6 +24,14 @@ interface ReadinessSummary {
   review: number;
 }
 
+interface ProjectSummary {
+  id: string;
+  name: string;
+  permissionCode?: string | null;
+  permissionName?: string | null;
+  packId?: string | null;
+}
+
 interface WorkspaceHeaderProps {
   pack: PackSummary | null;
   readiness?: ReadinessSummary | null;
@@ -37,8 +45,6 @@ const clampPercent = (value: number | null | undefined) => {
 
 const navItems = [
   { href: "/authorization-pack/workspace", label: "Workspace" },
-  { href: "/authorization-pack/sections", label: "Sections" },
-  { href: "/authorization-pack/review", label: "Review" },
   { href: "/authorization-pack/export", label: "Export" },
 ];
 
@@ -47,6 +53,7 @@ export function WorkspaceHeader({ pack, readiness, showCTA = true }: WorkspaceHe
   const router = useRouter();
   const searchParams = useSearchParams();
   const [packs, setPacks] = useState<PackSummary[]>([]);
+  const [project, setProject] = useState<ProjectSummary | null>(null);
 
   const activePackId = searchParams.get("packId") || pack?.id || "";
   const readinessSummary = readiness
@@ -70,6 +77,25 @@ export function WorkspaceHeader({ pack, readiness, showCTA = true }: WorkspaceHe
     loadPacks();
   }, []);
 
+  useEffect(() => {
+    if (!activePackId) {
+      setProject(null);
+      return;
+    }
+    const loadProject = async () => {
+      const response = await fetchWithTimeout(
+        `/api/authorization-pack/packs/${activePackId}/project`
+      ).catch(() => null);
+      if (!response?.ok) {
+        setProject(null);
+        return;
+      }
+      const data = await response.json();
+      setProject(data.project || null);
+    };
+    loadProject();
+  }, [activePackId]);
+
   const handlePackChange = (value: string) => {
     const params = new URLSearchParams(searchParams.toString());
     if (value) {
@@ -80,6 +106,27 @@ export function WorkspaceHeader({ pack, readiness, showCTA = true }: WorkspaceHe
     const query = params.toString();
     router.push(query ? `${pathname}?${query}` : pathname);
   };
+
+  const phaseItems = project
+    ? [
+        { key: "assessment", label: "Assessment", href: `/authorization-pack/${project.id}/assessment`, phase: 1 },
+        { key: "plan", label: "Plan", href: `/authorization-pack/${project.id}/plan`, phase: 2 },
+        { key: "opinion-pack", label: "Opinion Pack", href: `/authorization-pack/${project.id}/opinion-pack`, phase: 3 },
+        {
+          key: "workspace",
+          label: "Workspace",
+          href: activePackId ? `/authorization-pack/workspace?packId=${activePackId}` : "/authorization-pack/workspace",
+          phase: 4,
+        },
+      ]
+    : [];
+  const isWorkspaceArea = [
+    "/authorization-pack/workspace",
+    "/authorization-pack/sections",
+    "/authorization-pack/review",
+    "/authorization-pack/export",
+    "/authorization-pack/evidence",
+  ].some((route) => pathname.startsWith(route));
 
   return (
     <div className="space-y-4">
@@ -143,11 +190,50 @@ export function WorkspaceHeader({ pack, readiness, showCTA = true }: WorkspaceHe
         </div>
       ) : null}
 
+      {phaseItems.length ? (
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Phases</span>
+          <div className="flex flex-wrap gap-2">
+            {phaseItems.map((item) => {
+              const isActive =
+                (item.key === "assessment" && pathname.includes("/assessment")) ||
+                (item.key === "plan" && pathname.includes("/plan")) ||
+                (item.key === "opinion-pack" && pathname.includes("/opinion-pack")) ||
+                (item.key === "workspace" && isWorkspaceArea);
+              const phaseBadgeClasses = isActive
+                ? "bg-white/20 text-white"
+                : "bg-slate-100 text-slate-500";
+              return (
+                <Button
+                  key={item.href}
+                  variant={isActive ? "default" : "outline"}
+                  className={isActive ? "bg-slate-900 text-white" : "text-slate-600"}
+                  asChild
+                >
+                  <Link href={item.href}>
+                    <span
+                      className={`mr-2 inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] ${phaseBadgeClasses}`}
+                    >
+                      {item.phase}
+                    </span>
+                    {item.label}
+                  </Link>
+                </Button>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
+
       <div className="flex flex-wrap gap-2">
         {navItems.map((item) => {
-          const isActive =
-            pathname === item.href ||
-            (item.href === "/authorization-pack/sections" && pathname.startsWith("/authorization-pack/sections"));
+          const isWorkspaceTab =
+            item.href === "/authorization-pack/workspace" &&
+            (pathname.startsWith("/authorization-pack/workspace") ||
+              pathname.startsWith("/authorization-pack/sections") ||
+              pathname.startsWith("/authorization-pack/review") ||
+              pathname.startsWith("/authorization-pack/evidence"));
+          const isActive = isWorkspaceTab || pathname === item.href;
           const href = activePackId ? `${item.href}?packId=${activePackId}` : item.href;
           return (
             <Button

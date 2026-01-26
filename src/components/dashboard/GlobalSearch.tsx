@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Loader2, FileText, Users, BookOpen, Boxes, X } from "lucide-react";
+import { Search, Loader2, FileText, Users, BookOpen, Boxes, ClipboardList, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SearchResult {
   id: string;
-  type: "assessment" | "policy" | "person" | "case_study" | "module";
+  type: "assessment" | "policy" | "person" | "case_study" | "module" | "register";
   title: string;
   description: string;
   url: string;
@@ -21,6 +21,7 @@ const typeIcons: Record<SearchResult["type"], React.ReactNode> = {
   person: <Users className="h-4 w-4 text-teal-500" />,
   case_study: <BookOpen className="h-4 w-4 text-amber-500" />,
   module: <Boxes className="h-4 w-4 text-slate-500" />,
+  register: <ClipboardList className="h-4 w-4 text-emerald-500" />,
 };
 
 const typeLabels: Record<SearchResult["type"], string> = {
@@ -29,6 +30,7 @@ const typeLabels: Record<SearchResult["type"], string> = {
   person: "Person",
   case_study: "Case Study",
   module: "Module",
+  register: "Register",
 };
 
 export function GlobalSearch() {
@@ -133,7 +135,7 @@ export function GlobalSearch() {
         <input
           ref={inputRef}
           type="search"
-          placeholder="Search modules, people..."
+          placeholder="Search modules, policies, registers..."
           className="w-44 bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none lg:w-64"
           value={query}
           onChange={(e) => {

@@ -6,6 +6,7 @@ import { Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { NasaraLoader } from "@/components/ui/nasara-loader";
 import { Progress } from "@/components/ui/progress";
 import {
   AlertDialog,
@@ -18,6 +19,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
+import { getControllerItems, getOtherDocumentationItems, getPsdItems } from "@/lib/authorization-pack-integrations";
 
 interface ReadinessSummary {
   overall: number;
@@ -39,7 +41,6 @@ interface ProjectRow {
   pack_template_name?: string | null;
   typical_timeline_weeks?: number | null;
   policy_templates?: string[];
-  training_requirements?: string[];
   smcr_roles?: string[];
   readiness?: ReadinessSummary | null;
 }
@@ -119,7 +120,9 @@ export function ProjectsClient() {
 
       {isLoading ? (
         <Card className="border border-slate-200">
-          <CardContent className="p-8 text-center text-slate-500">Loading projects...</CardContent>
+          <CardContent className="p-8">
+            <NasaraLoader label="Loading projects..." />
+          </CardContent>
         </Card>
       ) : null}
 
@@ -156,8 +159,11 @@ export function ProjectsClient() {
           {projects.map((project) => {
             const readiness = project.readiness;
             const policiesCount = project.policy_templates?.length || 0;
-            const trainingCount = project.training_requirements?.length || 0;
-            const smcrCount = project.smcr_roles?.length || 0;
+            const psdCount = getPsdItems().length;
+            const controllerCount = getControllerItems().length;
+            const otherDocsCount = getOtherDocumentationItems().length;
+            const psdAssignedCount = 0;
+            const controllerAssignedCount = 0;
 
             return (
               <Card key={project.id} className="border border-slate-200">
@@ -209,8 +215,9 @@ export function ProjectsClient() {
                     </div>
                     <div className="flex flex-wrap gap-3 text-xs text-slate-500">
                       <span>{policiesCount} policies</span>
-                      <span>{trainingCount} training modules</span>
-                      <span>{smcrCount} Key Persons roles</span>
+                      <span>{psdAssignedCount} of {psdCount} PSD roles</span>
+                      <span>{controllerAssignedCount} of {controllerCount} controllers</span>
+                      <span>{otherDocsCount} other documents</span>
                     </div>
                   </div>
                   <div className="flex flex-col gap-3">

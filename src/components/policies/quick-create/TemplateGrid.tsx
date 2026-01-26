@@ -6,14 +6,17 @@ import type { PolicyTemplate } from "@/lib/policies/templates";
 interface TemplateGridProps {
   templates: PolicyTemplate[];
   selectedTemplateCode?: string;
+  requiredCodes?: string[];
   onSelect: (template: PolicyTemplate) => void;
 }
 
-export function TemplateGrid({ templates, selectedTemplateCode, onSelect }: TemplateGridProps) {
+export function TemplateGrid({ templates, selectedTemplateCode, requiredCodes, onSelect }: TemplateGridProps) {
+  const requiredSet = new Set(requiredCodes ?? []);
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
       {templates.map((template) => {
         const isSelected = template.code === selectedTemplateCode;
+        const isRequired = requiredSet.has(template.code);
         return (
           <button
             key={template.code}
@@ -23,7 +26,9 @@ export function TemplateGrid({ templates, selectedTemplateCode, onSelect }: Temp
               "flex h-full flex-col justify-between rounded-2xl border p-4 text-left transition",
               isSelected
                 ? "border-indigo-500 bg-indigo-50 shadow-sm"
-                : "border-slate-200 bg-white hover:border-slate-300"
+                : isRequired
+                  ? "border-amber-200 bg-amber-50/60 hover:border-amber-300"
+                  : "border-slate-200 bg-white hover:border-slate-300"
             )}
           >
             <div className="space-y-3">
@@ -39,6 +44,11 @@ export function TemplateGrid({ templates, selectedTemplateCode, onSelect }: Temp
               <p className="text-sm text-slate-500">{template.description}</p>
             </div>
             <div className="mt-4 flex flex-wrap gap-2">
+              {isRequired ? (
+                <Badge variant="secondary" className="text-[11px]">
+                  Required
+                </Badge>
+              ) : null}
               <Badge variant="secondary" className="text-[11px]">
                 {template.code}
               </Badge>

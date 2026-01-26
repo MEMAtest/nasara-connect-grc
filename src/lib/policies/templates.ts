@@ -1,6 +1,14 @@
 import type { FirmPermissions } from "./permissions";
 import amlCtfSeedClauses from "./seeds/nasara_policy_aml_ctf.clauses.json";
 import vulnerableSeedClauses from "./seeds/nasara_policy_vulnerable_customers.clauses.json";
+import finPromotionsSeedClauses from "./seeds/nasara_fin_promotions.clauses.json";
+import conflictsSeedClauses from "./seeds/nasara_conflicts.clauses.json";
+import infoSecuritySeedClauses from "./seeds/nasara_info_security.clauses.json";
+import outsourcingSeedClauses from "./seeds/nasara_outsourcing.clauses.json";
+import vulnerableCustomersModuleSeedClauses from "./seeds/nasara_vulnerable_customers_module.clauses.json";
+import antiBriberySeedClauses from "./seeds/nasara_anti_bribery.clauses.json";
+import smcrSeedClauses from "./seeds/nasara_smcr.clauses.json";
+import whistleblowingSeedClauses from "./seeds/nasara_whistleblowing.clauses.json";
 import { NASARA_POLICY_SCAFFOLDS } from "./seeds/nasara_policy_scaffolds";
 import mfsFinancialCrimeClauses from "./seeds/mfs_financial_crime.clauses.json";
 import mfsConsumerDutyClauses from "./seeds/mfs_consumer_duty.clauses.json";
@@ -9,6 +17,14 @@ import mfsComplaintsFragments from "./seeds/mfs_complaints.fragments.json";
 import mfsFinancialCrimeTemplate from "./seeds/mfs_financial_crime.template.json";
 import mfsConsumerDutyTemplate from "./seeds/mfs_consumer_duty.template.json";
 import mfsComplaintsTemplate from "./seeds/mfs_complaints.template.json";
+import finPromotionsTemplate from "./seeds/nasara_fin_promotions.template.json";
+import conflictsTemplate from "./seeds/nasara_conflicts.template.json";
+import infoSecurityTemplate from "./seeds/nasara_info_security.template.json";
+import outsourcingTemplate from "./seeds/nasara_outsourcing.template.json";
+import vulnerableCustomersModuleTemplate from "./seeds/nasara_vulnerable_customers_module.template.json";
+import antiBriberyTemplate from "./seeds/nasara_anti_bribery.template.json";
+import smcrTemplate from "./seeds/nasara_smcr.template.json";
+import whistleblowingTemplate from "./seeds/nasara_whistleblowing.template.json";
 
 export type ClauseCategory = "governance" | "operations" | "customer" | "financial-crime" | "market";
 
@@ -187,6 +203,65 @@ const MFS_SEED_CLAUSES: PolicyClause[] = ([] as DocxSeedClause[])
       appliesTo: appliesTo ? [appliesTo] : undefined,
       variables: clause.variables ?? [],
       source: "mfs",
+    };
+  });
+
+const NASARA_MODULE_SEED_CLAUSES: PolicyClause[] = ([] as DocxSeedClause[])
+  .concat(finPromotionsSeedClauses as unknown as DocxSeedClause[])
+  .concat(conflictsSeedClauses as unknown as DocxSeedClause[])
+  .concat(infoSecuritySeedClauses as unknown as DocxSeedClause[])
+  .concat(outsourcingSeedClauses as unknown as DocxSeedClause[])
+  .concat(vulnerableCustomersModuleSeedClauses as unknown as DocxSeedClause[])
+  .concat(antiBriberySeedClauses as unknown as DocxSeedClause[])
+  .concat(smcrSeedClauses as unknown as DocxSeedClause[])
+  .concat(whistleblowingSeedClauses as unknown as DocxSeedClause[])
+  .map((clause) => {
+    const appliesTo =
+      clause.policy_key === "fin_promotions"
+        ? "FIN_PROMOTIONS"
+        : clause.policy_key === "conflicts"
+          ? "CONFLICTS"
+          : clause.policy_key === "info_security"
+            ? "INFO_SECURITY"
+            : clause.policy_key === "outsourcing"
+              ? "OUTSOURCING"
+              : clause.policy_key === "vulnerable_customers_module"
+                ? "VULNERABLE_CUST"
+                : clause.policy_key === "anti_bribery"
+                  ? "ANTI_BRIBERY"
+                  : clause.policy_key === "smcr"
+                    ? "SMCR"
+                    : clause.policy_key === "whistleblowing"
+                      ? "WHISTLEBLOWING"
+                      : undefined;
+    const category: ClauseCategory =
+      clause.policy_key === "fin_promotions"
+        ? "market"
+        : clause.policy_key === "conflicts"
+          ? "governance"
+          : clause.policy_key === "info_security"
+            ? "operations"
+            : clause.policy_key === "outsourcing"
+              ? "operations"
+              : clause.policy_key === "vulnerable_customers_module"
+                ? "customer"
+                : clause.policy_key === "anti_bribery"
+                  ? "financial-crime"
+                  : clause.policy_key === "smcr"
+                    ? "governance"
+                    : clause.policy_key === "whistleblowing"
+                      ? "governance"
+                      : "governance";
+
+    return {
+      id: clause.id,
+      title: clause.title,
+      summary: summariseMarkdown(clause.body_md),
+      content: clause.body_md,
+      category,
+      appliesTo: appliesTo ? [appliesTo] : undefined,
+      variables: clause.variables ?? [],
+      source: "nasara",
     };
   });
 
@@ -1299,6 +1374,7 @@ const CORE_POLICY_TEMPLATE_CLAUSES: PolicyClause[] = [
 export const POLICY_TEMPLATE_CLAUSES: PolicyClause[] = [
   ...MFS_SEED_CLAUSES,
   ...NASARA_SEED_CLAUSES,
+  ...NASARA_MODULE_SEED_CLAUSES,
   ...NASARA_SCAFFOLD_CLAUSES,
   ...CORE_POLICY_TEMPLATE_CLAUSES,
 ];
@@ -2497,6 +2573,17 @@ const NASARA_POLICY_TEMPLATES: PolicyTemplate[] = [
   }),
 ];
 
+const NASARA_MODULE_TEMPLATES: PolicyTemplate[] = [
+  finPromotionsTemplate as unknown as PolicyTemplate,
+  conflictsTemplate as unknown as PolicyTemplate,
+  infoSecurityTemplate as unknown as PolicyTemplate,
+  outsourcingTemplate as unknown as PolicyTemplate,
+  vulnerableCustomersModuleTemplate as unknown as PolicyTemplate,
+  antiBriberyTemplate as unknown as PolicyTemplate,
+  smcrTemplate as unknown as PolicyTemplate,
+  whistleblowingTemplate as unknown as PolicyTemplate,
+];
+
 const MFS_POLICY_TEMPLATES: PolicyTemplate[] = [
   mfsFinancialCrimeTemplate as unknown as PolicyTemplate,
   {
@@ -2538,8 +2625,21 @@ const MFS_POLICY_TEMPLATES: PolicyTemplate[] = [
 
 export const POLICY_TEMPLATES: PolicyTemplate[] = [
   ...MFS_POLICY_TEMPLATES,
-  ...NASARA_POLICY_TEMPLATES.filter((template) => !["AML_CTF"].includes(template.code)),
-  ...CORE_POLICY_TEMPLATES.filter((template) => !["AML_CTF", "VULNERABLE_CUST", "CONSUMER_DUTY", "COMPLAINTS"].includes(template.code)),
+  ...NASARA_POLICY_TEMPLATES.filter((template) => !["AML_CTF", "VULNERABLE_CUST"].includes(template.code)),
+  ...NASARA_MODULE_TEMPLATES,
+  ...CORE_POLICY_TEMPLATES.filter(
+    (template) =>
+      ![
+        "AML_CTF",
+        "VULNERABLE_CUST",
+        "CONSUMER_DUTY",
+        "COMPLAINTS",
+        "FIN_PROMOTIONS",
+        "CONFLICTS",
+        "OUTSOURCING",
+        "INFO_SECURITY",
+      ].includes(template.code),
+  ),
 ];
 
 export function getTemplateByCode(code: string): PolicyTemplate | undefined {

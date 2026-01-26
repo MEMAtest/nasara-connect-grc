@@ -8,7 +8,7 @@ import { StepSetup } from "./StepSetup";
 import { StepConfigure } from "./StepConfigure";
 import { StepContentBuilder } from "./StepContentBuilder";
 import { StepReviewFinish } from "./StepReviewFinish";
-import type { WizardFormState, WizardStepDefinition } from "./types";
+import type { FirmProfile, WizardFormState, WizardStepDefinition } from "./types";
 import { DEFAULT_PERMISSIONS } from "@/lib/policies";
 import { assembleComplaintsPolicy, DEFAULT_COMPLAINTS_ANSWERS } from "@/lib/policies/assemblers/complaints";
 import { toComplaintsDetailLevel } from "./detail-level";
@@ -53,7 +53,10 @@ const wizardSpring = {
 
 const DEFAULT_DETAIL_LEVEL: DetailLevel = "standard";
 
-const buildInitialState = (permissionsOverride?: typeof DEFAULT_PERMISSIONS): WizardFormState => ({
+const buildInitialState = (
+  permissionsOverride?: typeof DEFAULT_PERMISSIONS,
+  firmProfileOverride?: Partial<FirmProfile>
+): WizardFormState => ({
   firmProfile: {
     name: "",
     tradingName: "",
@@ -62,6 +65,7 @@ const buildInitialState = (permissionsOverride?: typeof DEFAULT_PERMISSIONS): Wi
     sicCodes: [],
     fcaReference: "",
     website: "",
+    ...(firmProfileOverride ?? {}),
   },
   permissions: { ...(permissionsOverride ?? DEFAULT_PERMISSIONS) },
   selectedTemplate: undefined,
@@ -87,6 +91,8 @@ const buildInitialState = (permissionsOverride?: typeof DEFAULT_PERMISSIONS): Wi
 interface PolicyWizardProps {
   initialPermissions?: typeof DEFAULT_PERMISSIONS;
   initialTemplateCode?: string;
+  initialFirmProfile?: Partial<FirmProfile>;
+  availableTemplates?: PolicyTemplate[];
   onFinish?: (state: WizardFormState) => void;
   isSubmitting?: boolean;
 }
@@ -123,9 +129,18 @@ function applyTemplateSelection(state: WizardFormState, template: PolicyTemplate
   };
 }
 
-export function PolicyWizard({ initialPermissions, initialTemplateCode, onFinish, isSubmitting }: PolicyWizardProps) {
+export function PolicyWizard({
+  initialPermissions,
+  initialTemplateCode,
+  initialFirmProfile,
+  availableTemplates,
+  onFinish,
+  isSubmitting,
+}: PolicyWizardProps) {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const [formState, setFormState] = useState<WizardFormState>(buildInitialState(initialPermissions));
+  const [formState, setFormState] = useState<WizardFormState>(
+    buildInitialState(initialPermissions, initialFirmProfile)
+  );
   const currentStep = STEP_DEFINITIONS[currentStepIndex];
 
   const totalSteps = STEP_DEFINITIONS.length;
@@ -136,12 +151,24 @@ export function PolicyWizard({ initialPermissions, initialTemplateCode, onFinish
   };
 
   useEffect(() => {
-    if (!initialPermissions) return;
+    if (!initialPermissions && !initialFirmProfile) return;
     setFormState((state) => {
-      const nextState = {
-        ...state,
-        permissions: { ...initialPermissions },
-      };
+      let nextState = state;
+      if (initialPermissions) {
+        nextState = {
+          ...nextState,
+          permissions: { ...initialPermissions },
+        };
+      }
+      if (initialFirmProfile) {
+        nextState = {
+          ...nextState,
+          firmProfile: {
+            ...nextState.firmProfile,
+            ...initialFirmProfile,
+          },
+        };
+      }
       if (!initialTemplateCode || nextState.selectedTemplate) {
         return nextState;
       }
@@ -151,7 +178,7 @@ export function PolicyWizard({ initialPermissions, initialTemplateCode, onFinish
       }
       return applyTemplateSelection(nextState, template);
     });
-  }, [initialPermissions, initialTemplateCode]);
+  }, [initialPermissions, initialFirmProfile, initialTemplateCode]);
 
   const handleFinish = () => {
     onFinish?.(formState);
@@ -168,7 +195,13 @@ export function PolicyWizard({ initialPermissions, initialTemplateCode, onFinish
         );
       case "configure":
         return (
-          <StepConfigure state={formState} updateState={updateState} onNext={goNext} onBack={goBack} />
+          <StepConfigure
+            state={formState}
+            updateState={updateState}
+            onNext={goNext}
+            onBack={goBack}
+            availableTemplates={availableTemplates}
+          />
         );
       case "assemble":
         return (

@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { NasaraLoader } from "@/components/ui/nasara-loader";
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 import { ProjectHeader } from "./ProjectHeader";
 import { BarChart3, List, LayoutGrid, ChevronDown, ChevronRight } from "lucide-react";
@@ -241,7 +242,7 @@ function MilestoneTooltip({
   return (
     <div
       role="tooltip"
-      className={`absolute bottom-full z-50 mb-2 hidden w-64 rounded-lg border border-slate-200 bg-white p-3 shadow-lg group-hover:block group-focus:block ${positionClasses}`}
+      className={`absolute bottom-full z-50 mb-2 hidden w-64 rounded-lg border border-slate-200 bg-white p-3 shadow-lg group-hover:block group-focus-within:block ${positionClasses}`}
     >
       <div className="mb-2 flex items-center gap-2">
         <div className={`h-3 w-3 rounded-full ${config.dot}`} />
@@ -291,9 +292,8 @@ function LoadingOverlay({ message }: { message: string }) {
       aria-busy="true"
       className="absolute inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm"
     >
-      <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-6 py-4 shadow-lg">
-        <div className="h-5 w-5 animate-spin rounded-full border-2 border-teal-500 border-t-transparent" aria-hidden="true" />
-        <span className="text-sm font-medium text-slate-700">{message}</span>
+      <div className="rounded-lg border border-slate-200 bg-white px-6 py-4 shadow-lg">
+        <NasaraLoader size="sm" label={message} />
       </div>
     </div>
   );
@@ -665,11 +665,8 @@ export function PlanClient() {
   if (isLoading) {
     return (
       <Card className="border border-slate-200">
-        <CardContent className="p-8 text-center text-slate-500">
-          <div className="flex items-center justify-center gap-2">
-            <div className="h-4 w-4 animate-spin rounded-full border-2 border-teal-500 border-t-transparent" />
-            Loading plan...
-          </div>
+        <CardContent className="p-8">
+          <NasaraLoader label="Loading plan..." />
         </CardContent>
       </Card>
     );
@@ -1042,6 +1039,7 @@ export function PlanClient() {
                                     <div
                                       role="button"
                                       tabIndex={0}
+                                      title={`${milestone.title} - ${getPhaseLabel(milestone.phase)} - Week ${milestone.startWeek} to ${milestone.endWeek} - ${milestone.status.replace(/-/g, " ")}`}
                                       aria-label={`${milestone.title}: ${getPhaseLabel(milestone.phase)}, Week ${milestone.startWeek} to ${milestone.endWeek}, Status: ${milestone.status.replace(/-/g, " ")}`}
                                       onKeyDown={(e) => {
                                         if (e.key === "Enter" || e.key === " ") {

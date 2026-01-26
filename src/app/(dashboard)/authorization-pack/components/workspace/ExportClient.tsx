@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { NasaraLoader } from "@/components/ui/nasara-loader";
 import { WorkspaceHeader } from "./WorkspaceHeader";
 import { PackType } from "@/lib/authorization-pack-templates";
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
@@ -13,14 +15,6 @@ function SparklesIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
-    </svg>
-  );
-}
-
-function DocumentIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
     </svg>
   );
 }
@@ -40,6 +34,8 @@ function ShieldCheckIcon({ className }: { className?: string }) {
     </svg>
   );
 }
+
+const ensurePdfFilename = (value: string) => (value.toLowerCase().endsWith(".pdf") ? value : `${value}.pdf`);
 
 interface PackRow {
   id: string;
@@ -68,6 +64,17 @@ interface ValidationResult {
   summary: string;
 }
 
+interface GenerationJob {
+  id: string;
+  status: string;
+  progress?: number | null;
+  currentStep?: string | null;
+  errorMessage?: string | null;
+  documentId?: string | null;
+  documentName?: string | null;
+  payload?: { warnings?: string[] };
+}
+
 export function ExportClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -82,6 +89,8 @@ export function ExportClient() {
   const [downloadingFormat, setDownloadingFormat] = useState<string | null>(null);
   const [downloadError, setDownloadError] = useState<string | null>(null);
   const [downloadSuccess, setDownloadSuccess] = useState<string | null>(null);
+  const [opinionJob, setOpinionJob] = useState<GenerationJob | null>(null);
+  const opinionInFlight = useRef(false);
 
   const downloadFile = async (
     endpoint: string,
@@ -123,6 +132,107 @@ export function ExportClient() {
     } finally {
       setDownloadingFormat(null);
     }
+  };
+
+  const downloadOpinionDocument = async (documentId: string, documentName?: string | null) => {
+    if (!pack) return;
+    const safeName = documentName
+      ? documentName.replace(/[^a-z0-9-_]+/gi, "-").replace(/-+/g, "-")
+      : `${pack.name}-opinion-pack`;
+    await downloadFile(
+      `/api/authorization-pack/packs/${pack.id}/documents/${documentId}`,
+      ensurePdfFilename(`${safeName}`),
+      "Opinion PDF"
+    );
+  };
+
+  const runOpinionPackJob = async (jobId: string) => {
+    if (!pack || opinionInFlight.current) return;
+    opinionInFlight.current = true;
+    setDownloadError(null);
+
+    try {
+      let completed = false;
+      let attempts = 0;
+      while (!completed && attempts < 30) {
+        attempts += 1;
+        const response = await fetch(`/api/authorization-pack/packs/${pack.id}/generate-business-plan`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "run", jobId, batchSize: 1 }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
+          setDownloadError(errorData.details ? `${errorData.error}: ${errorData.details}` : errorData.error || "Failed to generate opinion pack");
+          break;
+        }
+
+        const data = await response.json();
+        const nextJob = data.job as GenerationJob | null;
+        if (!nextJob) {
+          setDownloadError("Generation status unavailable. Please try again.");
+          break;
+        }
+
+        setOpinionJob(nextJob);
+
+        if (nextJob.status === "completed") {
+          const documentId = data.document?.id || nextJob.documentId;
+          const documentName = data.document?.name || nextJob.documentName;
+          if (documentId) {
+            await downloadOpinionDocument(documentId, documentName);
+          } else {
+            setDownloadError("Opinion pack completed but no document was created.");
+          }
+          completed = true;
+          break;
+        }
+
+        if (nextJob.status === "failed") {
+          setDownloadError(nextJob.errorMessage || "Failed to generate opinion pack.");
+          break;
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 400));
+      }
+
+      if (!completed && attempts >= 30) {
+        setDownloadError("Generation is taking longer than expected. Please click again to continue.");
+      }
+    } catch (error) {
+      setDownloadError(`Failed to generate opinion pack: ${error instanceof Error ? error.message : "Unknown error"}`);
+    } finally {
+      opinionInFlight.current = false;
+    }
+  };
+
+  const handleOpinionPackDownload = async () => {
+    if (!pack) return;
+    setOpinionJob(null);
+    setDownloadError(null);
+    setDownloadSuccess(null);
+
+    const response = await fetch(`/api/authorization-pack/packs/${pack.id}/generate-business-plan`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "start" }),
+    }).catch(() => null);
+
+    if (!response?.ok) {
+      const errorData = response ? await response.json().catch(() => ({ error: "Unknown error" })) : { error: "Connection failed" };
+      setDownloadError(errorData.details ? `${errorData.error}: ${errorData.details}` : errorData.error || "Failed to start opinion pack");
+      return;
+    }
+
+    const data = await response.json();
+    const job = data.job as GenerationJob | null;
+    if (!job?.id) {
+      setDownloadError("Unable to start opinion pack job.");
+      return;
+    }
+    setOpinionJob(job);
+    await runOpinionPackJob(job.id);
   };
 
   const validatePack = async () => {
@@ -193,10 +303,7 @@ export function ExportClient() {
         <WorkspaceHeader pack={pack} readiness={readiness} />
         <Card className="border border-slate-200">
           <CardContent className="p-8 text-center text-slate-500">
-            <div className="flex items-center justify-center gap-2">
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-teal-500 border-t-transparent" />
-              Loading export tools...
-            </div>
+            <NasaraLoader label="Loading export tools..." />
           </CardContent>
         </Card>
       </div>
@@ -255,57 +362,33 @@ export function ExportClient() {
         </div>
       )}
       {downloadingFormat && (
-        <div className="flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
-          <span className="h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
-          Downloading {downloadingFormat}...
+        <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+          <NasaraLoader label={`Downloading ${downloadingFormat}...`} size="sm" className="items-start" />
         </div>
       )}
-
-      {/* Main Export Options - 2 column grid */}
-      <div className="grid gap-4 md:grid-cols-2">
-        {/* Business Plan Narrative */}
-        <Card className="border border-slate-200">
-          <CardHeader className="pb-3">
+      {opinionJob && opinionJob.status !== "completed" && (
+        <Card className="border border-blue-200 bg-blue-50">
+          <CardContent className="space-y-2 p-4 text-sm text-blue-900">
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-100">
-                <DocumentIcon className="h-4 w-4 text-teal-600" />
-              </div>
-              <div>
-                <CardTitle className="text-sm">Business Plan Narrative</CardTitle>
-                <CardDescription className="text-xs">Complete business plan for FCA submission</CardDescription>
-              </div>
+              <span className="text-xs font-semibold uppercase tracking-wide text-blue-600">Opinion pack</span>
+              <span className="text-xs text-blue-800">{opinionJob.currentStep || "Generating..."}</span>
             </div>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <Button
-              className="w-full bg-teal-600 hover:bg-teal-700"
-              onClick={() =>
-                downloadFile(
-                  `/api/authorization-pack/packs/${pack.id}/export/narrative-pdf`,
-                  `${safeName}-business-plan.pdf`,
-                  "PDF"
-                )
-              }
-            >
-              <DownloadIcon className="mr-2 h-4 w-4" />
-              Download PDF
-            </Button>
-            <Button
-              className="w-full"
-              variant="outline"
-              onClick={() =>
-                downloadFile(
-                  `/api/authorization-pack/packs/${pack.id}/export/narrative-docx`,
-                  `${safeName}-business-plan.docx`,
-                  "DOCX"
-                )
-              }
-            >
-              Download DOCX
-            </Button>
+            <Progress value={opinionJob.progress ?? 0} className="h-2" />
+            <div className="flex items-center justify-between text-xs text-blue-700">
+              <span>{opinionJob.progress ?? 0}% complete</span>
+              {opinionJob.payload?.warnings?.length ? (
+                <span>{opinionJob.payload.warnings.length} warnings</span>
+              ) : null}
+            </div>
+            {opinionJob.errorMessage ? (
+              <p className="text-xs text-blue-800">{opinionJob.errorMessage}</p>
+            ) : null}
           </CardContent>
         </Card>
+      )}
 
+      {/* Main Export Options */}
+      <div className="grid gap-4 md:grid-cols-2">
         {/* Perimeter Opinion Pack */}
         <Card className="border border-purple-200 bg-gradient-to-br from-purple-50/50 to-white">
           <CardHeader className="pb-3">
@@ -322,14 +405,7 @@ export function ExportClient() {
           <CardContent className="space-y-2">
             <Button
               className="w-full bg-purple-600 hover:bg-purple-700"
-              onClick={() =>
-                downloadFile(
-                  `/api/authorization-pack/packs/${pack.id}/generate-business-plan`,
-                  `${safeName}-opinion-pack.pdf`,
-                  "Opinion PDF",
-                  { method: "POST", headers: { "Content-Type": "application/json" } }
-                )
-              }
+              onClick={handleOpinionPackDownload}
             >
               <DownloadIcon className="mr-2 h-4 w-4" />
               Download Opinion PDF
@@ -357,7 +433,7 @@ export function ExportClient() {
                 </Badge>
               )}
             </CardTitle>
-            <CardDescription>AI-powered validation to catch issues before submission.</CardDescription>
+            <CardDescription>Validation to catch issues before submission.</CardDescription>
           </div>
           <Button
             variant="outline"
@@ -367,7 +443,6 @@ export function ExportClient() {
           >
             {isValidating ? (
               <>
-                <span className="h-3 w-3 animate-spin rounded-full border border-teal-500 border-t-transparent" />
                 Validating...
               </>
             ) : (
@@ -379,9 +454,14 @@ export function ExportClient() {
           </Button>
         </CardHeader>
         <CardContent>
+          {isValidating ? (
+            <div className="mb-4 rounded-lg border border-teal-100 bg-teal-50 px-4 py-3">
+              <NasaraLoader label="Validating your pack..." size="sm" className="items-start" />
+            </div>
+          ) : null}
           {validationError && (
             <div className="mb-4 flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-800">
-              <span>AI: {validationError}</span>
+              <span>{validationError}</span>
               <button onClick={() => setValidationError(null)} className="text-amber-600 hover:text-amber-800">
                 &times;
               </button>
@@ -460,15 +540,6 @@ export function ExportClient() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() =>
-                downloadFile(`/api/authorization-pack/packs/${pack.id}/export/narrative`, `${safeName}-narrative.md`, "Markdown")
-              }
-            >
-              Markdown
-            </Button>
             <Button
               variant="outline"
               size="sm"

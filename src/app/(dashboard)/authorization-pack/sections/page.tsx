@@ -2,11 +2,15 @@ import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
-export default function AuthorizationPackSectionsPage({
+export default async function AuthorizationPackSectionsPage({
   searchParams,
 }: {
-  searchParams?: { packId?: string };
+  searchParams?: Promise<{ packId?: string }>;
 }) {
-  const packId = searchParams?.packId;
-  redirect(packId ? `/authorization-pack/workspace?packId=${packId}` : "/authorization-pack/workspace");
+  const params = searchParams ? await searchParams : undefined;
+  const packId = params?.packId;
+  const target = packId
+    ? `/authorization-pack/workspace?packId=${packId}`
+    : "/authorization-pack/workspace";
+  redirect(target);
 }

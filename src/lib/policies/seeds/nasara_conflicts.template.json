@@ -1,0 +1,136 @@
+{
+  "code": "CONFLICTS",
+  "name": "Conduct Risk & Conflicts of Interest",
+  "category": "Governance",
+  "description": "Policy covering conduct risk and conflicts identification, disclosure, mitigation, and record keeping.",
+  "sections": [
+    {
+      "id": "purpose",
+      "title": "Purpose and objectives",
+      "summary": "Set the objectives for conduct risk and conflicts management.",
+      "suggestedClauses": [
+        "nasara_conflicts-purpose-purpose_and_objectives"
+      ]
+    },
+    {
+      "id": "scope",
+      "title": "Scope and applicability",
+      "summary": "Define who and what this policy applies to.",
+      "suggestedClauses": [
+        "nasara_conflicts-scope-scope_and_applicability"
+      ]
+    },
+    {
+      "id": "framework",
+      "title": "Regulatory framework",
+      "summary": "Summarize the FCA expectations driving this policy.",
+      "suggestedClauses": [
+        "nasara_conflicts-framework-regulatory_framework"
+      ]
+    },
+    {
+      "id": "definitions",
+      "title": "Definitions",
+      "summary": "Define conflicts of interest and common types.",
+      "suggestedClauses": [
+        "nasara_conflicts-definitions-what_is_a_conflict"
+      ]
+    },
+    {
+      "id": "conduct_risk",
+      "title": "Conduct risk and outcomes",
+      "summary": "Set expectations for customer outcomes and market integrity.",
+      "suggestedClauses": [
+        "nasara_conflicts-conduct-conduct_risk_principles"
+      ]
+    },
+    {
+      "id": "process",
+      "title": "Conflict management process",
+      "summary": "Identify, disclose, mitigate, and record conflicts.",
+      "suggestedClauses": [
+        "nasara_conflicts-process-four_step_conflict_process"
+      ]
+    },
+    {
+      "id": "gifts",
+      "title": "Gifts and hospitality",
+      "summary": "Set thresholds, approvals, and register rules.",
+      "suggestedClauses": [
+        "nasara_conflicts-gifts-gifts_and_hospitality"
+      ]
+    },
+    {
+      "id": "personal_interests",
+      "title": "Personal interests and outside activities",
+      "summary": "Define disclosure and approval expectations.",
+      "suggestedClauses": [
+        "nasara_conflicts-personal-personal_interests_and_outside_activities"
+      ]
+    },
+    {
+      "id": "organisational",
+      "title": "Organisational conflicts and incentives",
+      "summary": "Address incentive and structural conflicts.",
+      "suggestedClauses": [
+        "nasara_conflicts-organisational-organisational_conflicts_and_incentives"
+      ]
+    },
+    {
+      "id": "decision_framework",
+      "title": "Decision framework",
+      "summary": "Use a simple test before acting.",
+      "suggestedClauses": [
+        "nasara_conflicts-decision-framework-decision_framework"
+      ]
+    },
+    {
+      "id": "escalation",
+      "title": "Escalation and speak-up",
+      "summary": "Define escalation routes and protections.",
+      "suggestedClauses": [
+        "nasara_conflicts-escalation-escalation_and_speak_up"
+      ]
+    },
+    {
+      "id": "records",
+      "title": "Records and registers",
+      "summary": "Define what to record and retain.",
+      "suggestedClauses": [
+        "nasara_conflicts-records-records_and_registers"
+      ]
+    },
+    {
+      "id": "training",
+      "title": "Training and awareness",
+      "summary": "Require training and attestations.",
+      "suggestedClauses": [
+        "nasara_conflicts-training-training_and_awareness"
+      ]
+    },
+    {
+      "id": "governance",
+      "title": "Governance and review",
+      "summary": "Set ownership, oversight, and review cadence.",
+      "suggestedClauses": [
+        "nasara_conflicts-governance-governance_and_review"
+      ]
+    }
+  ],
+  "mandatoryClauses": [
+    "nasara_conflicts-purpose-purpose_and_objectives",
+    "nasara_conflicts-scope-scope_and_applicability",
+    "nasara_conflicts-framework-regulatory_framework",
+    "nasara_conflicts-definitions-what_is_a_conflict",
+    "nasara_conflicts-conduct-conduct_risk_principles",
+    "nasara_conflicts-process-four_step_conflict_process",
+    "nasara_conflicts-gifts-gifts_and_hospitality",
+    "nasara_conflicts-personal-personal_interests_and_outside_activities",
+    "nasara_conflicts-organisational-organisational_conflicts_and_incentives",
+    "nasara_conflicts-decision-framework-decision_framework",
+    "nasara_conflicts-escalation-escalation_and_speak_up",
+    "nasara_conflicts-records-records_and_registers",
+    "nasara_conflicts-training-training_and_awareness",
+    "nasara_conflicts-governance-governance_and_review"
+  ]
+}

@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback } from "react";
+import { useToast as useToastProvider } from "@/components/toast-provider";
 
-type ToastVariant = "default" | "destructive";
+type ToastVariant = "default" | "destructive" | "success" | "warning" | "info";
 
 interface ToastOptions {
   title?: string;
@@ -11,21 +12,25 @@ interface ToastOptions {
 }
 
 export function useToast() {
-  const toast = useCallback((options: ToastOptions) => {
-    if (typeof window !== "undefined") {
-      const { title, description, variant } = options;
-      const prefix = variant === "destructive" ? "[error]" : "[toast]";
-      const message = [prefix, title, description].filter(Boolean).join(" ");
+  const toastApi = useToastProvider();
 
-      // In production, replace with proper toast notification system
-      if (process.env.NODE_ENV === 'production') {
-        // TODO: Replace with proper toast notification library (e.g., react-hot-toast, sonner, etc.)
-        // showToast({ title, description, variant });
-      } else {
-        console.log(message);
-      }
-    }
-  }, []);
+  const toast = useCallback(
+    (options: ToastOptions) => {
+      const { title, description, variant } = options;
+      const message = [title, description].filter(Boolean).join(" • ");
+      if (!message) return;
+      const type =
+        variant === "destructive"
+          ? "error"
+          : variant === "success"
+            ? "success"
+            : variant === "warning"
+              ? "warning"
+              : "info";
+      toastApi.addToast(message, type);
+    },
+    [toastApi],
+  );
 
   return { toast };
 }

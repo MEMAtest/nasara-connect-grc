@@ -147,6 +147,18 @@ export function PaymentsClient() {
   const [accountBalance, setAccountBalance] = useState(initialAccountData.accountBalance);
   const [alerts, setAlerts] = useState(initialAccountData.alerts);
 
+  const postNotification = useCallback(async (payload) => {
+    try {
+      await fetch("/api/notifications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+    } catch {
+      // Non-blocking notification failures
+    }
+  }, []);
+
   const [paymentForm, setPaymentForm] = useState({
     beneficiaryId: '',
     amount: '',
@@ -464,6 +476,14 @@ export function PaymentsClient() {
       setAlerts(prev => [newAlert, ...prev]);
     }
 
+    void postNotification({
+      title: flagged ? "Payment flagged for review" : "Payment submitted",
+      message: `${beneficiary.name} • ${paymentForm.currency} ${amount.toFixed(2)} • ${paymentForm.reference}`,
+      severity: flagged ? "warning" : "success",
+      source: "payments",
+      link: "/payments",
+    });
+
     // Show success message
     if (flagged) {
       alert(`Payment flagged for review: ${reviewReason}\n\nTransaction ID: ${transactionId}\nConfirmation: ${confirmationNumber}`);
@@ -495,7 +515,7 @@ export function PaymentsClient() {
         ));
       }, 2000);
     }
-  }, [paymentForm, estimatedFees, conversionRate, convertedAmount, beneficiaries]);
+  }, [paymentForm, estimatedFees, conversionRate, convertedAmount, beneficiaries, postNotification]);
 
   const handleBeneficiarySubmit = useCallback((e) => {
     e.preventDefault();
@@ -552,6 +572,14 @@ export function PaymentsClient() {
     };
     setAlerts(prev => [newAlert, ...prev]);
 
+    void postNotification({
+      title: "Beneficiary added",
+      message: `${beneficiaryForm.name} added for ${beneficiaryForm.currency} payments.`,
+      severity: "info",
+      source: "payments",
+      link: "/payments",
+    });
+
     alert(`Beneficiary "${beneficiaryForm.name}" added successfully!\n\nKYC verification will be initiated automatically.\nPayments will be held for review until verification is complete.`);
 
     setShowBeneficiaryDialog(false);
@@ -566,7 +594,7 @@ export function PaymentsClient() {
       address: '',
       companyNumber: ''
     });
-  }, [beneficiaryForm]);
+  }, [beneficiaryForm, postNotification]);
 
   const formatCurrency = useCallback((amount, currency) => {
     return new Intl.NumberFormat('en-GB', {

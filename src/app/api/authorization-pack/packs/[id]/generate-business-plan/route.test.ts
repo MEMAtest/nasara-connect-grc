@@ -6,6 +6,17 @@ const writeFile = vi.fn().mockResolvedValue(undefined);
 const unlink = vi.fn().mockResolvedValue(undefined);
 
 const createPackDocument = vi.fn().mockResolvedValue({ id: "pack-doc-id" });
+let jobState: {
+  id: string;
+  packId: string;
+  status: string;
+  progress: number;
+  currentStep: string | null;
+  payload: { aiContent: Record<string, string>; warnings: string[] };
+  errorMessage: string | null;
+  documentId: string | null;
+  documentName: string | null;
+} | null = null;
 
 vi.mock("fs", () => ({
   promises: {
@@ -55,6 +66,39 @@ vi.mock("@/lib/authorization-pack-db", () => ({
   }),
   createPackDocument,
   deletePackDocument: vi.fn().mockResolvedValue(true),
+  createOpinionPackGenerationJob: vi.fn().mockImplementation((packId: string) => {
+    jobState = {
+      id: "job-id",
+      packId,
+      status: "pending",
+      progress: 0,
+      currentStep: "queued",
+      payload: { aiContent: {}, warnings: [] },
+      errorMessage: null,
+      documentId: null,
+      documentName: null,
+    };
+    return jobState;
+  }),
+  getOpinionPackGenerationJob: vi.fn().mockImplementation((jobId: string) => {
+    if (!jobState || jobState.id !== jobId) return null;
+    return jobState;
+  }),
+  getActiveOpinionPackGenerationJob: vi.fn().mockImplementation(() => {
+    if (!jobState) return null;
+    if (jobState.status === "pending" || jobState.status === "processing") return jobState;
+    return null;
+  }),
+  getLatestOpinionPackGenerationJob: vi.fn().mockImplementation(() => jobState),
+  updateOpinionPackGenerationJob: vi.fn().mockImplementation((jobId: string, updates: Record<string, unknown>) => {
+    if (!jobState || jobState.id !== jobId) return null;
+    jobState = {
+      ...jobState,
+      ...updates,
+      payload: (updates.payload as { aiContent: Record<string, string>; warnings: string[] }) ?? jobState.payload,
+    } as typeof jobState;
+    return jobState;
+  }),
 }));
 
 vi.mock("@/lib/business-plan-profile", () => {
@@ -144,21 +188,42 @@ describe("Generate opinion pack route", () => {
 
   afterEach(() => {
     vi.clearAllMocks();
+    jobState = null;
   });
 
   it("stores the PDF and creates document records", async () => {
     const { POST } = await import("./route");
 
-    const req = new Request(
+    const startReq = new Request(
       "http://localhost/api/authorization-pack/packs/00000000-0000-0000-0000-000000000001/generate-business-plan",
-      { method: "POST" }
+      { method: "POST", body: JSON.stringify({ action: "start" }) }
     );
 
-    const res = await POST(req, {
+    const startRes = await POST(startReq, {
       params: Promise.resolve({ id: "00000000-0000-0000-0000-000000000001" }),
     });
 
-    expect(res.status).toBe(200);
+    expect(startRes.status).toBe(201);
+    const startPayload = await startRes.json();
+    expect(startPayload.job).toBeTruthy();
+
+    let job = startPayload.job as { id: string; status: string };
+    let attempts = 0;
+
+    while (job.status !== "completed" && attempts < 5) {
+      const runReq = new Request(
+        "http://localhost/api/authorization-pack/packs/00000000-0000-0000-0000-000000000001/generate-business-plan",
+        { method: "POST", body: JSON.stringify({ action: "run", jobId: job.id, batchSize: 6 }) }
+      );
+      const runRes = await POST(runReq, {
+        params: Promise.resolve({ id: "00000000-0000-0000-0000-000000000001" }),
+      });
+      const runPayload = await runRes.json();
+      job = runPayload.job;
+      attempts += 1;
+    }
+
+    expect(job.status).toBe("completed");
     expect(writeFile).toHaveBeenCalledOnce();
     expect(createPackDocument).toHaveBeenCalledOnce();
     const packArgs = createPackDocument.mock.calls[0][0];

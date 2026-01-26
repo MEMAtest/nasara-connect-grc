@@ -1,30 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getFullPackSectionsWithResponses, getPack } from "@/lib/authorization-pack-db";
+import {
+  getPack,
+  getPackDocuments,
+  getProjectByPackId,
+} from "@/lib/authorization-pack-db";
 import { requireAuth, isValidUUID } from "@/lib/auth-utils";
 import { logError } from "@/lib/logger";
-import { htmlToText } from "@/lib/authorization-pack-export";
-import { getOpenRouterApiKey } from "@/lib/openrouter";
-
-const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
-const DEFAULT_MODEL = process.env.OPENROUTER_MODEL ?? "openai/gpt-4o-mini";
-const MAX_INPUT_LENGTH = 2000;
-
-/**
- * Sanitize user input to prevent prompt injection attacks.
- */
-function sanitizeInput(input: string | undefined, maxLength = MAX_INPUT_LENGTH): string {
-  if (!input) return "";
-  let sanitized = input.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "");
-  if (sanitized.length > maxLength) {
-    sanitized = sanitized.substring(0, maxLength) + "...";
-  }
-  sanitized = sanitized
-    .replace(/```/g, "'''")
-    .replace(/\[INST\]/gi, "[instruction]")
-    .replace(/\[\/INST\]/gi, "[/instruction]")
-    .replace(/<\|.*?\|>/g, "");
-  return sanitized;
-}
+import {
+  getProfileQuestions,
+  getProfileSections,
+  isProfilePermissionCode,
+  type ProfileQuestion,
+  type ProfileResponse,
+} from "@/lib/business-plan-profile";
 
 interface ValidationIssue {
   section: string;
@@ -40,87 +28,61 @@ interface ValidationResponse {
   summary: string;
 }
 
-function buildValidationSystemPrompt(): string {
-  return `You are an FCA authorization pack quality reviewer for UK financial services firms.
-Review the provided pack content and identify quality issues before submission.
+const resolvePermission = (permissionCode?: string | null) => {
+  if (!permissionCode) return null;
+  if (isProfilePermissionCode(permissionCode)) return permissionCode;
+  if (permissionCode.startsWith("payments")) return "payments";
+  return null;
+};
 
-Check for:
-1. INCOMPLETE sections - missing required information or placeholders
-2. INCONSISTENT content - contradictions or mismatches between sections
-3. UNCLEAR language - vague statements that need specifics
-4. MISSING requirements - standard FCA requirements not addressed
-
-Severity levels:
-- "error": Must be fixed before submission (missing critical info, placeholders, contradictions)
-- "warning": Should be reviewed but not blocking (could be clearer, minor gaps)
-
-Return a valid JSON object with this structure:
-{
-  "score": 0-100,
-  "issues": [
-    {
-      "section": "Section name",
-      "type": "incomplete|inconsistent|unclear|missing",
-      "description": "Specific issue description",
-      "severity": "warning|error"
+const isAnswered = (
+  question: ProfileQuestion,
+  value: ProfileResponse | undefined,
+  responses: Record<string, ProfileResponse>
+) => {
+  if (
+    question.allowOther &&
+    ((Array.isArray(value) && value.includes("other")) || value === "other")
+  ) {
+    const otherText = responses[`${question.id}_other_text`];
+    if (typeof otherText !== "string" || otherText.trim().length === 0) {
+      return false;
     }
-  ],
-  "ready": true/false,
-  "summary": "Brief overall assessment"
-}
-
-Set ready=false if there are any "error" severity issues.`;
-}
-
-function buildValidationUserPrompt(
-  packName: string,
-  sections: Array<{ name: string; status: string; progress: number; narrativeContent?: string }>
-): string {
-  const sectionSummaries = sections.map((s) => {
-    const contentPreview = s.narrativeContent
-      ? sanitizeInput(s.narrativeContent.substring(0, 500).replace(/<[^>]*>/g, "").trim(), 500)
-      : "(No content)";
-    return `## ${sanitizeInput(s.name, 200)}
-Status: ${sanitizeInput(s.status, 50)} | Progress: ${s.progress}%
-Content: ${contentPreview}${s.narrativeContent && s.narrativeContent.length > 500 ? "..." : ""}`;
-  }).join("\n\n");
-
-  return `Validate this FCA authorization pack for submission readiness:
-
-Pack Name: ${sanitizeInput(packName, 200)}
-Total Sections: ${sections.length}
-Sections with Content: ${sections.filter(s => s.narrativeContent && s.narrativeContent.length > 10).length}
-
-${sectionSummaries}
-
-Identify any quality issues that should be addressed before FCA submission.`;
-}
+  }
+  if (value === undefined || value === null) return false;
+  if (question.type === "multi-choice") {
+    return Array.isArray(value) && value.length > 0;
+  }
+  if (question.type === "text") {
+    return String(value).trim().length > 0;
+  }
+  if (question.type === "number") {
+    if (typeof value === "number") return !isNaN(value);
+    if (typeof value === "string") {
+      const parsed = Number(value);
+      return value.trim().length > 0 && !Number.isNaN(parsed);
+    }
+    return false;
+  }
+  if (question.type === "boolean") {
+    return typeof value === "boolean";
+  }
+  return String(value).trim().length > 0;
+};
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  // Check for API key first
-  const apiKey = getOpenRouterApiKey();
-  if (!apiKey) {
-    return NextResponse.json(
-      { error: "AI service not configured. Missing OPENROUTER_API_KEY." },
-      { status: 500 }
-    );
-  }
-
   try {
     const { auth, error } = await requireAuth();
     if (error) return error;
 
     const { id } = await params;
-
-    // Validate UUID
     if (!isValidUUID(id)) {
       return NextResponse.json({ error: "Invalid pack ID format" }, { status: 400 });
     }
 
-    // Verify pack access
     const pack = await getPack(id);
     if (!pack) {
       return NextResponse.json({ error: "Pack not found" }, { status: 404 });
@@ -129,103 +91,68 @@ export async function POST(
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
-    const sections = await getFullPackSectionsWithResponses(id);
-    const sectionData = sections.map((section) => {
-      const narrativeContent = section.prompts
-        .map((prompt) => (prompt.response ? htmlToText(prompt.response) : ""))
-        .filter(Boolean)
-        .join("\n\n");
-      const progress = section.narrativeCompletion;
-      const status = progress >= 80 ? "complete" : progress > 0 ? "in-progress" : "missing";
-      return {
-        name: section.title || "Unknown Section",
-        status,
-        progress,
-        narrativeContent,
-      };
-    });
-
-    // Build prompts
-    const systemPrompt = buildValidationSystemPrompt();
-    const userPrompt = buildValidationUserPrompt(pack.name, sectionData);
-
-    const messages = [
-      { role: "system" as const, content: systemPrompt },
-      { role: "user" as const, content: userPrompt },
-    ];
-
-    // Call OpenRouter API (non-streaming for JSON response)
-    const upstream = await fetch(OPENROUTER_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
-        "X-Title": "Nasara Connect - Export Validation",
-      },
-      body: JSON.stringify({
-        model: DEFAULT_MODEL,
-        messages,
-        temperature: 0.2,
-        max_tokens: 1500,
-        top_p: 1,
-        stream: false,
-      }),
-    });
-
-    if (!upstream.ok) {
-      const errorText = await upstream.text();
-      logError(new Error(`OpenRouter error ${upstream.status}: ${errorText}`), "Validation AI call failed");
-      return NextResponse.json(
-        { error: "AI service temporarily unavailable. Please try again." },
-        { status: 502 }
-      );
+    const project = await getProjectByPackId(id);
+    if (!project) {
+      return NextResponse.json({ error: "Project not found for this pack" }, { status: 404 });
     }
 
-    const data = (await upstream.json()) as {
-      choices?: Array<{ message?: { content?: string } }>;
-    };
+    const permission = resolvePermission(project.permissionCode);
+    const responses = project.assessmentData?.businessPlanProfile?.responses ?? {};
+    const sectionLookup = new Map(
+      getProfileSections(permission).map((section) => [section.id, section.title])
+    );
+    const questions = getProfileQuestions(permission);
+    const requiredQuestions = questions.filter((question) => question.required);
 
-    const content = data.choices?.[0]?.message?.content;
-    if (!content) {
-      return NextResponse.json(
-        { error: "No validation returned from AI" },
-        { status: 502 }
-      );
-    }
+    const missingQuestions = requiredQuestions.filter(
+      (question) => !isAnswered(question, responses[question.id], responses)
+    );
 
-    // Parse the JSON response from AI
-    let validation: ValidationResponse;
-    try {
-      // Extract JSON from potential markdown code blocks
-      const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/) ||
-                        content.match(/```\s*([\s\S]*?)\s*```/) ||
-                        [null, content];
-      const jsonContent = jsonMatch[1] || content;
-      validation = JSON.parse(jsonContent.trim());
-    } catch (parseError) {
-      console.error("Failed to parse AI response as JSON:", content);
-      // Return a fallback response based on basic metrics
-      const hasContent = sectionData.filter((s) => s.progress > 0).length;
-      const avgProgress = sectionData.reduce((sum, s) => sum + s.progress, 0) / (sectionData.length || 1);
+    const documents = await getPackDocuments(id);
+    const hasOpinionPack = documents.some(
+      (doc) => doc.section_code === "perimeter-opinion" && doc.storage_key
+    );
 
-      return NextResponse.json({
-        score: Math.round(avgProgress),
-        issues: [
-          {
-            section: "General",
-            type: "unclear" as const,
-            description: "AI validation could not complete - please review manually",
-            severity: "warning" as const,
-          },
-        ],
-        ready: avgProgress >= 80 && hasContent >= sectionData.length * 0.8,
-        summary: `Pack has ${hasContent}/${sectionData.length} sections with content. Average progress: ${Math.round(avgProgress)}%.`,
-        warning: "AI response could not be parsed - using basic validation",
+    const issues: ValidationIssue[] = [];
+    for (const question of missingQuestions) {
+      const sectionLabel = sectionLookup.get(question.sectionId) || "Business Plan Profile";
+      issues.push({
+        section: sectionLabel,
+        type: "missing",
+        description: `Missing required response: ${question.label}.`,
+        severity: "error",
       });
     }
 
-    return NextResponse.json(validation);
+    if (!hasOpinionPack) {
+      issues.push({
+        section: "Opinion Pack",
+        type: "missing",
+        description: "Perimeter opinion pack has not been generated yet.",
+        severity: "error",
+      });
+    }
+
+    const requiredTotal = requiredQuestions.length;
+    const requiredAnswered = requiredTotal - missingQuestions.length;
+    const completionPercent = requiredTotal
+      ? Math.round((requiredAnswered / requiredTotal) * 100)
+      : 0;
+
+    const score = Math.round((completionPercent + (hasOpinionPack ? 100 : 0)) / 2);
+    const ready = completionPercent >= 95 && hasOpinionPack;
+    const summary = `Profile completion: ${completionPercent}%. Opinion pack: ${
+      hasOpinionPack ? "generated" : "missing"
+    }.`;
+
+    const response: ValidationResponse = {
+      score,
+      issues,
+      ready,
+      summary,
+    };
+
+    return NextResponse.json(response);
   } catch (error) {
     logError(error, "Validation route error");
     return NextResponse.json(

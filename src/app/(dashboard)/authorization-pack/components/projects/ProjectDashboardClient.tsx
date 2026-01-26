@@ -6,9 +6,16 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { NasaraLoader } from "@/components/ui/nasara-loader";
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { getRegisterItems } from "@/lib/authorization-pack-integrations";
+import {
+  getControllerItems,
+  getGovernanceItems,
+  getOtherDocumentationItems,
+  getPsdItems,
+  getRegisterItems,
+} from "@/lib/authorization-pack-integrations";
 import { ProjectHeader } from "./ProjectHeader";
 import { CheckCircle2, Circle } from "lucide-react";
 
@@ -38,12 +45,18 @@ interface ProjectDetail {
   packTemplateName?: string | null;
   typicalTimelineWeeks?: number | null;
   policyTemplates?: string[];
-  trainingRequirements?: string[];
   smcrRoles?: string[];
   readiness?: ReadinessSummary | null;
   sections?: SectionSummary[];
   assessmentData?: Record<string, unknown>;
   projectPlan?: Record<string, unknown>;
+}
+
+interface CompanyHouseMeta {
+  pscItems?: Array<{ id: string }>;
+  officers?: Array<{ id: string }>;
+  pscConfirmed?: boolean;
+  psdCandidates?: string[];
 }
 
 const clampPercent = (value: number | null | undefined) => {
@@ -100,6 +113,15 @@ export function ProjectDashboardClient() {
     () => (project ? getRegisterItems(project.permissionCode).length : 0),
     [project]
   );
+  const psdCount = useMemo(() => getPsdItems().length, []);
+  const controllerCount = useMemo(() => getControllerItems().length, []);
+  const governanceCount = useMemo(() => getGovernanceItems().length, []);
+  const otherDocsCount = useMemo(() => getOtherDocumentationItems().length, []);
+  const companyHouse = ((project?.assessmentData as Record<string, unknown> | undefined)?.meta as Record<string, unknown> | undefined)
+    ?.companyHouse as CompanyHouseMeta | undefined;
+  const psdAssignedCount = Array.isArray(companyHouse?.psdCandidates) ? companyHouse?.psdCandidates?.length ?? 0 : 0;
+  const controllerAssignedCount =
+    companyHouse?.pscConfirmed && Array.isArray(companyHouse?.pscItems) ? companyHouse?.pscItems?.length ?? 0 : 0;
 
   const nextActions = useMemo(() => {
     if (!project) return [];
@@ -183,11 +205,8 @@ export function ProjectDashboardClient() {
   if (isLoading) {
     return (
       <Card className="border border-slate-200">
-        <CardContent className="p-8 text-center text-slate-500">
-          <div className="flex items-center justify-center gap-2">
-            <div className="h-4 w-4 animate-spin rounded-full border-2 border-teal-500 border-t-transparent" />
-            Loading project...
-          </div>
+        <CardContent className="p-8">
+          <NasaraLoader label="Loading project..." />
         </CardContent>
       </Card>
     );
@@ -266,7 +285,16 @@ export function ProjectDashboardClient() {
                 {nextSteps.map((step, index) => (
                   <div key={step.label} className="flex items-center justify-between gap-2">
                     <span className="text-sm text-slate-600">{index + 1}. {step.label}</span>
-                    <Button asChild size="sm" variant="outline" className="border-slate-200 text-slate-600">
+                    <Button
+                      asChild
+                      size="sm"
+                      variant="outline"
+                      className={
+                        index === 0
+                          ? "border-teal-300 bg-teal-50 text-teal-700 shadow-[0_0_0_3px_rgba(20,184,166,0.15)] animate-pulse"
+                          : "border-slate-200 text-slate-600"
+                      }
+                    >
                       <Link href={step.href}>Open</Link>
                     </Button>
                   </div>
@@ -309,16 +337,16 @@ export function ProjectDashboardClient() {
       <Card className="border border-slate-200">
         <CardHeader>
           <CardTitle>Connected ecosystem</CardTitle>
-          <CardDescription>Everything linked to policies, training, and Key Persons requirements.</CardDescription>
+          <CardDescription>Everything linked to policies, PSD roles, controllers, and governance requirements.</CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="rounded-lg border border-slate-100 bg-slate-50 p-4 transition hover:border-teal-200 hover:bg-white hover:shadow-sm focus-within:border-teal-200 focus-within:bg-white focus-within:shadow-sm">
                 <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Policies</p>
                 <p className="mt-2 text-2xl font-semibold text-slate-900">{project.policyTemplates?.length || 0}</p>
                 <Button asChild variant="link" className="px-0 text-teal-600">
-                  <Link href="/policies">Open policy library</Link>
+                  <Link href={`/policies/wizard?projectId=${project.id}`}>Open policy wizard</Link>
                 </Button>
               </div>
             </TooltipTrigger>
@@ -327,26 +355,48 @@ export function ProjectDashboardClient() {
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="rounded-lg border border-slate-100 bg-slate-50 p-4 transition hover:border-teal-200 hover:bg-white hover:shadow-sm focus-within:border-teal-200 focus-within:bg-white focus-within:shadow-sm">
-                <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Training</p>
-                <p className="mt-2 text-2xl font-semibold text-slate-900">{project.trainingRequirements?.length || 0}</p>
-                <Button asChild variant="link" className="px-0 text-teal-600">
-                  <Link href="/training-library">Open training library</Link>
-                </Button>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>Mandatory staff training linked to FCA expectations for this permission.</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className="rounded-lg border border-slate-100 bg-slate-50 p-4 transition hover:border-teal-200 hover:bg-white hover:shadow-sm focus-within:border-teal-200 focus-within:bg-white focus-within:shadow-sm">
-                <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Key Persons</p>
-                <p className="mt-2 text-2xl font-semibold text-slate-900">{project.smcrRoles?.length || 0}</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-400">PSD Roles</p>
+                <p className="mt-2 text-2xl font-semibold text-slate-900">
+                  {psdAssignedCount} of {psdCount}
+                </p>
                 <Button asChild variant="link" className="px-0 text-teal-600">
                   <Link href="/smcr">Open Key Persons module</Link>
                 </Button>
               </div>
             </TooltipTrigger>
-            <TooltipContent>SMCR / PSD roles that must be assigned before submission.</TooltipContent>
+            <TooltipContent>PSD roles that must be populated before submission.</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="rounded-lg border border-slate-100 bg-slate-50 p-4 transition hover:border-teal-200 hover:bg-white hover:shadow-sm focus-within:border-teal-200 focus-within:bg-white focus-within:shadow-sm">
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Controllers</p>
+                <p className="mt-2 text-2xl font-semibold text-slate-900">
+                  {controllerAssignedCount} of {controllerCount}
+                </p>
+                <span className="text-xs text-slate-500">Ownership thresholds</span>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>Controllers and beneficial owners tied to the FCA controller regime.</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="rounded-lg border border-slate-100 bg-slate-50 p-4 transition hover:border-teal-200 hover:bg-white hover:shadow-sm focus-within:border-teal-200 focus-within:bg-white focus-within:shadow-sm">
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Governance</p>
+                <p className="mt-2 text-2xl font-semibold text-slate-900">{governanceCount}</p>
+                <span className="text-xs text-slate-500">Committees & oversight</span>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>Governance documentation expected in the pack.</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="rounded-lg border border-slate-100 bg-slate-50 p-4 transition hover:border-teal-200 hover:bg-white hover:shadow-sm focus-within:border-teal-200 focus-within:bg-white focus-within:shadow-sm">
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Other Docs</p>
+                <p className="mt-2 text-2xl font-semibold text-slate-900">{otherDocsCount}</p>
+                <span className="text-xs text-slate-500">Supporting evidence</span>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>Additional documents required for the submission bundle.</TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>

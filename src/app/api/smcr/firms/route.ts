@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createFirm, getFirms, initSmcrDatabase } from '@/lib/smcr-database';
+import { createNotification } from "@/lib/server/notifications-store";
 import { logError, logApiRequest } from '@/lib/logger';
 
 export async function GET(request: NextRequest) {
@@ -45,6 +46,19 @@ export async function POST(request: NextRequest) {
     }
 
     const firm = await createFirm(name.trim(), organizationId);
+    try {
+      await createNotification({
+        organizationId: organizationId || "default-org",
+        title: "SMCR firm created",
+        message: `Firm "${firm.name}" added to SMCR management.`,
+        severity: "success",
+        source: "smcr",
+        link: "/smcr",
+        metadata: { firmId: firm.id },
+      });
+    } catch {
+      // Non-blocking notification failures
+    }
     return NextResponse.json(firm, { status: 201 });
   } catch (error) {
     logError(error, 'Failed to create SMCR firm');

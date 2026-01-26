@@ -1,0 +1,100 @@
+[
+  {
+    "id": "nasara_outsourcing-purpose-purpose_and_objectives",
+    "policy_key": "outsourcing",
+    "title": "Purpose and objectives",
+    "body_md": "This policy sets out how {{firm.name}} manages outsourcing and third-party risk in line with FCA expectations and operational resilience requirements.\n\nObjectives:\n- identify critical or important outsourced functions.\n- apply proportionate due diligence and contract controls.\n- monitor performance, resilience, and concentration risk.\n- ensure exit planning and incident response are effective and documented.",
+    "source_template_filename": "MODULE_OUTSOURCING_TPRM.txt"
+  },
+  {
+    "id": "nasara_outsourcing-scope-scope_and_applicability",
+    "policy_key": "outsourcing",
+    "title": "Scope and applicability",
+    "body_md": "This policy applies to all outsourcing and third-party arrangements, including vendors, cloud providers, and subcontractors that support services delivered by {{firm.name}}.",
+    "source_template_filename": "MODULE_OUTSOURCING_TPRM.txt"
+  },
+  {
+    "id": "nasara_outsourcing-definitions-definitions_and_criticality",
+    "policy_key": "outsourcing",
+    "title": "Definitions and criticality",
+    "body_md": "Outsourcing occurs when a third party performs a process or service that {{firm.name}} would otherwise undertake.\n\nA critical or important function is one where failure would materially impair compliance, service continuity for customers, or the firm's financial performance. Criticality must be documented in the outsourcing assessment.",
+    "source_template_filename": "MODULE_OUTSOURCING_TPRM.txt"
+  },
+  {
+    "id": "nasara_outsourcing-lifecycle-tprm_lifecycle",
+    "policy_key": "outsourcing",
+    "title": "TPRM lifecycle",
+    "body_md": "The outsourcing lifecycle includes: plan, due diligence, contract, onboarding, monitoring, and exit. Each stage requires documented decisions, approvals, and evidence proportional to the risk of the service.",
+    "source_template_filename": "MODULE_OUTSOURCING_TPRM.txt"
+  },
+  {
+    "id": "nasara_outsourcing-dd-due_diligence_requirements",
+    "policy_key": "outsourcing",
+    "title": "Due diligence requirements",
+    "body_md": "Due diligence must cover:\n- financial health and ownership.\n- operational capability and capacity.\n- security and privacy controls (including certifications).\n- resilience and recovery metrics (RTO/RPO and testing).\n- regulatory permissions where required.\n- subcontractor visibility and controls.\n\nEvidence must be recorded and reviewed before contract signature.",
+    "source_template_filename": "MODULE_OUTSOURCING_TPRM.txt"
+  },
+  {
+    "id": "nasara_outsourcing-contracts-contract_controls",
+    "policy_key": "outsourcing",
+    "title": "Contract controls",
+    "body_md": "Contracts for material outsourcing must include:\n- clear scope, SLAs/OLAs, and service credits or escalation.\n- audit and access rights for the firm and regulators.\n- incident notification and data-sharing obligations.\n- subcontractor approval and flow-down obligations.\n- change control and performance MI requirements.\n- exit provisions, data return or erasure, and transition support.",
+    "source_template_filename": "MODULE_OUTSOURCING_TPRM.txt"
+  },
+  {
+    "id": "nasara_outsourcing-onboarding-onboarding_and_handover",
+    "policy_key": "outsourcing",
+    "title": "Onboarding and handover",
+    "body_md": "Before go-live, {{firm.name}} must confirm:\n- runbooks and RACI assignments.\n- incident contacts and escalation timelines.\n- KPI and KRI dashboards.\n- tested data flows and security controls.\n- playbooks for failover and major incidents.\n\nGo-live approval is required for critical services.",
+    "source_template_filename": "MODULE_OUTSOURCING_TPRM.txt"
+  },
+  {
+    "id": "nasara_outsourcing-monitoring-ongoing_monitoring_and_mi",
+    "policy_key": "outsourcing",
+    "title": "Ongoing monitoring and MI",
+    "body_md": "Monitoring must cover service performance, risk indicators, and resilience outcomes.\n\nMinimum MI includes availability, errors, backlog, incidents, audit actions, and test results against impact tolerances. Issues must be tracked to closure with documented remediation.",
+    "source_template_filename": "MODULE_OUTSOURCING_TPRM.txt"
+  },
+  {
+    "id": "nasara_outsourcing-subcontractors-chain_risk",
+    "policy_key": "outsourcing",
+    "title": "Subcontractors and chain risk",
+    "body_md": "Subcontractor risk must be managed through approval, flow-down obligations, and visibility of locations and services. Material changes in subcontracting must trigger reassessment and approval.",
+    "source_template_filename": "MODULE_OUTSOURCING_TPRM.txt"
+  },
+  {
+    "id": "nasara_outsourcing-concentration-concentration_and_exit",
+    "policy_key": "outsourcing",
+    "title": "Concentration risk and exit planning",
+    "body_md": "Concentration risk arises when critical services rely on a single vendor, region, or technology stack.\n\nExit plans must be documented and tested, including data extraction, transition support, alternative suppliers, and communication plans aligned to impact tolerances.",
+    "source_template_filename": "MODULE_OUTSOURCING_TPRM.txt"
+  },
+  {
+    "id": "nasara_outsourcing-incidents-incident_management",
+    "policy_key": "outsourcing",
+    "title": "Incident management and notifications",
+    "body_md": "Vendors must notify {{firm.name}} promptly of incidents that affect customers, data, or service availability.\n\nThe firm must activate its incident plan, assess harm, record decisions, and meet regulatory notification obligations as required.",
+    "source_template_filename": "MODULE_OUTSOURCING_TPRM.txt"
+  },
+  {
+    "id": "nasara_outsourcing-records-records_and_evidence",
+    "policy_key": "outsourcing",
+    "title": "Records and evidence",
+    "body_md": "Records must include outsourcing assessments, due diligence evidence, contracts, monitoring MI, incident logs, and exit plans. These records support regulatory accountability and board oversight.",
+    "source_template_filename": "MODULE_OUTSOURCING_TPRM.txt"
+  },
+  {
+    "id": "nasara_outsourcing-training-training_and_awareness",
+    "policy_key": "outsourcing",
+    "title": "Training and awareness",
+    "body_md": "Staff involved in vendor selection, oversight, or incident response must complete relevant training and maintain awareness of outsourcing controls.",
+    "source_template_filename": "MODULE_OUTSOURCING_TPRM.txt"
+  },
+  {
+    "id": "nasara_outsourcing-governance-governance_and_review",
+    "policy_key": "outsourcing",
+    "title": "Governance and review",
+    "body_md": "Compliance, Vendor Risk, and Senior Management oversee outsourcing governance. Reviews must be conducted at defined intervals and after material incidents or service changes.",
+    "source_template_filename": "MODULE_OUTSOURCING_TPRM.txt"
+  }
+]

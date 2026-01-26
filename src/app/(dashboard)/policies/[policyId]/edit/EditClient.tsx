@@ -188,7 +188,7 @@ export function EditClient() {
 
       const updated = (await response.json()) as StoredPolicy;
       await mutate(updated, { revalidate: false });
-      toast({ title: "Policy updated", description: "Changes saved successfully." });
+      toast({ title: "Policy updated", description: "Changes saved successfully.", variant: "success" });
       router.push(`/policies/${policyId}`);
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "Unexpected error");

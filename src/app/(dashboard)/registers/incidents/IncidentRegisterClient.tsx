@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
-import { generateTrendData } from "@/lib/chart-utils";
+import { generateTrendData, getMonthKey, type TrendPoint } from "@/lib/chart-utils";
 import { useToast } from "@/components/toast-provider";
 import {
   Plus,
@@ -106,6 +106,7 @@ export function IncidentRegisterClient() {
   });
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [drillDownFilter, setDrillDownFilter] = useState<{ key: string; value: string } | null>(null);
+  const [monthFilter, setMonthFilter] = useState<{ key: string; label: string } | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingRecord, setEditingRecord] = useState<IncidentRecord | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -258,7 +259,7 @@ export function IncidentRegisterClient() {
   };
 
   // Filter records
-  const filteredRecords = useMemo(() => {
+  const baseFilteredRecords = useMemo(() => {
     return records.filter((r) => {
       const matchesSearch =
         r.incident_title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -274,6 +275,11 @@ export function IncidentRegisterClient() {
     });
   }, [records, searchQuery, filterValues, drillDownFilter]);
 
+  const filteredRecords = useMemo(() => {
+    if (!monthFilter) return baseFilteredRecords;
+    return baseFilteredRecords.filter((r) => getMonthKey(r.detected_date) === monthFilter.key);
+  }, [baseFilteredRecords, monthFilter]);
+
   // Pagination
   const {
     paginatedData,
@@ -283,13 +289,13 @@ export function IncidentRegisterClient() {
   // Statistics
   const stats = useMemo(
     () => ({
-      total: records.length,
-      critical: records.filter((r) => r.severity === "critical").length,
-      high: records.filter((r) => r.severity === "high").length,
-      open: records.filter((r) => ["detected", "investigating", "contained"].includes(r.status)).length,
-      resolved: records.filter((r) => r.status === "resolved" || r.status === "closed").length,
+      total: filteredRecords.length,
+      critical: filteredRecords.filter((r) => r.severity === "critical").length,
+      high: filteredRecords.filter((r) => r.severity === "high").length,
+      open: filteredRecords.filter((r) => ["detected", "investigating", "contained"].includes(r.status)).length,
+      resolved: filteredRecords.filter((r) => r.status === "resolved" || r.status === "closed").length,
     }),
-    [records]
+    [filteredRecords]
   );
 
   // Chart data
@@ -297,26 +303,26 @@ export function IncidentRegisterClient() {
     () => [
       { label: "Critical", value: stats.critical, color: severityChartColors.critical },
       { label: "High", value: stats.high, color: severityChartColors.high },
-      { label: "Medium", value: records.filter((r) => r.severity === "medium").length, color: severityChartColors.medium },
-      { label: "Low", value: records.filter((r) => r.severity === "low").length, color: severityChartColors.low },
+      { label: "Medium", value: filteredRecords.filter((r) => r.severity === "medium").length, color: severityChartColors.medium },
+      { label: "Low", value: filteredRecords.filter((r) => r.severity === "low").length, color: severityChartColors.low },
     ],
-    [records, stats]
+    [filteredRecords, stats]
   );
 
   const typeChartData = useMemo(() => {
     const counts: Record<string, number> = {};
-    records.forEach((r) => {
+    filteredRecords.forEach((r) => {
       counts[r.incident_type] = (counts[r.incident_type] || 0) + 1;
     });
     return Object.entries(counts).map(([type, count]) => ({
       label: typeLabels[type] || type,
       value: count,
     }));
-  }, [records]);
+  }, [filteredRecords]);
 
   const trendData = useMemo(() => {
-    return generateTrendData(records, 6, 'created_at');
-  }, [records]);
+    return generateTrendData(baseFilteredRecords, 6, 'detected_date');
+  }, [baseFilteredRecords]);
 
   // Table columns
   const columns: Column<IncidentRecord>[] = [
@@ -413,6 +419,19 @@ export function IncidentRegisterClient() {
     }
   };
 
+  const handleMonthFilter = (point: TrendPoint) => {
+    const key = point.monthKey || point.label;
+    if (!key) return;
+    if (monthFilter?.key === key) {
+      setMonthFilter(null);
+      return;
+    }
+    const label = point.startDate
+      ? new Date(point.startDate).toLocaleDateString("en-GB", { month: "short", year: "numeric" })
+      : point.label;
+    setMonthFilter({ key, label });
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center py-12">
@@ -493,6 +512,16 @@ export function IncidentRegisterClient() {
           </Button>
         </div>
       )}
+      {monthFilter && (
+        <div className="flex items-center gap-2 rounded-lg bg-slate-50 px-4 py-2">
+          <span className="text-sm text-slate-700">
+            Filtered by month: <strong>{monthFilter.label}</strong>
+          </span>
+          <Button variant="ghost" size="sm" onClick={() => setMonthFilter(null)} className="h-6 text-slate-600 hover:text-slate-700">
+            Clear month
+          </Button>
+        </div>
+      )}
 
       {/* Dashboard View */}
       {viewMode === "dashboard" && (
@@ -552,7 +581,13 @@ export function IncidentRegisterClient() {
             />
           </div>
 
-          <TrendChart data={trendData} title="Incidents Trend (6 Months)" color="#ef4444" />
+          <TrendChart
+            data={trendData}
+            title="Incidents Trend (6 Months)"
+            color="#ef4444"
+            onPointClick={handleMonthFilter}
+            activePointKey={monthFilter?.key}
+          />
         </div>
       )}
 

@@ -15,9 +15,13 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   AlertTriangle,
   Calendar as CalendarIcon,
+  CheckCircle2,
   Download,
   Edit,
+  ExternalLink,
   FileText,
+  HelpCircle,
+  Info,
   Layers,
   Mail,
   MapPin,
@@ -32,6 +36,7 @@ import {
   Users,
   X,
 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import {
   useSmcrData,
@@ -46,6 +51,13 @@ import { fetchDocumentBlob } from "../utils/document-storage";
 import { allSMFs, certificationFunctions } from "../data/core-functions";
 import { TrainingStatus } from "../data/role-training";
 import { FirmSwitcher } from "../components/FirmSwitcher";
+import { PeopleIcon } from "../components/SmcrIcons";
+import { getRoleSummary } from "../data/role-descriptions";
+import { formATips, certificationTips, formCTips } from "../forms/form-data";
+import { CVGenerator } from "./components/CVGenerator";
+import { DBSRequestGenerator } from "./components/DBSRequestGenerator";
+import { ReferenceRequestGenerator } from "./components/ReferenceRequestGenerator";
+import { ProfileExporter } from "./components/ProfileExporter";
 
 const departments = [
   "Executive",
@@ -79,6 +91,8 @@ const approvalStatusOptions: { value: RoleApprovalStatus; label: string }[] = [
 
 type AssessmentStatus = PersonAssessment["status"];
 
+type AssessmentFrequency = "annual" | "semi-annual" | "quarterly";
+
 type FormState = {
   name: string;
   email: string;
@@ -93,6 +107,7 @@ type FormState = {
   trainingCompletion: number;
   lastAssessment?: Date;
   nextAssessment?: Date;
+  assessmentFrequency: AssessmentFrequency;
   documents: Record<DocumentCategory, File[]>;
 };
 
@@ -133,8 +148,26 @@ function createInitialFormState(): FormState {
     trainingCompletion: 0,
     lastAssessment: undefined,
     nextAssessment: undefined,
+    assessmentFrequency: "annual",
     documents: createEmptyDocuments(),
   };
+}
+
+function calculateNextAssessment(lastAssessment: Date | undefined, frequency: AssessmentFrequency): Date | undefined {
+  if (!lastAssessment) return undefined;
+  const next = new Date(lastAssessment);
+  switch (frequency) {
+    case "annual":
+      next.setFullYear(next.getFullYear() + 1);
+      break;
+    case "semi-annual":
+      next.setMonth(next.getMonth() + 6);
+      break;
+    case "quarterly":
+      next.setMonth(next.getMonth() + 3);
+      break;
+  }
+  return next;
 }
 
 function createDefaultRoleForm(): RoleFormState {
@@ -244,6 +277,13 @@ export function PeopleClient() {
   const [roleFeedback, setRoleFeedback] = useState<string | null>(null);
   const [recentRoleId, setRecentRoleId] = useState<string | null>(null);
 
+  // Generator dialogs state
+  const [cvGeneratorOpen, setCvGeneratorOpen] = useState(false);
+  const [dbsGeneratorOpen, setDbsGeneratorOpen] = useState(false);
+  const [referenceGeneratorOpen, setReferenceGeneratorOpen] = useState(false);
+  const [profileExportOpen, setProfileExportOpen] = useState(false);
+  const [generatorPersonId, setGeneratorPersonId] = useState<string | null>(null);
+
   useEffect(() => {
     if (!roleDialogOpen) {
       setRoleFeedback(null);
@@ -316,6 +356,7 @@ export function PeopleClient() {
       trainingCompletion: person.assessment.trainingCompletion ?? 0,
       lastAssessment: fromISO(person.assessment.lastAssessment),
       nextAssessment: fromISO(person.assessment.nextAssessment),
+      assessmentFrequency: "annual",
       documents: createEmptyDocuments(),
     });
     setPersonDialogOpen(true);
@@ -401,32 +442,53 @@ export function PeopleClient() {
     setRoleDialogOpen(true);
   };
 
+  const [roleError, setRoleError] = useState<string | null>(null);
+
   const handleAssignRole = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setRoleError(null);
     if (!rolePersonId || !roleForm.functionId || !roleForm.startDate) return;
 
-    const createdRole = assignRole({
-      personId: rolePersonId,
-      functionId: roleForm.functionId,
-      functionType: roleForm.functionType,
-      entity: roleForm.entity || undefined,
-      startDate: toISO(roleForm.startDate) ?? new Date().toISOString(),
-      endDate: toISO(roleForm.endDate),
-      assessmentDate: toISO(roleForm.assessmentDate),
-      approvalStatus: roleForm.approvalStatus,
-      notes: roleForm.notes || undefined,
-    });
+    // Validate role start date is not before employment start date
+    const person = firmPeople.find((p) => p.id === rolePersonId);
+    if (person?.hireDate && roleForm.startDate) {
+      const hireDate = new Date(person.hireDate);
+      if (roleForm.startDate < hireDate) {
+        setRoleError("Role start date cannot be before the person's employment start date.");
+        return;
+      }
+    }
 
-    const assignedPerson = firmPeople.find((person) => person.id === rolePersonId);
-    setRoleFeedback(
-      `${createdRole.functionLabel} assigned to ${assignedPerson?.name ?? "selected person"}.`
-    );
-    setRecentRoleId(createdRole.id);
+    try {
+      const createdRole = assignRole({
+        personId: rolePersonId,
+        functionId: roleForm.functionId,
+        functionType: roleForm.functionType,
+        entity: roleForm.entity || undefined,
+        startDate: toISO(roleForm.startDate) ?? new Date().toISOString(),
+        endDate: toISO(roleForm.endDate),
+        assessmentDate: toISO(roleForm.assessmentDate),
+        approvalStatus: roleForm.approvalStatus,
+        notes: roleForm.notes || undefined,
+      });
 
-    setRoleForm((prev) => ({
-      ...createDefaultRoleForm(),
-      functionType: prev.functionType,
-    }));
+      const assignedPerson = firmPeople.find((person) => person.id === rolePersonId);
+      setRoleFeedback(
+        `${createdRole.functionLabel} assigned to ${assignedPerson?.name ?? "selected person"}.`
+      );
+      setRecentRoleId(createdRole.id);
+
+      setRoleForm((prev) => ({
+        ...createDefaultRoleForm(),
+        functionType: prev.functionType,
+      }));
+    } catch (error) {
+      if (error instanceof Error) {
+        setRoleError(error.message);
+      } else {
+        setRoleError("Failed to assign role. Please try again.");
+      }
+    }
   };
 
   const handleRemoveRole = (roleId: string) => {
@@ -437,144 +499,6 @@ export function PeopleClient() {
   const pendingDocumentsCount = useMemo(() => {
     return documentCategories.reduce((acc, category) => acc + formState.documents[category].length, 0);
   }, [formState.documents]);
-
-  const handleExportProfile = (person: PersonRecord) => {
-    const linkedRoles = rolesByPerson.get(person.id) ?? [];
-    const linkedDocuments = documentsByPerson.get(person.id) ?? [];
-    const personAssessments = firmAssessments
-      .filter((assessment) => assessment.personId === person.id)
-      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
-
-    const latestAssessment = personAssessments[0];
-
-    const html = `<!DOCTYPE html>
-    <html>
-      <head>
-        <meta charset="utf-8" />
-        <title>${person.name} – SM&CR Profile</title>
-        <style>
-          body { font-family: Arial, sans-serif; margin: 32px; color: #0f172a; }
-          h1 { font-size: 28px; margin-bottom: 4px; }
-          h2 { font-size: 18px; margin-top: 24px; margin-bottom: 8px; }
-          table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px; }
-          th, td { border: 1px solid #cbd5f5; padding: 8px; text-align: left; }
-          th { background: #e2e8f0; }
-          .muted { color: #64748b; font-size: 12px; }
-          .tag { display: inline-block; padding: 2px 6px; border-radius: 9999px; background: #e0f2fe; color: #0284c7; font-size: 10px; margin-left: 4px; }
-        </style>
-      </head>
-      <body>
-        <h1>${person.name}</h1>
-        <p class="muted">Employee ID ${person.employeeId} · ${person.title ?? "Role not captured"}</p>
-
-        <h2>Summary</h2>
-        <p><strong>Department:</strong> ${person.department}</p>
-        <p><strong>Line manager:</strong> ${person.lineManager ?? "Not recorded"}</p>
-        <p><strong>Training completion:</strong> ${person.assessment.trainingCompletion}%</p>
-        <p><strong>Latest assessment:</strong> ${latestAssessment ? format(new Date(latestAssessment.updatedAt), "PPP") : "N/A"}</p>
-
-        <h2>SMF / CF Roles</h2>
-        ${linkedRoles.length === 0 ? "<p>No roles assigned.</p>" : `<table>
-          <thead>
-            <tr>
-              <th>Role</th>
-              <th>Type</th>
-              <th>Entity</th>
-              <th>Start</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${linkedRoles.map((role) => `
-              <tr>
-                <td>${role.functionLabel}</td>
-                <td>${role.functionType}</td>
-                <td>${role.entity ?? "—"}</td>
-                <td>${role.startDate ? format(new Date(role.startDate), "PPP") : "—"}</td>
-                <td>${role.approvalStatus}</td>
-              </tr>
-            `).join("")}
-          </tbody>
-        </table>`}
-
-        <h2>Training Plan</h2>
-        ${person.trainingPlan.length === 0 ? "<p>No training requirements recorded.</p>" : `<table>
-          <thead>
-            <tr>
-              <th>Module</th>
-              <th>Role context</th>
-              <th>Status</th>
-              <th>Due</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${person.trainingPlan.map((item) => `
-              <tr>
-                <td>${item.title}${item.required ? " <span class='tag'>Required</span>" : ""}</td>
-                <td>${item.roleContext}</td>
-                <td>${item.status}</td>
-                <td>${item.dueDate ? format(new Date(item.dueDate), "PPP") : "—"}</td>
-              </tr>
-            `).join("")}
-          </tbody>
-        </table>`}
-
-        <h2>Fitness &amp; Propriety Assessments</h2>
-        ${personAssessments.length === 0 ? "<p>No assessments filed.</p>" : `<table>
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Status</th>
-              <th>Determination</th>
-              <th>Reviewer</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${personAssessments.map((assessment) => `
-              <tr>
-                <td>${assessment.assessmentDate ? format(new Date(assessment.assessmentDate), "PPP") : "—"}</td>
-                <td>${assessment.status}</td>
-                <td>${assessment.overallDetermination ?? "—"}</td>
-                <td>${assessment.reviewer ?? "—"}</td>
-              </tr>
-            `).join("")}
-          </tbody>
-        </table>`}
-
-        <h2>Evidence</h2>
-        ${linkedDocuments.length === 0 ? "<p>No documents uploaded.</p>" : `<table>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Category</th>
-              <th>Uploaded</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${linkedDocuments.map((doc) => `
-              <tr>
-                <td>${doc.name}</td>
-                <td>${documentCategoryLabels[doc.category]}</td>
-                <td>${doc.uploadedAt ? format(new Date(doc.uploadedAt), "PPP") : "—"}</td>
-              </tr>
-            `).join("")}
-          </tbody>
-        </table>`}
-
-        <p class="muted" style="margin-top:32px;">Generated ${format(new Date(), "PPPpp")} via Nasara Connect.</p>
-      </body>
-    </html>`;
-
-    const printWindow = window.open("", "_blank", "width=960,height=720");
-    if (!printWindow) {
-      window.alert("Unable to open export window. Please allow pop-ups for this site.");
-      return;
-    }
-    printWindow.document.write(html);
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
-  };
 
   if (!isReady) {
     return (
@@ -605,11 +529,14 @@ export function PeopleClient() {
   return (
     <div className="p-6 space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-900">People Management</h1>
-          <p className="text-slate-600 mt-1">
-            Maintain SM&amp;CR personnel records, documents, and role assignments in one place.
-          </p>
+        <div className="flex items-center gap-4">
+          <PeopleIcon size={48} />
+          <div>
+            <h1 className="text-2xl font-semibold text-slate-900">People Management</h1>
+            <p className="text-slate-600 mt-1">
+              Maintain SM&amp;CR personnel records, documents, and role assignments in one place.
+            </p>
+          </div>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <FirmSwitcher />
@@ -919,19 +846,67 @@ export function PeopleClient() {
                   )}
                 </div>
 
-                <div className="flex gap-2 pt-2 border-t">
-                  <Button size="sm" variant="outline" className="flex-1" onClick={() => handleExportProfile(person)}>
-                    <FileText className="h-4 w-4 mr-1" />
-                    Export Profile
-                  </Button>
-                  <Button size="sm" variant="outline" className="flex-1" onClick={() => openEditDialog(person)}>
-                    <Edit className="h-4 w-4 mr-1" />
-                    Edit
-                  </Button>
-                  <Button size="sm" variant="outline" className="flex-1" onClick={() => handleDeletePerson(person.id)}>
-                    <Trash2 className="h-4 w-4 mr-1" />
-                    Delete
-                  </Button>
+                <div className="space-y-2 pt-2 border-t">
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => {
+                        setGeneratorPersonId(person.id);
+                        setCvGeneratorOpen(true);
+                      }}
+                    >
+                      <FileText className="h-4 w-4 mr-1" />
+                      Generate CV
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => {
+                        setGeneratorPersonId(person.id);
+                        setDbsGeneratorOpen(true);
+                      }}
+                    >
+                      <Shield className="h-4 w-4 mr-1" />
+                      DBS Request
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => {
+                        setGeneratorPersonId(person.id);
+                        setReferenceGeneratorOpen(true);
+                      }}
+                    >
+                      <Mail className="h-4 w-4 mr-1" />
+                      Reference
+                    </Button>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => {
+                        setGeneratorPersonId(person.id);
+                        setProfileExportOpen(true);
+                      }}
+                    >
+                      <Download className="h-4 w-4 mr-1" />
+                      Export Profile
+                    </Button>
+                    <Button size="sm" variant="outline" className="flex-1" onClick={() => openEditDialog(person)}>
+                      <Edit className="h-4 w-4 mr-1" />
+                      Edit
+                    </Button>
+                    <Button size="sm" variant="outline" className="flex-1" onClick={() => handleDeletePerson(person.id)}>
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Delete
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -983,8 +958,10 @@ export function PeopleClient() {
                 <Label htmlFor="email">Email Address *</Label>
                 <Input
                   id="email"
-                  type="email"
+                  type="text"
                   required
+                  pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"
+                  title="Enter a valid email address (e.g., name@company.com)"
                   value={formState.email}
                   onChange={(event) => setFormState((prev) => ({ ...prev, email: event.target.value }))}
                   placeholder="Enter work email"
@@ -1055,68 +1032,168 @@ export function PeopleClient() {
               />
             </div>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-              <DatePickerField
-                label="Start Date"
-                placeholder="Select start date"
-                value={formState.startDate}
-                onChange={(date) => setFormState((prev) => ({ ...prev, startDate: date ?? undefined }))}
-              />
-              <DatePickerField
-                label="Hire Date"
-                placeholder="Select hire date"
-                value={formState.hireDate}
-                onChange={(date) => setFormState((prev) => ({ ...prev, hireDate: date ?? undefined }))}
-              />
-              <div>
-                <Label htmlFor="trainingCompletion">Training Completion %</Label>
-                <Input
-                  id="trainingCompletion"
-                  type="number"
-                  min={0}
-                  max={100}
-                  value={formState.trainingCompletion}
-                  onChange={(event) => setFormState((prev) => ({ ...prev, trainingCompletion: Number(event.target.value) }))}
-                />
+            <TooltipProvider>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div>
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <Label htmlFor="roleStartDate">Role Start Date</Label>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="h-3.5 w-3.5 text-slate-400 cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p>Date this person started in their current role/position</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <DatePickerField
+                    label=""
+                    placeholder="Select role start date"
+                    value={formState.startDate}
+                    onChange={(date) => setFormState((prev) => ({ ...prev, startDate: date ?? undefined }))}
+                  />
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <Label htmlFor="employmentStartDate">Employment Start Date</Label>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="h-3.5 w-3.5 text-slate-400 cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p>Date this person originally joined the firm</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <DatePickerField
+                    label=""
+                    placeholder="Select employment start date"
+                    value={formState.hireDate}
+                    onChange={(date) => setFormState((prev) => ({ ...prev, hireDate: date ?? undefined }))}
+                  />
+                </div>
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-              <div>
-                <Label>F&amp;P Status *</Label>
-                <Select
-                  value={formState.assessmentStatus}
-                  onValueChange={(value) =>
-                    setFormState((prev) => ({
-                      ...prev,
-                      assessmentStatus: value as AssessmentStatus,
-                    }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="current">Current</SelectItem>
-                    <SelectItem value="due">Due</SelectItem>
-                    <SelectItem value="overdue">Overdue</SelectItem>
-                    <SelectItem value="not_required">Not Required</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div>
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <Label htmlFor="trainingCompletion">Training Completion %</Label>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="h-3.5 w-3.5 text-slate-400 cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p>Percentage of required compliance training completed. This is auto-calculated from training records when roles are assigned.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <Input
+                    id="trainingCompletion"
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={formState.trainingCompletion}
+                    onChange={(event) => setFormState((prev) => ({ ...prev, trainingCompletion: Number(event.target.value) }))}
+                    className="bg-slate-50"
+                  />
+                  <p className="text-xs text-slate-500 mt-1">Auto-calculated when training items are marked complete</p>
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <Label>F&amp;P Status *</Label>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-3.5 w-3.5 text-slate-400 cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p>Fitness &amp; Propriety assessment tracks whether the individual meets regulatory standards for competence, honesty, and financial soundness</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <Select
+                    value={formState.assessmentStatus}
+                    onValueChange={(value) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        assessmentStatus: value as AssessmentStatus,
+                      }))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="current">Current</SelectItem>
+                      <SelectItem value="due">Due</SelectItem>
+                      <SelectItem value="overdue">Overdue</SelectItem>
+                      <SelectItem value="not_required">Not Required</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <DatePickerField
-                label="Last Assessment"
-                placeholder="Last assessment date"
-                value={formState.lastAssessment}
-                onChange={(date) => setFormState((prev) => ({ ...prev, lastAssessment: date ?? undefined }))}
-              />
-              <DatePickerField
-                label="Next Assessment"
-                placeholder="Next assessment due"
-                value={formState.nextAssessment}
-                onChange={(date) => setFormState((prev) => ({ ...prev, nextAssessment: date ?? undefined }))}
-              />
-            </div>
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <div>
+                  <Label>Last Assessment</Label>
+                  <DatePickerField
+                    label=""
+                    placeholder="Last assessment date"
+                    value={formState.lastAssessment}
+                    onChange={(date) => {
+                      const nextAssessment = calculateNextAssessment(date ?? undefined, formState.assessmentFrequency);
+                      setFormState((prev) => ({
+                        ...prev,
+                        lastAssessment: date ?? undefined,
+                        nextAssessment: nextAssessment,
+                      }));
+                    }}
+                  />
+                </div>
+                <div>
+                  <Label>Assessment Frequency</Label>
+                  <Select
+                    value={formState.assessmentFrequency}
+                    onValueChange={(value) => {
+                      const frequency = value as AssessmentFrequency;
+                      const nextAssessment = calculateNextAssessment(formState.lastAssessment, frequency);
+                      setFormState((prev) => ({
+                        ...prev,
+                        assessmentFrequency: frequency,
+                        nextAssessment: nextAssessment ?? prev.nextAssessment,
+                      }));
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="annual">Annual</SelectItem>
+                      <SelectItem value="semi-annual">Semi-annual (6 months)</SelectItem>
+                      <SelectItem value="quarterly">Quarterly (3 months)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <Label>Next Assessment</Label>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="h-3.5 w-3.5 text-slate-400 cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p>Auto-calculated based on Last Assessment + Assessment Frequency</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <DatePickerField
+                    label=""
+                    placeholder="Auto-calculated"
+                    value={formState.nextAssessment}
+                    onChange={(date) => setFormState((prev) => ({ ...prev, nextAssessment: date ?? undefined }))}
+                  />
+                </div>
+              </div>
+            </TooltipProvider>
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
@@ -1178,7 +1255,7 @@ export function PeopleClient() {
       </Dialog>
 
       <Dialog open={roleDialogOpen} onOpenChange={setRoleDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Manage SMF / CF Roles</DialogTitle>
             <DialogDescription>
@@ -1192,6 +1269,62 @@ export function PeopleClient() {
                   {roleFeedback}
                 </div>
               )}
+
+              {/* FCA Requirements Explainer - shows based on selected role type */}
+              {roleForm.functionType === "SMF" ? (
+                <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 space-y-2">
+                  <div className="flex items-start gap-2">
+                    <Info className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <h4 className="text-sm font-medium text-amber-900">{formATips.title}</h4>
+                      <p className="text-xs text-amber-800 mt-0.5">{formATips.description}</p>
+                    </div>
+                  </div>
+                  <ul className="space-y-1 ml-6">
+                    {formATips.tips.slice(0, 3).map((tip, i) => (
+                      <li key={i} className="flex items-center gap-1.5 text-xs text-amber-800">
+                        <CheckCircle2 className="h-3 w-3 text-amber-600 flex-shrink-0" />
+                        {tip}
+                      </li>
+                    ))}
+                  </ul>
+                  <a
+                    href={formATips.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 ml-6 text-xs font-medium text-amber-700 hover:text-amber-900"
+                  >
+                    Open FCA Connect <ExternalLink className="h-3 w-3" />
+                  </a>
+                </div>
+              ) : (
+                <div className="rounded-lg border border-teal-200 bg-teal-50 p-3 space-y-2">
+                  <div className="flex items-start gap-2">
+                    <Info className="h-4 w-4 text-teal-600 flex-shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <h4 className="text-sm font-medium text-teal-900">{certificationTips.title}</h4>
+                      <p className="text-xs text-teal-800 mt-0.5">{certificationTips.description}</p>
+                    </div>
+                  </div>
+                  <ul className="space-y-1 ml-6">
+                    {certificationTips.tips.map((tip, i) => (
+                      <li key={i} className="flex items-center gap-1.5 text-xs text-teal-800">
+                        <CheckCircle2 className="h-3 w-3 text-teal-600 flex-shrink-0" />
+                        {tip}
+                      </li>
+                    ))}
+                  </ul>
+                  <a
+                    href={certificationTips.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 ml-6 text-xs font-medium text-teal-700 hover:text-teal-900"
+                  >
+                    FCA Certification Guidance <ExternalLink className="h-3 w-3" />
+                  </a>
+                </div>
+              )}
+
               <div className="rounded-lg border border-slate-200 p-4">
                 <p className="text-sm font-semibold text-slate-700">{roleDialogPerson.name}</p>
                 <p className="text-xs text-slate-500">{roleDialogPerson.employeeId}</p>
@@ -1243,18 +1376,25 @@ export function PeopleClient() {
               </div>
 
               <form onSubmit={handleAssignRole} className="space-y-4">
+                {roleError && (
+                  <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-xs text-rose-700">
+                    {roleError}
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
                     <Label>Role Type *</Label>
                     <Select
                       value={roleForm.functionType}
-                      onValueChange={(value) =>
+                      onValueChange={(value) => {
+                        setRoleError(null);
                         setRoleForm((prev) => ({
                           ...prev,
                           functionType: value as "SMF" | "CF",
                           functionId: "",
-                        }))
-                      }
+                        }));
+                      }}
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -1269,7 +1409,10 @@ export function PeopleClient() {
                     <Label>Function *</Label>
                     <Select
                       value={roleForm.functionId}
-                      onValueChange={(value) => setRoleForm((prev) => ({ ...prev, functionId: value }))}
+                      onValueChange={(value) => {
+                        setRoleError(null);
+                        setRoleForm((prev) => ({ ...prev, functionId: value }));
+                      }}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select function" />
@@ -1284,6 +1427,21 @@ export function PeopleClient() {
                     </Select>
                   </div>
                 </div>
+
+                {/* Role Description */}
+                {roleForm.functionId && (
+                  <div className="rounded-lg border border-sky-200 bg-sky-50 px-4 py-3">
+                    <div className="flex items-start gap-2">
+                      <Info className="h-4 w-4 text-sky-600 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="text-xs font-medium text-sky-800">About this role</p>
+                        <p className="text-xs text-sky-700 mt-1">
+                          {getRoleSummary(roleForm.functionId) || "No description available for this role."}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
@@ -1365,6 +1523,43 @@ export function PeopleClient() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Generator Dialogs */}
+      {generatorPersonId && (() => {
+        const generatorPerson = firmPeople.find((p) => p.id === generatorPersonId);
+        const activeFirm = firms.find((f) => f.id === activeFirmId);
+        if (!generatorPerson) return null;
+        return (
+          <>
+            <CVGenerator
+              person={generatorPerson}
+              open={cvGeneratorOpen}
+              onOpenChange={setCvGeneratorOpen}
+            />
+            <DBSRequestGenerator
+              person={generatorPerson}
+              firmName={activeFirm?.name || "Your Firm"}
+              open={dbsGeneratorOpen}
+              onOpenChange={setDbsGeneratorOpen}
+            />
+            <ReferenceRequestGenerator
+              person={generatorPerson}
+              firmName={activeFirm?.name || "Your Firm"}
+              open={referenceGeneratorOpen}
+              onOpenChange={setReferenceGeneratorOpen}
+            />
+            <ProfileExporter
+              person={generatorPerson}
+              firm={activeFirm}
+              roles={rolesByPerson.get(generatorPersonId) ?? []}
+              assessments={firmAssessments.filter((a) => a.personId === generatorPersonId)}
+              documents={documentsByPerson.get(generatorPersonId) ?? []}
+              open={profileExportOpen}
+              onOpenChange={setProfileExportOpen}
+            />
+          </>
+        );
+      })()}
     </div>
   );
 }
@@ -1379,18 +1574,18 @@ type DatePickerFieldProps = {
 function DatePickerField({ label, placeholder, value, onChange }: DatePickerFieldProps) {
   return (
     <div>
-      <Label>{label}</Label>
+      {label && <Label>{label}</Label>}
       <Popover>
         <PopoverTrigger asChild>
           <Button
             type="button"
             variant="outline"
             className={cn(
-              "w-full justify-start text-left font-normal",
+              "w-full justify-start text-left font-normal min-w-[200px]",
               !value && "text-slate-400",
             )}
           >
-            <CalendarIcon className="mr-2 h-4 w-4" />
+            <CalendarIcon className="mr-2 h-4 w-4 flex-shrink-0" />
             {value ? format(value, "PPP") : placeholder}
           </Button>
         </PopoverTrigger>
@@ -1399,6 +1594,9 @@ function DatePickerField({ label, placeholder, value, onChange }: DatePickerFiel
             mode="single"
             selected={value}
             onSelect={onChange}
+            captionLayout="dropdown"
+            fromYear={1950}
+            toYear={2050}
             initialFocus
           />
         </PopoverContent>

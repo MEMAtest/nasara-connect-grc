@@ -20,8 +20,56 @@ function isTocClause(content: string) {
   return tocLines.length / lines.length >= 0.7;
 }
 
+function normalizeMarkdownTables(input: string): string {
+  const lines = input.split(/\r?\n/);
+  const output: string[] = [];
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+    const nextLine = lines[i + 1];
+    const isHeaderRow = line.trim().startsWith("|") && nextLine && /^\s*\|?\s*[-:]+/.test(nextLine.trim());
+
+    if (isHeaderRow) {
+      const headers = line
+        .split("|")
+        .map((cell) => cell.trim())
+        .filter(Boolean);
+      i += 2;
+
+      while (i < lines.length && lines[i].includes("|")) {
+        const row = lines[i]
+          .split("|")
+          .map((cell) => cell.trim())
+          .filter(Boolean);
+        if (row.length) {
+          const cells = headers.length
+            ? headers
+                .map((header, index) => {
+                  const value = row[index];
+                  return value ? `${header}: ${value}` : "";
+                })
+                .filter(Boolean)
+            : row;
+          if (cells.length) {
+            output.push(`- ${cells.join(" | ")}`);
+          }
+        }
+        i += 1;
+      }
+      continue;
+    }
+
+    output.push(line);
+    i += 1;
+  }
+
+  return output.join("\n");
+}
+
 function stripHtml(html: string): string {
-  return html
+  const normalized = normalizeMarkdownTables(html);
+  return normalized
     .replace(/<br\s*\/?>/gi, "\n")
     .replace(/<\/p>/gi, "\n\n")
     .replace(/<\/li>/gi, "\n")
@@ -543,6 +591,22 @@ export async function GET(
       font: fontRegular,
       size: 10,
       color: rgb(0.42, 0.45, 0.5),
+    });
+
+    const pages = pdfDoc.getPages();
+    const totalPages = pages.length;
+    const footerFontSize = 9;
+    pages.forEach((pageRef, index) => {
+      const { width: pageWidth } = pageRef.getSize();
+      const label = `Page ${index + 1} of ${totalPages}`;
+      const textWidth = fontRegular.widthOfTextAtSize(label, footerFontSize);
+      pageRef.drawText(label, {
+        x: (pageWidth - textWidth) / 2,
+        y: margin / 2,
+        font: fontRegular,
+        size: footerFontSize,
+        color: rgb(0.42, 0.45, 0.5),
+      });
     });
 
     const pdfBytes = await pdfDoc.save();

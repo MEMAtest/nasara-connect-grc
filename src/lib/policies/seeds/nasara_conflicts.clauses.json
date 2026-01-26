@@ -1,0 +1,100 @@
+[
+  {
+    "id": "nasara_conflicts-purpose-purpose_and_objectives",
+    "policy_key": "conflicts",
+    "title": "Purpose and objectives",
+    "body_md": "This policy sets out how {{firm.name}} identifies and manages conduct risk and conflicts of interest to protect customers, markets, and the firm.\n\nObjectives:\n- meet FCA expectations under PRIN, SYSC, and COCON.\n- prevent personal, organisational, and third-party interests from influencing decisions.\n- require disclosure, approval, mitigation, and record keeping for conflicts.\n- support good customer outcomes and market integrity.",
+    "source_template_filename": "MODULE_CONDUCT_RISK_CONFLICTS_OF_INTEREST.txt"
+  },
+  {
+    "id": "nasara_conflicts-scope-scope_and_applicability",
+    "policy_key": "conflicts",
+    "title": "Scope and applicability",
+    "body_md": "This policy applies to all employees, contractors, and appointed representatives who perform activities on behalf of {{firm.name}}.\n\nIt covers decisions and communications related to customers, suppliers, introducers, partners, and internal governance. It applies to all business units and locations, including digital channels and third-party arrangements.",
+    "source_template_filename": "MODULE_CONDUCT_RISK_CONFLICTS_OF_INTEREST.txt"
+  },
+  {
+    "id": "nasara_conflicts-framework-regulatory_framework",
+    "policy_key": "conflicts",
+    "title": "Regulatory framework",
+    "body_md": "{{firm.name}} manages conflicts and conduct risk in line with FCA expectations, including:\n- PRIN: act with integrity, due skill, and treat customers fairly.\n- SYSC: maintain systems and controls, including a conflicts framework.\n- COCON: individual conduct rules for all staff and additional rules for Senior Managers.\n\nAll staff are expected to understand and comply with these standards.",
+    "source_template_filename": "MODULE_CONDUCT_RISK_CONFLICTS_OF_INTEREST.txt"
+  },
+  {
+    "id": "nasara_conflicts-definitions-what_is_a_conflict",
+    "policy_key": "conflicts",
+    "title": "What is a conflict of interest",
+    "body_md": "A conflict of interest exists when personal interests, the interests of another client, or the interests of the firm could improperly influence professional decisions.\n\nTypes of conflicts include:\n- Personal: family, financial, or outside business interests.\n- Organisational: revenue incentives that do not align with customer outcomes.\n- Third-party: introducer, supplier, or partner incentives that create bias.",
+    "source_template_filename": "MODULE_CONDUCT_RISK_CONFLICTS_OF_INTEREST.txt"
+  },
+  {
+    "id": "nasara_conflicts-conduct-conduct_risk_principles",
+    "policy_key": "conflicts",
+    "title": "Conduct risk and customer outcomes",
+    "body_md": "Conduct risk is the risk that behaviours, decisions, or processes lead to poor customer outcomes or market harm.\n\n{{firm.name}} expects all teams to:\n- act in the interests of customers and the market.\n- avoid pressure to sell or promote unsuitable products.\n- challenge practices that create unfair outcomes.\n- use MI, complaints, and QA findings to identify conduct risks.",
+    "source_template_filename": "MODULE_CONDUCT_RISK_CONFLICTS_OF_INTEREST.txt"
+  },
+  {
+    "id": "nasara_conflicts-process-four_step_conflict_process",
+    "policy_key": "conflicts",
+    "title": "The four-step conflict process",
+    "body_md": "{{firm.name}} uses a four-step process for managing conflicts:\n1) Identify potential or actual conflicts early.\n2) Disclose conflicts before acting.\n3) Decide and mitigate: recuse, add independent review, change incentives, or decline the activity.\n4) Record and evidence: update registers and attach approvals and rationale.\n\nConflicts must be resolved before decisions are taken or promotions are released.",
+    "source_template_filename": "MODULE_CONDUCT_RISK_CONFLICTS_OF_INTEREST.txt"
+  },
+  {
+    "id": "nasara_conflicts-gifts-gifts_and_hospitality",
+    "policy_key": "conflicts",
+    "title": "Gifts and hospitality",
+    "body_md": "Gifts and hospitality must not influence decision making.\n\nControls:\n- follow gift limits and pre-approval rules.\n- decline or escalate any offer connected to active tenders or complaint outcomes.\n- record all gifts and hospitality in the register.\n- avoid any quid pro quo arrangements.",
+    "source_template_filename": "MODULE_CONDUCT_RISK_CONFLICTS_OF_INTEREST.txt"
+  },
+  {
+    "id": "nasara_conflicts-personal-personal_interests_and_outside_activities",
+    "policy_key": "conflicts",
+    "title": "Personal interests and outside activities",
+    "body_md": "Staff must disclose and seek approval for:\n- outside directorships, advisory roles, or paid side businesses.\n- personal account dealing where applicable.\n- close relationships with clients, suppliers, or candidates.\n- any situation where personal benefit could influence decisions.\n\nApprovals must be recorded, and restrictions may be imposed.",
+    "source_template_filename": "MODULE_CONDUCT_RISK_CONFLICTS_OF_INTEREST.txt"
+  },
+  {
+    "id": "nasara_conflicts-organisational-organisational_conflicts_and_incentives",
+    "policy_key": "conflicts",
+    "title": "Organisational conflicts and incentives",
+    "body_md": "{{firm.name}} monitors organisational conflicts that could harm customer outcomes, such as:\n- incentive plans that encourage unsuitable sales.\n- product features or pricing that obscure fees.\n- default selections that limit informed choice.\n\nMitigations include product governance controls, approval gateways, and periodic reviews of incentives and outcomes.",
+    "source_template_filename": "MODULE_CONDUCT_RISK_CONFLICTS_OF_INTEREST.txt"
+  },
+  {
+    "id": "nasara_conflicts-decision-framework-decision_framework",
+    "policy_key": "conflicts",
+    "title": "Decision framework",
+    "body_md": "Use the following questions before acting:\n- Is it legal and consistent with policy?\n- Does it treat customers fairly and support Consumer Duty outcomes?\n- Would you be comfortable explaining it to a regulator or your family?\n- Are you independent of any personal interest?\n- Can you evidence the decision and approvals?\n\nIf the answer to any question is unclear, pause and escalate.",
+    "source_template_filename": "MODULE_CONDUCT_RISK_CONFLICTS_OF_INTEREST.txt"
+  },
+  {
+    "id": "nasara_conflicts-escalation-escalation_and_speak_up",
+    "policy_key": "conflicts",
+    "title": "Escalation and speak-up",
+    "body_md": "If in doubt, pause and escalate.\n\nEscalation routes include the line manager, Compliance, and the whistleblowing channel. Retaliation is not tolerated.\n\nAll escalations must be documented and tracked to resolution.",
+    "source_template_filename": "MODULE_CONDUCT_RISK_CONFLICTS_OF_INTEREST.txt"
+  },
+  {
+    "id": "nasara_conflicts-records-records_and_registers",
+    "policy_key": "conflicts",
+    "title": "Records and registers",
+    "body_md": "Records must include:\n- conflict disclosures and approvals.\n- conflicts register entries (nature, mitigations, review date).\n- gifts and hospitality register entries.\n- decision logs, MI, and complaint insights.\n- training completion and attestations.\n\nRecords are retained in line with regulatory and internal requirements.",
+    "source_template_filename": "MODULE_CONDUCT_RISK_CONFLICTS_OF_INTEREST.txt"
+  },
+  {
+    "id": "nasara_conflicts-training-training_and_awareness",
+    "policy_key": "conflicts",
+    "title": "Training and awareness",
+    "body_md": "Staff involved in customer-facing activity, approvals, or decision making must complete conduct risk and conflicts training.\n\nTraining completion and attestations must be refreshed in line with the firm training plan.",
+    "source_template_filename": "MODULE_CONDUCT_RISK_CONFLICTS_OF_INTEREST.txt"
+  },
+  {
+    "id": "nasara_conflicts-governance-governance_and_review",
+    "policy_key": "conflicts",
+    "title": "Governance and review",
+    "body_md": "Compliance owns the conflicts framework and provides oversight of disclosures, approvals, and registers.\n\nSenior management is accountable for ensuring appropriate resourcing, escalation routes, and periodic review of this policy.",
+    "source_template_filename": "MODULE_CONDUCT_RISK_CONFLICTS_OF_INTEREST.txt"
+  }
+]

@@ -1,0 +1,86 @@
+[
+  {
+    "id": "nasara_whistleblowing-purpose-purpose_and_objectives",
+    "policy_key": "whistleblowing",
+    "title": "Purpose and objectives",
+    "body_md": "This policy sets out how {{firm.name}} supports speaking up and whistleblowing in line with FCA expectations and SYSC requirements.\n\nObjectives:\n- encourage early reporting of wrongdoing.\n- protect confidentiality and prevent retaliation.\n- define clear channels, triage, and investigation steps.\n- maintain records and management information.",
+    "source_template_filename": "MODULE_WHISTLEBLOWING.txt"
+  },
+  {
+    "id": "nasara_whistleblowing-scope-scope_and_applicability",
+    "policy_key": "whistleblowing",
+    "title": "Scope and applicability",
+    "body_md": "This policy applies to all staff, contractors, and appointed representatives. It covers concerns about regulatory breaches, financial crime, misconduct, control failures, and other wrongdoing that could harm customers, markets, or the firm.",
+    "source_template_filename": "MODULE_WHISTLEBLOWING.txt"
+  },
+  {
+    "id": "nasara_whistleblowing-definitions-what_is_whistleblowing",
+    "policy_key": "whistleblowing",
+    "title": "What is whistleblowing",
+    "body_md": "A protected disclosure is information that the reporter reasonably believes shows wrongdoing, such as regulatory breaches, criminal offences, data breaches, or cover-ups.\n\nPersonal grievances (pay, workload) are usually handled through HR channels, but should still be raised if they reveal wider misconduct.",
+    "source_template_filename": "MODULE_WHISTLEBLOWING.txt"
+  },
+  {
+    "id": "nasara_whistleblowing-channels-channels_and_confidentiality",
+    "policy_key": "whistleblowing",
+    "title": "Channels and confidentiality",
+    "body_md": "Concerns can be raised via the whistleblowing portal or line, Compliance mailbox, or line manager (if appropriate).\n\nReports can be anonymous or named. Confidentiality is protected on a need-to-know basis, and data is minimised.",
+    "source_template_filename": "MODULE_WHISTLEBLOWING.txt"
+  },
+  {
+    "id": "nasara_whistleblowing-details-what_to_include",
+    "policy_key": "whistleblowing",
+    "title": "What to include",
+    "body_md": "Reports should include factual details such as who, what, when, where, and how, plus any evidence available. Avoid rumours or opinions without context.\n\nIf unsure, report what you observed and allow the investigation process to assess further.",
+    "source_template_filename": "MODULE_WHISTLEBLOWING.txt"
+  },
+  {
+    "id": "nasara_whistleblowing-triage-triage_and_investigation",
+    "policy_key": "whistleblowing",
+    "title": "Triage and investigation",
+    "body_md": "All reports are triaged based on urgency and risk. Investigators are assigned, evidence is gathered securely, and outcomes are documented.\n\nFeedback is provided to the reporter where appropriate and lawful.",
+    "source_template_filename": "MODULE_WHISTLEBLOWING.txt"
+  },
+  {
+    "id": "nasara_whistleblowing-managers-manager_responsibilities",
+    "policy_key": "whistleblowing",
+    "title": "Manager responsibilities",
+    "body_md": "Managers must listen without judgement, protect confidentiality, record facts, and escalate immediately via the whistleblowing process.\n\nManagers must also prevent retaliation and support the reporter throughout the process.",
+    "source_template_filename": "MODULE_WHISTLEBLOWING.txt"
+  },
+  {
+    "id": "nasara_whistleblowing-retaliation-no_retaliation",
+    "policy_key": "whistleblowing",
+    "title": "No retaliation",
+    "body_md": "Retaliation against anyone who speaks up is prohibited. Examples include bullying, demotion, exclusion, or unjustified changes to pay or shifts.\n\nAny suspected retaliation must be reported immediately.",
+    "source_template_filename": "MODULE_WHISTLEBLOWING.txt"
+  },
+  {
+    "id": "nasara_whistleblowing-escalation-escalation_and_regulators",
+    "policy_key": "whistleblowing",
+    "title": "Escalation and regulators",
+    "body_md": "Where appropriate, concerns may be escalated to regulators. The Whistleblowing Champion, Compliance, and Legal teams will manage any external notifications in line with policy.",
+    "source_template_filename": "MODULE_WHISTLEBLOWING.txt"
+  },
+  {
+    "id": "nasara_whistleblowing-records-records_and_mi",
+    "policy_key": "whistleblowing",
+    "title": "Records and MI",
+    "body_md": "Records must include intake details, investigation steps, outcomes, remediation actions, and timelines.\n\nManagement information should track themes, timeliness, and any retaliation concerns for board oversight.",
+    "source_template_filename": "MODULE_WHISTLEBLOWING.txt"
+  },
+  {
+    "id": "nasara_whistleblowing-training-training_and_awareness",
+    "policy_key": "whistleblowing",
+    "title": "Training and awareness",
+    "body_md": "All staff must complete whistleblowing training. Managers receive additional training on how to receive and escalate concerns. Training completion is recorded and refreshed as required.",
+    "source_template_filename": "MODULE_WHISTLEBLOWING.txt"
+  },
+  {
+    "id": "nasara_whistleblowing-governance-governance_and_review",
+    "policy_key": "whistleblowing",
+    "title": "Governance and review",
+    "body_md": "The Whistleblowing Champion and Compliance oversee this policy. The board receives periodic MI on whistleblowing themes, investigation timeliness, and remediation outcomes.",
+    "source_template_filename": "MODULE_WHISTLEBLOWING.txt"
+  }
+]
