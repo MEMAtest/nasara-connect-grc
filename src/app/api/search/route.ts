@@ -525,6 +525,16 @@ export async function GET(request: NextRequest) {
   logApiRequest('GET', '/api/search');
 
   try {
+    const authResult = await authenticateRequest(request);
+    if (!authResult.authenticated || !authResult.user) {
+      return authResult.error!;
+    }
+
+    const organizationId = authResult.user.organizationId || 'default-org';
+    const policyOrganizationId = isValidUUID(organizationId)
+      ? organizationId
+      : DEFAULT_ORGANIZATION_ID;
+
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('q')?.trim();
 
@@ -541,7 +551,7 @@ export async function GET(request: NextRequest) {
     const trainingResults = searchTrainingModules(query);
 
     // Search database
-    const dbResults = await searchDatabase(query);
+    const dbResults = await searchDatabase(query, organizationId, policyOrganizationId);
 
     // Combine and deduplicate results
     const allResults = [...navResults, ...trainingResults, ...dbResults]
