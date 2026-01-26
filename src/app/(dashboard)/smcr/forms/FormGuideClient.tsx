@@ -9,17 +9,19 @@ import { format } from "date-fns";
 import { useSmcrData } from "../context/SmcrDataContext";
 
 // Types
-import type { FormAState, EmploymentEntry, DirectorshipEntry } from './types/form-types';
+import type { FormAState, FormCState, EmploymentEntry, DirectorshipEntry } from './types/form-types';
 
 // Utils
 import { validators, validationMessages, type ValidatorKey } from './utils/form-validators';
 import {
   FORM_A_STORAGE_KEY,
+  FORM_C_STORAGE_KEY,
   initialFormA,
+  initialFormC,
   createEmptyEmployment,
   createEmptyDirectorship
 } from './utils/form-constants';
-import { generateFormHTML, sanitizeFilename } from './utils/form-export';
+import { generateFormHTML, generateFormCHTML, sanitizeFilename } from './utils/form-export';
 
 // Components
 import { SectionInfo } from './components/SectionInfo';
@@ -37,6 +39,14 @@ import { Section12Responsibilities } from './components/Section12Responsibilitie
 import { Section13Competency } from './components/Section13Competency';
 import { Section14Declarations } from './components/Section14Declarations';
 
+// Form C Components
+import { FormCSection1FirmDetails } from './components/FormCSection1FirmDetails';
+import { FormCSection2IndividualDetails } from './components/FormCSection2IndividualDetails';
+import { FormCSection3CessationDetails } from './components/FormCSection3CessationDetails';
+import { FormCSection4Circumstances } from './components/FormCSection4Circumstances';
+import { FormCSection5Handover } from './components/FormCSection5Handover';
+import { FormCSection6Declaration } from './components/FormCSection6Declaration';
+
 type SaveStatus = 'saved' | 'saving' | 'error' | 'quota-exceeded' | null;
 
 export function FormGuideClient() {
@@ -45,21 +55,36 @@ export function FormGuideClient() {
 
   const [activeTab, setActiveTab] = useState("form-a");
   const [activeSection, setActiveSection] = useState("1");
+  const [formCSectionActive, setFormCSectionActive] = useState("1");
   const [formA, setFormA] = useState<FormAState>({
     ...initialFormA,
     firmName: activeFirm?.name || "",
   });
+  const [formC, setFormC] = useState<FormCState>({
+    ...initialFormC,
+    firmName: activeFirm?.name || "",
+  });
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [formCValidationErrors, setFormCValidationErrors] = useState<Record<string, string>>({});
   const [saveStatus, setSaveStatus] = useState<SaveStatus>(null);
   const [exportError, setExportError] = useState<string | null>(null);
 
   // Load saved form data from localStorage on mount
   useEffect(() => {
     try {
-      const savedData = localStorage.getItem(FORM_A_STORAGE_KEY);
-      if (savedData) {
-        const parsed = JSON.parse(savedData) as Partial<FormAState>;
+      const savedDataA = localStorage.getItem(FORM_A_STORAGE_KEY);
+      if (savedDataA) {
+        const parsed = JSON.parse(savedDataA) as Partial<FormAState>;
         setFormA(prev => ({
+          ...prev,
+          ...parsed,
+          firmName: activeFirm?.name || parsed.firmName || prev.firmName,
+        }));
+      }
+      const savedDataC = localStorage.getItem(FORM_C_STORAGE_KEY);
+      if (savedDataC) {
+        const parsed = JSON.parse(savedDataC) as Partial<FormCState>;
+        setFormC(prev => ({
           ...prev,
           ...parsed,
           firmName: activeFirm?.name || parsed.firmName || prev.firmName,
@@ -70,7 +95,7 @@ export function FormGuideClient() {
     }
   }, [activeFirm?.name]);
 
-  // Auto-save form data to localStorage (debounced)
+  // Auto-save Form A data to localStorage (debounced)
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       try {
@@ -91,25 +116,72 @@ export function FormGuideClient() {
     return () => clearTimeout(timeoutId);
   }, [formA]);
 
+  // Auto-save Form C data to localStorage (debounced)
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      try {
+        setSaveStatus('saving');
+        localStorage.setItem(FORM_C_STORAGE_KEY, JSON.stringify(formC));
+        setSaveStatus('saved');
+        setTimeout(() => setSaveStatus(null), 2000);
+      } catch (error) {
+        console.error('Failed to save Form C data:', error);
+        if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+          setSaveStatus('quota-exceeded');
+        } else {
+          setSaveStatus('error');
+        }
+      }
+    }, 1000);
+
+    return () => clearTimeout(timeoutId);
+  }, [formC]);
+
   // Clear saved form data
   const clearSavedForm = useCallback(() => {
     try {
-      localStorage.removeItem(FORM_A_STORAGE_KEY);
-      setFormA({
-        ...initialFormA,
-        firmName: activeFirm?.name || "",
-      });
-      setValidationErrors({});
+      if (activeTab === "form-a") {
+        localStorage.removeItem(FORM_A_STORAGE_KEY);
+        setFormA({
+          ...initialFormA,
+          firmName: activeFirm?.name || "",
+        });
+        setValidationErrors({});
+      } else {
+        localStorage.removeItem(FORM_C_STORAGE_KEY);
+        setFormC({
+          ...initialFormC,
+          firmName: activeFirm?.name || "",
+        });
+        setFormCValidationErrors({});
+      }
     } catch (error) {
       console.error('Failed to clear saved form:', error);
     }
-  }, [activeFirm?.name]);
+  }, [activeFirm?.name, activeTab]);
 
-  // Validate a specific field
+  // Validate a specific field for Form A
   const validateField = useCallback((field: string, value: string, validatorKey?: string) => {
     if (validatorKey && validators[validatorKey as ValidatorKey]) {
       const isValid = validators[validatorKey as ValidatorKey](value);
       setValidationErrors(prev => {
+        if (isValid) {
+          const { [field]: _, ...rest } = prev;
+          return rest;
+        } else {
+          return { ...prev, [field]: validationMessages[validatorKey] };
+        }
+      });
+      return isValid;
+    }
+    return true;
+  }, []);
+
+  // Validate a specific field for Form C
+  const validateFormCField = useCallback((field: string, value: string, validatorKey?: string) => {
+    if (validatorKey && validators[validatorKey as ValidatorKey]) {
+      const isValid = validators[validatorKey as ValidatorKey](value);
+      setFormCValidationErrors(prev => {
         if (isValid) {
           const { [field]: _, ...rest } = prev;
           return rest;
@@ -219,6 +291,35 @@ export function FormGuideClient() {
     }));
   };
 
+  // Form C update function
+  const updateFormC = <K extends keyof FormCState>(field: K, value: FormCState[K]) => {
+    setFormC((prev) => ({ ...prev, [field]: value }));
+  };
+
+  // Form C progress calculation
+  const formCProgress = useMemo(() => {
+    let filled = 0;
+    let total = 0;
+
+    const requiredFields = [
+      formC.firmName, formC.firmFRN, formC.submitterName,
+      formC.surname, formC.forenames, formC.individualReferenceNumber,
+      formC.functionCeasing, formC.effectiveDate, formC.reasonCategory,
+      formC.interimArrangements,
+      formC.declarantName, formC.declarantSignature, formC.declarantDate,
+    ];
+
+    requiredFields.forEach((field) => {
+      total++;
+      if (field && String(field).trim()) filled++;
+    });
+
+    total++;
+    if (formC.firmDeclaration) filled++;
+
+    return Math.round((filled / total) * 100);
+  }, [formC]);
+
   const handlePrint = () => window.print();
 
   const handleExport = () => {
@@ -240,6 +341,25 @@ export function FormGuideClient() {
     }
   };
 
+  const handleExportFormC = () => {
+    try {
+      setExportError(null);
+      const html = generateFormCHTML(formC);
+      const blob = new Blob([html], { type: "text/html" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `Form-C-${sanitizeFilename(formC.surname)}-${format(new Date(), "yyyy-MM-dd")}.html`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 100);
+    } catch (error) {
+      console.error('Export failed:', error);
+      setExportError('Failed to export form. Please try again.');
+    }
+  };
+
   // Section navigation helpers
   const goToSection = (section: string) => setActiveSection(section);
   const nextSection = (current: string) => {
@@ -251,7 +371,7 @@ export function FormGuideClient() {
     setActiveSection(prev);
   };
 
-  // Common props for section components
+  // Common props for Form A section components
   const sectionProps = {
     formData: formA,
     updateField: updateFormA,
@@ -259,12 +379,30 @@ export function FormGuideClient() {
     validateField,
   };
 
+  // Common props for Form C section components
+  const formCSectionProps = {
+    formData: formC,
+    updateField: updateFormC,
+    validationErrors: formCValidationErrors,
+    validateField: validateFormCField,
+  };
+
+  // Form C navigation helpers
+  const nextFormCSection = (current: string) => {
+    const next = String(Number(current) + 1);
+    setFormCSectionActive(next);
+  };
+  const prevFormCSection = (current: string) => {
+    const prev = String(Number(current) - 1);
+    setFormCSectionActive(prev);
+  };
+
   return (
     <div className="p-6 space-y-6">
       <FormHeader
         saveStatus={saveStatus}
         onPrint={handlePrint}
-        onExport={handleExport}
+        onExport={activeTab === "form-a" ? handleExport : handleExportFormC}
         onClear={clearSavedForm}
       />
 
@@ -277,12 +415,15 @@ export function FormGuideClient() {
         </div>
       )}
 
-      <FormProgress progress={progress} />
-
-      <SectionInfo title="How to use this form" variant="info">
-        <p>This form mirrors the official FCA Long Form A. Complete each section, then export to use as a reference when submitting via FCA Connect.</p>
-        <p className="mt-1"><strong>Processing time:</strong> SMF applications take up to 3 months. Do not allow the candidate to start until approved.</p>
-      </SectionInfo>
+      {activeTab === "form-a" && (
+        <>
+          <FormProgress progress={progress} />
+          <SectionInfo title="How to use this form" variant="info">
+            <p>This form mirrors the official FCA Long Form A. Complete each section, then export to use as a reference when submitting via FCA Connect.</p>
+            <p className="mt-1"><strong>Processing time:</strong> SMF applications take up to 3 months. Do not allow the candidate to start until approved.</p>
+          </SectionInfo>
+        </>
+      )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-2">
@@ -391,20 +532,81 @@ export function FormGuideClient() {
         </TabsContent>
 
         <TabsContent value="form-c" className="space-y-4 mt-4">
-          <Card>
-            <CardContent className="p-6 text-center">
-              <FileText className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-              <h3 className="text-lg font-semibold text-slate-700">Form C - Ceasing Function</h3>
-              <p className="text-sm text-slate-500 mt-2">
-                Form C is used when someone leaves a controlled function.
-                <br />
-                Select "Form A" tab above to use the comprehensive application form.
-              </p>
-              <Button variant="outline" className="mt-4" onClick={() => setActiveTab("form-a")}>
-                Go to Form A
+          <FormProgress progress={formCProgress} />
+
+          <SectionInfo title="Form C - Ceasing Controlled Function" variant="warning">
+            <p><strong>Deadline:</strong> Submit within 7 business days of the individual ceasing to perform the controlled function.</p>
+            <p className="mt-1">Use this form when someone leaves an SMF or Certification Function role.</p>
+          </SectionInfo>
+
+          {/* Form C Section Navigation */}
+          <div className="flex flex-wrap gap-1">
+            {[
+              { id: "1", label: "Firm" },
+              { id: "2", label: "Individual" },
+              { id: "3", label: "Cessation" },
+              { id: "4", label: "Circumstances" },
+              { id: "5", label: "Handover" },
+              { id: "6", label: "Declaration" },
+            ].map((section) => (
+              <Button
+                key={section.id}
+                variant={formCSectionActive === section.id ? "default" : "outline"}
+                size="sm"
+                onClick={() => setFormCSectionActive(section.id)}
+                className="text-xs"
+              >
+                {section.id}. {section.label}
               </Button>
-            </CardContent>
-          </Card>
+            ))}
+          </div>
+
+          {formCSectionActive === "1" && (
+            <FormCSection1FirmDetails
+              {...formCSectionProps}
+              onNext={() => nextFormCSection("1")}
+            />
+          )}
+
+          {formCSectionActive === "2" && (
+            <FormCSection2IndividualDetails
+              {...formCSectionProps}
+              onNext={() => nextFormCSection("2")}
+              onBack={() => prevFormCSection("2")}
+            />
+          )}
+
+          {formCSectionActive === "3" && (
+            <FormCSection3CessationDetails
+              {...formCSectionProps}
+              onNext={() => nextFormCSection("3")}
+              onBack={() => prevFormCSection("3")}
+            />
+          )}
+
+          {formCSectionActive === "4" && (
+            <FormCSection4Circumstances
+              {...formCSectionProps}
+              onNext={() => nextFormCSection("4")}
+              onBack={() => prevFormCSection("4")}
+            />
+          )}
+
+          {formCSectionActive === "5" && (
+            <FormCSection5Handover
+              {...formCSectionProps}
+              onNext={() => nextFormCSection("5")}
+              onBack={() => prevFormCSection("5")}
+            />
+          )}
+
+          {formCSectionActive === "6" && (
+            <FormCSection6Declaration
+              {...formCSectionProps}
+              onBack={() => prevFormCSection("6")}
+              onExport={handleExportFormC}
+            />
+          )}
         </TabsContent>
       </Tabs>
     </div>

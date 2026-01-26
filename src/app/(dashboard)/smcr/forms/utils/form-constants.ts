@@ -1,7 +1,8 @@
-import type { FormAState, EmploymentEntry, DirectorshipEntry, PrescribedResponsibility } from '../types/form-types';
+import type { FormAState, FormCState, EmploymentEntry, DirectorshipEntry, PrescribedResponsibility } from '../types/form-types';
 
-// LocalStorage key for form persistence
+// LocalStorage keys for form persistence
 export const FORM_A_STORAGE_KEY = 'nasara-form-a-draft';
+export const FORM_C_STORAGE_KEY = 'nasara-form-c-draft';
 
 // Generate unique ID with fallback for older browsers
 export const generateId = (): string => {
@@ -121,4 +122,96 @@ export const prescribedResponsibilitiesList: PrescribedResponsibility[] = [
   { id: "pr-governance", label: "Responsibility for the firm's governance arrangements" },
   { id: "pr-risk", label: "Responsibility for the firm's risk management framework" },
   { id: "pr-conduct", label: "Responsibility for ensuring the conduct rules are embedded" },
+];
+
+// Form C - Ceasing controlled function
+export const initialFormC: FormCState = {
+  // Section 1: Firm Details
+  firmName: "",
+  firmFRN: "",
+  firmAddress: "",
+  submitterName: "",
+  submitterEmail: "",
+  submitterPhone: "",
+  submitterPosition: "",
+
+  // Section 2: Individual Details
+  title: "",
+  surname: "",
+  forenames: "",
+  individualReferenceNumber: "",
+  dateOfBirth: "",
+  nationalInsurance: "",
+
+  // Section 3: Function Details
+  functionCeasing: "",
+  effectiveDate: "",
+  dateApproved: "",
+
+  // Section 4: Reason for Leaving
+  reasonCategory: "",
+  reasonDetails: "",
+  isRelocating: false,
+  newEmployerName: "",
+  newEmployerFRN: "",
+
+  // Section 5: Circumstances
+  hasPerformanceIssues: false,
+  performanceDetails: "",
+  hasConductIssues: false,
+  conductDetails: "",
+  hasInvestigation: false,
+  investigationDetails: "",
+  hasDisciplinaryAction: false,
+  disciplinaryDetails: "",
+  hasRegulatoryBreach: false,
+  regulatoryBreachDetails: "",
+
+  // Section 6: Handover
+  hasHandoverPlan: false,
+  handoverDetails: "",
+  interimArrangements: "",
+  replacementName: "",
+  replacementApplicationSubmitted: false,
+
+  // Section 7: Declaration
+  firmDeclaration: false,
+  declarantName: "",
+  declarantPosition: "",
+  declarantSignature: "",
+  declarantDate: "",
+};
+
+// Reason categories for Form C
+export const reasonCategories = [
+  { value: "resignation", label: "Resignation" },
+  { value: "retirement", label: "Retirement" },
+  { value: "redundancy", label: "Redundancy" },
+  { value: "dismissal", label: "Dismissal" },
+  { value: "mutual-agreement", label: "Mutual Agreement" },
+  { value: "end-of-contract", label: "End of Fixed-Term Contract" },
+  { value: "internal-transfer", label: "Internal Transfer (use Form E instead)" },
+  { value: "other", label: "Other" },
+];
+
+// SMF/CF functions list for Form C
+export const controlledFunctions = [
+  { value: "SMF1", label: "SMF1 - Chief Executive" },
+  { value: "SMF2", label: "SMF2 - Chief Finance" },
+  { value: "SMF3", label: "SMF3 - Executive Director" },
+  { value: "SMF4", label: "SMF4 - Chief Risk" },
+  { value: "SMF5", label: "SMF5 - Head of Internal Audit" },
+  { value: "SMF9", label: "SMF9 - Chair" },
+  { value: "SMF10", label: "SMF10 - Chair of Risk Committee" },
+  { value: "SMF11", label: "SMF11 - Chair of Audit Committee" },
+  { value: "SMF12", label: "SMF12 - Chair of Remuneration Committee" },
+  { value: "SMF13", label: "SMF13 - Chair of Nominations Committee" },
+  { value: "SMF14", label: "SMF14 - Senior Independent Director" },
+  { value: "SMF16", label: "SMF16 - Compliance Oversight" },
+  { value: "SMF17", label: "SMF17 - Money Laundering Reporting Officer" },
+  { value: "SMF21", label: "SMF21 - EEA Branch Senior Manager" },
+  { value: "SMF24", label: "SMF24 - Chief Operations" },
+  { value: "SMF27", label: "SMF27 - Partner" },
+  { value: "SMF29", label: "SMF29 - Limited Scope" },
+  { value: "CF", label: "Certification Function" },
 ];

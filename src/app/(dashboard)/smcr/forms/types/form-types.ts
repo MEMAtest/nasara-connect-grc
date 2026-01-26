@@ -144,6 +144,74 @@ export interface PrescribedResponsibility {
   label: string;
 }
 
+// Form C - Ceasing controlled function
+export interface FormCState {
+  // Section 1: Firm Details
+  firmName: string;
+  firmFRN: string;
+  firmAddress: string;
+  submitterName: string;
+  submitterEmail: string;
+  submitterPhone: string;
+  submitterPosition: string;
+
+  // Section 2: Individual Details
+  title: string;
+  surname: string;
+  forenames: string;
+  individualReferenceNumber: string; // IRN from FCA Register
+  dateOfBirth: string;
+  nationalInsurance: string;
+
+  // Section 3: Function Details
+  functionCeasing: string;
+  effectiveDate: string;
+  dateApproved: string; // When they were originally approved
+
+  // Section 4: Reason for Leaving
+  reasonCategory: string; // resignation, retirement, redundancy, dismissal, mutual-agreement, other
+  reasonDetails: string;
+  isRelocating: boolean;
+  newEmployerName: string;
+  newEmployerFRN: string;
+
+  // Section 5: Circumstances (Fitness & Propriety)
+  hasPerformanceIssues: boolean;
+  performanceDetails: string;
+  hasConductIssues: boolean;
+  conductDetails: string;
+  hasInvestigation: boolean;
+  investigationDetails: string;
+  hasDisciplinaryAction: boolean;
+  disciplinaryDetails: string;
+  hasRegulatoryBreach: boolean;
+  regulatoryBreachDetails: string;
+
+  // Section 6: Handover Arrangements
+  hasHandoverPlan: boolean;
+  handoverDetails: string;
+  interimArrangements: string;
+  replacementName: string;
+  replacementApplicationSubmitted: boolean;
+
+  // Section 7: Declaration
+  firmDeclaration: boolean;
+  declarantName: string;
+  declarantPosition: string;
+  declarantSignature: string;
+  declarantDate: string;
+}
+
+// Form C Section props
+export interface FormCSectionProps {
+  formData: FormCState;
+  updateField: <K extends keyof FormCState>(field: K, value: FormCState[K]) => void;
+  validationErrors: Record<string, string>;
+  validateField: (field: string, value: string, validator?: string) => boolean;
+  onNext?: () => void;
+  onBack?: () => void;
+}
+
 // Section navigation type
 export interface SectionItem {
   id: string;
