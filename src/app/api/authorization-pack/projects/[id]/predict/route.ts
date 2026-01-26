@@ -20,10 +20,8 @@ interface ProjectAssessmentData {
  */
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
-    const session = await requireAuth();
-    if (!session?.user?.organizationId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { auth, error } = await requireAuth();
+    if (error) return error;
 
     const { id: projectId } = await params;
     if (!projectId || !isValidUUID(projectId)) {
@@ -37,7 +35,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 
     // Check organization access
-    if (project.organizationId !== session.user.organizationId) {
+    if (project.organizationId !== auth.organizationId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
@@ -69,10 +67,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
  */
 export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
-    const session = await requireAuth();
-    if (!session?.user?.organizationId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { auth, error } = await requireAuth();
+    if (error) return error;
 
     const { id: projectId } = await params;
     if (!projectId || !isValidUUID(projectId)) {
@@ -86,7 +82,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     // Check organization access
-    if (project.organizationId !== session.user.organizationId) {
+    if (project.organizationId !== auth.organizationId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
