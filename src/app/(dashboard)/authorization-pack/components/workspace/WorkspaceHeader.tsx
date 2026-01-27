@@ -122,10 +122,7 @@ export function WorkspaceHeader({ pack, readiness, showCTA = true }: WorkspaceHe
     : [];
   const isWorkspaceArea = [
     "/authorization-pack/workspace",
-    "/authorization-pack/sections",
-    "/authorization-pack/review",
     "/authorization-pack/export",
-    "/authorization-pack/evidence",
   ].some((route) => pathname.startsWith(route));
 
   return (
@@ -137,7 +134,7 @@ export function WorkspaceHeader({ pack, readiness, showCTA = true }: WorkspaceHe
             {pack ? pack.name : "Authorisation Pack Workspace"}
           </h1>
           <p className="mt-2 text-sm text-slate-500">
-            Track your regulatory pack against the gold standard spine and review gates.
+            Track your FCA application documentation and submission readiness.
           </p>
         </div>
         {showCTA && (
@@ -229,11 +226,8 @@ export function WorkspaceHeader({ pack, readiness, showCTA = true }: WorkspaceHe
         {navItems.map((item) => {
           const isWorkspaceTab =
             item.href === "/authorization-pack/workspace" &&
-            (pathname.startsWith("/authorization-pack/workspace") ||
-              pathname.startsWith("/authorization-pack/sections") ||
-              pathname.startsWith("/authorization-pack/review") ||
-              pathname.startsWith("/authorization-pack/evidence"));
-          const isActive = isWorkspaceTab || pathname === item.href;
+            pathname.startsWith("/authorization-pack/workspace");
+          const isActive = isWorkspaceTab || pathname.startsWith(item.href);
           const href = activePackId ? `${item.href}?packId=${activePackId}` : item.href;
           return (
             <Button
