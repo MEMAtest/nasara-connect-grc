@@ -286,3 +286,4 @@ export async function logAuditEvent(
     // Don't throw - audit logging should not break the main operation
   }
 }
+// Build trigger: 1769547391
