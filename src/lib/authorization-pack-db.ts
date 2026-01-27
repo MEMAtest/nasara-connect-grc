@@ -1,5 +1,6 @@
 import { randomUUID } from "crypto";
 import { pool } from "@/lib/database";
+import { ConcurrencyError, softDeleteClause } from "@/lib/api-utils";
 import {
   PACK_TEMPLATES,
   PackType,
@@ -13,6 +14,10 @@ import {
   isProfilePermissionCode,
   type BusinessPlanProfile,
 } from "@/lib/business-plan-profile";
+import {
+  buildQuestionContext,
+  type QuestionResponse,
+} from "@/lib/assessment-question-bank";
 
 interface PackTemplateRow {
   id: string;
@@ -302,6 +307,12 @@ export async function initAuthorizationPackDatabase() {
     `);
 
     await client.query(`
+      ALTER TABLE packs
+        ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP DEFAULT NULL,
+        ADD COLUMN IF NOT EXISTS deleted_by VARCHAR(100) DEFAULT NULL;
+    `);
+
+    await client.query(`
       CREATE TABLE IF NOT EXISTS authorization_projects (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         organization_id VARCHAR(100) NOT NULL,
@@ -329,6 +340,12 @@ export async function initAuthorizationPackDatabase() {
         ADD COLUMN IF NOT EXISTS target_submission_date DATE,
         ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW(),
         ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT NOW();
+    `);
+
+    await client.query(`
+      ALTER TABLE authorization_projects
+        ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP DEFAULT NULL,
+        ADD COLUMN IF NOT EXISTS deleted_by VARCHAR(100) DEFAULT NULL;
     `);
 
     await client.query(`
@@ -363,6 +380,11 @@ export async function initAuthorizationPackDatabase() {
     `);
 
     await client.query(`
+      ALTER TABLE section_instances
+        ADD COLUMN IF NOT EXISTS version INTEGER DEFAULT 1;
+    `);
+
+    await client.query(`
       CREATE TABLE IF NOT EXISTS prompt_responses (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         section_instance_id UUID REFERENCES section_instances(id) ON DELETE CASCADE,
@@ -372,6 +394,11 @@ export async function initAuthorizationPackDatabase() {
         updated_at TIMESTAMP DEFAULT NOW(),
         UNIQUE(section_instance_id, prompt_id)
       )
+    `);
+
+    await client.query(`
+      ALTER TABLE prompt_responses
+        ADD COLUMN IF NOT EXISTS version INTEGER DEFAULT 1;
     `);
 
     await client.query(`
@@ -412,6 +439,12 @@ export async function initAuthorizationPackDatabase() {
         ADD COLUMN IF NOT EXISTS notes TEXT,
         ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW(),
         ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT NOW();
+    `);
+
+    await client.query(`
+      ALTER TABLE evidence_items
+        ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP DEFAULT NULL,
+        ADD COLUMN IF NOT EXISTS deleted_by VARCHAR(100) DEFAULT NULL;
     `);
 
     await client.query(`
@@ -520,6 +553,12 @@ export async function initAuthorizationPackDatabase() {
     `);
 
     await client.query(`
+      ALTER TABLE pack_documents
+        ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP DEFAULT NULL,
+        ADD COLUMN IF NOT EXISTS deleted_by VARCHAR(100) DEFAULT NULL;
+    `);
+
+    await client.query(`
       CREATE TABLE IF NOT EXISTS authorization_pack_generation_jobs (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         pack_id UUID REFERENCES packs(id) ON DELETE CASCADE,
@@ -576,6 +615,22 @@ export async function initAuthorizationPackDatabase() {
         action VARCHAR(50) NOT NULL,
         actor_id VARCHAR(100),
         details JSONB,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS authorization_pack_audit_log (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        entity_type VARCHAR(50) NOT NULL,
+        entity_id UUID NOT NULL,
+        action VARCHAR(20) NOT NULL,
+        actor_id VARCHAR(100) NOT NULL,
+        organization_id VARCHAR(100) NOT NULL,
+        changes JSONB DEFAULT '{}'::jsonb,
+        metadata JSONB DEFAULT '{}'::jsonb,
+        ip_address INET,
+        user_agent TEXT,
         created_at TIMESTAMP DEFAULT NOW()
       )
     `);
@@ -1024,10 +1079,23 @@ export async function createAuthorizationProject(input: {
   }
 }
 
-export async function getAuthorizationProjects(organizationId: string) {
+export async function getAuthorizationProjects(
+  organizationId: string,
+  options?: { limit?: number; offset?: number }
+) {
   await ensurePermissionEcosystems();
   const client = await pool.connect();
+  const limit = Math.max(1, options?.limit ?? 50);
+  const offset = Math.max(0, options?.offset ?? 0);
   try {
+    const totalResult = await client.query(
+      `SELECT COUNT(*)::int as total
+       FROM authorization_projects ap
+       WHERE ap.organization_id = $1
+         AND ${softDeleteClause("ap")}`,
+      [organizationId]
+    );
+
     const result = await client.query(
       `SELECT ap.id,
               ap.name,
@@ -1051,11 +1119,13 @@ export async function getAuthorizationProjects(organizationId: string) {
               pt.name as pack_template_name
        FROM authorization_projects ap
        LEFT JOIN permission_ecosystems pe ON pe.permission_code = ap.permission_code
-       LEFT JOIN packs p ON p.id = ap.pack_id
+       LEFT JOIN packs p ON p.id = ap.pack_id AND ${softDeleteClause("p")}
        LEFT JOIN pack_templates pt ON pt.id = p.template_id
        WHERE ap.organization_id = $1
-       ORDER BY ap.created_at DESC`,
-      [organizationId]
+         AND ${softDeleteClause("ap")}
+       ORDER BY ap.created_at DESC
+       LIMIT $2 OFFSET $3`,
+      [organizationId, limit, offset]
     );
 
     const packIds = Array.from(
@@ -1106,7 +1176,7 @@ export async function getAuthorizationProjects(organizationId: string) {
                     COUNT(ei.id) FILTER (WHERE ei.status IN ('uploaded', 'approved')) AS uploaded,
                     COUNT(ei.id) AS total
              FROM section_instances si
-             LEFT JOIN evidence_items ei ON ei.section_instance_id = si.id
+             LEFT JOIN evidence_items ei ON ei.section_instance_id = si.id AND ${softDeleteClause("ei")}
              WHERE si.pack_id = ANY($1::uuid[])
              GROUP BY si.pack_id, si.id
            )
@@ -1152,6 +1222,7 @@ export async function getAuthorizationProjects(organizationId: string) {
                   ) AS opinion_count
            FROM pack_documents
            WHERE pack_id = ANY($1::uuid[])
+             AND ${softDeleteClause("pack_documents")}
            GROUP BY pack_id`,
           [packIds]
         ),
@@ -1230,7 +1301,10 @@ export async function getAuthorizationProjects(organizationId: string) {
       pack_template_name: row.pack_template_name,
       readiness: row.pack_id ? readinessByPack.get(row.pack_id) ?? null : null,
     }));
-    return projects;
+    return {
+      projects,
+      total: totalResult.rows[0]?.total ?? 0,
+    };
   } finally {
     client.release();
   }
@@ -1265,9 +1339,10 @@ export async function getAuthorizationProject(projectId: string) {
               pt.name as pack_template_name
        FROM authorization_projects ap
        LEFT JOIN permission_ecosystems pe ON pe.permission_code = ap.permission_code
-       LEFT JOIN packs p ON p.id = ap.pack_id
+       LEFT JOIN packs p ON p.id = ap.pack_id AND ${softDeleteClause("p")}
        LEFT JOIN pack_templates pt ON pt.id = p.template_id
        WHERE ap.id = $1
+         AND ${softDeleteClause("ap")}
        LIMIT 1`,
       [projectId]
     );
@@ -1325,13 +1400,16 @@ export async function getAuthorizationProject(projectId: string) {
   }
 }
 
-export async function deleteAuthorizationProject(projectId: string) {
+export async function deleteAuthorizationProject(projectId: string, deletedBy?: string | null) {
   await initAuthorizationPackDatabase();
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
     const projectResult = await client.query(
-      `SELECT pack_id FROM authorization_projects WHERE id = $1 LIMIT 1`,
+      `SELECT pack_id
+       FROM authorization_projects
+       WHERE id = $1 AND ${softDeleteClause("authorization_projects")}
+       LIMIT 1`,
       [projectId]
     );
     if (projectResult.rowCount === 0) {
@@ -1341,10 +1419,25 @@ export async function deleteAuthorizationProject(projectId: string) {
 
     const packId = projectResult.rows[0]?.pack_id as string | null;
     if (packId) {
-      await client.query(`DELETE FROM authorization_projects WHERE pack_id = $1`, [packId]);
-      await client.query(`DELETE FROM packs WHERE id = $1`, [packId]);
+      await client.query(
+        `UPDATE authorization_projects
+         SET deleted_at = NOW(), deleted_by = $2
+         WHERE pack_id = $1 AND ${softDeleteClause("authorization_projects")}`,
+        [packId, deletedBy ?? null]
+      );
+      await client.query(
+        `UPDATE packs
+         SET deleted_at = NOW(), deleted_by = $2
+         WHERE id = $1 AND ${softDeleteClause("packs")}`,
+        [packId, deletedBy ?? null]
+      );
     } else {
-      await client.query(`DELETE FROM authorization_projects WHERE id = $1`, [projectId]);
+      await client.query(
+        `UPDATE authorization_projects
+         SET deleted_at = NOW(), deleted_by = $2
+         WHERE id = $1 AND ${softDeleteClause("authorization_projects")}`,
+        [projectId, deletedBy ?? null]
+      );
     }
 
     await client.query("COMMIT");
@@ -1368,6 +1461,7 @@ interface AssessmentData {
   training?: Record<string, TrainingStatus>;
   smcr?: Record<string, SmcrStatus>;
   businessPlanProfile?: BusinessPlanProfile;
+  questionResponses?: Record<string, QuestionResponse>;
   meta?: Record<string, unknown>;
 }
 
@@ -1481,18 +1575,57 @@ const normalizeAssessment = (
   } satisfies AssessmentData;
 };
 
-const calculateAssessmentCompletion = (assessment: AssessmentData) => {
+const calculateAssessmentCompletion = (assessment: AssessmentData, permissionCode?: string | null) => {
   const basics = assessment.basics ?? {};
   const basicKeys = [
     "legalName",
+    "priorFcaApplications",
+    "firmType",
     "incorporationDate",
+    "incorporationPlace",
+    "registeredNumberExists",
+    "financialYearEnd",
+    "registeredOfficeSameAsHeadOffice",
     "primaryJurisdiction",
     "primaryContact",
     "contactEmail",
     "firmStage",
     "regulatedActivities",
     "headcount",
+    "website",
+    "previouslyRegulated",
+    "usedProfessionalAdviser",
+    "pspType",
+    "paymentServicesActivities",
+    "currentlyProvidingPIS",
+    "currentlyProvidingAIS",
   ];
+
+  if (basics.registeredNumberExists === "yes") {
+    basicKeys.push("companyNumber");
+  }
+
+  if (basics.registeredOfficeSameAsHeadOffice === "no") {
+    basicKeys.push(
+      "headOfficeAddressLine1",
+      "headOfficeCity",
+      "headOfficePostcode",
+      "headOfficePhone",
+      "headOfficeEmail"
+    );
+  }
+
+  if (basics.usedProfessionalAdviser === "yes") {
+    basicKeys.push("adviserFirmName", "adviserCopyCorrespondence", "adviserContactDetails");
+  }
+
+  if (basics.currentlyProvidingPIS === "yes") {
+    basicKeys.push("pisStartDate");
+  }
+
+  if (basics.currentlyProvidingAIS === "yes") {
+    basicKeys.push("aisStartDate");
+  }
 
   const basicsCompleted = basicKeys.filter((key) => {
     const value = basics[key];
@@ -1511,10 +1644,18 @@ const calculateAssessmentCompletion = (assessment: AssessmentData) => {
   const smcr = Object.values(assessment.smcr ?? {});
   const smcrCompleted = smcr.filter((value) => value === "assigned").length;
 
+  // Include question bank progress
+  const questionContext = buildQuestionContext(
+    { basics, questionResponses: assessment.questionResponses, meta: assessment.meta },
+    permissionCode
+  );
+  const questionBankTotal = questionContext.requiredCount;
+  const questionBankCompleted = questionContext.answeredCount;
+
   const total =
-    basicKeys.length + readiness.length + policies.length + training.length + smcr.length;
+    basicKeys.length + readiness.length + policies.length + training.length + smcr.length + questionBankTotal;
   const completed =
-    basicsCompleted + readinessCompleted + policiesCompleted + trainingCompleted + smcrCompleted;
+    basicsCompleted + readinessCompleted + policiesCompleted + trainingCompleted + smcrCompleted + questionBankCompleted;
 
   if (!total) return 0;
   return Math.round((completed / total) * 100);
@@ -1712,7 +1853,7 @@ export async function saveAuthorizationAssessment(projectId: string, assessmentD
       training_requirements: coerceJsonArray<string>(ecosystem.training_requirements),
       smcr_roles: coerceJsonArray<string>(ecosystem.smcr_roles),
     });
-    const completion = calculateAssessmentCompletion(normalized);
+    const completion = calculateAssessmentCompletion(normalized, permissionCode);
     const nextAssessment = {
       ...normalized,
       meta: {
@@ -1860,7 +2001,13 @@ export async function syncPackFromTemplate(packId: string) {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
-    const packResult = await client.query(`SELECT id, template_id FROM packs WHERE id = $1 LIMIT 1`, [packId]);
+    const packResult = await client.query(
+      `SELECT id, template_id
+       FROM packs
+       WHERE id = $1 AND ${softDeleteClause("packs")}
+       LIMIT 1`,
+      [packId]
+    );
     const pack = packResult.rows[0];
     if (!pack) {
       throw new Error("Pack not found");
@@ -2165,20 +2312,35 @@ export async function createPack(input: {
   }
 }
 
-export async function getPacks(organizationId: string) {
+export async function getPacks(
+  organizationId: string,
+  options?: { limit?: number; offset?: number }
+) {
   await ensureAuthorizationTemplates();
   const client = await pool.connect();
+  const limit = Math.max(1, options?.limit ?? 50);
+  const offset = Math.max(0, options?.offset ?? 0);
   try {
+    const totalResult = await client.query(
+      `SELECT COUNT(*)::int as total
+       FROM packs p
+       WHERE p.organization_id = $1
+         AND ${softDeleteClause("p")}`,
+      [organizationId]
+    );
+
     const result = await client.query(
       `SELECT p.id, p.name, p.status, p.target_submission_date, p.created_at, p.updated_at,
               COALESCE(pt.pack_type, pt.type, pt.code) as template_type, pt.name as template_name
        FROM packs p
        JOIN pack_templates pt ON p.template_id = pt.id
        WHERE p.organization_id = $1
-       ORDER BY p.created_at DESC`,
-      [organizationId]
+         AND ${softDeleteClause("p")}
+       ORDER BY p.created_at DESC
+       LIMIT $2 OFFSET $3`,
+      [organizationId, limit, offset]
     );
-    return result.rows;
+    return { packs: result.rows, total: totalResult.rows[0]?.total ?? 0 };
   } finally {
     client.release();
   }
@@ -2194,6 +2356,7 @@ export async function getPack(packId: string) {
        FROM packs p
        JOIN pack_templates pt ON p.template_id = pt.id
        WHERE p.id = $1
+         AND ${softDeleteClause("p")}
        LIMIT 1`,
       [packId]
     );
@@ -2212,7 +2375,7 @@ export async function getPackDocuments(packId: string) {
               version, status, uploaded_by, uploaded_at, reviewed_by, reviewed_at, signed_by, signed_at,
               created_at, updated_at
        FROM pack_documents
-       WHERE pack_id = $1
+       WHERE pack_id = $1 AND ${softDeleteClause("pack_documents")}
        ORDER BY created_at DESC`,
       [packId]
     );
@@ -2231,7 +2394,7 @@ export async function getPackDocument(documentId: string) {
               version, status, uploaded_by, uploaded_at, reviewed_by, reviewed_at, signed_by, signed_at,
               created_at, updated_at
        FROM pack_documents
-       WHERE id = $1
+       WHERE id = $1 AND ${softDeleteClause("pack_documents")}
        LIMIT 1`,
       [documentId]
     );
@@ -2312,7 +2475,7 @@ export async function updatePackDocument(documentId: string, updates: Record<str
     const result = await client.query(
       `UPDATE pack_documents
        SET ${setClauses.join(", ")}
-       WHERE id = $${keys.length + 1}
+       WHERE id = $${keys.length + 1} AND ${softDeleteClause("pack_documents")}
        RETURNING *`,
       [...values, documentId]
     );
@@ -2322,11 +2485,17 @@ export async function updatePackDocument(documentId: string, updates: Record<str
   }
 }
 
-export async function deletePackDocument(documentId: string) {
+export async function deletePackDocument(documentId: string, deletedBy?: string | null) {
   await initAuthorizationPackDatabase();
   const client = await pool.connect();
   try {
-    const result = await client.query(`DELETE FROM pack_documents WHERE id = $1 RETURNING id`, [documentId]);
+    const result = await client.query(
+      `UPDATE pack_documents
+       SET deleted_at = NOW(), deleted_by = $2
+       WHERE id = $1 AND ${softDeleteClause("pack_documents")}
+       RETURNING id`,
+      [documentId, deletedBy ?? null]
+    );
     return result.rows[0] ?? null;
   } finally {
     client.release();
@@ -2523,14 +2692,25 @@ export async function updatePack(
   }
 }
 
-export async function deletePack(packId: string) {
+export async function deletePack(packId: string, deletedBy?: string | null) {
   await initAuthorizationPackDatabase();
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
 
-    await client.query(`DELETE FROM authorization_projects WHERE pack_id = $1`, [packId]);
-    const result = await client.query(`DELETE FROM packs WHERE id = $1 RETURNING id`, [packId]);
+    await client.query(
+      `UPDATE authorization_projects
+       SET deleted_at = NOW(), deleted_by = $2
+       WHERE pack_id = $1 AND ${softDeleteClause("authorization_projects")}`,
+      [packId, deletedBy ?? null]
+    );
+    const result = await client.query(
+      `UPDATE packs
+       SET deleted_at = NOW(), deleted_by = $2
+       WHERE id = $1 AND ${softDeleteClause("packs")}
+       RETURNING id`,
+      [packId, deletedBy ?? null]
+    );
 
     await client.query("COMMIT");
     return result.rowCount !== null && result.rowCount > 0;
@@ -2572,7 +2752,7 @@ export async function getSections(packId: string) {
                 COUNT(*) FILTER (WHERE status IN ('uploaded', 'approved')) as uploaded,
                 COUNT(*) as total
          FROM evidence_items
-         WHERE pack_id = $1
+         WHERE pack_id = $1 AND ${softDeleteClause("evidence_items")}
          GROUP BY section_instance_id`,
         [packId]
       ),
@@ -2632,7 +2812,7 @@ export async function getSectionWorkspace(packId: string, sectionId: string) {
 
     const prompts = await client.query(
       `SELECT p.id, p.prompt_key, p.title, p.guidance, p.input_type, p.required, p.weight, p.display_order,
-              pr.value, pr.updated_at
+              pr.value, pr.updated_at, pr.version
        FROM prompts p
        LEFT JOIN prompt_responses pr
          ON pr.prompt_id = p.id AND pr.section_instance_id = $1
@@ -2644,7 +2824,7 @@ export async function getSectionWorkspace(packId: string, sectionId: string) {
     const evidence = await client.query(
       `SELECT id, name, description, status, annex_number, file_path, file_size, file_type, uploaded_at, version
        FROM evidence_items
-       WHERE section_instance_id = $1
+       WHERE section_instance_id = $1 AND ${softDeleteClause("evidence_items")}
        ORDER BY created_at ASC`,
       [section.id]
     );
@@ -2682,17 +2862,77 @@ export async function savePromptResponse(input: {
   promptId: string;
   value: string;
   updatedBy?: string | null;
+  expectedVersion?: number;
 }) {
   await initAuthorizationPackDatabase();
   const client = await pool.connect();
   try {
-    await client.query(
+    if (input.expectedVersion !== undefined) {
+      const result = await client.query(
+        `INSERT INTO prompt_responses (section_instance_id, prompt_id, value, updated_by)
+         VALUES ($1, $2, $3, $4)
+         ON CONFLICT (section_instance_id, prompt_id)
+         DO UPDATE SET value = $3,
+                      updated_by = $4,
+                      updated_at = NOW(),
+                      version = prompt_responses.version + 1
+         WHERE prompt_responses.version = $5
+         RETURNING id, version, updated_by`,
+        [
+          input.sectionInstanceId,
+          input.promptId,
+          input.value,
+          input.updatedBy ?? null,
+          input.expectedVersion,
+        ]
+      );
+
+      if (result.rowCount === 0) {
+        const current = await client.query(
+          `SELECT version, updated_by
+           FROM prompt_responses
+           WHERE section_instance_id = $1 AND prompt_id = $2
+           LIMIT 1`,
+          [input.sectionInstanceId, input.promptId]
+        );
+        const currentVersion =
+          (current.rows[0]?.version as number | undefined) ?? input.expectedVersion;
+        throw new ConcurrencyError(
+          "prompt response",
+          currentVersion,
+          current.rows[0]?.updated_by as string | undefined
+        );
+      }
+
+      await client.query(
+        `UPDATE section_instances
+         SET updated_at = NOW(), version = version + 1
+         WHERE id = $1`,
+        [input.sectionInstanceId]
+      );
+      return result.rows[0] ?? null;
+    }
+
+    const result = await client.query(
       `INSERT INTO prompt_responses (section_instance_id, prompt_id, value, updated_by)
        VALUES ($1, $2, $3, $4)
        ON CONFLICT (section_instance_id, prompt_id)
-       DO UPDATE SET value = $3, updated_by = $4, updated_at = NOW()`,
+       DO UPDATE SET value = $3,
+                    updated_by = $4,
+                    updated_at = NOW(),
+                    version = prompt_responses.version + 1
+       RETURNING id, version`,
       [input.sectionInstanceId, input.promptId, input.value, input.updatedBy ?? null]
     );
+
+    await client.query(
+      `UPDATE section_instances
+       SET updated_at = NOW(), version = version + 1
+       WHERE id = $1`,
+      [input.sectionInstanceId]
+    );
+
+    return result.rows[0] ?? null;
   } finally {
     client.release();
   }
@@ -2708,7 +2948,7 @@ export async function listEvidence(packId: string) {
               si.section_key, si.title as section_title
        FROM evidence_items ei
        JOIN section_instances si ON ei.section_instance_id = si.id
-       WHERE ei.pack_id = $1
+       WHERE ei.pack_id = $1 AND ${softDeleteClause("ei")}
        ORDER BY si.display_order ASC, ei.created_at ASC`,
       [packId]
     );
@@ -2730,7 +2970,7 @@ export async function updateEvidenceStatus(input: {
       `UPDATE evidence_items
        SET status = $3,
            updated_at = NOW()
-       WHERE pack_id = $1 AND id = $2
+       WHERE pack_id = $1 AND id = $2 AND ${softDeleteClause("evidence_items")}
        RETURNING id, status`,
       [input.packId, input.evidenceId, input.status]
     );
@@ -2952,7 +3192,7 @@ export async function getEvidenceItem(input: { packId: string; evidenceId: strin
     const result = await client.query(
       `SELECT id, name, status, file_path, file_type, file_size
        FROM evidence_items
-       WHERE id = $1 AND pack_id = $2
+       WHERE id = $1 AND pack_id = $2 AND ${softDeleteClause("evidence_items")}
        LIMIT 1`,
       [input.evidenceId, input.packId]
     );
@@ -2970,7 +3210,7 @@ export async function listEvidenceVersions(input: { packId: string; evidenceId: 
       `SELECT ev.id, ev.version, ev.filename, ev.file_path, ev.file_size, ev.file_type, ev.uploaded_by, ev.uploaded_at, ev.notes
        FROM evidence_versions ev
        JOIN evidence_items ei ON ev.evidence_item_id = ei.id
-       WHERE ei.pack_id = $1 AND ei.id = $2
+       WHERE ei.pack_id = $1 AND ei.id = $2 AND ${softDeleteClause("ei")}
        ORDER BY ev.version DESC`,
       [input.packId, input.evidenceId]
     );
@@ -2992,7 +3232,7 @@ export async function getEvidenceVersion(input: {
       `SELECT ev.id, ev.version, ev.filename, ev.file_path, ev.file_size, ev.file_type
        FROM evidence_versions ev
        JOIN evidence_items ei ON ev.evidence_item_id = ei.id
-       WHERE ei.pack_id = $1 AND ei.id = $2 AND ev.id = $3
+       WHERE ei.pack_id = $1 AND ei.id = $2 AND ev.id = $3 AND ${softDeleteClause("ei")}
        LIMIT 1`,
       [input.packId, input.evidenceId, input.versionId]
     );
@@ -3036,7 +3276,7 @@ export async function getAnnexIndexRows(packId: string) {
               si.title as section_title
        FROM evidence_items ei
        JOIN section_instances si ON ei.section_instance_id = si.id
-       WHERE ei.pack_id = $1
+       WHERE ei.pack_id = $1 AND ${softDeleteClause("ei")}
        ORDER BY ei.annex_number ASC`,
       [packId]
     );
@@ -3053,7 +3293,7 @@ export async function listEvidenceFilesForZip(packId: string) {
     const result = await client.query(
       `SELECT id, annex_number, name, file_path, file_type, file_size
        FROM evidence_items
-       WHERE pack_id = $1 AND file_path IS NOT NULL
+       WHERE pack_id = $1 AND file_path IS NOT NULL AND ${softDeleteClause("evidence_items")}
        ORDER BY annex_number ASC`,
       [packId]
     );
@@ -3086,7 +3326,7 @@ export async function listEvidenceVersionFilesForZip(packId: string) {
        FROM evidence_versions ev
        JOIN evidence_items ei ON ev.evidence_item_id = ei.id
        JOIN section_instances si ON ei.section_instance_id = si.id
-       WHERE ei.pack_id = $1
+       WHERE ei.pack_id = $1 AND ${softDeleteClause("ei")}
        ORDER BY ei.annex_number ASC, ev.version DESC`,
       [packId]
     );
@@ -3357,20 +3597,52 @@ export async function getFullPackSectionsWithResponses(packId: string): Promise<
 export interface ProjectAssessmentData {
   basics?: {
     legalName?: string;
+    priorFcaApplications?: string;
+    firmType?: string;
+    tradingName?: string;
     incorporationDate?: string;
+    incorporationPlace?: string;
     companyNumber?: string;
+    registeredNumberExists?: string;
+    financialYearEnd?: string;
     sicCode?: string;
     addressLine1?: string;
     addressLine2?: string;
     city?: string;
     postcode?: string;
     country?: string;
+    registeredOfficeSameAsHeadOffice?: string;
+    headOfficeAddressLine1?: string;
+    headOfficeAddressLine2?: string;
+    headOfficeCity?: string;
+    headOfficePostcode?: string;
+    headOfficePhone?: string;
+    headOfficeEmail?: string;
     primaryJurisdiction?: string;
     primaryContact?: string;
     contactEmail?: string;
+    contactPhone?: string;
     firmStage?: string;
     regulatedActivities?: string;
     headcount?: number;
+    website?: string;
+    previouslyRegulated?: string;
+    tradeAssociations?: string;
+    usedProfessionalAdviser?: string;
+    adviserFirmName?: string;
+    adviserCopyCorrespondence?: string;
+    adviserContactDetails?: string;
+    timingFactors?: string;
+    pspType?: string;
+    paymentServicesActivities?: string;
+    currentlyProvidingPIS?: string;
+    currentlyProvidingAIS?: string;
+    pisStartDate?: string;
+    aisStartDate?: string;
+    certificateOfIncorporation?: string;
+    articlesOfAssociation?: string;
+    partnershipDeed?: string;
+    llpAgreement?: string;
     consultantNotes?: string;
   };
   readiness?: Record<string, "missing" | "partial" | "complete">;
