@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo, Fragment } from "react";
 import { useRouter } from "next/navigation";
 import { Search, Loader2, FileText, Users, BookOpen, Boxes, ClipboardList, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -210,7 +210,7 @@ export function GlobalSearch() {
           {results.length > 0 && (
             <ul className="max-h-80 overflow-y-auto py-2">
               {groupedResults.map((group, groupIndex) => (
-                <React.Fragment key={`group-${group.type}`}>
+                <Fragment key={`group-${group.type}`}>
                   <li
                     role="presentation"
                     className={cn(
@@ -252,7 +252,7 @@ export function GlobalSearch() {
                       </div>
                     </li>
                   ))}
-                </React.Fragment>
+                </Fragment>
               ))}
             </ul>
           )}
