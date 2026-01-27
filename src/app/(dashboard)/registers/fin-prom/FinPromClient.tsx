@@ -322,6 +322,15 @@ export function FinPromClient() {
     return generateTrendData(baseFilteredRecords, 6, 'created_date');
   }, [baseFilteredRecords]);
 
+  const monthOptions = useMemo(
+    () =>
+      trendData.map((point) => ({
+        value: point.monthKey,
+        label: new Date(point.startDate).toLocaleDateString("en-GB", { month: "short", year: "numeric" }),
+      })),
+    [trendData]
+  );
+
   // Table columns
   const columns: Column<FinPromRecord>[] = [
     {
@@ -628,6 +637,19 @@ export function FinPromClient() {
           sampleRow: ["FP-2024-001", "New Product Launch Email", "email", "email", "2024-01-15", "draft", "draft"],
         }}
         registerName="FinProm Tracker"
+        monthFilter={{
+          value: monthFilter?.key || "all",
+          options: monthOptions,
+          onChange: (value) => {
+            if (value === "all") {
+              setMonthFilter(null);
+              return;
+            }
+            const label = monthOptions.find((opt) => opt.value === value)?.label || value;
+            setMonthFilter({ key: value, label });
+          },
+          label: "Month",
+        }}
       />
 
       {/* Drill-down indicator */}

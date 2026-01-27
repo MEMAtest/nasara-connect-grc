@@ -214,7 +214,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Invalid document ID format" }, { status: 400 });
     }
 
-    const deleted = await deletePackDocument(documentId);
+    const deleted = await deletePackDocument(documentId, auth.userId ?? null);
     if (!deleted) {
       return NextResponse.json({ error: "Document not found" }, { status: 404 });
     }

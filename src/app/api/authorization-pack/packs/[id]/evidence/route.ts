@@ -3,12 +3,14 @@ import path from "path";
 import { promises as fs } from "fs";
 import { isValidUUID, requireAuth } from "@/lib/auth-utils";
 import { addEvidenceVersion, getEvidenceItem, getPack, listEvidence } from "@/lib/authorization-pack-db";
+import { checkRateLimit, handleApiError, rateLimitExceeded } from "@/lib/api-utils";
+import {
+  sanitizeFilename,
+  scanFileForViruses,
+  validateFileUpload,
+} from "@/lib/file-upload-security";
 
 const storageRoot = path.resolve(process.cwd(), "storage", "authorization-pack");
-
-function sanitizeFilename(filename: string): string {
-  return filename.replace(/[<>:"/\\|?*\x00-\x1f]/g, "_").slice(0, 255);
-}
 
 export async function GET(
   request: NextRequest,
@@ -17,6 +19,9 @@ export async function GET(
   try {
     const { auth, error } = await requireAuth();
     if (error) return error;
+
+    const { success, headers } = await checkRateLimit(request);
+    if (!success) return rateLimitExceeded(headers);
 
     const { id } = await params;
 
@@ -33,12 +38,9 @@ export async function GET(
     }
 
     const evidence = await listEvidence(id);
-    return NextResponse.json({ evidence });
+    return NextResponse.json({ evidence }, { headers });
   } catch (error) {
-    return NextResponse.json(
-      { error: "Failed to load evidence", details: error instanceof Error ? error.message : "Unknown error" },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }
 
@@ -49,6 +51,9 @@ export async function POST(
   try {
     const { auth, error } = await requireAuth();
     if (error) return error;
+
+    const { success, headers } = await checkRateLimit(request);
+    if (!success) return rateLimitExceeded(headers);
 
     const { id } = await params;
 
@@ -84,6 +89,11 @@ export async function POST(
       return NextResponse.json({ error: "Evidence item not found" }, { status: 404 });
     }
 
+    const validation = await validateFileUpload(file);
+    if (!validation.valid) {
+      return NextResponse.json({ error: validation.error }, { status: 400, headers });
+    }
+
     const safeName = sanitizeFilename(file.name);
     const relativeDir = path.join(id, evidenceItemId);
     const relativePath = path.join(relativeDir, `${Date.now()}-${safeName}`);
@@ -95,6 +105,14 @@ export async function POST(
 
     await fs.mkdir(path.dirname(fullPath), { recursive: true });
     const buffer = Buffer.from(await file.arrayBuffer());
+
+    const scanResult = await scanFileForViruses(buffer);
+    if (!scanResult.clean) {
+      return NextResponse.json(
+        { error: `File failed virus scan${scanResult.threat ? `: ${scanResult.threat}` : ""}` },
+        { status: 400, headers }
+      );
+    }
     await fs.writeFile(fullPath, buffer);
 
     await addEvidenceVersion({
@@ -102,15 +120,12 @@ export async function POST(
       filename: safeName,
       filePath: relativePath,
       fileSize: buffer.length,
-      fileType: file.type || null,
+      fileType: validation.detectedMimeType || file.type || null,
       uploadedBy: "system",
     });
 
-    return NextResponse.json({ status: "ok" });
+    return NextResponse.json({ status: "ok" }, { headers });
   } catch (error) {
-    return NextResponse.json(
-      { error: "Failed to upload evidence", details: error instanceof Error ? error.message : "Unknown error" },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }

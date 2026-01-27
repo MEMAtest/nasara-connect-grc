@@ -20,6 +20,30 @@ function isTocClause(content: string) {
   return tocLines.length / lines.length >= 0.7;
 }
 
+function isTocArtifactLine(line: string): boolean {
+  const trimmed = line.trim();
+  if (!trimmed) return false;
+  if (trimmed.includes(":")) return false;
+  if (/\bby\b/i.test(trimmed)) return false;
+  if (/[.!?]$/.test(trimmed)) return false;
+  const lastToken = trimmed.split(/\s+/).pop() ?? "";
+  return /[A-Za-z]+\d{1,3}$/.test(lastToken);
+}
+
+function stripTocArtifacts(text: string): string {
+  const lines = text.split(/\r?\n/);
+  const artifactIndexes = lines
+    .map((line, index) => (isTocArtifactLine(line) ? index : -1))
+    .filter((index) => index >= 0);
+
+  if (artifactIndexes.length < 3) {
+    return text;
+  }
+
+  const artifactSet = new Set(artifactIndexes);
+  return lines.filter((_line, index) => !artifactSet.has(index)).join("\n");
+}
+
 function normalizeMarkdownTables(input: string): string {
   const lines = input.split(/\r?\n/);
   const output: string[] = [];
@@ -43,14 +67,19 @@ function normalizeMarkdownTables(input: string): string {
           .map((cell) => cell.trim())
           .filter(Boolean);
         if (row.length) {
-          const cells = headers.length
-            ? headers
-                .map((header, index) => {
-                  const value = row[index];
-                  return value ? `${header}: ${value}` : "";
-                })
-                .filter(Boolean)
-            : row;
+          let cells: string[] = [];
+          if (headers.length && row.length === headers.length) {
+            cells = headers
+              .map((header, index) => {
+                const value = row[index];
+                return value ? `${header}: ${value}` : "";
+              })
+              .filter(Boolean);
+          } else if (row.length === 2) {
+            cells = [`${row[0]}: ${row[1]}`];
+          } else {
+            cells = row;
+          }
           if (cells.length) {
             output.push(`- ${cells.join(" | ")}`);
           }
@@ -69,7 +98,7 @@ function normalizeMarkdownTables(input: string): string {
 
 function stripHtml(html: string): string {
   const normalized = normalizeMarkdownTables(html);
-  return normalized
+  const cleaned = normalized
     .replace(/<br\s*\/?>/gi, "\n")
     .replace(/<\/p>/gi, "\n\n")
     .replace(/<\/li>/gi, "\n")
@@ -82,8 +111,12 @@ function stripHtml(html: string): string {
     .replace(/&gt;/gi, ">")
     .replace(/&quot;/gi, '"')
     .replace(/&#39;/gi, "'")
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/\*([^*]+)\*/g, "$1")
+    .replace(/:([A-Za-z])/g, ": $1")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
+  return stripTocArtifacts(cleaned);
 }
 
 function wrapText(text: string, font: PDFFont, fontSize: number, maxWidth: number): string[] {
@@ -184,12 +217,64 @@ function drawHeading(ctx: DrawContext, text: string, level: 1 | 2 | 3): void {
   drawText(ctx, text, ctx.fontBold, sizes[level], ctx.primaryColor, spacing[level]);
 }
 
+function drawBullet(ctx: DrawContext, text: string): void {
+  const fontSize = 10;
+  const lineHeight = fontSize * 1.4;
+  const indent = 12;
+  const maxWidth = ctx.width - ctx.margin * 2 - indent;
+  const lines = wrapText(text, ctx.fontRegular, fontSize, maxWidth);
+
+  lines.forEach((line, index) => {
+    ensurePage(ctx, lineHeight);
+    if (index === 0) {
+      ctx.page.drawText("•", {
+        x: ctx.margin,
+        y: ctx.y,
+        font: ctx.fontRegular,
+        size: fontSize,
+        color: rgb(0.12, 0.16, 0.22),
+      });
+    }
+    ctx.page.drawText(line, {
+      x: ctx.margin + indent,
+      y: ctx.y,
+      font: ctx.fontRegular,
+      size: fontSize,
+      color: rgb(0.12, 0.16, 0.22),
+    });
+    ctx.y -= lineHeight;
+  });
+  ctx.y -= 2;
+}
+
 function drawParagraph(ctx: DrawContext, text: string): void {
   const lines = text.split("\n");
   for (const line of lines) {
-    if (line.trim()) {
-      drawText(ctx, line.trim(), ctx.fontRegular, 10, { r: 0.12, g: 0.16, b: 0.22 }, 4);
+    const trimmed = line.trim();
+    if (!trimmed) {
+      ctx.y -= 4;
+      continue;
     }
+
+    const headingMatch = trimmed.match(/^(#{1,3})\s+(.+)$/);
+    if (headingMatch) {
+      const level = headingMatch[1].length === 1 ? 2 : 3;
+      drawHeading(ctx, headingMatch[2], level);
+      continue;
+    }
+
+    const bulletMatch = trimmed.match(/^[-•*]\s+(.+)$/);
+    if (bulletMatch) {
+      drawBullet(ctx, bulletMatch[1]);
+      continue;
+    }
+
+    if (trimmed.endsWith(":") && trimmed.length <= 80) {
+      drawText(ctx, trimmed, ctx.fontBold, 11, { r: 0.12, g: 0.16, b: 0.22 }, 4);
+      continue;
+    }
+
+    drawText(ctx, trimmed, ctx.fontRegular, 10, { r: 0.12, g: 0.16, b: 0.22 }, 4);
   }
   ctx.y -= 6;
 }
@@ -250,6 +335,7 @@ export async function GET(
 
     const customContent = (policy.customContent ?? {}) as {
       firmProfile?: Record<string, unknown>;
+      policyInputs?: Record<string, unknown>;
       sectionClauses?: Record<string, string[]>;
       sectionNotes?: Record<string, string>;
       clauseVariables?: Record<string, Record<string, string>>;
@@ -260,6 +346,7 @@ export async function GET(
     };
 
     const firmProfile = (customContent.firmProfile ?? {}) as Record<string, unknown>;
+    const policyInputs = (customContent.policyInputs ?? {}) as Record<string, unknown>;
     const firmName =
       typeof firmProfile.name === "string" && firmProfile.name.trim().length > 0
         ? firmProfile.name.trim()
@@ -287,6 +374,7 @@ export async function GET(
       firm: firmProfile,
       firm_name: firmName,
       permissions: policy.permissions,
+      ...policyInputs,
     };
 
     const tieredSections = applyTiering(

@@ -84,7 +84,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
-    const deleted = await deleteAuthorizationProject(id);
+    const deleted = await deleteAuthorizationProject(id, auth.userId ?? null);
     if (!deleted) {
       return NextResponse.json({ error: "Failed to delete project" }, { status: 500 });
     }

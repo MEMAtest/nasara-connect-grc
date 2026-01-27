@@ -7,7 +7,12 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import type { WizardStepProps } from "./types";
 import { getRequiredPolicies } from "@/lib/policies";
-import { POLICY_TEMPLATES, getApplicableClauses, getTemplateByCode } from "@/lib/policies/templates";
+import {
+  GOLD_STANDARD_POLICY_CODES,
+  POLICY_TEMPLATES,
+  getApplicableClauses,
+  getTemplateByCode,
+} from "@/lib/policies/templates";
 import { assembleComplaintsPolicy, DEFAULT_COMPLAINTS_ANSWERS } from "@/lib/policies/assemblers/complaints";
 
 export function StepTemplateSelect({ state, updateState, onNext, onBack }: WizardStepProps) {
@@ -17,16 +22,25 @@ export function StepTemplateSelect({ state, updateState, onNext, onBack }: Wizar
     () => new Set(getRequiredPolicies(state.permissions).map((policy) => policy.code)),
     [state.permissions],
   );
+  const goldStandardSet = useMemo(() => new Set(GOLD_STANDARD_POLICY_CODES), []);
+  const availableTemplates = useMemo(
+    () => POLICY_TEMPLATES.filter((template) => goldStandardSet.has(template.code)),
+    [goldStandardSet],
+  );
+  const availableRequiredCount = useMemo(
+    () => availableTemplates.filter((template) => requiredPolicies.has(template.code)).length,
+    [availableTemplates, requiredPolicies],
+  );
 
   const filteredTemplates = useMemo(() => {
     if (!searchTerm.trim()) {
-      return POLICY_TEMPLATES;
+      return availableTemplates;
     }
     const term = searchTerm.toLowerCase();
-    return POLICY_TEMPLATES.filter((template) =>
+    return availableTemplates.filter((template) =>
       [template.name, template.description, template.code].some((value) => value.toLowerCase().includes(term)),
     );
-  }, [searchTerm]);
+  }, [availableTemplates, searchTerm]);
 
   const handleSelect = (code: string) => {
     const template = getTemplateByCode(code);
@@ -80,10 +94,10 @@ export function StepTemplateSelect({ state, updateState, onNext, onBack }: Wizar
         </div>
         <div className="flex items-center gap-2 text-xs text-slate-500">
           <span>
-            Required: <strong>{requiredPolicies.size}</strong>
+            Required: <strong>{availableRequiredCount}</strong>
           </span>
           <span>
-            Available templates: <strong>{POLICY_TEMPLATES.length}</strong>
+            Available templates: <strong>{availableTemplates.length}</strong>
           </span>
         </div>
       </div>

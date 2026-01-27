@@ -311,6 +311,15 @@ export function RegulatoryBreachClient() {
     return generateTrendData(baseFilteredRecords, 6, 'identified_date');
   }, [baseFilteredRecords]);
 
+  const monthOptions = useMemo(
+    () =>
+      trendData.map((point) => ({
+        value: point.monthKey,
+        label: new Date(point.startDate).toLocaleDateString("en-GB", { month: "short", year: "numeric" }),
+      })),
+    [trendData]
+  );
+
   // Table columns
   const columns: Column<RegulatoryBreachRecord>[] = [
     {
@@ -490,6 +499,19 @@ export function RegulatoryBreachClient() {
           sampleRow: ["BRE-2024-001", "Late regulatory return", "reporting", "Failed to submit REP008 on time", "2024-01-15", "medium", "open"],
         }}
         registerName="Regulatory Breach Log"
+        monthFilter={{
+          value: monthFilter?.key || "all",
+          options: monthOptions,
+          onChange: (value) => {
+            if (value === "all") {
+              setMonthFilter(null);
+              return;
+            }
+            const label = monthOptions.find((opt) => opt.value === value)?.label || value;
+            setMonthFilter({ key: value, label });
+          },
+          label: "Month",
+        }}
       />
 
       {/* Drill-down indicator */}

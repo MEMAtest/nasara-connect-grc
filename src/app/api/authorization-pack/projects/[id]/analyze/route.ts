@@ -34,6 +34,7 @@ interface AnalyzeRequestBody {
     primaryJurisdiction?: string;
     incorporationDate?: string;
   };
+  businessPlanProfileCompletion?: number;
 }
 
 interface ReadinessItem {
@@ -55,6 +56,97 @@ interface AnalysisResponse {
   priorities: string[];
   risks: string[];
   recommendations: string[];
+}
+
+function buildFallbackAnalysis(basics: AnalyzeRequestBody["basics"], profileCompletion?: number): AnalysisResponse {
+  const stage = (basics.firmStage || "").toLowerCase();
+  const activities = (basics.regulatedActivities || "").toLowerCase();
+
+  const isEarlyStage =
+    stage.includes("pre-incorporation") ||
+    stage.includes("pre") ||
+    stage.includes("newly") ||
+    stage.includes("new");
+  const isEstablished =
+    stage.includes("established") ||
+    stage.includes("authorised") ||
+    stage.includes("authorized");
+
+  const baseStatus: ReadinessItem["suggested"] = isEarlyStage ? "missing" : isEstablished ? "partial" : "partial";
+
+  const priorityFrom = (value: ReadinessItem["suggested"]): ReadinessItem["priority"] =>
+    value === "missing" ? "high" : value === "partial" ? "medium" : "low";
+
+  const buildItem = (label: string, suggested: ReadinessItem["suggested"], extra?: string): ReadinessItem => ({
+    suggested,
+    priority: priorityFrom(suggested),
+    reason: extra || `${label} inferred from firm stage and provided activities.`,
+  });
+
+  const needsSafeguarding =
+    activities.includes("payment") ||
+    activities.includes("remittance") ||
+    activities.includes("e-money") ||
+    activities.includes("emoney");
+
+  // Determine business plan draft status based on profile completion
+  let businessPlanStatus: ReadinessItem["suggested"] = baseStatus;
+  let businessPlanReason = "Based on firm stage and scope.";
+  if (typeof profileCompletion === "number") {
+    if (profileCompletion >= 80) {
+      businessPlanStatus = "complete";
+      businessPlanReason = `Business plan profile is ${profileCompletion}% complete.`;
+    } else if (profileCompletion >= 40) {
+      businessPlanStatus = "partial";
+      businessPlanReason = `Business plan profile is ${profileCompletion}% complete. Continue filling in the remaining sections.`;
+    } else if (profileCompletion > 0) {
+      businessPlanStatus = "partial";
+      businessPlanReason = `Business plan profile is only ${profileCompletion}% complete. Focus on completing the core sections.`;
+    } else {
+      businessPlanStatus = "missing";
+      businessPlanReason = "Business plan profile has not been started. Begin with the Business Plan Profile section.";
+    }
+  }
+
+  const readiness = {
+    businessPlanDraft: buildItem("Business plan draft", businessPlanStatus, businessPlanReason),
+    financialModel: buildItem(
+      "Financial model",
+      isEarlyStage ? "missing" : "partial",
+      "Financial modelling typically follows the assessment stage."
+    ),
+    technologyStack: buildItem("Technology stack", isEarlyStage ? "missing" : baseStatus),
+    safeguardingSetup: buildItem(
+      "Safeguarding setup",
+      needsSafeguarding ? (isEarlyStage ? "missing" : "partial") : baseStatus,
+      needsSafeguarding
+        ? "Safeguarding is central to payment services and should be evidenced early."
+        : "Safeguarding expectations depend on the services in scope."
+    ),
+    amlFramework: buildItem("AML/CTF framework", isEarlyStage ? "missing" : "partial"),
+    riskFramework: buildItem("Risk framework", isEarlyStage ? "missing" : "partial"),
+    governancePack: buildItem("Governance pack", isEarlyStage ? "missing" : "partial"),
+  };
+
+  const priorities = Object.entries(readiness)
+    .filter(([, item]) => item.priority === "high")
+    .map(([key]) => key.replace(/([A-Z])/g, " $1").trim())
+    .slice(0, 3);
+
+  return {
+    readiness,
+    priorities: priorities.length ? priorities : ["Complete the firm assessment baseline", "Confirm scope and permissions", "Draft core governance pack"],
+    risks: [
+      isEarlyStage
+        ? "Early-stage firms often need to formalize governance, safeguarding, and AML frameworks."
+        : "Ensure controls and documentation match the permissions and services in scope.",
+    ],
+    recommendations: [
+      "Complete the firm assessment with confirmed service scope and operational model.",
+      "Draft the business plan narrative for core FCA sections.",
+      "Prepare safeguarding and AML documentation aligned to the chosen permissions.",
+    ],
+  };
 }
 
 function buildAnalysisSystemPrompt(): string {
@@ -95,7 +187,11 @@ Return a valid JSON object with this exact structure:
 }`;
 }
 
-function buildAnalysisUserPrompt(basics: AnalyzeRequestBody["basics"]): string {
+function buildAnalysisUserPrompt(basics: AnalyzeRequestBody["basics"], profileCompletion?: number): string {
+  const profileInfo = typeof profileCompletion === "number"
+    ? `${profileCompletion}% complete`
+    : "Not started";
+
   return `Analyze this firm's readiness for FCA authorization:
 
 Firm Details:
@@ -105,23 +201,16 @@ Firm Details:
 - Regulated Activities: ${sanitizeInput(basics.regulatedActivities, 500) || "Not specified"}
 - Headcount: ${basics.headcount || "Not provided"}
 - Incorporation Date: ${sanitizeInput(basics.incorporationDate, 50) || "Not provided"}
+- Business Plan Profile: ${profileInfo}
 
-Based on this profile, assess their readiness status for each category and provide actionable recommendations.`;
+Based on this profile, assess their readiness status for each category and provide actionable recommendations.
+Note: The Business Plan Profile completion percentage directly indicates how much of the business plan draft has been completed.`;
 }
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  // Check for API key first
-  const apiKey = getOpenRouterApiKey();
-  if (!apiKey) {
-    return NextResponse.json(
-      { error: "AI service not configured. Missing OPENROUTER_API_KEY." },
-      { status: 500 }
-    );
-  }
-
   try {
     const { auth, error } = await requireAuth();
     if (error) return error;
@@ -153,9 +242,20 @@ export async function POST(
       return NextResponse.json({ error: "basics object is required" }, { status: 400 });
     }
 
+    const fallback = buildFallbackAnalysis(body.basics, body.businessPlanProfileCompletion);
+
+    // Check for API key
+    const apiKey = getOpenRouterApiKey();
+    if (!apiKey) {
+      return NextResponse.json({
+        analysis: fallback,
+        warning: "AI service not configured. Returned baseline analysis.",
+      });
+    }
+
     // Build prompts
     const systemPrompt = buildAnalysisSystemPrompt();
-    const userPrompt = buildAnalysisUserPrompt(body.basics);
+    const userPrompt = buildAnalysisUserPrompt(body.basics, body.businessPlanProfileCompletion);
 
     const messages = [
       { role: "system" as const, content: systemPrompt },
@@ -184,10 +284,10 @@ export async function POST(
     if (!upstream.ok) {
       const errorText = await upstream.text();
       logError(new Error(`OpenRouter error ${upstream.status}: ${errorText}`), "Analyze AI call failed");
-      return NextResponse.json(
-        { error: "AI service temporarily unavailable. Please try again." },
-        { status: 502 }
-      );
+      return NextResponse.json({
+        analysis: fallback,
+        warning: "AI service temporarily unavailable. Returned baseline analysis.",
+      });
     }
 
     const data = (await upstream.json()) as {
@@ -215,20 +315,7 @@ export async function POST(
       console.error("Failed to parse AI response as JSON:", content);
       // Return a fallback response
       return NextResponse.json({
-        analysis: {
-          readiness: {
-            businessPlanDraft: { suggested: "partial", reason: "Unable to analyze - please review manually", priority: "high" },
-            financialModel: { suggested: "partial", reason: "Unable to analyze - please review manually", priority: "high" },
-            technologyStack: { suggested: "partial", reason: "Unable to analyze - please review manually", priority: "medium" },
-            safeguardingSetup: { suggested: "partial", reason: "Unable to analyze - please review manually", priority: "high" },
-            amlFramework: { suggested: "partial", reason: "Unable to analyze - please review manually", priority: "high" },
-            riskFramework: { suggested: "partial", reason: "Unable to analyze - please review manually", priority: "medium" },
-            governancePack: { suggested: "partial", reason: "Unable to analyze - please review manually", priority: "medium" },
-          },
-          priorities: ["Complete firm assessment manually", "Review all readiness categories", "Consult with compliance advisor"],
-          risks: ["AI analysis was unable to parse - manual review recommended"],
-          recommendations: ["Please complete the assessment form with more details for better AI analysis"],
-        },
+        analysis: fallback,
         raw: content,
         warning: "AI response could not be parsed - using fallback analysis",
       });

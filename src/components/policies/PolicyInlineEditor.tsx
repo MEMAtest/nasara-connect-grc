@@ -5,12 +5,19 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
+import { SectionNotesPicker } from "@/components/policies/SectionNotesPicker";
+import {
+  formatNoteValue,
+  getNoteSections,
+  parseNoteSelections,
+} from "@/lib/policies/section-notes";
 
 interface InlineSection {
   id: string;
   title: string;
+  summary: string;
   requiresFirmNotes?: boolean;
+  sectionType?: string;
 }
 
 interface InlineGovernance {
@@ -25,6 +32,7 @@ interface InlineGovernance {
 
 interface PolicyInlineEditorProps {
   policyId: string;
+  templateCode: string;
   sections: InlineSection[];
   initialSectionNotes: Record<string, string>;
   initialGovernance: InlineGovernance;
@@ -33,6 +41,7 @@ interface PolicyInlineEditorProps {
 
 export function PolicyInlineEditor({
   policyId,
+  templateCode,
   sections,
   initialSectionNotes,
   initialGovernance,
@@ -55,12 +64,26 @@ export function PolicyInlineEditor({
     }
   }, [initialGovernance, initialSectionNotes, isEditing]);
 
-  const requiredSections = useMemo(
-    () => sections.filter((section) => section.requiresFirmNotes),
-    [sections],
+  const noteSections = useMemo(
+    () => getNoteSections({ code: templateCode, sections }),
+    [templateCode, sections],
   );
-  const baseSections = requiredSections.length ? requiredSections : sections;
-  const visibleSections = showAllSections ? sections : baseSections;
+  const requiredSections = useMemo(
+    () => noteSections.filter((section) => section.required),
+    [noteSections],
+  );
+  const baseSections = requiredSections.length ? requiredSections : noteSections;
+  const visibleSections = showAllSections ? noteSections : baseSections;
+
+  const handleSectionNoteToggle = (sectionId: string, option: string, checked: boolean) => {
+    setSectionNotes((prev) => {
+      const current = parseNoteSelections(prev[sectionId]);
+      const next = checked
+        ? Array.from(new Set([...current, option]))
+        : current.filter((value) => value !== option);
+      return { ...prev, [sectionId]: formatNoteValue(next) };
+    });
+  };
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -205,7 +228,7 @@ export function PolicyInlineEditor({
               <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
                 Firm notes ({visibleSections.length})
               </p>
-              {sections.length > baseSections.length ? (
+              {noteSections.length > baseSections.length ? (
                 <Button
                   variant="ghost"
                   size="sm"
@@ -216,34 +239,11 @@ export function PolicyInlineEditor({
                 </Button>
               ) : null}
             </div>
-            <div className="space-y-3">
-              {visibleSections.map((section) => (
-                <details key={section.id} className="group rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
-                  <summary className="flex cursor-pointer items-center justify-between gap-3">
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-semibold text-slate-900">{section.title}</p>
-                      {section.requiresFirmNotes ? (
-                        <Badge variant="secondary" className="text-[11px]">Required</Badge>
-                      ) : null}
-                    </div>
-                    <span className="text-xs text-slate-400">Edit</span>
-                  </summary>
-                  <div className="mt-3">
-                    <Textarea
-                      value={sectionNotes[section.id] ?? ""}
-                      onChange={(event) =>
-                        setSectionNotes((current) => ({
-                          ...current,
-                          [section.id]: event.target.value,
-                        }))
-                      }
-                      placeholder="Add firm-specific detail for this section"
-                      className="h-28"
-                    />
-                  </div>
-                </details>
-              ))}
-            </div>
+            <SectionNotesPicker
+              sections={visibleSections}
+              sectionNotes={sectionNotes}
+              onToggle={handleSectionNoteToggle}
+            />
           </div>
 
           {error ? <p className="text-xs text-rose-600">{error}</p> : null}

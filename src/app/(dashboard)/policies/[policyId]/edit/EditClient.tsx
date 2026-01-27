@@ -13,7 +13,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import { PolicyMappingEditor } from "@/components/policies/PolicyMappingEditor";
+import { SectionNotesPicker } from "@/components/policies/SectionNotesPicker";
 import type { StoredPolicy } from "@/lib/server/policy-store";
+import {
+  formatNoteValue,
+  getNoteSections,
+  parseNoteSelections,
+} from "@/lib/policies/section-notes";
 
 const fetcher = (url: string) =>
   fetch(url).then((res) => {
@@ -99,9 +105,30 @@ export function EditClient() {
   }, [data]);
 
   const sections = useMemo(() => data?.template.sections ?? [], [data?.template.sections]);
+  const templateCode = data?.template.code ?? "";
+  const noteSections = useMemo(
+    () => (templateCode ? getNoteSections({ code: templateCode, sections }) : []),
+    [sections, templateCode],
+  );
+  const clausesBySectionId = useMemo(() => {
+    if (!data) return {} as Record<string, StoredPolicy["clauses"]>;
+    return sections.reduce<Record<string, StoredPolicy["clauses"]>>((acc, section) => {
+      const inserted = data.clauses.filter((clause) => section.suggestedClauses.includes(clause.id));
+      if (inserted.length) {
+        acc[section.id] = inserted;
+      }
+      return acc;
+    }, {});
+  }, [data, sections]);
 
-  const handleNoteChange = (sectionId: string, value: string) => {
-    setSectionNotes((current) => ({ ...current, [sectionId]: value }));
+  const handleSectionNoteToggle = (sectionId: string, option: string, checked: boolean) => {
+    setSectionNotes((prev) => {
+      const current = parseNoteSelections(prev[sectionId]);
+      const next = checked
+        ? Array.from(new Set([...current, option]))
+        : current.filter((value) => value !== option);
+      return { ...prev, [sectionId]: formatNoteValue(next) };
+    });
   };
 
   const toggleApproval = (key: "requiresSMF" | "requiresBoard") => {
@@ -137,8 +164,8 @@ export function EditClient() {
         if (!governance.nextReviewAt) missing.push("Next review date");
         if (!governance.scopeStatement.trim()) missing.push("Scope statement");
 
-        const missingNotes = sections
-          .filter((section) => section.requiresFirmNotes)
+        const missingNotes = noteSections
+          .filter((section) => section.required)
           .filter((section) => !(sectionNotes[section.id] ?? "").trim())
           .map((section) => section.title);
         if (missingNotes.length) {
@@ -382,47 +409,29 @@ export function EditClient() {
           <div className="space-y-2">
             <h2 className="text-lg font-semibold text-slate-900">Custom content</h2>
             <p className="text-sm text-slate-500">
-              Tailor each section with firm-specific wording. Clauses suggested by the wizard are displayed for reference.
+              Select the statements that apply to your firm. Clauses suggested by the wizard are displayed for reference.
             </p>
           </div>
 
-          <div className="space-y-6">
-            {sections.map((section) => {
-              const insertedClauses = data.clauses.filter((clause) => section.suggestedClauses.includes(clause.id));
+          <SectionNotesPicker
+            sections={noteSections}
+            sectionNotes={sectionNotes}
+            onToggle={handleSectionNoteToggle}
+            renderFooter={(sectionId) => {
+              const insertedClauses = clausesBySectionId[sectionId] ?? [];
+              if (!insertedClauses.length) return null;
               return (
-                <div key={section.id} className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-sm font-semibold text-slate-900">{section.title}</h3>
-                      <p className="text-xs text-slate-500">{section.summary}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {section.requiresFirmNotes ? (
-                        <Badge variant="secondary" className="text-[11px]">Firm notes required</Badge>
-                      ) : null}
-                      <Badge variant="outline" className="text-[11px]">Section</Badge>
-                    </div>
-                  </div>
-                  <Textarea
-                    className="h-32"
-                    value={sectionNotes[section.id] ?? ""}
-                    placeholder="Describe how this requirement applies to your firm"
-                    onChange={(event) => handleNoteChange(section.id, event.target.value)}
-                  />
-                  {insertedClauses.length ? (
-                    <div className="space-y-2">
-                      <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">Clauses in scope</p>
-                      <ul className="space-y-1 text-xs text-slate-600">
-                        {insertedClauses.map((clause) => (
-                          <li key={clause.id}>• {clause.title}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  ) : null}
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">Clauses in scope</p>
+                  <ul className="space-y-1 text-xs text-slate-600">
+                    {insertedClauses.map((clause) => (
+                      <li key={clause.id}>• {clause.title}</li>
+                    ))}
+                  </ul>
                 </div>
               );
-            })}
-          </div>
+            }}
+          />
         </section>
 
         {submitError ? <p className="text-sm text-rose-600">{submitError}</p> : null}

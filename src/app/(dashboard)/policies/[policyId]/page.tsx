@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { DEFAULT_ORGANIZATION_ID } from "@/lib/constants";
 import { findMissingTemplateVariables, renderClause } from "@/lib/policies/liquid-renderer";
 import { normalizePolicyMarkdown, renderPolicyMarkdown } from "@/lib/policies/markdown";
+import { getRequiredNoteSectionIds } from "@/lib/policies/section-notes";
 import { listEntityLinks, upsertEntityLink } from "@/lib/server/entity-link-store";
 import { getPolicyById } from "@/lib/server/policy-store";
 
@@ -109,6 +110,7 @@ export default async function PolicyDetailPage({
 
   const customContent = (policy.customContent ?? {}) as {
     firmProfile?: Record<string, unknown>;
+    policyInputs?: Record<string, unknown>;
     sectionClauses?: Record<string, string[]>;
     sectionNotes?: Record<string, string>;
     clauseVariables?: Record<string, Record<string, string>>;
@@ -117,6 +119,7 @@ export default async function PolicyDetailPage({
   };
 
   const firmProfile = (customContent.firmProfile ?? {}) as Record<string, unknown>;
+  const policyInputs = (customContent.policyInputs ?? {}) as Record<string, unknown>;
   const sectionClauses = customContent.sectionClauses ?? {};
   const sectionNotes = customContent.sectionNotes ?? {};
   const clauseVariables = customContent.clauseVariables ?? {};
@@ -127,6 +130,7 @@ export default async function PolicyDetailPage({
     firm: firmProfile,
     firm_name: firmName ?? "",
     permissions: policy.permissions,
+    ...policyInputs,
   };
 
   const governanceOwner = typeof governance.owner === "string" ? governance.owner.trim() : "";
@@ -243,7 +247,10 @@ export default async function PolicyDetailPage({
     return title.trim().length ? title.trim() : link.toId;
   };
 
-  const missingFirmNotes = sections.filter((section) => section.requiresFirmNotes && !section.customText).map((section) => section.title);
+  const requiredNoteSectionIds = new Set(getRequiredNoteSectionIds(policy.template));
+  const missingFirmNotes = sections
+    .filter((section) => requiredNoteSectionIds.has(section.id) && !section.customText)
+    .map((section) => section.title);
 
   const missingVariables = new Set<string>();
   for (const section of sections) {
@@ -470,9 +477,12 @@ export default async function PolicyDetailPage({
 
           <PolicyInlineEditor
             policyId={policy.id}
-            sections={sections.map((section) => ({
+            templateCode={policy.template.code}
+            sections={policy.template.sections.map((section) => ({
               id: section.id,
               title: section.title,
+              summary: section.summary,
+              sectionType: section.sectionType,
               requiresFirmNotes: section.requiresFirmNotes,
             }))}
             initialSectionNotes={sectionNotes}

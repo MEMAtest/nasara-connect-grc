@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { ArrowLeft, Plus, Search, Filter, Download, ShieldAlert, FileSearch, AlertTriangle, CheckCircle, Clock } from "lucide-react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { ArrowLeft, Plus, Search, Filter, Download, ShieldAlert, FileSearch, Clock } from "lucide-react";
 import { PaginationControls, usePagination } from "@/components/ui/pagination-controls";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,11 +43,10 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  PieChart,
-  Pie,
   Cell,
   Legend,
 } from "recharts";
+import { getMonthBuckets, getMonthKey } from "@/lib/chart-utils";
 
 interface DataBreachDsarRecord {
   id: string;
@@ -127,6 +126,7 @@ export function DataBreachDsarClient() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<DataBreachDsarRecord | null>(null);
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [monthFilter, setMonthFilter] = useState<{ key: string; label: string } | null>(null);
 
   const [formData, setFormData] = useState({
     record_reference: "",
@@ -308,15 +308,29 @@ export function DataBreachDsarClient() {
     setIsDialogOpen(true);
   };
 
-  const filteredRecords = records.filter((record) => {
-    const matchesSearch =
-      record.record_reference.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (record.dsar_requester_name?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
-      (record.breach_description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
-    const matchesStatus = filterStatus === "all" || record.status === filterStatus;
-    const matchesRecordType = filterRecordType === "all" || record.record_type === filterRecordType;
-    return matchesSearch && matchesStatus && matchesRecordType;
-  });
+  const baseFilteredRecords = useMemo(
+    () =>
+      records.filter((record) => {
+        const matchesSearch =
+          record.record_reference.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (record.dsar_requester_name?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
+          (record.breach_description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
+        const matchesStatus = filterStatus === "all" || record.status === filterStatus;
+        const matchesRecordType = filterRecordType === "all" || record.record_type === filterRecordType;
+        return matchesSearch && matchesStatus && matchesRecordType;
+      }),
+    [records, searchTerm, filterStatus, filterRecordType]
+  );
+
+  const filteredRecords = useMemo(
+    () =>
+      monthFilter
+        ? baseFilteredRecords.filter(
+            (record) => getMonthKey(record.created_at) === monthFilter.key
+          )
+        : baseFilteredRecords,
+    [baseFilteredRecords, monthFilter]
+  );
 
   const {
     paginatedData,
@@ -382,45 +396,78 @@ export function DataBreachDsarClient() {
 
   // Calculate stats
   const stats = {
-    total: records.length,
-    dataBreaches: records.filter((r) => r.record_type === "data_breach").length,
-    dsars: records.filter((r) => r.record_type === "dsar").length,
-    open: records.filter((r) => r.status === "open" || r.status === "investigating" || r.status === "remediation").length,
+    total: filteredRecords.length,
+    dataBreaches: filteredRecords.filter((r) => r.record_type === "data_breach").length,
+    dsars: filteredRecords.filter((r) => r.record_type === "dsar").length,
+    open: filteredRecords.filter((r) => r.status === "open" || r.status === "investigating" || r.status === "remediation").length,
   };
 
   // Chart data
   const recordTypeData = RECORD_TYPES.map((t) => ({
     name: t.label,
-    value: records.filter((r) => r.record_type === t.value).length,
+    value: filteredRecords.filter((r) => r.record_type === t.value).length,
   })).filter((d) => d.value > 0);
 
   const statusData = STATUSES.map((s) => ({
     name: s.label,
-    count: records.filter((r) => r.status === s.value).length,
+    count: filteredRecords.filter((r) => r.status === s.value).length,
   }));
 
   const breachCauseData = BREACH_CAUSES.map((c) => ({
     name: c.label,
-    count: records.filter((r) => r.record_type === "data_breach" && r.breach_cause === c.value).length,
+    count: filteredRecords.filter((r) => r.record_type === "data_breach" && r.breach_cause === c.value).length,
   })).filter((d) => d.count > 0);
 
-  const monthlyData = Array.from({ length: 6 }, (_, i) => {
-    const date = new Date();
-    date.setMonth(date.getMonth() - i);
-    const monthStr = date.toLocaleDateString("en-US", { month: "short" });
-    const monthRecords = records.filter((r) => {
-      const recordDate = new Date(r.created_at);
-      return (
-        recordDate.getMonth() === date.getMonth() &&
-        recordDate.getFullYear() === date.getFullYear()
-      );
-    });
-    return {
-      month: monthStr,
-      breaches: monthRecords.filter((r) => r.record_type === "data_breach").length,
-      dsars: monthRecords.filter((r) => r.record_type === "dsar").length,
-    };
-  }).reverse();
+  const monthBuckets = getMonthBuckets(6);
+
+  const monthlyData = useMemo(
+    () =>
+      monthBuckets.map((bucket) => {
+        const monthRecords = baseFilteredRecords.filter(
+          (r) => getMonthKey(r.created_at) === bucket.monthKey
+        );
+        return {
+          month: bucket.label,
+          monthKey: bucket.monthKey,
+          breaches: monthRecords.filter((r) => r.record_type === "data_breach").length,
+          dsars: monthRecords.filter((r) => r.record_type === "dsar").length,
+        };
+      }),
+    [baseFilteredRecords, monthBuckets]
+  );
+
+  const monthOptions = useMemo(
+    () =>
+      monthBuckets.map((bucket) => ({
+        value: bucket.monthKey,
+        label: new Date(bucket.startDate).toLocaleDateString("en-GB", {
+          month: "short",
+          year: "numeric",
+          timeZone: "UTC",
+        }),
+      })),
+    [monthBuckets]
+  );
+
+  const handleMonthSelect = (value: string) => {
+    if (value === "all") {
+      setMonthFilter(null);
+      return;
+    }
+    const label = monthOptions.find((opt) => opt.value === value)?.label || value;
+    setMonthFilter({ key: value, label });
+  };
+
+  const handleMonthClick = (payload?: { monthKey?: string }) => {
+    const key = payload?.monthKey;
+    if (!key) return;
+    if (monthFilter?.key === key) {
+      setMonthFilter(null);
+      return;
+    }
+    const label = monthOptions.find((opt) => opt.value === key)?.label || key;
+    setMonthFilter({ key, label });
+  };
 
   if (loading) {
     return (
@@ -471,6 +518,38 @@ export function DataBreachDsarClient() {
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="records">All Records</TabsTrigger>
         </TabsList>
+
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <Select value={monthFilter?.key || "all"} onValueChange={handleMonthSelect}>
+            <SelectTrigger className="w-[170px]">
+              <Filter className="mr-2 h-4 w-4" />
+              <SelectValue placeholder="Month" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Months</SelectItem>
+              {monthOptions.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {monthFilter && (
+            <div className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-1 text-sm text-slate-700">
+              <span>
+                Filtered by month: <strong>{monthFilter.label}</strong>
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setMonthFilter(null)}
+                className="h-6 text-slate-600 hover:text-slate-700"
+              >
+                Clear
+              </Button>
+            </div>
+          )}
+        </div>
 
         <TabsContent value="dashboard" className="space-y-6">
           {/* Stats Cards */}
@@ -536,8 +615,8 @@ export function DataBreachDsarClient() {
                       <YAxis />
                       <Tooltip />
                       <Legend />
-                      <Bar dataKey="breaches" fill="#ef4444" name="Breaches" />
-                      <Bar dataKey="dsars" fill="#6366f1" name="DSARs" />
+                      <Bar dataKey="breaches" fill="#ef4444" name="Breaches" onClick={(data) => handleMonthClick(data?.payload)} />
+                      <Bar dataKey="dsars" fill="#6366f1" name="DSARs" onClick={(data) => handleMonthClick(data?.payload)} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -551,23 +630,24 @@ export function DataBreachDsarClient() {
               <CardContent>
                 <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={recordTypeData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={40}
-                        outerRadius={80}
-                        paddingAngle={5}
-                        dataKey="value"
-                        label={({ name, value }) => `${name}: ${value}`}
-                      >
-                        {recordTypeData.map((_, index) => (
-                          <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-                        ))}
-                      </Pie>
+                    <BarChart
+                      data={recordTypeData}
+                      layout="vertical"
+                      margin={{ top: 8, right: 16, bottom: 8, left: 8 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis type="number" allowDecimals={false} />
+                      <YAxis dataKey="name" type="category" width={140} />
                       <Tooltip />
-                    </PieChart>
+                      <Bar dataKey="value" radius={[6, 6, 6, 6]}>
+                        {recordTypeData.map((_, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={CHART_COLORS[index % CHART_COLORS.length]}
+                          />
+                        ))}
+                      </Bar>
+                    </BarChart>
                   </ResponsiveContainer>
                 </div>
               </CardContent>
@@ -600,23 +680,24 @@ export function DataBreachDsarClient() {
                 <CardContent>
                   <div className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={breachCauseData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={40}
-                          outerRadius={80}
-                          paddingAngle={5}
-                          dataKey="count"
-                          label={({ name, count }) => `${name}: ${count}`}
-                        >
-                          {breachCauseData.map((_, index) => (
-                            <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-                          ))}
-                        </Pie>
+                      <BarChart
+                        data={breachCauseData}
+                        layout="vertical"
+                        margin={{ top: 8, right: 16, bottom: 8, left: 8 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis type="number" allowDecimals={false} />
+                        <YAxis dataKey="name" type="category" width={160} />
                         <Tooltip />
-                      </PieChart>
+                        <Bar dataKey="count" radius={[6, 6, 6, 6]}>
+                          {breachCauseData.map((_, index) => (
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={CHART_COLORS[index % CHART_COLORS.length]}
+                            />
+                          ))}
+                        </Bar>
+                      </BarChart>
                     </ResponsiveContainer>
                   </div>
                 </CardContent>

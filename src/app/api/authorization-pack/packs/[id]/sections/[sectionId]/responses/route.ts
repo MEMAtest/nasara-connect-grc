@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { getPack, getSectionWorkspace, savePromptResponse } from "@/lib/authorization-pack-db";
 import { requireAuth, isValidUUID } from "@/lib/auth-utils";
+import { checkRateLimit, handleApiError, rateLimitExceeded, validateRequest } from "@/lib/api-utils";
+
+const SavePromptResponseSchema = z.object({
+  promptId: z.string().uuid(),
+  value: z.unknown(),
+  version: z.number().int().positive().optional(),
+});
 
 export async function POST(
   request: NextRequest,
@@ -9,6 +17,9 @@ export async function POST(
   try {
     const { auth, error } = await requireAuth();
     if (error) return error;
+
+    const { success, headers } = await checkRateLimit(request);
+    if (!success) return rateLimitExceeded(headers);
 
     const { id, sectionId } = await params;
 
@@ -33,17 +44,17 @@ export async function POST(
       return NextResponse.json({ error: "Section not found" }, { status: 404 });
     }
 
-    const body = await request.json();
-    const promptId = body.promptId as string | undefined;
-    const value = body.value as string | undefined;
-
-    if (!promptId || value === undefined) {
-      return NextResponse.json({ error: "promptId and value are required" }, { status: 400 });
+    const body = await validateRequest(request, SavePromptResponseSchema);
+    const promptId = body.promptId;
+    let value: string;
+    if (typeof body.value === "string") {
+      value = body.value;
+    } else if (body.value === null || body.value === undefined) {
+      value = "";
+    } else {
+      value = JSON.stringify(body.value);
     }
-
-    if (!isValidUUID(promptId)) {
-      return NextResponse.json({ error: "Invalid prompt ID format" }, { status: 400 });
-    }
+    const expectedVersion = body.version;
 
     const promptIds = new Set(workspace.prompts.map((prompt: { id: string }) => prompt.id));
     if (!promptIds.has(promptId)) {
@@ -55,13 +66,11 @@ export async function POST(
       promptId,
       value,
       updatedBy: auth.userId || null,
+      expectedVersion,
     });
 
-    return NextResponse.json({ status: "ok" });
+    return NextResponse.json({ status: "ok" }, { headers });
   } catch (error) {
-    return NextResponse.json(
-      { error: "Failed to save response", details: error instanceof Error ? error.message : "Unknown error" },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }

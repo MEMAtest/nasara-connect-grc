@@ -277,6 +277,15 @@ export function VulnerableCustomersClient() {
     return generateTrendData(baseFilteredRecords, 6, 'identified_date');
   }, [baseFilteredRecords]);
 
+  const monthOptions = useMemo(
+    () =>
+      trendData.map((point) => ({
+        value: point.monthKey,
+        label: new Date(point.startDate).toLocaleDateString("en-GB", { month: "short", year: "numeric" }),
+      })),
+    [trendData]
+  );
+
   // Table columns
   const columns: Column<VulnerableCustomerRecord>[] = [
     {
@@ -448,6 +457,19 @@ export function VulnerableCustomersClient() {
           sampleRow: ["CUST-001", "Jane Doe", "health", "Long-term illness affecting communication", "2024-01-15", "high", "active"],
         }}
         registerName="Vulnerable Customers Log"
+        monthFilter={{
+          value: monthFilter?.key || "all",
+          options: monthOptions,
+          onChange: (value) => {
+            if (value === "all") {
+              setMonthFilter(null);
+              return;
+            }
+            const label = monthOptions.find((opt) => opt.value === value)?.label || value;
+            setMonthFilter({ key: value, label });
+          },
+          label: "Month",
+        }}
       />
 
       {/* Drill-down indicator */}

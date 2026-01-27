@@ -1,0 +1,58 @@
+import type { PolicyClause } from "./templates";
+
+export const CORE_POLICY_TEMPLATE_CLAUSES_OUTSOURCING: PolicyClause[] = [
+  {
+    id: "clause-outsourcing-purpose",
+    title: "Purpose",
+    summary: "Define outsourcing governance objectives",
+    content: "Ensure outsourcing does not impair controls, customer outcomes, or FCA supervision.",
+    category: "governance",
+    isMandatory: true,
+    appliesTo: ["OUTSOURCING"],
+  },
+  {
+    id: "clause-outsourcing-scope",
+    title: "Scope & classification",
+    summary: "Define material outsourcing and IBS",
+    content: "Classify material outsourcing and important business services with risk tiers.",
+    category: "operations",
+    isMandatory: true,
+    appliesTo: ["OUTSOURCING"],
+  },
+  {
+    id: "clause-outsourcing-due-diligence",
+    title: "Due diligence",
+    summary: "Define pre-outsourcing assessments",
+    content: "Assess financial stability, controls, data security, and regulatory impact before engagement.",
+    category: "operations",
+    isMandatory: true,
+    appliesTo: ["OUTSOURCING"],
+  },
+  {
+    id: "clause-outsourcing-contracts",
+    title: "Contract standards",
+    summary: "Define contractual requirements",
+    content: "Include audit rights, data access, incident notification, and regulatory cooperation clauses.",
+    category: "governance",
+    isMandatory: true,
+    appliesTo: ["OUTSOURCING"],
+  },
+  {
+    id: "clause-outsourcing-oversight",
+    title: "Ongoing oversight",
+    summary: "Define monitoring and review cadence",
+    content: "Monitor SLAs, performance, and risk indicators with escalation and remediation paths.",
+    category: "operations",
+    isMandatory: true,
+    appliesTo: ["OUTSOURCING"],
+  },
+  {
+    id: "clause-outsourcing-exit",
+    title: "Exit planning",
+    summary: "Define exit strategy and contingency",
+    content: "Maintain exit plans, data migration steps, and contingency arrangements for failures.",
+    category: "governance",
+    isMandatory: true,
+    appliesTo: ["OUTSOURCING"],
+  },
+];

@@ -2,8 +2,8 @@
   {
     "id": "mfs_consumer_duty-general-mema_financial_services",
     "policy_key": "mfs_consumer_duty",
-    "title": "MEMA Financial Services",
-    "body_md": "Consumer Duty Procedure\n| Governance |\n| --- | --- |\n| Version | V1.1 |\n| Approved by | Risk & Compliance Committee |\n| Owner | Compliance Officer |\n| Review Frequency | Annual |\n| Next Review Date | July 2026 |\n\n1. Introduction3\n2. Purpose3\n3. Scope3\n4. Application of the Consumer Duty to MFS3\nScope of the Duty4\nAncillary Services4\n{{firm.name}} acts as a Distributor for the majority of its products and services, including:5\n5. Assessment of Foreseeable Harms6\n6. Assessment of Good Customer Outcomes6\n7. Vulnerable Customer Risk Assessment7\n8. Application of the Four Customer Outcomes and Cross Cutting Rules9\n9. Management Information14",
+    "title": "General",
+    "body_md": "Consumer Duty Procedure\n\nThis procedure outlines how {{firm.name}} embeds the Consumer Duty across products and services. Document control, approvals, and review dates are recorded in the Document Control section of this document.",
     "tags": {
       "source": [
         "docx"
@@ -66,8 +66,8 @@
   {
     "id": "mfs_consumer_duty-application_of_the_consumer_duty_to_mfs-application_of_the_consumer_duty",
     "policy_key": "mfs_consumer_duty",
-    "title": "Application of the Consumer Duty to MFS",
-    "body_md": "{{firm.name}} has carried out an assessment of the Consumer Duty to determine how the Duty applies to {{firm.name}} and the products and services it provides to customers. {{firm.name}} has appointed a consumer duty champion Misah Maragh.",
+    "title": "Application of the Consumer Duty to the firm",
+    "body_md": "{{firm.name}} has carried out an assessment of the Consumer Duty to determine how the Duty applies to {{firm.name}} and the products and services it provides to customers. {{firm.name}} has appointed a consumer duty champion Compliance Officer.",
     "tags": {
       "source": [
         "docx"
@@ -82,7 +82,7 @@
   {
     "id": "mfs_consumer_duty-application_of_the_consumer_duty_to_mfs_business_model-application_of_th",
     "policy_key": "mfs_consumer_duty",
-    "title": "Application of the Consumer Duty to MFS Business Model",
+    "title": "Application of the Consumer Duty to the firm Business Model",
     "body_md": "{{firm.name}} is an FCA regulated firm and provides money remittance products to customers.\nOur money remittance services cater to businesses requiring efficient and secure cross-border transfers, primarily from the UK to key European markets such as Germany and France. By leveraging advanced technology and a customer-centric approach, we ensure seamless, cost-effective transactions that meet regulatory compliance standards.\nOur target market consists of small to medium-sized enterprises (SMEs) engaged in international trade and seeking flexible financial solutions to support their operational and growth needs.\nOur distribution strategy focuses on leveraging digital channels e.g. a secure online platform. This combined offering ensures that {{firm.name}} meets the diverse financial needs of SMEs, supporting their growth and stability in a competitive global market.\n{{firm.name}} has determined that it is within scope of the Consumer Duty and that all the products and services it provides to customers are in scope of the Duty.\n{{firm.name}} has undertaken a detailed assessment to determine its scope under the Consumer Duty framework. As a provider of financial services targeting SME clients, the applicability of the Duty depends on the nature of our products and services, their distribution, and the end-user classification.",
     "tags": {
       "source": [
@@ -130,7 +130,7 @@
   {
     "id": "mfs_consumer_duty-mfs_s_role_under_the_consumer_duty-mfs_s_role_under_the_consumer_duty",
     "policy_key": "mfs_consumer_duty",
-    "title": "MFS’s role under the Consumer Duty",
+    "title": "The firm's role under the Consumer Duty",
     "body_md": "{{firm.name}} has determined its role under the Consumer Duty framework as primarily a Distributor of financial services.",
     "tags": {
       "source": [
@@ -162,7 +162,7 @@
   {
     "id": "mfs_consumer_duty-mfs_s_role_under_the_consumer_duty-mfs_acts_as_a_distributor_for_the_maj",
     "policy_key": "mfs_consumer_duty",
-    "title": "MFS acts as a Distributor for the majority of its products and services, including:",
+    "title": "The firm acts as a Distributor for the majority of its products and services, including:",
     "body_md": "- Money Remittance Services:{{firm.name}} facilitates cross-border payments by providing a platform that connects SME clients with payment execution services. The service design and operational processes are aligned to meet client needs; however, the core remittance services are standardised offerings, positioning {{firm.name}} as a Distributor rather than a Manufacturer.",
     "tags": {
       "source": [
@@ -179,7 +179,7 @@
     "id": "mfs_consumer_duty-mfs_s_role_under_the_consumer_duty-distribution_chains",
     "policy_key": "mfs_consumer_duty",
     "title": "Distribution Chains",
-    "body_md": "MEMA operates as part of a distribution chain for several of its products and services, primarily in the areas of money remittance.\nMEMA distributes financial products and services through established distribution chains, ensuring customers have access to solutions tailored to their business needs:",
+    "body_md": "{{firm.name}} operates as part of a distribution chain for several of its products and services, primarily in the areas of money remittance.\n{{firm.name}} distributes financial products and services through established distribution chains, ensuring customers have access to solutions tailored to their business needs:",
     "tags": {
       "source": [
         "docx"
@@ -195,7 +195,7 @@
     "id": "mfs_consumer_duty-mfs_s_role_under_the_consumer_duty-money_remittance_services",
     "policy_key": "mfs_consumer_duty",
     "title": "Money Remittance Services:",
-    "body_md": "MEMA facilitates cross-border payments for SME clients by acting as a Distributor of remittance services. These services are delivered through a digital platform, connecting customers with payment service providers who execute the transactions. MEMA’s role ensures that these services are presented and delivered in a manner consistent with customer expectations and regulatory requirements.",
+    "body_md": "{{firm.name}} facilitates cross-border payments for SME clients by acting as a Distributor of remittance services. These services are delivered through a digital platform, connecting customers with payment service providers who execute the transactions. {{firm.name}}’s role ensures that these services are presented and delivered in a manner consistent with customer expectations and regulatory requirements.",
     "tags": {
       "source": [
         "docx"
@@ -211,7 +211,7 @@
     "id": "mfs_consumer_duty-assessment_of_foreseeable_harms-assessment_of_foreseeable_harms",
     "policy_key": "mfs_consumer_duty",
     "title": "Assessment of Foreseeable Harms",
-    "body_md": "In line with the FCA's Consumer Duty expectations, MEMA  has taken steps to identify and mitigate foreseeable harms that could negatively impact customers.\nMEMA has carried out an assessment of foreseeable harms across all stages of the customer journey to identify any risks that could cause detriment. This involves understanding how products or services may interact with the needs, vulnerabilities, and characteristics of different customer groups, especially those who may be at greater risk of harm.",
+    "body_md": "In line with the FCA's Consumer Duty expectations, {{firm.name}}  has taken steps to identify and mitigate foreseeable harms that could negatively impact customers.\n{{firm.name}} has carried out an assessment of foreseeable harms across all stages of the customer journey to identify any risks that could cause detriment. This involves understanding how products or services may interact with the needs, vulnerabilities, and characteristics of different customer groups, especially those who may be at greater risk of harm.",
     "tags": {
       "source": [
         "docx"
@@ -227,7 +227,7 @@
     "id": "mfs_consumer_duty-assessment_of_foreseeable_harms-foreseeable_harms_assessment",
     "policy_key": "mfs_consumer_duty",
     "title": "Foreseeable Harms Assessment",
-    "body_md": "The assessment focused on identifying and mitigating risks across MEMA’s core offerings:\nMoney Remittance Services\nForeseeable Harms Identified:\n- Incorrect Transfers: Errors in inputting recipient details could lead to funds being sent to the wrong account.\n- Delayed Transactions: Technical failures or delays in processing could disrupt clients’ business operations.\n- Security Risks: Breaches in data security or unauthorised access to sensitive payment data could expose customers to fraud or financial loss.\n- Misunderstanding of Costs: Customers may not fully understand transfer fees or exchange rate implications, leading to dissatisfaction or financial loss.\nMitigation Measures:\n- Implementation of robust transaction verification processes to minimise input errors.\n- Use of secure and reliable technology to ensure timely and accurate processing.\n- Encryption of sensitive payment data and strict access controls to prevent security breaches.\n- Transparent communication of fees and exchange rates during the transaction process.",
+    "body_md": "The assessment focused on identifying and mitigating risks across {{firm.name}}’s core offerings:\nMoney Remittance Services\nForeseeable Harms Identified:\n- Incorrect Transfers: Errors in inputting recipient details could lead to funds being sent to the wrong account.\n- Delayed Transactions: Technical failures or delays in processing could disrupt clients’ business operations.\n- Security Risks: Breaches in data security or unauthorised access to sensitive payment data could expose customers to fraud or financial loss.\n- Misunderstanding of Costs: Customers may not fully understand transfer fees or exchange rate implications, leading to dissatisfaction or financial loss.\nMitigation Measures:\n- Implementation of robust transaction verification processes to minimise input errors.\n- Use of secure and reliable technology to ensure timely and accurate processing.\n- Encryption of sensitive payment data and strict access controls to prevent security breaches.\n- Transparent communication of fees and exchange rates during the transaction process.",
     "tags": {
       "source": [
         "docx"

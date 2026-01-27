@@ -287,6 +287,15 @@ export function ConflictsRegisterClient() {
     return generateTrendData(baseFilteredRecords, 6, 'declaration_date');
   }, [baseFilteredRecords]);
 
+  const monthOptions = useMemo(
+    () =>
+      trendData.map((point) => ({
+        value: point.monthKey,
+        label: new Date(point.startDate).toLocaleDateString("en-GB", { month: "short", year: "numeric" }),
+      })),
+    [trendData]
+  );
+
   // Table columns
   const columns: Column<COIRecord>[] = [
     {
@@ -457,6 +466,19 @@ export function ConflictsRegisterClient() {
           sampleRow: ["John Smith", "Director", "financial_interest", "Shares in competitor company", "2024-01-15", "high", "active"],
         }}
         registerName="Conflicts of Interest"
+        monthFilter={{
+          value: monthFilter?.key || "all",
+          options: monthOptions,
+          onChange: (value) => {
+            if (value === "all") {
+              setMonthFilter(null);
+              return;
+            }
+            const label = monthOptions.find((opt) => opt.value === value)?.label || value;
+            setMonthFilter({ key: value, label });
+          },
+          label: "Month",
+        }}
       />
 
       {/* Drill-down indicator */}

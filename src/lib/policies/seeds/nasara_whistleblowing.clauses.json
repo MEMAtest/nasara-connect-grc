@@ -24,7 +24,7 @@
     "id": "nasara_whistleblowing-channels-channels_and_confidentiality",
     "policy_key": "whistleblowing",
     "title": "Channels and confidentiality",
-    "body_md": "Concerns can be raised via the whistleblowing portal or line, Compliance mailbox, or line manager (if appropriate).\n\nReports can be anonymous or named. Confidentiality is protected on a need-to-know basis, and data is minimised.",
+    "body_md": "Concerns can be raised via the whistleblowing portal or line, Compliance mailbox, or line manager (if appropriate).\n\n{% if whistleChannelsList %}\nAvailable channels:\n{{ whistleChannelsList }}\n{% endif %}\n\n{% if whistleAnonymous %}\nReports can be anonymous or named. Confidentiality is protected on a need-to-know basis, and data is minimised.\n{% endif %}\n{% unless whistleAnonymous %}\nReports are expected to be named. Confidentiality is protected on a need-to-know basis, and data is minimised.\n{% endunless %}",
     "source_template_filename": "MODULE_WHISTLEBLOWING.txt"
   },
   {
@@ -59,14 +59,14 @@
     "id": "nasara_whistleblowing-escalation-escalation_and_regulators",
     "policy_key": "whistleblowing",
     "title": "Escalation and regulators",
-    "body_md": "Where appropriate, concerns may be escalated to regulators. The Whistleblowing Champion, Compliance, and Legal teams will manage any external notifications in line with policy.",
+    "body_md": "Where appropriate, concerns may be escalated to regulators.\n\n{% if whistleChampion %}\nThe Whistleblowing Champion works with Compliance and Legal to manage external notifications.\n{% endif %}\n{% unless whistleChampion %}\nCompliance and Legal manage external notifications and escalation routes.\n{% endunless %}",
     "source_template_filename": "MODULE_WHISTLEBLOWING.txt"
   },
   {
     "id": "nasara_whistleblowing-records-records_and_mi",
     "policy_key": "whistleblowing",
     "title": "Records and MI",
-    "body_md": "Records must include intake details, investigation steps, outcomes, remediation actions, and timelines.\n\nManagement information should track themes, timeliness, and any retaliation concerns for board oversight.",
+    "body_md": "Records must include intake details, investigation steps, outcomes, remediation actions, and timelines.\n\n{% if whistleConcernTypesList %}\nCommon concern themes tracked include:\n{{ whistleConcernTypesList }}\n{% endif %}\n\nManagement information should track themes, timeliness, and any retaliation concerns for board oversight.",
     "source_template_filename": "MODULE_WHISTLEBLOWING.txt"
   },
   {

@@ -82,7 +82,7 @@ describe("Analyze route", () => {
     expect(requestBody.stream).toBe(false);
   });
 
-  it("returns 500 when API key is missing", async () => {
+  it("returns fallback analysis when API key is missing", async () => {
     const { POST } = await import("./route");
     delete process.env.OPENROUTER_API_KEY;
 
@@ -92,13 +92,14 @@ describe("Analyze route", () => {
     });
 
     const res = await POST(req, { params: Promise.resolve({ id: "00000000-0000-0000-0000-000000000001" }) });
-    expect(res.status).toBe(500);
+    expect(res.status).toBe(200);
 
     const body = await res.json();
-    expect(body.error).toContain("not configured");
+    expect(body.warning).toContain("baseline");
+    expect(body.analysis).toBeTruthy();
   });
 
-  it("returns 502 when AI service fails", async () => {
+  it("returns fallback analysis when AI service fails", async () => {
     const { POST } = await import("./route");
 
     global.fetch = vi.fn().mockResolvedValue({
@@ -113,10 +114,11 @@ describe("Analyze route", () => {
     });
 
     const res = await POST(req, { params: Promise.resolve({ id: "00000000-0000-0000-0000-000000000001" }) });
-    expect(res.status).toBe(502);
+    expect(res.status).toBe(200);
 
     const body = await res.json();
-    expect(body.error).toContain("unavailable");
+    expect(body.warning).toContain("baseline");
+    expect(body.analysis).toBeTruthy();
   });
 
   it("includes firm details in the prompt", async () => {

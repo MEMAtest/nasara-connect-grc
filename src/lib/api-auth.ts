@@ -4,7 +4,11 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { isAuthDisabled } from "@/lib/auth-utils";
+import {
+  isAuthDisabled,
+  deriveOrganizationIdFromEmail,
+  DEFAULT_ORG_ID,
+} from "@/lib/auth-utils";
 
 export interface AuthenticatedRequest {
   userId: string;
@@ -32,6 +36,7 @@ export async function authenticateRequest(
       user: {
         userId: "dev-user",
         userEmail: "dev@example.com",
+        // Keep legacy default-org data visible in auth-disabled mode.
         organizationId: "default-org",
       },
     };
@@ -49,13 +54,17 @@ export async function authenticateRequest(
     };
   }
 
-  // Get organization ID from query params or use default
+  // Get organization ID from query params or derive from the user email.
   const { searchParams } = new URL(request.url);
   const requestedOrgId = searchParams.get("organizationId");
 
-  // In a real app, you'd verify the user has access to this organization
-  // For now, we'll use the requested org or default
-  const organizationId = requestedOrgId || "default-org";
+  // In a real app, you'd verify the user has access to this organization.
+  // For now, allow the override but default to the same derived org ID
+  // used by requireAuth/auth-utils.
+  const derivedOrgId = session.user.email
+    ? await deriveOrganizationIdFromEmail(session.user.email)
+    : DEFAULT_ORG_ID;
+  const organizationId = requestedOrgId || derivedOrgId;
 
   return {
     authenticated: true,

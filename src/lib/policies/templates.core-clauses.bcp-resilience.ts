@@ -1,0 +1,58 @@
+import type { PolicyClause } from "./templates";
+
+export const CORE_POLICY_TEMPLATE_CLAUSES_BCP_RESILIENCE: PolicyClause[] = [
+  {
+    id: "clause-bcp-purpose",
+    title: "Purpose",
+    summary: "Define the resilience and continuity objectives",
+    content: "Set how the firm prevents, responds to, and recovers from operational disruption.",
+    category: "operations",
+    isMandatory: true,
+    appliesTo: ["BCP_RESILIENCE"],
+  },
+  {
+    id: "clause-bcp-ibs",
+    title: "Important business services",
+    summary: "Identify important business services and dependencies",
+    content: "Define the services whose disruption could cause intolerable harm and map key dependencies.",
+    category: "operations",
+    isMandatory: true,
+    appliesTo: ["BCP_RESILIENCE"],
+  },
+  {
+    id: "clause-bcp-impact",
+    title: "Impact tolerances",
+    summary: "Set impact tolerances and escalation triggers",
+    content: "Document impact tolerances for each service and escalation paths when tolerances are at risk.",
+    category: "operations",
+    isMandatory: true,
+    appliesTo: ["BCP_RESILIENCE"],
+  },
+  {
+    id: "clause-bcp-incident",
+    title: "Incident management",
+    summary: "Define incident response roles and communications",
+    content: "Incident response roles, internal communications, regulatory notifications, and customer updates.",
+    category: "operations",
+    isMandatory: true,
+    appliesTo: ["BCP_RESILIENCE"],
+  },
+  {
+    id: "clause-bcp-testing",
+    title: "Testing & remediation",
+    summary: "Define scenario testing and remediation expectations",
+    content: "Perform severe but plausible scenario testing with documented remediation plans.",
+    category: "governance",
+    isMandatory: true,
+    appliesTo: ["BCP_RESILIENCE"],
+  },
+  {
+    id: "clause-bcp-governance",
+    title: "Governance & review",
+    summary: "Define board oversight and review cadence",
+    content: "Board-approved resilience strategy, annual review, and MI reporting.",
+    category: "governance",
+    isMandatory: true,
+    appliesTo: ["BCP_RESILIENCE"],
+  },
+];

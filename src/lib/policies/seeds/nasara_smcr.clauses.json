@@ -17,7 +17,7 @@
     "id": "nasara_smcr-roles-smcr_roles_and_scope",
     "policy_key": "smcr",
     "title": "SMCR roles and scope",
-    "body_md": "Roles are grouped into three populations:\n- Senior Managers (SMFs) with FCA approval and defined responsibilities.\n- Certification Staff assessed annually by the firm for fitness and propriety.\n- Conduct Rules staff who must comply with COCON.\n\nRole allocation must follow the firm role catalogue and responsibility map.",
+    "body_md": "Roles are grouped into three populations:\n- Senior Managers (SMFs) with FCA approval and defined responsibilities.\n- Certification Staff assessed annually by the firm for fitness and propriety.\n- Conduct Rules staff who must comply with COCON.\n\n{% if smcrPopulationsList %}\nSMCR populations in scope:\n{{ smcrPopulationsList }}\n{% endif %}\n\nRole allocation must follow the firm role catalogue and responsibility map.",
     "source_template_filename": "MODULE_SMCR.txt"
   },
   {
@@ -38,7 +38,7 @@
     "id": "nasara_smcr-certification-certification_regime",
     "policy_key": "smcr",
     "title": "Certification regime",
-    "body_md": "Certification Staff must be assessed annually as fit and proper based on honesty and integrity, competence and capability, and financial soundness.\n\nEvidence includes training and competence logs, QA outcomes, role profiles, and regulatory references.",
+    "body_md": "Certification Staff must be assessed annually as fit and proper based on honesty and integrity, competence and capability, and financial soundness.\n\nEvidence includes training and competence logs, QA outcomes, role profiles, and regulatory references.\n\n{% if smcrCertificationCadenceList %}\nCertification assessments are completed on the following cadence:\n{{ smcrCertificationCadenceList }}\n{% endif %}",
     "source_template_filename": "MODULE_SMCR.txt"
   },
   {
@@ -52,7 +52,7 @@
     "id": "nasara_smcr-nfm-non_financial_misconduct",
     "policy_key": "smcr",
     "title": "Non-financial misconduct",
-    "body_md": "Serious, substantiated non-financial misconduct (such as bullying or harassment) can affect fitness and propriety.\n\nCases must be assessed with HR and Compliance, and may trigger certification decisions and notifications as required.",
+    "body_md": "Serious, substantiated non-financial misconduct (such as bullying or harassment) can affect fitness and propriety.\n\nCases must be assessed with HR and Compliance, and may trigger certification decisions and notifications as required.\n\n{% if smcrNonFinancialMisconduct %}\nNon-financial misconduct is explicitly considered in fitness and propriety assessments.\n{% endif %}\n{% unless smcrNonFinancialMisconduct %}\nNon-financial misconduct is assessed on a case-by-case basis for regulatory impact.\n{% endunless %}",
     "source_template_filename": "MODULE_SMCR.txt"
   },
   {
@@ -66,7 +66,7 @@
     "id": "nasara_smcr-records-records_and_evidence",
     "policy_key": "smcr",
     "title": "Records and evidence",
-    "body_md": "Records must include SoRs, responsibility maps, fit and proper assessments, conduct rule training records, disciplinary outcomes, and notification decisions.\n\nRecords must be retained in line with regulatory requirements.",
+    "body_md": "Records must include SoRs, responsibility maps, fit and proper assessments, conduct rule training records, disciplinary outcomes, and notification decisions.\n\n{% if smcrEvidenceList %}\nKey SMCR evidence maintained:\n{{ smcrEvidenceList }}\n{% endif %}\n\nRecords must be retained in line with regulatory requirements.",
     "source_template_filename": "MODULE_SMCR.txt"
   },
   {

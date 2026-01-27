@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,7 +35,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { AlertTriangle, Calculator, ChevronDown, HelpCircle, Info, Loader2, Lock, Sparkles, XCircle } from "lucide-react";
+import { AlertTriangle, Calculator, CheckCircle, ChevronDown, HelpCircle, Info, Loader2, Lock, Sparkles, XCircle } from "lucide-react";
 import {
   buildProfileInsights,
   getPackSectionLabel,
@@ -135,6 +135,17 @@ const SECTION_TAB_LABELS: Record<string, string> = {
   investments: "Investments",
 };
 
+const SECTION_TAB_STYLES: Record<string, string> = {
+  scope: "data-[state=active]:bg-teal-600 data-[state=active]:border-teal-600 data-[state=active]:text-white",
+  model: "data-[state=active]:bg-blue-600 data-[state=active]:border-blue-600 data-[state=active]:text-white",
+  operations: "data-[state=active]:bg-amber-600 data-[state=active]:border-amber-600 data-[state=active]:text-white",
+  governance: "data-[state=active]:bg-slate-700 data-[state=active]:border-slate-700 data-[state=active]:text-white",
+  financials: "data-[state=active]:bg-emerald-600 data-[state=active]:border-emerald-600 data-[state=active]:text-white",
+  payments: "data-[state=active]:bg-rose-600 data-[state=active]:border-rose-600 data-[state=active]:text-white",
+  "consumer-credit": "data-[state=active]:bg-orange-600 data-[state=active]:border-orange-600 data-[state=active]:text-white",
+  investments: "data-[state=active]:bg-sky-600 data-[state=active]:border-sky-600 data-[state=active]:text-white",
+};
+
 function HelpTooltip({ label, description }: { label: string; description: string }) {
   return (
     <Tooltip>
@@ -227,6 +238,12 @@ export function BusinessPlanProfileClient({
   const [otherTextValues, setOtherTextValues] = useState<Record<string, string>>({});
   const [setupBasics, setSetupBasics] = useState<Record<string, unknown> | null>(null);
   const [prefillOverrides, setPrefillOverrides] = useState<Set<string>>(new Set());
+
+  // Track which prefills have been applied to prevent infinite loops
+  const appliedPrefillsRef = useRef<Set<string>>(new Set());
+
+  // Ref for wizard container to scroll to on section change
+  const wizardContainerRef = useRef<HTMLDivElement>(null);
 
   const insights = useMemo(() => buildProfileInsights(permission, responses), [permission, responses]);
   const prefilledResponses = useMemo(() => buildPrefilledResponses(setupBasics), [setupBasics]);
@@ -361,6 +378,33 @@ export function BusinessPlanProfileClient({
     setPrefillOverrides(new Set());
   }, [projectId]);
 
+  // Auto-apply prefilled values to responses when they exist and response is empty
+  useEffect(() => {
+    if (!setupBasics) return;
+    const prefilledKeys = Object.keys(prefilledResponses);
+    if (prefilledKeys.length === 0) return;
+
+    const updates: Record<string, ProfileResponse> = {};
+    for (const key of prefilledKeys) {
+      // Skip if already applied
+      if (appliedPrefillsRef.current.has(key)) continue;
+
+      const prefill = prefilledResponses[key];
+      const currentResponse = responses[key];
+      // Only auto-apply if there's no existing response
+      const isEmpty = currentResponse === undefined || currentResponse === null ||
+        (Array.isArray(currentResponse) && currentResponse.length === 0) ||
+        (typeof currentResponse === "string" && currentResponse.trim() === "");
+      if (isEmpty && prefill?.value !== undefined) {
+        updates[key] = prefill.value;
+        appliedPrefillsRef.current.add(key);
+      }
+    }
+    if (Object.keys(updates).length > 0) {
+      setResponses((prev) => ({ ...prev, ...updates }));
+    }
+  }, [setupBasics, prefilledResponses, responses]);
+
   const handleSave = async () => {
     setIsSaving(true);
     setSaveMessage(null);
@@ -411,14 +455,19 @@ export function BusinessPlanProfileClient({
     }
   };
 
-  const scrollToTop = () => {
-    if (typeof window === "undefined") return;
-    window.scrollTo({ top: 0, behavior: "smooth" });
+  const scrollToWizard = () => {
+    if (wizardContainerRef.current) {
+      // Scroll to wizard container with a small offset for header
+      const yOffset = -20;
+      const y = wizardContainerRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: y, behavior: "smooth" });
+    }
   };
 
   const jumpToSection = (sectionId: string) => {
     setActiveSectionId(sectionId);
-    scrollToTop();
+    // Use setTimeout to ensure the new section is rendered before scrolling
+    setTimeout(() => scrollToWizard(), 50);
   };
 
   const updateResponse = (questionId: string, value: ProfileResponse) => {
@@ -881,6 +930,27 @@ export function BusinessPlanProfileClient({
     );
   };
 
+  // These hooks must be called before any early returns to comply with Rules of Hooks
+  const regulatorySignals = useMemo(() => {
+    const tally = new Map<string, number>();
+    insights.regulatorySignals.forEach((item) => {
+      const key = item.label.trim();
+      if (!key) return;
+      tally.set(key, (tally.get(key) ?? 0) + item.count);
+    });
+    return Array.from(tally.entries())
+      .map(([label, count]) => ({ label, count }))
+      .sort((a, b) => b.count - a.count);
+  }, [insights]);
+
+  const regulatoryCoverage = useMemo(() => {
+    if (regulatorySignals.length <= 5) return regulatorySignals;
+    const top = regulatorySignals.slice(0, 5);
+    const remainder = regulatorySignals.slice(5).reduce((sum, item) => sum + item.count, 0);
+    return [...top, { label: "Other", count: remainder }];
+  }, [regulatorySignals]);
+
+  // Early returns for loading/error states (after all hooks)
   if (isLoading) {
     return (
       <Card className="border border-slate-200">
@@ -909,6 +979,7 @@ export function BusinessPlanProfileClient({
     );
   }
 
+  // Derived data (non-hooks, safe after early returns)
   const sectionChartData = insights.sectionScores.map((section) => ({
     name: section.label,
     percent: section.percent,
@@ -919,7 +990,8 @@ export function BusinessPlanProfileClient({
     .slice(0, 8)
     .map((item) => ({ name: item.label, percent: item.percent }));
 
-  const regulatoryChartData = insights.regulatorySignals.slice(0, 6);
+  const regulatoryDrivers = regulatorySignals.slice(0, 6);
+
   return (
     <div className="space-y-6">
       <Card className="border border-slate-200 bg-white">
@@ -1146,41 +1218,61 @@ export function BusinessPlanProfileClient({
               </div>
             </div>
           ) : null}
-          <Tabs value={activeSectionId} onValueChange={jumpToSection}>
-            <TabsList className="flex h-auto w-full flex-wrap items-center justify-start gap-2 rounded-lg border border-slate-200 bg-slate-100/70 p-2">
-              {sections.map((section) => {
+          {/* Step-by-step wizard progress indicator */}
+          <div ref={wizardContainerRef} className="rounded-lg border border-slate-200 bg-white p-4">
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-sm font-semibold text-slate-900">
+                Step {sections.findIndex((item) => item.id === activeSectionId) + 1} of {sections.length}
+              </p>
+              <p className="text-sm text-slate-500">
+                {SECTION_TAB_LABELS[activeSectionId] ?? sections.find((item) => item.id === activeSectionId)?.title}
+              </p>
+            </div>
+            <Progress
+              value={((sections.findIndex((item) => item.id === activeSectionId) + 1) / sections.length) * 100}
+              className="h-2 mb-4"
+            />
+            {/* Clickable step indicators */}
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              {sections.map((section, index) => {
                 const readiness = sectionReadiness[section.id];
                 const isBlocked = readiness?.blocked ?? false;
                 const blockedBy = readiness?.blockedBy ?? [];
                 const dep = SECTION_DEPENDENCIES.find((d) => d.sectionId === section.id);
+                const isActive = section.id === activeSectionId;
+                const isCompleted = !sectionProgress.find((item) => item.id === section.id)?.remaining;
 
                 return (
                   <Tooltip key={section.id}>
                     <TooltipTrigger asChild>
-                      <TabsTrigger
-                        value={section.id}
-                        className={`flex-none whitespace-nowrap px-3 py-1 text-xs sm:text-sm data-[state=active]:border-slate-900 data-[state=active]:bg-slate-900 data-[state=active]:text-white data-[state=active]:shadow-sm ${
-                          isBlocked ? "text-slate-400" : "text-slate-600"
+                      <button
+                        type="button"
+                        onClick={() => jumpToSection(section.id)}
+                        className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-medium transition-colors ${
+                          isActive
+                            ? "bg-slate-900 text-white"
+                            : isCompleted
+                            ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+                            : isBlocked
+                            ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+                            : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                         }`}
+                        disabled={isBlocked}
                       >
-                        {isBlocked && <Lock className="mr-1 h-3 w-3" />}
-                        <span>{SECTION_TAB_LABELS[section.id] ?? section.title}</span>
-                        {sectionProgress.find((item) => item.id === section.id)?.remaining ? (
-                          <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] text-amber-700">
-                            {sectionProgress.find((item) => item.id === section.id)?.remaining}
-                          </span>
+                        {isBlocked ? (
+                          <Lock className="h-3 w-3" />
+                        ) : isCompleted && !isActive ? (
+                          <CheckCircle className="h-4 w-4" />
                         ) : (
-                          <span className="ml-2 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] text-emerald-700">
-                            Done
-                          </span>
+                          index + 1
                         )}
-                      </TabsTrigger>
+                      </button>
                     </TooltipTrigger>
                     <TooltipContent side="bottom" sideOffset={6} className="max-w-xs text-left">
                       <p className="font-semibold">{section.title}</p>
-                      <p className="mt-1">{section.description}</p>
+                      <p className="mt-1 text-xs">{section.description}</p>
                       {isBlocked && (
-                        <p className="mt-2 text-amber-600">
+                        <p className="mt-2 text-amber-600 text-xs">
                           Complete first: {blockedBy.map((id) => SECTION_TAB_LABELS[id] ?? id).join(", ")}
                         </p>
                       )}
@@ -1191,7 +1283,42 @@ export function BusinessPlanProfileClient({
                   </Tooltip>
                 );
               })}
-            </TabsList>
+            </div>
+            {/* Top navigation buttons - below step indicators */}
+            <div className="flex items-center justify-between pt-4 border-t border-slate-100 mt-4">
+              <div>
+                {sections.findIndex((s) => s.id === activeSectionId) > 0 && (
+                  <Button variant="outline" onClick={() => {
+                    const idx = sections.findIndex((s) => s.id === activeSectionId);
+                    if (idx > 0) jumpToSection(sections[idx - 1].id);
+                  }} className="gap-2">
+                    <ChevronDown className="h-4 w-4 rotate-90" />
+                    Previous
+                  </Button>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-500">
+                  {sectionProgress.find((s) => s.id === activeSectionId)?.answered ?? 0}/
+                  {sectionProgress.find((s) => s.id === activeSectionId)?.total ?? 0} answered
+                </span>
+                {sections.findIndex((s) => s.id === activeSectionId) < sections.length - 1 ? (
+                  <Button onClick={() => {
+                    const idx = sections.findIndex((s) => s.id === activeSectionId);
+                    if (idx < sections.length - 1) jumpToSection(sections[idx + 1].id);
+                  }} className="gap-2 bg-slate-900 hover:bg-slate-800">
+                    Next
+                    <ChevronDown className="h-4 w-4 -rotate-90" />
+                  </Button>
+                ) : (
+                  <Button onClick={handleSave} disabled={isSaving} className="gap-2 bg-teal-600 hover:bg-teal-700">
+                    {isSaving ? "Saving..." : "Save and finish"}
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+          <Tabs value={activeSectionId} onValueChange={jumpToSection} className="mt-4">
             {sections.map((section) => {
               const sectionQuestions = questions.filter((question) => question.sectionId === section.id);
               const sectionScore = insights.sectionScores.find((score) => score.id === section.id);
@@ -1202,18 +1329,23 @@ export function BusinessPlanProfileClient({
               const nextSection = sectionIndex < sections.length - 1 ? sections[sectionIndex + 1] : null;
               return (
                 <TabsContent key={section.id} value={section.id} className="mt-4 space-y-6">
-                  <div className="flex flex-wrap items-center justify-end gap-2">
-                    {prevSection ? (
-                      <Button variant="outline" size="sm" onClick={() => jumpToSection(prevSection.id)}>
-                        Previous section
-                      </Button>
-                    ) : null}
-                    {nextSection ? (
-                      <Button variant="outline" size="sm" onClick={() => jumpToSection(nextSection.id)}>
-                        Next section
-                      </Button>
-                    ) : null}
-                  </div>
+                  {/* Wizard section header with prominent "Why this matters" explainer */}
+                  <Card className="border border-teal-200 bg-teal-50">
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-3">
+                        <Info className="h-5 w-5 text-teal-600 mt-0.5 shrink-0" />
+                        <div>
+                          <p className="font-semibold text-teal-900">Why this matters</p>
+                          <p className="mt-1 text-sm text-teal-700">{section.description}</p>
+                          {sectionTargets.length > 0 && (
+                            <p className="mt-2 text-xs text-teal-600">
+                              This section feeds into: {sectionTargets.join(", ")}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                   <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="space-y-2">
@@ -1265,7 +1397,7 @@ export function BusinessPlanProfileClient({
                     </div>
                   </div>
 
-                  {section.id === "payments" && permission === "payments" ? (
+                  {section.id === "financials" && permission === "payments" ? (
                     <Dialog>
                       <Card className="border border-blue-200 bg-blue-50">
                         <CardHeader className="flex flex-row items-start justify-between gap-3">
@@ -1484,6 +1616,35 @@ export function BusinessPlanProfileClient({
                       );
                     })}
                   </div>
+
+                  {/* Wizard navigation buttons at bottom */}
+                  <div className="flex items-center justify-between pt-6 border-t border-slate-200">
+                    <div>
+                      {prevSection ? (
+                        <Button variant="outline" onClick={() => jumpToSection(prevSection.id)} className="gap-2">
+                          <ChevronDown className="h-4 w-4 rotate-90" />
+                          Previous: {SECTION_TAB_LABELS[prevSection.id] ?? prevSection.title}
+                        </Button>
+                      ) : (
+                        <div />
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-slate-500">
+                        {sectionStats?.answered ?? 0}/{sectionStats?.total ?? 0} answered
+                      </span>
+                      {nextSection ? (
+                        <Button onClick={() => jumpToSection(nextSection.id)} className="gap-2 bg-slate-900 hover:bg-slate-800">
+                          Next: {SECTION_TAB_LABELS[nextSection.id] ?? nextSection.title}
+                          <ChevronDown className="h-4 w-4 -rotate-90" />
+                        </Button>
+                      ) : (
+                        <Button onClick={handleSave} disabled={isSaving} className="gap-2 bg-teal-600 hover:bg-teal-700">
+                          {isSaving ? "Saving..." : "Save and finish"}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
                 </TabsContent>
               );
             })}
@@ -1607,9 +1768,9 @@ export function BusinessPlanProfileClient({
           helpLabel="Regulatory Drivers"
           helpDescription="Counts of PERG/PSD2/CONC/COBS references behind your answers."
         >
-          {regulatoryChartData.length ? (
+          {regulatoryDrivers.length ? (
             <ul className="space-y-2 text-sm text-slate-600">
-              {regulatoryChartData.map((item) => (
+              {regulatoryDrivers.map((item) => (
                 <li key={item.label} className="flex items-center justify-between">
                   <span>{item.label}</span>
                   <span className="text-xs text-slate-400">{item.count}</span>
@@ -1669,13 +1830,13 @@ export function BusinessPlanProfileClient({
           helpLabel="Regulatory Coverage"
           helpDescription="Mix of referenced sources inferred from your responses. This is a signal chart, not a percentage."
         >
-          {regulatoryChartData.length ? (
+          {regulatoryCoverage.length ? (
             <>
               <div className="h-[200px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie data={regulatoryChartData} dataKey="count" nameKey="label" innerRadius={44} outerRadius={84}>
-                      {regulatoryChartData.map((entry, index) => (
+                    <Pie data={regulatoryCoverage} dataKey="count" nameKey="label" innerRadius={44} outerRadius={84}>
+                      {regulatoryCoverage.map((entry, index) => (
                         <Cell key={entry.label} fill={CHART_COLORS[index % CHART_COLORS.length]} />
                       ))}
                     </Pie>
@@ -1684,7 +1845,7 @@ export function BusinessPlanProfileClient({
                 </ResponsiveContainer>
               </div>
               <div className="space-y-2 text-xs text-slate-600">
-                {regulatoryChartData.map((entry, index) => (
+                {regulatoryCoverage.map((entry, index) => (
                   <div key={entry.label} className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span

@@ -727,6 +727,49 @@ export async function initDatabase() {
       CREATE INDEX IF NOT EXISTS idx_complaint_activities_type ON complaint_activities (activity_type)
     `);
 
+    // FOS Ombudsman Decisions
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS fos_decisions (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        decision_reference VARCHAR(100) UNIQUE,
+        decision_date DATE,
+        business_name TEXT,
+        product_sector TEXT,
+        outcome VARCHAR(50),
+        ombudsman_name TEXT,
+        source_url TEXT,
+        pdf_url TEXT,
+        pdf_sha256 TEXT,
+        full_text TEXT,
+        complaint_text TEXT,
+        firm_response_text TEXT,
+        ombudsman_reasoning_text TEXT,
+        final_decision_text TEXT,
+        decision_summary TEXT,
+        precedents JSONB,
+        root_cause_tags JSONB,
+        vulnerability_flags JSONB,
+        decision_logic TEXT,
+        embedding JSONB,
+        embedding_model VARCHAR(100),
+        embedding_dim INTEGER,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_fos_decisions_date ON fos_decisions (decision_date)
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_fos_decisions_outcome ON fos_decisions (outcome)
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_fos_decisions_business ON fos_decisions (business_name)
+    `);
+
     // Add new fields to complaints_records if they don't exist
     await client.query(`
       DO $$

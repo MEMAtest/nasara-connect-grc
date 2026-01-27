@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { ArrowLeft, Plus, Search, Filter, Download, Shield, AlertTriangle, CheckCircle, Clock, XCircle, FileSpreadsheet } from "lucide-react";
 import { BatchScreeningModal } from "@/components/screening/BatchScreeningModal";
 import { PaginationControls, usePagination } from "@/components/ui/pagination-controls";
@@ -35,6 +35,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
+import { getMonthBuckets, getMonthKey } from "@/lib/chart-utils";
 import {
   BarChart,
   Bar,
@@ -43,8 +44,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  PieChart,
-  Pie,
   Cell,
   Legend,
 } from "recharts";
@@ -130,6 +129,7 @@ export function SanctionsClient() {
   const [editingRecord, setEditingRecord] = useState<SanctionsRecord | null>(null);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [showBatchScreening, setShowBatchScreening] = useState(false);
+  const [monthFilter, setMonthFilter] = useState<{ key: string; label: string } | null>(null);
 
   const [formData, setFormData] = useState({
     screening_reference: "",
@@ -263,15 +263,29 @@ export function SanctionsClient() {
     setIsDialogOpen(true);
   };
 
-  const filteredRecords = records.filter((record) => {
-    const matchesSearch =
-      record.entity_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      record.screening_reference.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (record.entity_country?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
-    const matchesStatus = filterStatus === "all" || record.status === filterStatus;
-    const matchesDecision = filterDecision === "all" || record.decision === filterDecision;
-    return matchesSearch && matchesStatus && matchesDecision;
-  });
+  const baseFilteredRecords = useMemo(
+    () =>
+      records.filter((record) => {
+        const matchesSearch =
+          record.entity_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          record.screening_reference.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (record.entity_country?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
+        const matchesStatus = filterStatus === "all" || record.status === filterStatus;
+        const matchesDecision = filterDecision === "all" || record.decision === filterDecision;
+        return matchesSearch && matchesStatus && matchesDecision;
+      }),
+    [records, searchTerm, filterStatus, filterDecision]
+  );
+
+  const filteredRecords = useMemo(
+    () =>
+      monthFilter
+        ? baseFilteredRecords.filter(
+            (record) => getMonthKey(record.screening_date) === monthFilter.key
+          )
+        : baseFilteredRecords,
+    [baseFilteredRecords, monthFilter]
+  );
 
   const {
     paginatedData,
@@ -336,42 +350,75 @@ export function SanctionsClient() {
 
   // Calculate stats
   const stats = {
-    total: records.length,
-    pending: records.filter((r) => r.status === "pending").length,
-    matches: records.filter((r) => r.match_found).length,
-    cleared: records.filter((r) => r.decision === "cleared").length,
-    falsePositives: records.filter((r) => r.false_positive).length,
-    escalated: records.filter((r) => r.escalated).length,
+    total: filteredRecords.length,
+    pending: filteredRecords.filter((r) => r.status === "pending").length,
+    matches: filteredRecords.filter((r) => r.match_found).length,
+    cleared: filteredRecords.filter((r) => r.decision === "cleared").length,
+    falsePositives: filteredRecords.filter((r) => r.false_positive).length,
+    escalated: filteredRecords.filter((r) => r.escalated).length,
   };
 
   // Chart data
   const decisionData = DECISIONS.map((d) => ({
     name: d.label,
-    value: records.filter((r) => r.decision === d.value).length,
+    value: filteredRecords.filter((r) => r.decision === d.value).length,
   })).filter((d) => d.value > 0);
 
   const screeningTypeData = SCREENING_TYPES.map((t) => ({
     name: t.label,
-    count: records.filter((r) => r.screening_type === t.value).length,
+    count: filteredRecords.filter((r) => r.screening_type === t.value).length,
   }));
 
-  const monthlyData = Array.from({ length: 6 }, (_, i) => {
-    const date = new Date();
-    date.setMonth(date.getMonth() - i);
-    const monthStr = date.toLocaleDateString("en-US", { month: "short" });
-    const monthRecords = records.filter((r) => {
-      const recordDate = new Date(r.screening_date);
-      return (
-        recordDate.getMonth() === date.getMonth() &&
-        recordDate.getFullYear() === date.getFullYear()
-      );
-    });
-    return {
-      month: monthStr,
-      screenings: monthRecords.length,
-      matches: monthRecords.filter((r) => r.match_found).length,
-    };
-  }).reverse();
+  const monthBuckets = getMonthBuckets(6);
+
+  const monthlyData = useMemo(
+    () =>
+      monthBuckets.map((bucket) => {
+        const monthRecords = baseFilteredRecords.filter(
+          (r) => getMonthKey(r.screening_date) === bucket.monthKey
+        );
+        return {
+          month: bucket.label,
+          monthKey: bucket.monthKey,
+          screenings: monthRecords.length,
+          matches: monthRecords.filter((r) => r.match_found).length,
+        };
+      }),
+    [baseFilteredRecords, monthBuckets]
+  );
+
+  const monthOptions = useMemo(
+    () =>
+      monthBuckets.map((bucket) => ({
+        value: bucket.monthKey,
+        label: new Date(bucket.startDate).toLocaleDateString("en-GB", {
+          month: "short",
+          year: "numeric",
+          timeZone: "UTC",
+        }),
+      })),
+    [monthBuckets]
+  );
+
+  const handleMonthSelect = (value: string) => {
+    if (value === "all") {
+      setMonthFilter(null);
+      return;
+    }
+    const label = monthOptions.find((opt) => opt.value === value)?.label || value;
+    setMonthFilter({ key: value, label });
+  };
+
+  const handleMonthClick = (payload?: { monthKey?: string }) => {
+    const key = payload?.monthKey;
+    if (!key) return;
+    if (monthFilter?.key === key) {
+      setMonthFilter(null);
+      return;
+    }
+    const label = monthOptions.find((opt) => opt.value === key)?.label || key;
+    setMonthFilter({ key, label });
+  };
 
   if (loading) {
     return (
@@ -430,6 +477,38 @@ export function SanctionsClient() {
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="records">All Records</TabsTrigger>
         </TabsList>
+
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <Select value={monthFilter?.key || "all"} onValueChange={handleMonthSelect}>
+            <SelectTrigger className="w-[170px]">
+              <Filter className="mr-2 h-4 w-4" />
+              <SelectValue placeholder="Month" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Months</SelectItem>
+              {monthOptions.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {monthFilter && (
+            <div className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-1 text-sm text-slate-700">
+              <span>
+                Filtered by month: <strong>{monthFilter.label}</strong>
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setMonthFilter(null)}
+                className="h-6 text-slate-600 hover:text-slate-700"
+              >
+                Clear
+              </Button>
+            </div>
+          )}
+        </div>
 
         <TabsContent value="dashboard" className="space-y-6">
           {/* Stats Cards */}
@@ -517,8 +596,8 @@ export function SanctionsClient() {
                       <YAxis />
                       <Tooltip />
                       <Legend />
-                      <Bar dataKey="screenings" fill="#3b82f6" name="Screenings" />
-                      <Bar dataKey="matches" fill="#ef4444" name="Matches" />
+                      <Bar dataKey="screenings" fill="#3b82f6" name="Screenings" onClick={(data) => handleMonthClick(data?.payload)} />
+                      <Bar dataKey="matches" fill="#ef4444" name="Matches" onClick={(data) => handleMonthClick(data?.payload)} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -532,23 +611,24 @@ export function SanctionsClient() {
               <CardContent>
                 <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={decisionData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={40}
-                        outerRadius={80}
-                        paddingAngle={5}
-                        dataKey="value"
-                        label={({ name, value }) => `${name}: ${value}`}
-                      >
-                        {decisionData.map((_, index) => (
-                          <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-                        ))}
-                      </Pie>
+                    <BarChart
+                      data={decisionData}
+                      layout="vertical"
+                      margin={{ top: 8, right: 16, bottom: 8, left: 8 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis type="number" allowDecimals={false} />
+                      <YAxis dataKey="name" type="category" width={140} />
                       <Tooltip />
-                    </PieChart>
+                      <Bar dataKey="value" radius={[6, 6, 6, 6]}>
+                        {decisionData.map((_, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={CHART_COLORS[index % CHART_COLORS.length]}
+                          />
+                        ))}
+                      </Bar>
+                    </BarChart>
                   </ResponsiveContainer>
                 </div>
               </CardContent>

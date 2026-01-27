@@ -1,16 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { createPack, getPack, getPackTemplates, getPacks } from "@/lib/authorization-pack-db";
 import { requireAuth } from "@/lib/auth-utils";
 import { DEFAULT_ORGANIZATION_ID } from "@/lib/constants";
 import { createNotification } from "@/lib/server/notifications-store";
+import {
+  checkRateLimit,
+  getPaginationParams,
+  handleApiError,
+  paginate,
+  rateLimitExceeded,
+  validateRequest,
+} from "@/lib/api-utils";
 
-export async function GET() {
+const CreatePackSchema = z.object({
+  templateType: z.string().min(1),
+  name: z.string().min(1).max(255),
+  targetSubmissionDate: z.string().optional().nullable(),
+});
+
+export async function GET(request: NextRequest) {
   try {
     // Authenticate the request
     const { auth, error } = await requireAuth();
     if (error) return error;
 
-    const packs = await getPacks(auth.organizationId);
+    const { success, headers } = await checkRateLimit(request);
+    if (!success) return rateLimitExceeded(headers);
+
+    const { page, limit, offset } = getPaginationParams(request);
+    const { packs, total } = await getPacks(auth.organizationId, { limit, offset });
 
     // Transform to expected format
     const formattedPacks = packs.map((pack) => ({
@@ -24,12 +43,10 @@ export async function GET() {
       template_name: pack.template_name,
     }));
 
-    return NextResponse.json({ packs: formattedPacks });
+    const payload = paginate(formattedPacks, total, page, limit);
+    return NextResponse.json({ ...payload, packs: payload.items }, { headers });
   } catch (error) {
-    return NextResponse.json(
-      { error: "Failed to load packs", details: error instanceof Error ? error.message : "Unknown error" },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }
 
@@ -39,21 +56,13 @@ export async function POST(request: NextRequest) {
     const { auth, error } = await requireAuth();
     if (error) return error;
 
-    const body = await request.json();
+    const { success, headers } = await checkRateLimit(request);
+    if (!success) return rateLimitExceeded(headers);
+
+    const body = await validateRequest(request, CreatePackSchema);
     const templateType = body.templateType;
-    const name = (body.name as string | undefined)?.trim();
+    const name = body.name.trim();
     const targetSubmissionDate = body.targetSubmissionDate || null;
-
-    if (!templateType) {
-      return NextResponse.json({ error: "Template type is required" }, { status: 400 });
-    }
-    if (!name) {
-      return NextResponse.json({ error: "Pack name is required" }, { status: 400 });
-    }
-
-    if (name.length > 255) {
-      return NextResponse.json({ error: "Pack name too long (max 255 characters)" }, { status: 400 });
-    }
 
     // Get template by code or pack_type
     const templates = await getPackTemplates();
@@ -85,11 +94,8 @@ export async function POST(request: NextRequest) {
       // Non-blocking notification failures
     }
 
-    return NextResponse.json({ pack: pack ?? { id: created.id } }, { status: 201 });
+    return NextResponse.json({ pack: pack ?? { id: created.id } }, { status: 201, headers });
   } catch (error) {
-    return NextResponse.json(
-      { error: "Failed to create pack", details: error instanceof Error ? error.message : "Unknown error" },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }

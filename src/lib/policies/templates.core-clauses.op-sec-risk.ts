@@ -1,0 +1,58 @@
+import type { PolicyClause } from "./templates";
+
+export const CORE_POLICY_TEMPLATE_CLAUSES_OP_SEC_RISK: PolicyClause[] = [
+  {
+    id: "clause-opsec-purpose",
+    title: "Purpose",
+    summary: "Define operational & security risk objectives",
+    content: "Manage operational and security risks in line with PSRs/EMRs expectations.",
+    category: "operations",
+    isMandatory: true,
+    appliesTo: ["OP_SEC_RISK"],
+  },
+  {
+    id: "clause-opsec-risk",
+    title: "Risk assessment",
+    summary: "Define operational risk assessment approach",
+    content: "Assess operational, technology, and third-party risks with controls and owners.",
+    category: "operations",
+    isMandatory: true,
+    appliesTo: ["OP_SEC_RISK"],
+  },
+  {
+    id: "clause-opsec-sca",
+    title: "Strong customer authentication",
+    summary: "Define SCA and secure communication controls",
+    content: "Apply SCA, secure communication standards, and fraud prevention for payment journeys.",
+    category: "operations",
+    isMandatory: true,
+    appliesTo: ["OP_SEC_RISK"],
+  },
+  {
+    id: "clause-opsec-incident",
+    title: "Incident reporting",
+    summary: "Define major incident reporting",
+    content: "Report major incidents within regulatory timelines and track remediation actions.",
+    category: "operations",
+    isMandatory: true,
+    appliesTo: ["OP_SEC_RISK"],
+  },
+  {
+    id: "clause-opsec-fraud",
+    title: "Fraud monitoring",
+    summary: "Define fraud monitoring and reimbursement controls",
+    content: "Monitor fraud trends, dispute handling, and reimbursement obligations where applicable.",
+    category: "operations",
+    isMandatory: true,
+    appliesTo: ["OP_SEC_RISK"],
+  },
+  {
+    id: "clause-opsec-resilience",
+    title: "Operational resilience",
+    summary: "Define resilience and testing expectations",
+    content: "Align scenario testing, impact tolerances, and recovery plans with resilience requirements.",
+    category: "governance",
+    isMandatory: true,
+    appliesTo: ["OP_SEC_RISK"],
+  },
+];

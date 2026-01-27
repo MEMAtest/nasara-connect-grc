@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { ArrowLeft, Plus, Search, Filter, Download, Users, CheckCircle, XCircle, FileText } from "lucide-react";
 import { PaginationControls, usePagination } from "@/components/ui/pagination-controls";
 import { Button } from "@/components/ui/button";
@@ -42,11 +42,10 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  PieChart,
-  Pie,
   Cell,
   Legend,
 } from "recharts";
+import { getMonthBuckets, getMonthKey } from "@/lib/chart-utils";
 
 interface InsiderListRecord {
   id: string;
@@ -85,6 +84,7 @@ export function InsiderListClient() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<InsiderListRecord | null>(null);
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [monthFilter, setMonthFilter] = useState<{ key: string; label: string } | null>(null);
 
   const [formData, setFormData] = useState({
     list_reference: "",
@@ -203,19 +203,33 @@ export function InsiderListClient() {
     setIsDialogOpen(true);
   };
 
-  const filteredRecords = records.filter((record) => {
-    const matchesSearch =
-      record.insider_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      record.list_reference.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      record.project_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (record.insider_company?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
-    const matchesStatus = filterStatus === "all" || record.status === filterStatus;
-    const matchesAcknowledgment =
-      filterAcknowledgment === "all" ||
-      (filterAcknowledgment === "received" && record.acknowledgment_received) ||
-      (filterAcknowledgment === "pending" && !record.acknowledgment_received);
-    return matchesSearch && matchesStatus && matchesAcknowledgment;
-  });
+  const baseFilteredRecords = useMemo(
+    () =>
+      records.filter((record) => {
+        const matchesSearch =
+          record.insider_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          record.list_reference.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          record.project_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (record.insider_company?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
+        const matchesStatus = filterStatus === "all" || record.status === filterStatus;
+        const matchesAcknowledgment =
+          filterAcknowledgment === "all" ||
+          (filterAcknowledgment === "received" && record.acknowledgment_received) ||
+          (filterAcknowledgment === "pending" && !record.acknowledgment_received);
+        return matchesSearch && matchesStatus && matchesAcknowledgment;
+      }),
+    [records, searchTerm, filterStatus, filterAcknowledgment]
+  );
+
+  const filteredRecords = useMemo(
+    () =>
+      monthFilter
+        ? baseFilteredRecords.filter(
+            (record) => getMonthKey(record.date_added) === monthFilter.key
+          )
+        : baseFilteredRecords,
+    [baseFilteredRecords, monthFilter]
+  );
 
   const {
     paginatedData,
@@ -296,16 +310,16 @@ export function InsiderListClient() {
   // Chart data
   const statusData = LIST_STATUSES.map((s) => ({
     name: s.label,
-    value: records.filter((r) => r.status === s.value).length,
+    value: filteredRecords.filter((r) => r.status === s.value).length,
   })).filter((d) => d.value > 0);
 
   const acknowledgmentData = [
-    { name: "Received", value: records.filter((r) => r.acknowledgment_received).length },
-    { name: "Pending", value: records.filter((r) => !r.acknowledgment_received).length },
+    { name: "Received", value: filteredRecords.filter((r) => r.acknowledgment_received).length },
+    { name: "Pending", value: filteredRecords.filter((r) => !r.acknowledgment_received).length },
   ].filter((d) => d.value > 0);
 
   // Group by project
-  const projectGroups = records.reduce((acc, record) => {
+  const projectGroups = filteredRecords.reduce((acc, record) => {
     const project = record.project_name;
     if (!acc[project]) {
       acc[project] = 0;
@@ -319,23 +333,56 @@ export function InsiderListClient() {
     .sort((a, b) => b.count - a.count)
     .slice(0, 10);
 
-  const monthlyData = Array.from({ length: 6 }, (_, i) => {
-    const date = new Date();
-    date.setMonth(date.getMonth() - i);
-    const monthStr = date.toLocaleDateString("en-US", { month: "short" });
-    const monthRecords = records.filter((r) => {
-      const recordDate = new Date(r.date_added);
-      return (
-        recordDate.getMonth() === date.getMonth() &&
-        recordDate.getFullYear() === date.getFullYear()
-      );
-    });
-    return {
-      month: monthStr,
-      added: monthRecords.length,
-      active: monthRecords.filter((r) => r.status === "active").length,
-    };
-  }).reverse();
+  const monthBuckets = getMonthBuckets(6);
+
+  const monthlyData = useMemo(
+    () =>
+      monthBuckets.map((bucket) => {
+        const monthRecords = baseFilteredRecords.filter(
+          (r) => getMonthKey(r.date_added) === bucket.monthKey
+        );
+        return {
+          month: bucket.label,
+          monthKey: bucket.monthKey,
+          added: monthRecords.length,
+          active: monthRecords.filter((r) => r.status === "active").length,
+        };
+      }),
+    [baseFilteredRecords, monthBuckets]
+  );
+
+  const monthOptions = useMemo(
+    () =>
+      monthBuckets.map((bucket) => ({
+        value: bucket.monthKey,
+        label: new Date(bucket.startDate).toLocaleDateString("en-GB", {
+          month: "short",
+          year: "numeric",
+          timeZone: "UTC",
+        }),
+      })),
+    [monthBuckets]
+  );
+
+  const handleMonthSelect = (value: string) => {
+    if (value === "all") {
+      setMonthFilter(null);
+      return;
+    }
+    const label = monthOptions.find((opt) => opt.value === value)?.label || value;
+    setMonthFilter({ key: value, label });
+  };
+
+  const handleMonthClick = (payload?: { monthKey?: string }) => {
+    const key = payload?.monthKey;
+    if (!key) return;
+    if (monthFilter?.key === key) {
+      setMonthFilter(null);
+      return;
+    }
+    const label = monthOptions.find((opt) => opt.value === key)?.label || key;
+    setMonthFilter({ key, label });
+  };
 
   if (loading) {
     return (
@@ -386,6 +433,38 @@ export function InsiderListClient() {
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="records">All Records</TabsTrigger>
         </TabsList>
+
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <Select value={monthFilter?.key || "all"} onValueChange={handleMonthSelect}>
+            <SelectTrigger className="w-[170px]">
+              <Filter className="mr-2 h-4 w-4" />
+              <SelectValue placeholder="Month" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Months</SelectItem>
+              {monthOptions.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {monthFilter && (
+            <div className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-1 text-sm text-slate-700">
+              <span>
+                Filtered by month: <strong>{monthFilter.label}</strong>
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setMonthFilter(null)}
+                className="h-6 text-slate-600 hover:text-slate-700"
+              >
+                Clear
+              </Button>
+            </div>
+          )}
+        </div>
 
         <TabsContent value="dashboard" className="space-y-6">
           {/* Stats Cards */}
@@ -451,8 +530,8 @@ export function InsiderListClient() {
                       <YAxis />
                       <Tooltip />
                       <Legend />
-                      <Bar dataKey="added" fill="#3b82f6" name="Added" />
-                      <Bar dataKey="active" fill="#10b981" name="Active" />
+                      <Bar dataKey="added" fill="#3b82f6" name="Added" onClick={(data) => handleMonthClick(data?.payload)} />
+                      <Bar dataKey="active" fill="#10b981" name="Active" onClick={(data) => handleMonthClick(data?.payload)} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -466,23 +545,24 @@ export function InsiderListClient() {
               <CardContent>
                 <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={statusData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={40}
-                        outerRadius={80}
-                        paddingAngle={5}
-                        dataKey="value"
-                        label={({ name, value }) => `${name}: ${value}`}
-                      >
-                        {statusData.map((_, index) => (
-                          <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-                        ))}
-                      </Pie>
+                    <BarChart
+                      data={statusData}
+                      layout="vertical"
+                      margin={{ top: 8, right: 16, bottom: 8, left: 8 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis type="number" allowDecimals={false} />
+                      <YAxis dataKey="name" type="category" width={140} />
                       <Tooltip />
-                    </PieChart>
+                      <Bar dataKey="value" radius={[6, 6, 6, 6]}>
+                        {statusData.map((_, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={CHART_COLORS[index % CHART_COLORS.length]}
+                          />
+                        ))}
+                      </Bar>
+                    </BarChart>
                   </ResponsiveContainer>
                 </div>
               </CardContent>
@@ -495,23 +575,24 @@ export function InsiderListClient() {
               <CardContent>
                 <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={acknowledgmentData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={40}
-                        outerRadius={80}
-                        paddingAngle={5}
-                        dataKey="value"
-                        label={({ name, value }) => `${name}: ${value}`}
-                      >
-                        {acknowledgmentData.map((_, index) => (
-                          <Cell key={`cell-${index}`} fill={index === 0 ? "#10b981" : "#f59e0b"} />
-                        ))}
-                      </Pie>
+                    <BarChart
+                      data={acknowledgmentData}
+                      layout="vertical"
+                      margin={{ top: 8, right: 16, bottom: 8, left: 8 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis type="number" allowDecimals={false} />
+                      <YAxis dataKey="name" type="category" width={140} />
                       <Tooltip />
-                    </PieChart>
+                      <Bar dataKey="value" radius={[6, 6, 6, 6]}>
+                        {acknowledgmentData.map((_, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={index === 0 ? "#10b981" : "#f59e0b"}
+                          />
+                        ))}
+                      </Bar>
+                    </BarChart>
                   </ResponsiveContainer>
                 </div>
               </CardContent>

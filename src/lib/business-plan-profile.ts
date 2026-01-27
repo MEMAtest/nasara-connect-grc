@@ -25,6 +25,7 @@ export interface ProfileQuestion {
   id: string;
   sectionId: string;
   prompt: string;
+  label?: string;
   description?: string;
   placeholder?: string;
   type: ProfileQuestionType;

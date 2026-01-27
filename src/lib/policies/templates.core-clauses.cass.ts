@@ -1,0 +1,58 @@
+import type { PolicyClause } from "./templates";
+
+export const CORE_POLICY_TEMPLATE_CLAUSES_CASS: PolicyClause[] = [
+  {
+    id: "clause-cass-purpose",
+    title: "Purpose",
+    summary: "Define client asset protection objectives",
+    content: "Protect client money and assets in line with CASS requirements.",
+    category: "operations",
+    isMandatory: true,
+    appliesTo: ["CASS"],
+  },
+  {
+    id: "clause-cass-scope",
+    title: "Scope & classification",
+    summary: "Define CASS applicability and classifications",
+    content: "Document client money/asset classifications and CASS applicability by business line.",
+    category: "operations",
+    isMandatory: true,
+    appliesTo: ["CASS"],
+  },
+  {
+    id: "clause-cass-segregation",
+    title: "Segregation",
+    summary: "Define segregation and trust status",
+    content: "Segregate client money/assets with appropriate trust and account structures.",
+    category: "operations",
+    isMandatory: true,
+    appliesTo: ["CASS"],
+  },
+  {
+    id: "clause-cass-reconciliations",
+    title: "Reconciliations",
+    summary: "Define reconciliation requirements",
+    content: "Perform internal and external reconciliations with defined frequency and tolerance.",
+    category: "operations",
+    isMandatory: true,
+    appliesTo: ["CASS"],
+  },
+  {
+    id: "clause-cass-records",
+    title: "Record keeping",
+    summary: "Define record keeping and audit trail",
+    content: "Maintain client ledgers, account records, and audit trails with retention standards.",
+    category: "operations",
+    isMandatory: true,
+    appliesTo: ["CASS"],
+  },
+  {
+    id: "clause-cass-governance",
+    title: "Governance",
+    summary: "Define oversight and accountability",
+    content: "Assign CASS oversight, reporting cadence, and SMF accountability.",
+    category: "governance",
+    isMandatory: true,
+    appliesTo: ["CASS"],
+  },
+];

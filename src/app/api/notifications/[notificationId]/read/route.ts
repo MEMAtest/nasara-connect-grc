@@ -5,7 +5,7 @@ import { setNotificationRead } from "@/lib/server/notifications-store";
 import { logError } from "@/lib/logger";
 
 export async function POST(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ notificationId: string }> },
 ) {
   try {

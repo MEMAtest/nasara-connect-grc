@@ -3,7 +3,7 @@
     "id": "nasara_anti_bribery-purpose-purpose_and_objectives",
     "policy_key": "anti_bribery",
     "title": "Purpose and objectives",
-    "body_md": "This policy sets out how {{firm.name}} prevents bribery and corruption in line with the UK Bribery Act 2010, FCA expectations, and Ministry of Justice guidance.\n\nObjectives:\n- prohibit bribery, facilitation payments, and improper advantages.\n- apply proportionate prevention controls and due diligence.\n- manage gifts, hospitality, donations, and political activity.\n- ensure escalation, investigation, and record keeping.",
+    "body_md": "This policy sets out how {{firm.name}} prevents bribery and corruption in line with the UK Bribery Act 2010, FCA expectations, and Ministry of Justice guidance.\n\nObjectives:\n- prohibit bribery, facilitation payments, and improper advantages.\n- apply proportionate prevention controls and due diligence.\n- manage gifts, hospitality, donations, and political activity.\n- ensure escalation, investigation, and record keeping.\n\n{% if abcRiskAreasList %}\nRisk exposure in scope:\n{{ abcRiskAreasList }}\n{% endif %}",
     "source_template_filename": "MODULE_ANTI_BRIBERY_CORRUPTION.txt"
   },
   {
@@ -38,14 +38,14 @@
     "id": "nasara_anti_bribery-gifts-gifts_hospitality_and_donations",
     "policy_key": "anti_bribery",
     "title": "Gifts, hospitality, and donations",
-    "body_md": "Gifts, hospitality, charitable donations, and political activity must never be used to secure improper advantage.\n\nControls include thresholds, pre-approvals, and mandatory recording in registers. Extra caution is required around public officials and live tenders.",
+    "body_md": "Gifts, hospitality, charitable donations, and political activity must never be used to secure improper advantage.\n\nControls include thresholds, pre-approvals, and mandatory recording in registers.\n\n{% if abcGiftsRegister %}\nA gifts and hospitality register is maintained and reviewed by Compliance.\n{% endif %}\n{% unless abcGiftsRegister %}\nGifts and hospitality approvals are logged by Compliance where a formal register is not maintained.\n{% endunless %}\n\n{% if abcPublicOfficials %}\nExtra caution is required around public officials and live tenders, including pre-approval and enhanced due diligence.\n{% endif %}",
     "source_template_filename": "MODULE_ANTI_BRIBERY_CORRUPTION.txt"
   },
   {
     "id": "nasara_anti_bribery-third_party-third_party_risk",
     "policy_key": "anti_bribery",
     "title": "Third-party and introducer risk",
-    "body_md": "Associated persons such as agents and introducers create heightened risk. Red flags include success-only fees, opaque ownership, cash requests, or links to public officials.\n\nRisk-tiered due diligence and contract controls are required before engagement.",
+    "body_md": "Associated persons such as agents and introducers create heightened risk. Red flags include success-only fees, opaque ownership, cash requests, or links to public officials.\n\nRisk-tiered due diligence and contract controls are required before engagement.\n\n{% if abcThirdParties %}\nThird-party due diligence is completed before onboarding and refreshed at least annually.\n{% endif %}\n{% unless abcThirdParties %}\nThe firm does not use third-party introducers; any future use requires Compliance approval and due diligence.\n{% endunless %}",
     "source_template_filename": "MODULE_ANTI_BRIBERY_CORRUPTION.txt"
   },
   {

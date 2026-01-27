@@ -494,6 +494,15 @@ export function ThirdPartyRegisterClient() {
     return generateTrendData(baseFilteredRecords, 6, "created_at");
   }, [baseFilteredRecords]);
 
+  const monthOptions = useMemo(
+    () =>
+      trendData.map((point) => ({
+        value: point.monthKey,
+        label: new Date(point.startDate).toLocaleDateString("en-GB", { month: "short", year: "numeric" }),
+      })),
+    [trendData]
+  );
+
   // Drill-down handlers
   const handleDrillDown = (key: string, value: string) => {
     if (drillDownFilter?.key === key && drillDownFilter?.value === value) {
@@ -1113,6 +1122,19 @@ export function ThirdPartyRegisterClient() {
             </Select>
           </div>
         }
+        monthFilter={{
+          value: monthFilter?.key || "all",
+          options: monthOptions,
+          onChange: (value) => {
+            if (value === "all") {
+              setMonthFilter(null);
+              return;
+            }
+            const label = monthOptions.find((opt) => opt.value === value)?.label || value;
+            setMonthFilter({ key: value, label });
+          },
+          label: "Month",
+        }}
       />
 
       {/* Drill-down indicator */}

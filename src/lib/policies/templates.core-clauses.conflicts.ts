@@ -1,0 +1,58 @@
+import type { PolicyClause } from "./templates";
+
+export const CORE_POLICY_TEMPLATE_CLAUSES_CONFLICTS: PolicyClause[] = [
+  {
+    id: "clause-conflicts-purpose",
+    title: "Purpose",
+    summary: "Define conflicts management objectives",
+    content: "Set how the firm identifies, prevents, and manages conflicts of interest.",
+    category: "governance",
+    isMandatory: true,
+    appliesTo: ["CONFLICTS"],
+  },
+  {
+    id: "clause-conflicts-identification",
+    title: "Identification & assessment",
+    summary: "Define conflict sources and assessment approach",
+    content: "Identify conflicts across products, remuneration, and third parties, and assess materiality.",
+    category: "governance",
+    isMandatory: true,
+    appliesTo: ["CONFLICTS"],
+  },
+  {
+    id: "clause-conflicts-register",
+    title: "Conflicts register",
+    summary: "Record conflicts and controls in a register",
+    content: "Maintain a conflicts register with owners, controls, and remediation actions.",
+    category: "governance",
+    isMandatory: true,
+    appliesTo: ["CONFLICTS"],
+  },
+  {
+    id: "clause-conflicts-controls",
+    title: "Control framework",
+    summary: "Define controls to mitigate conflicts",
+    content: "Implement controls including separation of duties, disclosures, and approval checks.",
+    category: "market",
+    isMandatory: true,
+    appliesTo: ["CONFLICTS"],
+  },
+  {
+    id: "clause-conflicts-disclosure",
+    title: "Customer disclosure",
+    summary: "Define when and how conflicts are disclosed",
+    content: "Disclose residual conflicts to customers in a clear and timely manner.",
+    category: "customer",
+    isMandatory: true,
+    appliesTo: ["CONFLICTS"],
+  },
+  {
+    id: "clause-conflicts-governance",
+    title: "Governance & review",
+    summary: "Define oversight and review cadence",
+    content: "Compliance monitors conflicts and reports to senior management at least annually.",
+    category: "governance",
+    isMandatory: true,
+    appliesTo: ["CONFLICTS"],
+  },
+];

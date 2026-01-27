@@ -38,7 +38,7 @@
     },
     {
       "id": "application_of_the_consumer_duty_to_mfs",
-      "title": "Application of the Consumer Duty to MFS",
+      "title": "Application of the Consumer Duty to the firm",
       "summary": "{{firm.name}} has carried out an assessment of the Consumer Duty to determine how the Duty applies to {{firm.name}} a…",
       "suggestedClauses": [
         "mfs_consumer_duty-application_of_the_consumer_duty_to_mfs-application_of_the_consumer_duty"
@@ -46,7 +46,7 @@
     },
     {
       "id": "application_of_the_consumer_duty_to_mfs_business_model",
-      "title": "Application of the Consumer Duty to MFS Business Model",
+      "title": "Application of the Consumer Duty to the firm's business model",
       "summary": "{{firm.name}} is an FCA regulated firm and provides money remittance products to customers. Our money remittance serv…",
       "suggestedClauses": [
         "mfs_consumer_duty-application_of_the_consumer_duty_to_mfs_business_model-application_of_th",
@@ -56,7 +56,7 @@
     },
     {
       "id": "mfs_s_role_under_the_consumer_duty",
-      "title": "MFS’s role under the Consumer Duty",
+      "title": "The firm's role under the Consumer Duty",
       "summary": "{{firm.name}} has determined its role under the Consumer Duty framework as primarily a Distributor of financial servi…",
       "suggestedClauses": [
         "mfs_consumer_duty-mfs_s_role_under_the_consumer_duty-mfs_s_role_under_the_consumer_duty",
@@ -69,7 +69,7 @@
     {
       "id": "assessment_of_foreseeable_harms",
       "title": "Assessment of Foreseeable Harms",
-      "summary": "In line with the FCA's Consumer Duty expectations, MEMA has taken steps to identify and mitigate foreseeable harms th…",
+      "summary": "In line with the FCA Consumer Duty expectations, the firm has taken steps to identify and mitigate foreseeable harms.",
       "suggestedClauses": [
         "mfs_consumer_duty-assessment_of_foreseeable_harms-assessment_of_foreseeable_harms",
         "mfs_consumer_duty-assessment_of_foreseeable_harms-foreseeable_harms_assessment"

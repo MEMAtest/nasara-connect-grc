@@ -1,0 +1,58 @@
+import type { PolicyClause } from "./templates";
+
+export const CORE_POLICY_TEMPLATE_CLAUSES_ARREARS_MANAGEMENT: PolicyClause[] = [
+  {
+    id: "clause-arrears-purpose",
+    title: "Purpose",
+    summary: "Define arrears management objectives",
+    content: "Support customers in arrears with fair, consistent, and compliant forbearance.",
+    category: "customer",
+    isMandatory: true,
+    appliesTo: ["ARREARS_MANAGEMENT"],
+  },
+  {
+    id: "clause-arrears-early",
+    title: "Early arrears detection",
+    summary: "Define early warning indicators",
+    content: "Use early warning indicators, missed payments, and behavioral triggers to identify arrears.",
+    category: "operations",
+    isMandatory: true,
+    appliesTo: ["ARREARS_MANAGEMENT"],
+  },
+  {
+    id: "clause-arrears-forbearance",
+    title: "Forbearance options",
+    summary: "Define available forbearance tools",
+    content: "Offer tailored repayment plans, payment holidays, or reduced payments where appropriate.",
+    category: "customer",
+    isMandatory: true,
+    appliesTo: ["ARREARS_MANAGEMENT"],
+  },
+  {
+    id: "clause-arrears-communications",
+    title: "Customer communications",
+    summary: "Define communication standards and timing",
+    content: "Communications must be clear, supportive, and considerate of vulnerability.",
+    category: "customer",
+    isMandatory: true,
+    appliesTo: ["ARREARS_MANAGEMENT"],
+  },
+  {
+    id: "clause-arrears-vulnerability",
+    title: "Vulnerable customers",
+    summary: "Embed vulnerability support in arrears processes",
+    content: "Apply additional support and escalation for vulnerable customers in arrears.",
+    category: "customer",
+    isMandatory: true,
+    appliesTo: ["ARREARS_MANAGEMENT"],
+  },
+  {
+    id: "clause-arrears-governance",
+    title: "Governance & MI",
+    summary: "Define arrears MI and oversight",
+    content: "Track arrears outcomes, complaints, and fair treatment indicators for governance review.",
+    category: "governance",
+    isMandatory: true,
+    appliesTo: ["ARREARS_MANAGEMENT"],
+  },
+];

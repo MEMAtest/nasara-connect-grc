@@ -49,6 +49,16 @@ function isProceduralItem(text: string): boolean {
   return PROCEDURAL_VERBS.includes(firstWord);
 }
 
+function isTocArtifactLine(line: string): boolean {
+  const trimmed = line.trim();
+  if (!trimmed) return false;
+  if (trimmed.includes(':')) return false;
+  if (/\bby\b/i.test(trimmed)) return false;
+  if (/[.!?]$/.test(trimmed)) return false;
+  const lastToken = trimmed.split(/\s+/).pop() ?? '';
+  return /[A-Za-z]+\d{1,3}$/.test(lastToken);
+}
+
 /**
  * Check if a line is a markdown table separator (| --- | --- |)
  */
@@ -119,12 +129,18 @@ export function sanitizeClauseContent(
   if (!markdown) return '';
 
   const lines = markdown.split('\n');
+  const artifactCount = lines.filter(isTocArtifactLine).length;
   const result: string[] = [];
   let i = 0;
 
   while (i < lines.length) {
     const line = lines[i];
     const trimmed = line.trim();
+
+    if (artifactCount >= 3 && isTocArtifactLine(trimmed)) {
+      i++;
+      continue;
+    }
 
     // Handle markdown tables
     if (options.convertMarkdownTables && isTableRow(trimmed)) {
@@ -216,6 +232,8 @@ export function sanitizeClauseContent(
   cleanedResult = cleanedResult.replace(/,\s*$/gm, '');
   // Fix double commas
   cleanedResult = cleanedResult.replace(/,\s*,/g, ',');
+  // Ensure label/value pairs have a space after colon.
+  cleanedResult = cleanedResult.replace(/:([A-Za-z])/g, ': $1');
 
   return cleanedResult.trim();
 }

@@ -116,10 +116,11 @@ export async function POST(
     const issues: ValidationIssue[] = [];
     for (const question of missingQuestions) {
       const sectionLabel = sectionLookup.get(question.sectionId) || "Business Plan Profile";
+      const questionLabel = question.label ?? question.prompt;
       issues.push({
         section: sectionLabel,
         type: "missing",
-        description: `Missing required response: ${question.label}.`,
+        description: `Missing required response: ${questionLabel}.`,
         severity: "error",
       });
     }

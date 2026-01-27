@@ -1,10 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { createAuthorizationProject, getAuthorizationProjects } from "@/lib/authorization-pack-db";
 import { PermissionCode } from "@/lib/authorization-pack-ecosystems";
-import { logError } from "@/lib/logger";
 import { requireAuth } from "@/lib/auth-utils";
 import { createNotification } from "@/lib/server/notifications-store";
 import { DEFAULT_ORGANIZATION_ID } from "@/lib/constants";
+import {
+  ApiError,
+  checkRateLimit,
+  getPaginationParams,
+  handleApiError,
+  paginate,
+  rateLimitExceeded,
+  validateRequest,
+} from "@/lib/api-utils";
+
+const CreateProjectSchema = z.object({
+  name: z.string().min(1).max(255),
+  permissionCode: z.string().min(1),
+  targetSubmissionDate: z.string().nullish(),
+  assessmentData: z.record(z.string(), z.any()).optional(),
+});
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,18 +28,15 @@ export async function GET(request: NextRequest) {
     const { auth, error } = await requireAuth();
     if (error) return error;
 
-    const projects = await getAuthorizationProjects(auth.organizationId);
-    return NextResponse.json({ projects });
+    const { success, headers } = await checkRateLimit(request);
+    if (!success) return rateLimitExceeded(headers);
+
+    const { page, limit, offset } = getPaginationParams(request);
+    const { projects, total } = await getAuthorizationProjects(auth.organizationId, { limit, offset });
+    const payload = paginate(projects, total, page, limit);
+    return NextResponse.json({ ...payload, projects: payload.items }, { headers });
   } catch (error) {
-    logError(error, "Failed to fetch authorization projects");
-    return NextResponse.json(
-      {
-        error: "Failed to fetch projects",
-        details: process.env.NODE_ENV === "production" ? undefined : (error instanceof Error ? error.message : String(error)),
-        projects: [],
-      },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }
 
@@ -33,16 +46,11 @@ export async function POST(request: NextRequest) {
     const { auth, error } = await requireAuth();
     if (error) return error;
 
-    const body = await request.json();
+    const { success, headers } = await checkRateLimit(request);
+    if (!success) return rateLimitExceeded(headers);
+
+    const body = await validateRequest(request, CreateProjectSchema);
     const { name, permissionCode, targetSubmissionDate, assessmentData } = body;
-
-    if (!name || !permissionCode) {
-      return NextResponse.json({ error: "Name and permission code are required" }, { status: 400 });
-    }
-
-    if (name.length > 255) {
-      return NextResponse.json({ error: "Project name too long (max 255 characters)" }, { status: 400 });
-    }
 
     const project = await createAuthorizationProject({
       organizationId: auth.organizationId,
@@ -50,6 +58,15 @@ export async function POST(request: NextRequest) {
       name: name.trim(),
       targetSubmissionDate: targetSubmissionDate ?? null,
       assessmentData,
+    }).catch((err) => {
+      const message = err instanceof Error ? err.message : String(err);
+      if (
+        message.includes("Permission ecosystem not found") ||
+        message.includes("Template not found")
+      ) {
+        throw new ApiError(400, "INVALID_PERMISSION", message);
+      }
+      throw err;
     });
 
     try {
@@ -66,17 +83,8 @@ export async function POST(request: NextRequest) {
       // Non-blocking notification failures
     }
 
-    return NextResponse.json({ project }, { status: 201 });
+    return NextResponse.json({ project }, { status: 201, headers });
   } catch (error) {
-    logError(error, "Failed to create authorization project");
-    const message = error instanceof Error ? error.message : String(error);
-    const status = message.includes("Permission ecosystem not found") || message.includes("Template not found") ? 400 : 500;
-    return NextResponse.json(
-      {
-        error: status === 400 ? message : "Failed to create project",
-        details: process.env.NODE_ENV === "production" ? undefined : message,
-      },
-      { status }
-    );
+    return handleApiError(error);
   }
 }

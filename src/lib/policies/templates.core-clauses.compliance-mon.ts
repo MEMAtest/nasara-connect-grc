@@ -1,0 +1,58 @@
+import type { PolicyClause } from "./templates";
+
+export const CORE_POLICY_TEMPLATE_CLAUSES_COMPLIANCE_MON: PolicyClause[] = [
+  {
+    id: "clause-compmon-purpose",
+    title: "Purpose",
+    summary: "Define compliance monitoring objectives",
+    content: "Set how the firm evidences ongoing compliance with FCA rules and permissions.",
+    category: "governance",
+    isMandatory: true,
+    appliesTo: ["COMPLIANCE_MON"],
+  },
+  {
+    id: "clause-compmon-scope",
+    title: "Scope",
+    summary: "Define regulatory obligations in scope",
+    content: "Cover business areas, permissions, and regulatory obligations monitored each cycle.",
+    category: "governance",
+    isMandatory: true,
+    appliesTo: ["COMPLIANCE_MON"],
+  },
+  {
+    id: "clause-compmon-risk",
+    title: "Risk-based plan",
+    summary: "Set the risk-based monitoring plan",
+    content: "Maintain an annual monitoring plan aligned to the risk assessment and FCA priorities.",
+    category: "operations",
+    isMandatory: true,
+    appliesTo: ["COMPLIANCE_MON"],
+  },
+  {
+    id: "clause-compmon-testing",
+    title: "Testing methodology",
+    summary: "Define testing and sampling approach",
+    content: "Define testing methods, sample sizes, and documentation standards for reviews.",
+    category: "operations",
+    isMandatory: true,
+    appliesTo: ["COMPLIANCE_MON"],
+  },
+  {
+    id: "clause-compmon-reporting",
+    title: "Reporting",
+    summary: "Define MI and reporting cadence",
+    content: "Report findings, themes, and remediation status to senior management and the board.",
+    category: "governance",
+    isMandatory: true,
+    appliesTo: ["COMPLIANCE_MON"],
+  },
+  {
+    id: "clause-compmon-remediation",
+    title: "Remediation",
+    summary: "Define issue management and follow-up",
+    content: "Track actions, owners, and deadlines, with verification of remediation completion.",
+    category: "governance",
+    isMandatory: true,
+    appliesTo: ["COMPLIANCE_MON"],
+  },
+];

@@ -339,6 +339,15 @@ export function ComplaintsRegisterClient() {
     return generateTrendData(baseFilteredRecords, 6, 'received_date');
   }, [baseFilteredRecords]);
 
+  const monthOptions = useMemo(
+    () =>
+      trendData.map((point) => ({
+        value: point.monthKey,
+        label: new Date(point.startDate).toLocaleDateString("en-GB", { month: "short", year: "numeric" }),
+      })),
+    [trendData]
+  );
+
   // Table columns
   const columns: Column<ComplaintRecord>[] = [
     {
@@ -520,6 +529,19 @@ export function ComplaintsRegisterClient() {
           sampleRow: ["John Smith", "service", "medium", "open", "2024-01-15", "Jane Doe", "Initial complaint"],
         }}
         registerName="Complaints"
+        monthFilter={{
+          value: monthFilter?.key || "all",
+          options: monthOptions,
+          onChange: (value) => {
+            if (value === "all") {
+              setMonthFilter(null);
+              return;
+            }
+            const label = monthOptions.find((opt) => opt.value === value)?.label || value;
+            setMonthFilter({ key: value, label });
+          },
+          label: "Month",
+        }}
       />
 
       {/* Drill-down indicator */}

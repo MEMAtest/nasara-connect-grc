@@ -77,7 +77,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
-    const deleted = await deletePack(id);
+    const deleted = await deletePack(id, auth.userId ?? null);
     if (!deleted) {
       return NextResponse.json({ error: "Failed to delete pack" }, { status: 500 });
     }

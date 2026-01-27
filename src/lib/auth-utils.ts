@@ -37,6 +37,11 @@ async function generateDeterministicUUID(input: string): Promise<string> {
   ].join('-');
 }
 
+export async function deriveOrganizationIdFromEmail(email: string): Promise<string> {
+  const emailDomain = email.split("@")[1] || "default";
+  return generateDeterministicUUID(`org:${emailDomain}`);
+}
+
 // UUID validation helper
 export function isValidUUID(uuid: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(uuid);
@@ -88,8 +93,7 @@ export async function authenticateApiRequest(): Promise<ApiAuthResult> {
 
   // Generate deterministic organization ID from user email domain
   // In production, this should come from a user/organization database lookup
-  const emailDomain = session.user.email.split('@')[1] || 'default';
-  const organizationId = await generateDeterministicUUID(`org:${emailDomain}`);
+  const organizationId = await deriveOrganizationIdFromEmail(session.user.email);
 
   return {
     authenticated: true,

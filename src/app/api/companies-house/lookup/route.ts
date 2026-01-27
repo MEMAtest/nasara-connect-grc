@@ -13,6 +13,10 @@ interface CompanyProfile {
   accounts?: {
     next_due?: string;
     next_made_up_to?: string;
+    accounting_reference_date?: {
+      day?: string;
+      month?: string;
+    };
   };
   confirmation_statement?: {
     next_due?: string;
@@ -63,6 +67,8 @@ export async function GET(request: NextRequest) {
             confirmationStatementMadeUpTo: "2024-12-31",
             accountsDue: "2025-09-30",
             accountsMadeUpTo: "2024-09-30",
+            financialYearEndDay: "31",
+            financialYearEndMonth: "3",
           },
           address: {
             line1: "123 Example Street",
@@ -117,6 +123,8 @@ export async function GET(request: NextRequest) {
         confirmationStatementMadeUpTo: data.confirmation_statement?.next_made_up_to || "",
         accountsDue: data.accounts?.next_due || "",
         accountsMadeUpTo: data.accounts?.next_made_up_to || "",
+        financialYearEndDay: data.accounts?.accounting_reference_date?.day || "",
+        financialYearEndMonth: data.accounts?.accounting_reference_date?.month || "",
       },
       address: {
         line1: data.registered_office_address?.address_line_1 || "",

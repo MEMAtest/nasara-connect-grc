@@ -283,6 +283,15 @@ export function GiftsHospitalityClient() {
     return generateTrendData(baseFilteredRecords, 6, 'date_of_event');
   }, [baseFilteredRecords]);
 
+  const monthOptions = useMemo(
+    () =>
+      trendData.map((point) => ({
+        value: point.monthKey,
+        label: new Date(point.startDate).toLocaleDateString("en-GB", { month: "short", year: "numeric" }),
+      })),
+    [trendData]
+  );
+
   const isReceived = formData.entry_type.includes("received");
 
   // Table columns
@@ -450,6 +459,19 @@ export function GiftsHospitalityClient() {
           sampleRow: ["gift_received", "Corporate dinner", "ABC Corp", "John Smith", "150", "2024-01-15"],
         }}
         registerName="Gifts & Hospitality"
+        monthFilter={{
+          value: monthFilter?.key || "all",
+          options: monthOptions,
+          onChange: (value) => {
+            if (value === "all") {
+              setMonthFilter(null);
+              return;
+            }
+            const label = monthOptions.find((opt) => opt.value === value)?.label || value;
+            setMonthFilter({ key: value, label });
+          },
+          label: "Month",
+        }}
       />
 
       {/* Drill-down indicator */}

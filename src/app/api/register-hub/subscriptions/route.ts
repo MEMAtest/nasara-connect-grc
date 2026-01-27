@@ -4,10 +4,10 @@ import {
   getRegisterSubscriptions,
   setRegisterSubscription,
 } from "@/lib/database";
-import { requireAuth } from "@/lib/auth-utils";
+import { requireAuth, isAuthDisabled } from "@/lib/auth-utils";
 
 // GET /api/register-hub/subscriptions - Get organization's subscriptions
-export async function GET(request: NextRequest) {
+export async function GET() {
   // Require authentication
   const { auth, error } = await requireAuth();
   if (error) return error;
@@ -15,8 +15,8 @@ export async function GET(request: NextRequest) {
   try {
     await initDatabase();
 
-    // Get organization ID from authenticated user
-    const organizationId = auth.organizationId;
+    // Use legacy default-org for register hub in auth-disabled mode.
+    const organizationId = isAuthDisabled() ? "default-org" : auth.organizationId;
 
     const subscriptions = await getRegisterSubscriptions(organizationId);
     return NextResponse.json({ subscriptions });
@@ -44,8 +44,8 @@ export async function POST(request: NextRequest) {
       enabled,
     } = body;
 
-    // Get organization ID from authenticated user
-    const organizationId = auth.organizationId;
+    // Use legacy default-org for register hub in auth-disabled mode.
+    const organizationId = isAuthDisabled() ? "default-org" : auth.organizationId;
     const enabledBy = auth.userEmail || auth.userId;
 
     if (!registerCode) {
@@ -97,8 +97,8 @@ export async function PATCH(request: NextRequest) {
       enabled,
     } = body;
 
-    // Get organization ID from authenticated user
-    const organizationId = auth.organizationId;
+    // Use legacy default-org for register hub in auth-disabled mode.
+    const organizationId = isAuthDisabled() ? "default-org" : auth.organizationId;
     const enabledBy = auth.userEmail || auth.userId;
 
     if (!Array.isArray(registerCodes) || registerCodes.length === 0) {

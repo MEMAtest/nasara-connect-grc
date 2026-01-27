@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { ArrowLeft, Plus, Search, Filter, Download, FileText, Clock, AlertTriangle, CheckCircle } from "lucide-react";
 import { PaginationControls, usePagination } from "@/components/ui/pagination-controls";
 import { Button } from "@/components/ui/button";
@@ -43,11 +43,10 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  PieChart,
-  Pie,
   Cell,
   Legend,
 } from "recharts";
+import { getMonthBuckets, getMonthKey } from "@/lib/chart-utils";
 
 interface RegulatoryReturnsRecord {
   id: string;
@@ -123,6 +122,7 @@ export function RegulatoryReturnsClient() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<RegulatoryReturnsRecord | null>(null);
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [monthFilter, setMonthFilter] = useState<{ key: string; label: string } | null>(null);
 
   const [formData, setFormData] = useState({
     return_reference: "",
@@ -237,15 +237,29 @@ export function RegulatoryReturnsClient() {
     setIsDialogOpen(true);
   };
 
-  const filteredRecords = records.filter((record) => {
-    const matchesSearch =
-      record.return_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      record.return_reference.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      record.owner.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === "all" || record.status === filterStatus;
-    const matchesRegulator = filterRegulator === "all" || record.regulator === filterRegulator;
-    return matchesSearch && matchesStatus && matchesRegulator;
-  });
+  const baseFilteredRecords = useMemo(
+    () =>
+      records.filter((record) => {
+        const matchesSearch =
+          record.return_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          record.return_reference.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          record.owner.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesStatus = filterStatus === "all" || record.status === filterStatus;
+        const matchesRegulator = filterRegulator === "all" || record.regulator === filterRegulator;
+        return matchesSearch && matchesStatus && matchesRegulator;
+      }),
+    [records, searchTerm, filterStatus, filterRegulator]
+  );
+
+  const filteredRecords = useMemo(
+    () =>
+      monthFilter
+        ? baseFilteredRecords.filter(
+            (record) => getMonthKey(record.due_date) === monthFilter.key
+          )
+        : baseFilteredRecords,
+    [baseFilteredRecords, monthFilter]
+  );
 
   const {
     paginatedData,
@@ -312,21 +326,21 @@ export function RegulatoryReturnsClient() {
   // Calculate stats
   const now = new Date();
   const stats = {
-    total: records.length,
-    upcoming: records.filter((r) => r.status === "upcoming").length,
-    in_progress: records.filter((r) => r.status === "in_progress").length,
-    overdue: records.filter((r) => r.status === "overdue" || (new Date(r.due_date) < now && r.submission_status !== "accepted")).length,
+    total: filteredRecords.length,
+    upcoming: filteredRecords.filter((r) => r.status === "upcoming").length,
+    in_progress: filteredRecords.filter((r) => r.status === "in_progress").length,
+    overdue: filteredRecords.filter((r) => r.status === "overdue" || (new Date(r.due_date) < now && r.submission_status !== "accepted")).length,
   };
 
   // Chart data
   const statusData = STATUSES.map((s) => ({
     name: s.label,
-    value: records.filter((r) => r.status === s.value).length,
+    value: filteredRecords.filter((r) => r.status === s.value).length,
   })).filter((d) => d.value > 0);
 
   const regulatorData = REGULATORS.map((r) => ({
     name: r.label,
-    count: records.filter((rec) => rec.regulator === r.value).length,
+    count: filteredRecords.filter((rec) => rec.regulator === r.value).length,
   })).filter((d) => d.count > 0);
 
   const upcomingDueData = (() => {
@@ -337,53 +351,86 @@ export function RegulatoryReturnsClient() {
     return [
       {
         name: "Overdue",
-        count: records.filter((r) => new Date(r.due_date) < now && r.submission_status !== "accepted").length,
+        count: filteredRecords.filter((r) => new Date(r.due_date) < now && r.submission_status !== "accepted").length,
       },
       {
         name: "Next 30 Days",
-        count: records.filter((r) => {
+        count: filteredRecords.filter((r) => {
           const due = new Date(r.due_date);
           return due >= now && due <= thirtyDays;
         }).length,
       },
       {
         name: "30-60 Days",
-        count: records.filter((r) => {
+        count: filteredRecords.filter((r) => {
           const due = new Date(r.due_date);
           return due > thirtyDays && due <= sixtyDays;
         }).length,
       },
       {
         name: "60-90 Days",
-        count: records.filter((r) => {
+        count: filteredRecords.filter((r) => {
           const due = new Date(r.due_date);
           return due > sixtyDays && due <= ninetyDays;
         }).length,
       },
       {
         name: "90+ Days",
-        count: records.filter((r) => new Date(r.due_date) > ninetyDays).length,
+        count: filteredRecords.filter((r) => new Date(r.due_date) > ninetyDays).length,
       },
     ];
   })();
 
-  const monthlySubmissionsData = Array.from({ length: 6 }, (_, i) => {
-    const date = new Date();
-    date.setMonth(date.getMonth() - i);
-    const monthStr = date.toLocaleDateString("en-US", { month: "short" });
-    const monthRecords = records.filter((r) => {
-      const recordDate = new Date(r.due_date);
-      return (
-        recordDate.getMonth() === date.getMonth() &&
-        recordDate.getFullYear() === date.getFullYear()
-      );
-    });
-    return {
-      month: monthStr,
-      total: monthRecords.length,
-      submitted: monthRecords.filter((r) => r.submission_status === "submitted" || r.submission_status === "accepted").length,
-    };
-  }).reverse();
+  const monthBuckets = getMonthBuckets(6);
+
+  const monthlySubmissionsData = useMemo(
+    () =>
+      monthBuckets.map((bucket) => {
+        const monthRecords = baseFilteredRecords.filter(
+          (r) => getMonthKey(r.due_date) === bucket.monthKey
+        );
+        return {
+          month: bucket.label,
+          monthKey: bucket.monthKey,
+          total: monthRecords.length,
+          submitted: monthRecords.filter((r) => r.submission_status === "submitted" || r.submission_status === "accepted").length,
+        };
+      }),
+    [baseFilteredRecords, monthBuckets]
+  );
+
+  const monthOptions = useMemo(
+    () =>
+      monthBuckets.map((bucket) => ({
+        value: bucket.monthKey,
+        label: new Date(bucket.startDate).toLocaleDateString("en-GB", {
+          month: "short",
+          year: "numeric",
+          timeZone: "UTC",
+        }),
+      })),
+    [monthBuckets]
+  );
+
+  const handleMonthSelect = (value: string) => {
+    if (value === "all") {
+      setMonthFilter(null);
+      return;
+    }
+    const label = monthOptions.find((opt) => opt.value === value)?.label || value;
+    setMonthFilter({ key: value, label });
+  };
+
+  const handleMonthClick = (payload?: { monthKey?: string }) => {
+    const key = payload?.monthKey;
+    if (!key) return;
+    if (monthFilter?.key === key) {
+      setMonthFilter(null);
+      return;
+    }
+    const label = monthOptions.find((opt) => opt.value === key)?.label || key;
+    setMonthFilter({ key, label });
+  };
 
   if (loading) {
     return (
@@ -434,6 +481,38 @@ export function RegulatoryReturnsClient() {
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="records">All Records</TabsTrigger>
         </TabsList>
+
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <Select value={monthFilter?.key || "all"} onValueChange={handleMonthSelect}>
+            <SelectTrigger className="w-[170px]">
+              <Filter className="mr-2 h-4 w-4" />
+              <SelectValue placeholder="Month" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Months</SelectItem>
+              {monthOptions.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {monthFilter && (
+            <div className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-1 text-sm text-slate-700">
+              <span>
+                Filtered by month: <strong>{monthFilter.label}</strong>
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setMonthFilter(null)}
+                className="h-6 text-slate-600 hover:text-slate-700"
+              >
+                Clear
+              </Button>
+            </div>
+          )}
+        </div>
 
         <TabsContent value="dashboard" className="space-y-6">
           {/* Stats Cards */}
@@ -493,23 +572,24 @@ export function RegulatoryReturnsClient() {
               <CardContent>
                 <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={statusData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={40}
-                        outerRadius={80}
-                        paddingAngle={5}
-                        dataKey="value"
-                        label={({ name, value }) => `${name}: ${value}`}
-                      >
-                        {statusData.map((_, index) => (
-                          <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-                        ))}
-                      </Pie>
+                    <BarChart
+                      data={statusData}
+                      layout="vertical"
+                      margin={{ top: 8, right: 16, bottom: 8, left: 8 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis type="number" allowDecimals={false} />
+                      <YAxis dataKey="name" type="category" width={140} />
                       <Tooltip />
-                    </PieChart>
+                      <Bar dataKey="value" radius={[6, 6, 6, 6]}>
+                        {statusData.map((_, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={CHART_COLORS[index % CHART_COLORS.length]}
+                          />
+                        ))}
+                      </Bar>
+                    </BarChart>
                   </ResponsiveContainer>
                 </div>
               </CardContent>
@@ -566,8 +646,8 @@ export function RegulatoryReturnsClient() {
                       <YAxis />
                       <Tooltip />
                       <Legend />
-                      <Bar dataKey="total" fill="#94a3b8" name="Total Due" />
-                      <Bar dataKey="submitted" fill="#10b981" name="Submitted" />
+                      <Bar dataKey="total" fill="#94a3b8" name="Total Due" onClick={(data) => handleMonthClick(data?.payload)} />
+                      <Bar dataKey="submitted" fill="#10b981" name="Submitted" onClick={(data) => handleMonthClick(data?.payload)} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>

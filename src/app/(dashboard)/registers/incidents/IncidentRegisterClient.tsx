@@ -324,6 +324,15 @@ export function IncidentRegisterClient() {
     return generateTrendData(baseFilteredRecords, 6, 'detected_date');
   }, [baseFilteredRecords]);
 
+  const monthOptions = useMemo(
+    () =>
+      trendData.map((point) => ({
+        value: point.monthKey,
+        label: new Date(point.startDate).toLocaleDateString("en-GB", { month: "short", year: "numeric" }),
+      })),
+    [trendData]
+  );
+
   // Table columns
   const columns: Column<IncidentRecord>[] = [
     {
@@ -499,6 +508,19 @@ export function IncidentRegisterClient() {
           sampleRow: ["Server Outage", "system_failure", "high", "detected", "2024-01-15", "Main server went down"],
         }}
         registerName="Incidents"
+        monthFilter={{
+          value: monthFilter?.key || "all",
+          options: monthOptions,
+          onChange: (value) => {
+            if (value === "all") {
+              setMonthFilter(null);
+              return;
+            }
+            const label = monthOptions.find((opt) => opt.value === value)?.label || value;
+            setMonthFilter({ key: value, label });
+          },
+          label: "Month",
+        }}
       />
 
       {/* Drill-down indicator */}

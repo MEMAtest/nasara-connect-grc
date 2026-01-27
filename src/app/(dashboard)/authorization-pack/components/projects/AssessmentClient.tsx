@@ -3,7 +3,8 @@
 import { Component, useEffect, useMemo, useState, useCallback, useRef } from "react";
 import type { ErrorInfo, ReactNode } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, ChevronDown } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -16,7 +17,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 import { ProjectHeader } from "./ProjectHeader";
+import { AddressAutocomplete } from "./AddressAutocomplete";
 import type { BusinessPlanProfile } from "@/lib/business-plan-profile";
+import { buildQuestionContext, type QuestionResponse } from "@/lib/assessment-question-bank";
 
 // Error Boundary for Question Bank
 interface ErrorBoundaryState {
@@ -68,10 +71,6 @@ import {
   formatCompaniesHouseCompanyType,
   normalizeCompaniesHouseCountry,
 } from "@/lib/companies-house-utils";
-import {
-  buildQuestionContext,
-  type QuestionResponse,
-} from "@/lib/assessment-question-bank";
 import type { QuestionDefinition, QuestionSection, QuestionOption } from "../../lib/questionBank";
 
 type ReadinessStatus = "missing" | "partial" | "complete";
@@ -130,6 +129,8 @@ interface CompanyHouseFilings {
   confirmationStatementMadeUpTo?: string;
   accountsDue?: string;
   accountsMadeUpTo?: string;
+  financialYearEndDay?: string;
+  financialYearEndMonth?: string;
 }
 
 interface CompanyHouseMeta {
@@ -142,35 +143,15 @@ interface CompanyHouseMeta {
   lastSyncedAt?: string;
 }
 
-interface AnalysisItem {
-  suggested: "missing" | "partial" | "complete";
-  reason: string;
-  priority: "high" | "medium" | "low";
-}
-
-interface AnalysisResponse {
-  readiness: {
-    businessPlanDraft: AnalysisItem;
-    financialModel: AnalysisItem;
-    technologyStack: AnalysisItem;
-    safeguardingSetup: AnalysisItem;
-    amlFramework: AnalysisItem;
-    riskFramework: AnalysisItem;
-    governancePack: AnalysisItem;
-  };
-  priorities: string[];
-  risks: string[];
-  recommendations: string[];
-}
-
+// Readiness item keys for building default assessment state
 const readinessItems = [
-  { key: "businessPlanDraft", label: "Business plan draft", description: "Narrative outline and gold-standard coverage." },
-  { key: "financialModel", label: "Financial model", description: "Capital, projections, stress testing." },
-  { key: "technologyStack", label: "Technology stack", description: "Platform architecture and vendors." },
-  { key: "safeguardingSetup", label: "Safeguarding setup", description: "Accounts, reconciliation, reporting." },
-  { key: "amlFramework", label: "AML/CTF framework", description: "Risk assessment, monitoring, SARs." },
-  { key: "riskFramework", label: "Risk framework", description: "Risk appetite, monitoring, reporting." },
-  { key: "governancePack", label: "Governance pack", description: "Board, committees, MI pack." },
+  { key: "businessPlanDraft" },
+  { key: "financialModel" },
+  { key: "technologyStack" },
+  { key: "safeguardingSetup" },
+  { key: "amlFramework" },
+  { key: "riskFramework" },
+  { key: "governancePack" },
 ];
 
 const JURISDICTIONS = [
@@ -313,6 +294,8 @@ const buildDefaultAssessment = (project: ProjectDetail | null, existing?: Assess
       existing?.basics?.registeredNumberExists ??
       (existing?.basics?.companyNumber ? "yes" : ""),
     financialYearEnd: existing?.basics?.financialYearEnd ?? "",
+    financialYearEndDay: existing?.basics?.financialYearEndDay ?? "",
+    financialYearEndMonth: existing?.basics?.financialYearEndMonth ?? "",
     sicCode: existing?.basics?.sicCode ?? "",
     companyStatus: existing?.basics?.companyStatus ?? "",
     companyType: existing?.basics?.companyType ?? "",
@@ -470,9 +453,6 @@ export function AssessmentClient() {
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [companyResults, setCompanyResults] = useState<CompanySearchItem[]>([]);
-  const [analysis, setAnalysis] = useState<AnalysisResponse | null>(null);
-  const [analysisError, setAnalysisError] = useState<string | null>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // Refs for tracking initial state and abort controllers
@@ -802,43 +782,6 @@ export function AssessmentClient() {
     }
   };
 
-  const runPredictiveAnalysis = async () => {
-    if (!projectId) return;
-    setIsAnalyzing(true);
-    setAnalysisError(null);
-    try {
-      const response = await fetch(`/api/authorization-pack/projects/${projectId}/analyze`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          basics: {
-            legalName: assessment.basics?.legalName,
-            firmStage: assessment.basics?.firmStage,
-            regulatedActivities: assessment.basics?.regulatedActivities,
-            headcount: assessment.basics?.headcount,
-            primaryJurisdiction: assessment.basics?.primaryJurisdiction,
-            incorporationDate: assessment.basics?.incorporationDate,
-          },
-        }),
-      });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        setAnalysisError(errorData.error || "Unable to run predictive analysis.");
-        return;
-      }
-      const data = await response.json();
-      if (data?.analysis) {
-        setAnalysis(data.analysis as AnalysisResponse);
-      } else {
-        setAnalysisError("No analysis returned.");
-      }
-    } catch (error) {
-      setAnalysisError(error instanceof Error ? error.message : "Unable to run predictive analysis.");
-    } finally {
-      setIsAnalyzing(false);
-    }
-  };
-
   // Companies House lookup
   const lookupCompany = async (companyNumber?: string, fallbackName?: string) => {
     if (!companyNumber || typeof companyNumber !== "string") return;
@@ -867,6 +810,14 @@ export function AssessmentClient() {
       // Auto-fill the form with company data
       setAssessment((prev) => {
         const prevBasics = prev.basics ?? {};
+        const newAddressLine1 = company.address?.line1 || prevBasics.addressLine1 || null;
+        const newAddressLine2 = company.address?.line2 || prevBasics.addressLine2 || null;
+        const newCity = company.address?.city || prevBasics.city || null;
+        const newPostcode = company.address?.postcode || prevBasics.postcode || null;
+
+        // If head office is same as registered, auto-fill head office fields too
+        const isSameAsHeadOffice = prevBasics.registeredOfficeSameAsHeadOffice === "yes";
+
         return {
           ...prev,
           basics: {
@@ -879,14 +830,23 @@ export function AssessmentClient() {
             companyStatus: company.status || prevBasics.companyStatus || null,
             companyType: company.type || prevBasics.companyType || null,
             entityType: prevBasics.entityType || derivedEntityType || null,
-            addressLine1: company.address?.line1 || prevBasics.addressLine1 || null,
-            addressLine2: company.address?.line2 || prevBasics.addressLine2 || null,
-            city: company.address?.city || prevBasics.city || null,
-            postcode: company.address?.postcode || prevBasics.postcode || null,
+            addressLine1: newAddressLine1,
+            addressLine2: newAddressLine2,
+            city: newCity,
+            postcode: newPostcode,
             country: normalizedCountry || prevBasics.country || null,
             registeredNumberExists: prevBasics.registeredNumberExists || (company.number ? "yes" : null),
             primaryJurisdiction: prevBasics.primaryJurisdiction || mappedJurisdiction || null,
             firmStage: prevBasics.firmStage || derivedFirmStage || null,
+            financialYearEndDay: filings?.financialYearEndDay || prevBasics.financialYearEndDay || null,
+            financialYearEndMonth: filings?.financialYearEndMonth || prevBasics.financialYearEndMonth || null,
+            // Auto-fill head office fields if same as registered office
+            ...(isSameAsHeadOffice ? {
+              headOfficeAddressLine1: newAddressLine1,
+              headOfficeAddressLine2: newAddressLine2,
+              headOfficeCity: newCity,
+              headOfficePostcode: newPostcode,
+            } : {}),
           },
           meta: {
             ...(prev.meta ?? {}),
@@ -981,84 +941,6 @@ export function AssessmentClient() {
       </Card>
 
       <Card className="border border-slate-200">
-        <CardHeader className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-          <div>
-            <CardTitle>Predictive readiness analysis</CardTitle>
-            <CardDescription>Baseline readiness insights based on your assessment inputs.</CardDescription>
-          </div>
-          <Button variant="outline" onClick={runPredictiveAnalysis} disabled={isAnalyzing}>
-            {isAnalyzing ? "Analyzing..." : "Run analysis"}
-          </Button>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {analysisError ? (
-            <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-              {analysisError}
-            </div>
-          ) : null}
-          {isAnalyzing ? (
-            <div className="py-2">
-              <NasaraLoader label="Generating readiness insights..." />
-            </div>
-          ) : null}
-          {analysis ? (
-            <div className="grid gap-4 lg:grid-cols-3">
-              {readinessItems.map((item) => {
-                const result = analysis.readiness[item.key as keyof AnalysisResponse["readiness"]];
-                const status = result?.suggested || "missing";
-                return (
-                  <div key={item.key} className="rounded-lg border border-slate-100 bg-slate-50 p-3">
-                    <p className="text-sm font-semibold text-slate-900">{item.label}</p>
-                    <p className="mt-1 text-xs text-slate-500">{result?.reason || "No insight yet."}</p>
-                    <div className="mt-2 flex items-center gap-2 text-xs">
-                      <span className={`rounded-full px-2 py-0.5 ${
-                        status === "complete"
-                          ? "bg-emerald-100 text-emerald-700"
-                          : status === "partial"
-                          ? "bg-amber-100 text-amber-700"
-                          : "bg-rose-100 text-rose-700"
-                      }`}>
-                        {status}
-                      </span>
-                      <span className="text-slate-500">Priority: {result?.priority || "medium"}</span>
-                    </div>
-                  </div>
-                );
-              })}
-              <div className="rounded-lg border border-slate-100 bg-white p-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Priorities</p>
-                <div className="mt-2 space-y-2 text-sm text-slate-600">
-                  {(analysis.priorities || []).map((item, idx) => (
-                    <p key={idx}>{item}</p>
-                  ))}
-                </div>
-              </div>
-              <div className="rounded-lg border border-slate-100 bg-white p-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Risks</p>
-                <div className="mt-2 space-y-2 text-sm text-slate-600">
-                  {(analysis.risks || []).map((item, idx) => (
-                    <p key={idx}>{item}</p>
-                  ))}
-                </div>
-              </div>
-              <div className="rounded-lg border border-slate-100 bg-white p-3 lg:col-span-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Recommendations</p>
-                <div className="mt-2 space-y-2 text-sm text-slate-600">
-                  {(analysis.recommendations || []).map((item, idx) => (
-                    <p key={idx}>{item}</p>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ) : (
-            <p className="text-sm text-slate-500">
-              Run the analysis to see suggested readiness levels, priorities, and risks.
-            </p>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card className="border border-slate-200">
         <CardHeader>
           <CardTitle>Firm basics</CardTitle>
           <CardDescription>Key details for the authorisation pack and consultant workflow.</CardDescription>
@@ -1149,7 +1031,26 @@ export function AssessmentClient() {
             />
           </div>
           <div className="space-y-2 md:col-span-2">
-            <Label>Registered address - Street (auto-filled)</Label>
+            <Label>Address lookup</Label>
+            <AddressAutocomplete
+              defaultValue={String(assessment.basics?.postcode ?? "")}
+              placeholder="Search by UK postcode (e.g., EC1A 1BB)"
+              onAddressSelect={(address) => {
+                updateBasicsBatch({
+                  addressLine1: address.line1 || assessment.basics?.addressLine1 || "",
+                  addressLine2: address.line2 || "",
+                  city: address.city,
+                  postcode: address.postcode,
+                  country: address.country,
+                });
+              }}
+            />
+            <p className="text-xs text-slate-500 mt-1">
+              Enter a UK postcode to auto-fill address fields, or enter details manually below.
+            </p>
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <Label>Registered address - Street</Label>
             <Input
               value={String(assessment.basics?.addressLine1 ?? "")}
               onChange={(event) => updateBasics("addressLine1", event.target.value)}
@@ -1335,12 +1236,58 @@ export function AssessmentClient() {
             />
           </div>
           <div className="space-y-2">
-            <Label>Financial year end (dd/mm)</Label>
-            <Input
-              value={String(assessment.basics?.financialYearEnd ?? "")}
-              onChange={(event) => updateBasics("financialYearEnd", event.target.value)}
-              placeholder="31/12"
-            />
+            <Label>Financial year end (DD/MM)</Label>
+            <div className="flex items-center gap-2">
+              <Input
+                type="number"
+                min={1}
+                max={31}
+                value={String(assessment.basics?.financialYearEndDay ?? "")}
+                onChange={(event) => {
+                  const val = event.target.value.replace(/\D/g, "");
+                  const num = parseInt(val, 10);
+                  const month = parseInt(String(assessment.basics?.financialYearEndMonth ?? ""), 10);
+                  // Validate day based on month (if month is set)
+                  let maxDay = 31;
+                  if (!isNaN(month)) {
+                    if ([4, 6, 9, 11].includes(month)) maxDay = 30;
+                    else if (month === 2) maxDay = 29; // Allow 29 for leap years
+                  }
+                  if (val === "" || (num >= 1 && num <= maxDay)) {
+                    updateBasics("financialYearEndDay", val);
+                  }
+                }}
+                placeholder="DD"
+                className="w-20"
+              />
+              <span className="text-slate-500">/</span>
+              <Input
+                type="number"
+                min={1}
+                max={12}
+                value={String(assessment.basics?.financialYearEndMonth ?? "")}
+                onChange={(event) => {
+                  const val = event.target.value.replace(/\D/g, "");
+                  const num = parseInt(val, 10);
+                  if (val === "" || (num >= 1 && num <= 12)) {
+                    updateBasics("financialYearEndMonth", val);
+                    // Validate existing day against new month
+                    const day = parseInt(String(assessment.basics?.financialYearEndDay ?? ""), 10);
+                    if (!isNaN(day) && !isNaN(num)) {
+                      let maxDay = 31;
+                      if ([4, 6, 9, 11].includes(num)) maxDay = 30;
+                      else if (num === 2) maxDay = 29;
+                      if (day > maxDay) {
+                        updateBasics("financialYearEndDay", String(maxDay));
+                      }
+                    }
+                  }
+                }}
+                placeholder="MM"
+                className="w-20"
+              />
+            </div>
+            <p className="text-xs text-slate-500">Day (1-31) / Month (1-12)</p>
           </div>
           <div className="space-y-2">
             <Label>Does the firm have a registered number?</Label>
@@ -1464,6 +1411,21 @@ export function AssessmentClient() {
             />
           </div>
           <div className="space-y-2 md:col-span-2">
+            <Label>Head office address lookup</Label>
+            <AddressAutocomplete
+              defaultValue={String(assessment.basics?.headOfficePostcode ?? "")}
+              placeholder="Search by UK postcode"
+              onAddressSelect={(address) => {
+                updateBasicsBatch({
+                  headOfficeAddressLine1: address.line1 || assessment.basics?.headOfficeAddressLine1 || "",
+                  headOfficeAddressLine2: address.line2 || "",
+                  headOfficeCity: address.city,
+                  headOfficePostcode: address.postcode,
+                });
+              }}
+            />
+          </div>
+          <div className="space-y-2 md:col-span-2">
             <Label>Head office address</Label>
             <Input
               value={String(assessment.basics?.headOfficeAddressLine1 ?? "")}
@@ -1502,7 +1464,7 @@ export function AssessmentClient() {
           <CardDescription>Capture adviser details and correspondence preferences.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2">
+          <div className="space-y-2 md:col-span-2">
             <Label>Using a professional adviser for this application?</Label>
             <Select
               value={String(assessment.basics?.usedProfessionalAdviser ?? "")}
@@ -1520,40 +1482,44 @@ export function AssessmentClient() {
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-2">
-            <Label>Adviser firm name</Label>
-            <Input
-              value={String(assessment.basics?.adviserFirmName ?? "")}
-              onChange={(event) => updateBasics("adviserFirmName", event.target.value)}
-              placeholder="Adviser firm"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Copy correspondence to adviser?</Label>
-            <Select
-              value={String(assessment.basics?.adviserCopyCorrespondence ?? "")}
-              onValueChange={(value) => updateBasics("adviserCopyCorrespondence", value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select an option" />
-              </SelectTrigger>
-              <SelectContent>
-                {YES_NO_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2 md:col-span-2">
-            <Label>Adviser contact details</Label>
-            <Input
-              value={String(assessment.basics?.adviserContactDetails ?? "")}
-              onChange={(event) => updateBasics("adviserContactDetails", event.target.value)}
-              placeholder="Name, address, phone, email"
-            />
-          </div>
+          {assessment.basics?.usedProfessionalAdviser === "yes" && (
+            <>
+              <div className="space-y-2">
+                <Label>Adviser firm name</Label>
+                <Input
+                  value={String(assessment.basics?.adviserFirmName ?? "")}
+                  onChange={(event) => updateBasics("adviserFirmName", event.target.value)}
+                  placeholder="Adviser firm"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Copy correspondence to adviser?</Label>
+                <Select
+                  value={String(assessment.basics?.adviserCopyCorrespondence ?? "")}
+                  onValueChange={(value) => updateBasics("adviserCopyCorrespondence", value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select an option" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {YES_NO_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2 md:col-span-2">
+                <Label>Adviser contact details</Label>
+                <Input
+                  value={String(assessment.basics?.adviserContactDetails ?? "")}
+                  onChange={(event) => updateBasics("adviserContactDetails", event.target.value)}
+                  placeholder="Name, address, phone, email"
+                />
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
 
@@ -1881,15 +1847,68 @@ export function AssessmentClient() {
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-8">
-              {questionContext.sections.map((section: QuestionSection) => (
-                <QuestionSectionRenderer
-                  key={section.id}
-                  section={section}
-                  responses={questionContext.responses}
-                  onResponseChange={updateQuestionResponse}
-                />
-              ))}
+            <CardContent className="p-0">
+              <Tabs
+                defaultValue={questionContext.sections[0]?.id}
+                className="w-full"
+              >
+                {/* Scrollable tab list */}
+                <div className="border-b border-slate-200 px-6">
+                  <div className="overflow-x-auto">
+                    <TabsList className="h-auto bg-transparent p-0 inline-flex gap-0 w-auto min-w-full">
+                      {questionContext.sections.map((section: QuestionSection) => {
+                        const answeredInSection = section.questions.filter(
+                          (q) => questionContext.responses[q.id]?.value !== undefined
+                        ).length;
+                        const isComplete = answeredInSection === section.questions.length;
+                        return (
+                          <TabsTrigger
+                            key={section.id}
+                            value={section.id}
+                            className="relative rounded-none border-b-2 border-transparent px-4 py-3 text-sm font-medium text-slate-500 hover:text-slate-700 data-[state=active]:border-teal-600 data-[state=active]:text-teal-600 data-[state=active]:shadow-none whitespace-nowrap"
+                          >
+                            <span className="flex items-center gap-2">
+                              {section.title}
+                              <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                                isComplete
+                                  ? "bg-emerald-100 text-emerald-700"
+                                  : "bg-slate-100 text-slate-500"
+                              }`}>
+                                {answeredInSection}/{section.questions.length}
+                              </span>
+                            </span>
+                          </TabsTrigger>
+                        );
+                      })}
+                    </TabsList>
+                  </div>
+                </div>
+
+                {/* Tab content panels */}
+                {questionContext.sections.map((section: QuestionSection) => (
+                  <TabsContent
+                    key={section.id}
+                    value={section.id}
+                    className="px-6 py-4 focus-visible:outline-none focus-visible:ring-0"
+                  >
+                    {section.description && (
+                      <p className="text-sm text-slate-600 mb-4 pb-4 border-b border-slate-100">
+                        {section.description}
+                      </p>
+                    )}
+                    <div className="space-y-6">
+                      {section.questions.map((question: QuestionDefinition) => (
+                        <QuestionRenderer
+                          key={question.id}
+                          question={question}
+                          response={questionContext.responses[question.id]}
+                          onResponseChange={updateQuestionResponse}
+                        />
+                      ))}
+                    </div>
+                  </TabsContent>
+                ))}
+              </Tabs>
             </CardContent>
           </Card>
         </QuestionBankErrorBoundary>

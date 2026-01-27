@@ -1,0 +1,58 @@
+import type { PolicyClause } from "./templates";
+
+export const CORE_POLICY_TEMPLATE_CLAUSES_INFO_SECURITY: PolicyClause[] = [
+  {
+    id: "clause-infosec-purpose",
+    title: "Purpose",
+    summary: "Define information security objectives",
+    content: "Protect confidentiality, integrity, and availability of systems and data.",
+    category: "operations",
+    isMandatory: true,
+    appliesTo: ["INFO_SECURITY"],
+  },
+  {
+    id: "clause-infosec-governance",
+    title: "Governance & ownership",
+    summary: "Define security roles and oversight",
+    content: "Assign security ownership, escalation paths, and board reporting requirements.",
+    category: "governance",
+    isMandatory: true,
+    appliesTo: ["INFO_SECURITY"],
+  },
+  {
+    id: "clause-infosec-access",
+    title: "Access controls",
+    summary: "Define access management requirements",
+    content: "Apply least privilege, MFA, and periodic access reviews for all systems.",
+    category: "operations",
+    isMandatory: true,
+    appliesTo: ["INFO_SECURITY"],
+  },
+  {
+    id: "clause-infosec-data",
+    title: "Data protection",
+    summary: "Define data handling and encryption",
+    content: "Classify data, encrypt sensitive information, and enforce retention and disposal rules.",
+    category: "operations",
+    isMandatory: true,
+    appliesTo: ["INFO_SECURITY"],
+  },
+  {
+    id: "clause-infosec-incident",
+    title: "Incident response",
+    summary: "Define detection and response workflow",
+    content: "Detect, contain, and report security incidents with post-incident reviews.",
+    category: "operations",
+    isMandatory: true,
+    appliesTo: ["INFO_SECURITY"],
+  },
+  {
+    id: "clause-infosec-testing",
+    title: "Testing & assurance",
+    summary: "Define testing and vulnerability management",
+    content: "Conduct penetration tests, vulnerability scans, and remediation tracking.",
+    category: "operations",
+    isMandatory: true,
+    appliesTo: ["INFO_SECURITY"],
+  },
+];

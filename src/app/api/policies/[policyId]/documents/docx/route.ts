@@ -39,6 +39,7 @@ export async function GET(
 
     const customContent = (policy.customContent ?? {}) as {
       firmProfile?: Record<string, unknown>;
+      policyInputs?: Record<string, unknown>;
       sectionClauses?: Record<string, string[]>;
       sectionNotes?: Record<string, string>;
       clauseVariables?: Record<string, Record<string, string>>;
@@ -49,6 +50,7 @@ export async function GET(
     };
 
     const firmProfile = (customContent.firmProfile ?? {}) as Record<string, unknown>;
+    const policyInputs = (customContent.policyInputs ?? {}) as Record<string, unknown>;
     const firmName = typeof firmProfile.name === "string" && firmProfile.name.trim().length > 0
       ? firmProfile.name.trim()
       : "Firm";
@@ -76,6 +78,7 @@ export async function GET(
       firm: firmProfile,
       firm_name: firmName,
       permissions: policy.permissions,
+      ...policyInputs,
     };
 
     // Apply tiering to get limited, organized sections

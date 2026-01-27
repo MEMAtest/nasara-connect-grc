@@ -30,6 +30,7 @@ import {
   type OpinionSection,
 } from "@/lib/perimeter-opinion-pdf-builder";
 import { getOpenRouterApiKey } from "@/lib/openrouter";
+import { checkRateLimit, rateLimitExceeded } from "@/lib/api-utils";
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const DEFAULT_MODEL = process.env.OPENROUTER_MODEL ?? "openai/gpt-4o-mini";
@@ -960,6 +961,9 @@ export async function POST(
     const { auth, error } = await requireAuth();
     if (error) return error;
 
+    const { success, headers } = await checkRateLimit(request);
+    if (!success) return rateLimitExceeded(headers);
+
     await initDatabase();
     const { id: packId } = await params;
 
@@ -1180,7 +1184,7 @@ export async function POST(
       }
     } catch (error) {
       if (packDocument?.id) {
-        await deletePackDocument(packDocument.id).catch(() => null);
+        await deletePackDocument(packDocument.id, auth.userId ?? null).catch(() => null);
       }
       await removeAuthorizationPackPdf(storedFile.storageKey).catch(() => null);
       throw error;

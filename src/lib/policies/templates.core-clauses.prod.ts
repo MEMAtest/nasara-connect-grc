@@ -1,0 +1,58 @@
+import type { PolicyClause } from "./templates";
+
+export const CORE_POLICY_TEMPLATE_CLAUSES_PROD: PolicyClause[] = [
+  {
+    id: "clause-prod-purpose",
+    title: "Purpose",
+    summary: "Define PROD governance objectives",
+    content: "Ensure products deliver fair value and meet target market needs.",
+    category: "market",
+    isMandatory: true,
+    appliesTo: ["PROD", "PRODUCT_GOV", "TARGET_MARKET"],
+  },
+  {
+    id: "clause-prod-target-market",
+    title: "Target market assessment",
+    summary: "Define target market and distribution strategy",
+    content: "Identify target market characteristics, exclusions, and distribution channels.",
+    category: "market",
+    isMandatory: true,
+    appliesTo: ["PROD", "PRODUCT_GOV", "TARGET_MARKET"],
+  },
+  {
+    id: "clause-prod-approval",
+    title: "Product approval",
+    summary: "Define product approval and review process",
+    content: "Document product approval, sign-off, and periodic review requirements.",
+    category: "governance",
+    isMandatory: true,
+    appliesTo: ["PROD", "PRODUCT_GOV", "TARGET_MARKET"],
+  },
+  {
+    id: "clause-prod-distribution",
+    title: "Distribution oversight",
+    summary: "Define distributor monitoring and oversight",
+    content: "Monitor distributors, MI, and customer outcomes to ensure alignment to target market.",
+    category: "governance",
+    isMandatory: true,
+    appliesTo: ["PROD", "PRODUCT_GOV", "TARGET_MARKET"],
+  },
+  {
+    id: "clause-prod-monitoring",
+    title: "Outcome monitoring",
+    summary: "Track product performance and customer outcomes",
+    content: "Monitor complaints, cancellations, and claims to assess ongoing suitability.",
+    category: "customer",
+    isMandatory: true,
+    appliesTo: ["PROD", "PRODUCT_GOV", "TARGET_MARKET"],
+  },
+  {
+    id: "clause-prod-governance",
+    title: "Governance & review",
+    summary: "Define governance, MI, and review cadence",
+    content: "Report to senior management with scheduled reviews and approvals.",
+    category: "governance",
+    isMandatory: true,
+    appliesTo: ["PROD", "PRODUCT_GOV", "TARGET_MARKET"],
+  },
+];

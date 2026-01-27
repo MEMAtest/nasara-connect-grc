@@ -9,7 +9,6 @@ import {
   Search,
   Filter,
   Check,
-  X,
   FileSpreadsheet,
   Loader2,
   AlertCircle,
@@ -21,7 +20,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -49,6 +47,18 @@ interface FilterOption {
   options: { value: string; label: string }[];
 }
 
+interface MonthFilterOption {
+  value: string;
+  label: string;
+}
+
+interface MonthFilterConfig {
+  value: string;
+  options: MonthFilterOption[];
+  onChange: (value: string) => void;
+  label?: string;
+}
+
 interface RegisterToolbarProps {
   viewMode: ViewMode;
   onViewModeChange: (mode: ViewMode) => void;
@@ -63,6 +73,8 @@ interface RegisterToolbarProps {
   onBulkImport: (data: Record<string, unknown>[]) => Promise<void>;
   importTemplate: { headers: string[]; sampleRow: string[] };
   registerName: string;
+  filterContent?: React.ReactNode;
+  monthFilter?: MonthFilterConfig;
 }
 
 export function RegisterToolbar({
@@ -79,6 +91,8 @@ export function RegisterToolbar({
   onBulkImport,
   importTemplate,
   registerName,
+  filterContent,
+  monthFilter,
 }: RegisterToolbarProps) {
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [importData, setImportData] = useState<Record<string, unknown>[]>([]);
@@ -149,7 +163,7 @@ export function RegisterToolbar({
     try {
       await onBulkImport(importData);
       setImportStep("complete");
-    } catch (err) {
+    } catch {
       setImportErrors(["Failed to import records. Please try again."]);
     } finally {
       setIsImporting(false);
@@ -201,6 +215,25 @@ export function RegisterToolbar({
               </SelectContent>
             </Select>
           ))}
+
+          {filterContent}
+
+          {monthFilter && monthFilter.options.length > 0 && (
+            <Select value={monthFilter.value} onValueChange={monthFilter.onChange}>
+              <SelectTrigger className="w-[150px]">
+                <Filter className="mr-2 h-4 w-4" />
+                <SelectValue placeholder={monthFilter.label || "Month"} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Months</SelectItem>
+                {monthFilter.options.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
 
         {/* Right side - View Toggle and Actions */}
