@@ -16,6 +16,8 @@ export interface AssessmentQuestionState {
   meta?: Record<string, unknown>;
 }
 
+const ALWAYS_HIDDEN_QUESTION_IDS = new Set(["ps-001", "ps-002", "pc-003"]);
+
 const mapPaymentActivitiesToPs001 = (activities: string[]) => {
   const mapped = new Set<string>();
   activities.forEach((activity) => {
@@ -106,7 +108,7 @@ export const buildAutoQuestionResponses = (
 };
 
 export const getHiddenQuestionIds = (autoResponses: Record<string, QuestionResponse>) => {
-  const hidden = new Set<string>();
+  const hidden = new Set<string>(ALWAYS_HIDDEN_QUESTION_IDS);
   if (autoResponses["ps-001"]) hidden.add("ps-001");
   if (autoResponses["ps-002"]) hidden.add("ps-002");
   if (autoResponses["pc-003"]) hidden.add("pc-003");
@@ -189,7 +191,7 @@ export const buildQuestionContext = (
   permissionCode?: string | null
 ) => {
   const autoResponses = buildAutoQuestionResponses(assessment);
-  const responses = { ...autoResponses, ...(assessment.questionResponses ?? {}) };
+  const responses = { ...(assessment.questionResponses ?? {}), ...autoResponses };
   const hiddenIds = getHiddenQuestionIds(autoResponses);
   const applicableSections = filterSectionsByPermission(permissionCode, questionSections);
   const sections = applicableSections

@@ -8,7 +8,7 @@ import {
 } from "@/lib/authorization-pack-db";
 import { requireAuth, isValidUUID } from "@/lib/auth-utils";
 import { logError } from "@/lib/logger";
-import { getAllChecklistItemIds } from "@/app/(dashboard)/authorization-pack/lib/fca-api-checklist";
+import { getAllChecklistItemIds } from "@/lib/fca-api-checklist";
 
 const VALID_STATUSES: ChecklistItemStatus[] = [
   "not_started",

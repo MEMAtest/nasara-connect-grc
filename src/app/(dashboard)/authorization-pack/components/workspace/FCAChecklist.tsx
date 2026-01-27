@@ -14,7 +14,7 @@ import {
   type ChecklistCategory,
   type ChecklistItem,
   getTotalItemCount,
-} from "../../lib/fca-api-checklist";
+} from "@/lib/fca-api-checklist";
 
 interface FCAChecklistProps {
   packId: string;
