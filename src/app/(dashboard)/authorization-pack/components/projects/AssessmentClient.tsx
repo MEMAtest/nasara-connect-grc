@@ -18,6 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 import { ProjectHeader } from "./ProjectHeader";
 import { AddressAutocomplete } from "./AddressAutocomplete";
+import { FCALookup } from "@/components/fca-register/FCALookup";
 import type { BusinessPlanProfile } from "@/lib/business-plan-profile";
 import { buildQuestionContext, isQuestionAnswered, type QuestionResponse } from "@/lib/assessment-question-bank";
 
@@ -1364,6 +1365,17 @@ export function AssessmentClient() {
           </div>
         </CardContent>
       </Card>
+
+      {/* FCA Register Lookup */}
+      <FCALookup
+        className="border border-slate-200"
+        onFirmSelected={(firm) => {
+          // If the firm is already authorised, we could populate some fields
+          if (firm.companiesHouseNumber && !assessment.basics?.companyNumber) {
+            updateBasics("companyNumber", firm.companiesHouseNumber);
+          }
+        }}
+      />
 
       <Card className="border border-slate-200">
         <CardHeader>
