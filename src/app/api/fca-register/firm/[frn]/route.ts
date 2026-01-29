@@ -1,34 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
-import { FCAApiError } from "@/lib/fca-register";
+import { getFCAConfig, isFCAApiError } from "@/lib/fca-register";
 
 interface RouteParams {
   params: Promise<{ frn: string }>;
 }
 
-const FCA_API_BASE = "https://register.fca.org.uk/services/V0.1";
-
-async function fcaFetch(endpoint: string) {
+async function fcaFetch(endpoint: string, config: { email: string; apiKey: string; baseUrl: string }) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 15000);
 
   try {
-    const response = await fetch(`${FCA_API_BASE}${endpoint}`, {
+    const response = await fetch(`${config.baseUrl}${endpoint}`, {
       headers: {
-        "X-AUTH-EMAIL": process.env.FCA_REGISTER_EMAIL!,
-        "X-AUTH-KEY": process.env.FCA_REGISTER_API_KEY!,
+        "X-AUTH-EMAIL": config.email,
+        "X-AUTH-KEY": config.apiKey,
         "Accept": "application/json",
       },
       signal: controller.signal,
     });
-    clearTimeout(timeoutId);
 
     if (!response.ok) {
       return null;
     }
     return response.json();
   } catch {
-    clearTimeout(timeoutId);
     return null;
+  } finally {
+    clearTimeout(timeoutId);
   }
 }
 
@@ -40,17 +38,19 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { frn } = await params;
 
-    if (!frn || !/^\d+$/.test(frn)) {
+    if (!frn || !/^\d{1,10}$/.test(frn)) {
       return NextResponse.json(
-        { error: "Invalid FRN format. FRN must be numeric." },
+        { error: "Invalid FRN format. FRN must be 1-10 digits." },
         { status: 400 }
       );
     }
 
+    const config = getFCAConfig();
+
     // Fetch firm basic info and address in parallel
     const [firmResponse, addressResponse] = await Promise.all([
-      fcaFetch(`/Firm/${frn}`),
-      fcaFetch(`/Firm/${frn}/Address`),
+      fcaFetch(`/Firm/${frn}`, config),
+      fcaFetch(`/Firm/${frn}/Address`, config),
     ]);
 
     if (!firmResponse?.Data || firmResponse.Data.length === 0) {
@@ -96,11 +96,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   } catch (error) {
     console.error("FCA Register firm lookup error:", error);
 
-    if ((error as FCAApiError).status) {
-      const fcaError = error as FCAApiError;
+    if (isFCAApiError(error)) {
       return NextResponse.json(
-        { error: fcaError.message },
-        { status: fcaError.status }
+        { error: error.message },
+        { status: error.status }
       );
     }
 

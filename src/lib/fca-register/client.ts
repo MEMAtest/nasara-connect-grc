@@ -54,8 +54,6 @@ export class FCARegisterClient {
         signal: controller.signal,
       });
 
-      clearTimeout(timeoutId);
-
       if (!response.ok) {
         const error: FCAApiError = {
           status: response.status,
@@ -76,8 +74,6 @@ export class FCARegisterClient {
 
       return response.json();
     } catch (err) {
-      clearTimeout(timeoutId);
-
       if (err instanceof Error && err.name === "AbortError") {
         const error: FCAApiError = {
           status: 408,
@@ -88,6 +84,8 @@ export class FCARegisterClient {
       }
 
       throw err;
+    } finally {
+      clearTimeout(timeoutId);
     }
   }
 
@@ -256,21 +254,29 @@ export class FCARegisterClient {
 }
 
 /**
- * Create a configured FCA Register client using environment variables
- * This function should only be called server-side (API routes, server components)
+ * Get validated FCA API configuration from environment variables.
+ * Throws if credentials are missing. Server-side only.
  */
-export function createFCAClient(): FCARegisterClient {
-  // Guard against client-side usage
+export function getFCAConfig(): { email: string; apiKey: string; baseUrl: string } {
   if (typeof window !== "undefined") {
-    throw new Error("FCA Register client can only be created server-side");
+    throw new Error("FCA config can only be accessed server-side");
   }
 
   const email = process.env.FCA_REGISTER_EMAIL;
   const apiKey = process.env.FCA_REGISTER_API_KEY;
 
   if (!email || !apiKey) {
-    throw new Error("FCA Register API credentials not configured");
+    throw new Error("FCA Register API credentials not configured. Set FCA_REGISTER_EMAIL and FCA_REGISTER_API_KEY.");
   }
 
+  return { email, apiKey, baseUrl: DEFAULT_BASE_URL };
+}
+
+/**
+ * Create a configured FCA Register client using environment variables.
+ * This function should only be called server-side (API routes, server components).
+ */
+export function createFCAClient(): FCARegisterClient {
+  const { email, apiKey } = getFCAConfig();
   return new FCARegisterClient({ email, apiKey });
 }

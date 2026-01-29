@@ -140,6 +140,21 @@ export interface FCAApiError {
   endpoint: string;
 }
 
+/**
+ * Type guard to check if an unknown error is an FCAApiError
+ */
+export function isFCAApiError(error: unknown): error is FCAApiError {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "status" in error &&
+    "message" in error &&
+    "endpoint" in error &&
+    typeof (error as FCAApiError).status === "number" &&
+    typeof (error as FCAApiError).message === "string"
+  );
+}
+
 // ============================================
 // Normalized Types (for internal use)
 // ============================================

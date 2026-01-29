@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createFCAClient, FCAApiError } from "@/lib/fca-register";
+import { createFCAClient, isFCAApiError } from "@/lib/fca-register";
 
 interface RouteParams {
   params: Promise<{ irn: string }>;
@@ -13,7 +13,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { irn } = await params;
 
-    // IRN format: typically alphanumeric, 6-10 characters
+    // IRN format: typically alphanumeric, 3-10 characters
     if (!irn || !/^[A-Z0-9]{3,10}$/i.test(irn)) {
       return NextResponse.json(
         { error: "Invalid IRN format. IRN must be 3-10 alphanumeric characters." },
@@ -52,11 +52,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   } catch (error) {
     console.error("FCA Register control functions lookup error:", error);
 
-    if ((error as FCAApiError).status) {
-      const fcaError = error as FCAApiError;
+    if (isFCAApiError(error)) {
       return NextResponse.json(
-        { error: fcaError.message },
-        { status: fcaError.status }
+        { error: error.message },
+        { status: error.status }
       );
     }
 

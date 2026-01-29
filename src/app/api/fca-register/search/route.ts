@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { FCAApiError } from "@/lib/fca-register";
-
-const FCA_API_BASE = "https://register.fca.org.uk/services/V0.1";
+import { getFCAConfig, isFCAApiError } from "@/lib/fca-register";
 
 interface SearchResult {
   type: "Firm" | "Individual";
@@ -10,23 +8,26 @@ interface SearchResult {
   status: string;
 }
 
-async function searchFCA(query: string, type: "firm" | "individual"): Promise<SearchResult[]> {
+async function searchFCA(
+  query: string,
+  type: "firm" | "individual",
+  config: { email: string; apiKey: string; baseUrl: string }
+): Promise<SearchResult[]> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 15000);
 
   try {
     const response = await fetch(
-      `${FCA_API_BASE}/Search?q=${encodeURIComponent(query)}&type=${type}`,
+      `${config.baseUrl}/Search?q=${encodeURIComponent(query)}&type=${type}`,
       {
         headers: {
-          "X-AUTH-EMAIL": process.env.FCA_REGISTER_EMAIL!,
-          "X-AUTH-KEY": process.env.FCA_REGISTER_API_KEY!,
+          "X-AUTH-EMAIL": config.email,
+          "X-AUTH-KEY": config.apiKey,
           "Accept": "application/json",
         },
         signal: controller.signal,
       }
     );
-    clearTimeout(timeoutId);
 
     if (!response.ok) {
       return [];
@@ -42,8 +43,9 @@ async function searchFCA(query: string, type: "firm" | "individual"): Promise<Se
       status: result["Status"] || "Unknown",
     }));
   } catch {
-    clearTimeout(timeoutId);
     return [];
+  } finally {
+    clearTimeout(timeoutId);
   }
 }
 
@@ -68,18 +70,20 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const config = getFCAConfig();
+
     let firms: SearchResult[] = [];
     let individuals: SearchResult[] = [];
 
     if (searchType === "firm") {
-      firms = await searchFCA(trimmedQuery, "firm");
+      firms = await searchFCA(trimmedQuery, "firm", config);
     } else if (searchType === "individual") {
-      individuals = await searchFCA(trimmedQuery, "individual");
+      individuals = await searchFCA(trimmedQuery, "individual", config);
     } else {
       // Search both firms and individuals in parallel
       const [firmResults, individualResults] = await Promise.all([
-        searchFCA(trimmedQuery, "firm"),
-        searchFCA(trimmedQuery, "individual"),
+        searchFCA(trimmedQuery, "firm", config),
+        searchFCA(trimmedQuery, "individual", config),
       ]);
       firms = firmResults;
       individuals = individualResults;
@@ -101,11 +105,10 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("FCA Register search error:", error);
 
-    if ((error as FCAApiError).status) {
-      const fcaError = error as FCAApiError;
+    if (isFCAApiError(error)) {
       return NextResponse.json(
-        { error: fcaError.message },
-        { status: fcaError.status }
+        { error: error.message },
+        { status: error.status }
       );
     }
 
