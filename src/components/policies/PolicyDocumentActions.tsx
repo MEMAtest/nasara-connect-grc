@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { FileText, FileDown, Printer } from "lucide-react";
+import { FileText, FileDown, Printer, Eye } from "lucide-react";
 
 interface PolicyDocumentActionsProps {
   policyId: string;
@@ -10,6 +10,12 @@ interface PolicyDocumentActionsProps {
 export function PolicyDocumentActions({ policyId }: PolicyDocumentActionsProps) {
   return (
     <div className="flex flex-wrap items-center gap-2">
+      <Button variant="outline" size="sm" asChild>
+        <a href={`/api/policies/${policyId}/documents/pdf?inline=1`} target="_blank" rel="noreferrer">
+          <Eye className="mr-2 h-4 w-4" />
+          Preview PDF
+        </a>
+      </Button>
       <Button variant="outline" size="sm" asChild>
         <a href={`/api/policies/${policyId}/documents/pdf`}>
           <FileText className="mr-2 h-4 w-4" />

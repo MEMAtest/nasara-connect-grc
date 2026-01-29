@@ -37,7 +37,12 @@ import {
   mergePermissions,
   type AuthorizationProjectContext,
 } from "@/lib/policies/authorization-projects";
-import { formatNoteValue, getNoteSections, parseNoteSelections } from "@/lib/policies/section-notes";
+import {
+  formatNoteValue,
+  getNoteSections,
+  parseNoteCustomText,
+  parseNoteSelections,
+} from "@/lib/policies/section-notes";
 import { FirmSetupStep } from "./steps/FirmSetupStep";
 import { PolicyGapsStep } from "./steps/PolicyGapsStep";
 import {
@@ -360,6 +365,7 @@ export function QuickCreateWizard() {
     () => (selectedTemplate ? getNoteSections(selectedTemplate) : []),
     [selectedTemplate],
   );
+  const noteSectionMap = useMemo(() => new Map(noteSections.map((section) => [section.id, section])), [noteSections]);
   const requiredSections = useMemo(
     () => noteSections.filter((section) => section.required),
     [noteSections],
@@ -417,6 +423,8 @@ export function QuickCreateWizard() {
     () => getRequiredPolicies(permissionsDraft),
     [permissionsDraft],
   );
+
+  const firmName = typeof firmProfile.name === "string" ? firmProfile.name.trim() : "";
 
   const handlePermissionChange = (key: keyof FirmPermissions, checked: boolean) => {
     setPermissionsDraft((prev) => ({
@@ -504,11 +512,21 @@ export function QuickCreateWizard() {
 
   const handleSectionNoteToggle = (sectionId: string, option: string, checked: boolean) => {
     setSectionNotes((prev) => {
-      const current = parseNoteSelections(prev[sectionId]);
+      const options = noteSectionMap.get(sectionId)?.options ?? [];
+      const current = parseNoteSelections(prev[sectionId], options, firmName);
+      const customText = parseNoteCustomText(prev[sectionId], options, firmName);
       const next = checked
         ? Array.from(new Set([...current, option]))
         : current.filter((value) => value !== option);
-      return { ...prev, [sectionId]: formatNoteValue(next) };
+      return { ...prev, [sectionId]: formatNoteValue(next, customText) };
+    });
+  };
+
+  const handleSectionNoteCustomChange = (sectionId: string, value: string) => {
+    setSectionNotes((prev) => {
+      const options = noteSectionMap.get(sectionId)?.options ?? [];
+      const current = parseNoteSelections(prev[sectionId], options, firmName);
+      return { ...prev, [sectionId]: formatNoteValue(current, value) };
     });
   };
 
@@ -897,6 +915,7 @@ export function QuickCreateWizard() {
               onAnswerChange={handleAnswerChange}
               onMultiToggle={handleMultiToggle}
               onSectionNoteToggle={handleSectionNoteToggle}
+              onSectionNoteCustomChange={handleSectionNoteCustomChange}
               onGapVariableChange={(path, value) =>
                 setGapVariables((prev) => ({
                   ...prev,

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { BookOpen, ChevronLeft, ChevronRight, ClipboardList, Download, FileText, Printer } from "lucide-react";
+import { BookOpen, ChevronLeft, ChevronRight, ClipboardList, Download, Eye, FileText, Printer } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -255,6 +255,14 @@ export function PolicyReaderClient({
             <p className="text-sm text-slate-500">{reportFirm || 'Policy Document'}</p>
           </div>
           <div className="flex gap-2">
+            {policyId && (
+              <Button variant="outline" size="sm" asChild className="gap-2">
+                <a href={`/api/policies/${policyId}/documents/pdf?inline=1`} target="_blank" rel="noreferrer">
+                  <Eye className="h-4 w-4" />
+                  Preview PDF
+                </a>
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"

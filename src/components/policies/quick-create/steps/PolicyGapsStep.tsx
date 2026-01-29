@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { SectionNotesPicker } from "@/components/policies/SectionNotesPicker";
+import { Loader2 } from "lucide-react";
 import type { FirmProfile } from "@/components/policies/policy-wizard/types";
 import type { PolicyTemplate } from "@/lib/policies/templates";
 import type { QuickAnswer, QuickAnswers, QuickQuestion } from "@/lib/policies/quick-defaults";
@@ -40,6 +41,7 @@ type PolicyGapsStepProps = {
   onAnswerChange: (id: string, value: QuickAnswer) => void;
   onMultiToggle: (id: string, option: string, checked: boolean) => void;
   onSectionNoteToggle: (sectionId: string, option: string, checked: boolean) => void;
+  onSectionNoteCustomChange: (sectionId: string, value: string) => void;
   onGapVariableChange: (path: string, value: string) => void;
   onFirmProfileChange: (key: keyof FirmProfile, value: string) => void;
   onSicCodesChange: (value: string) => void;
@@ -79,6 +81,7 @@ export function PolicyGapsStep({
   onAnswerChange,
   onMultiToggle,
   onSectionNoteToggle,
+  onSectionNoteCustomChange,
   onGapVariableChange,
   onFirmProfileChange,
   onSicCodesChange,
@@ -309,7 +312,13 @@ export function PolicyGapsStep({
               )}
             </div>
 
-            <SectionNotesPicker sections={noteSections} sectionNotes={sectionNotes} onToggle={onSectionNoteToggle} />
+            <SectionNotesPicker
+              sections={noteSections}
+              sectionNotes={sectionNotes}
+              onToggle={onSectionNoteToggle}
+              onCustomChange={onSectionNoteCustomChange}
+              firmName={firmProfile.name}
+            />
           </section>
 
           {missingGlobalVariables.length ? (
@@ -417,10 +426,17 @@ export function PolicyGapsStep({
             </div>
             <Button
               type="submit"
-              className="mt-4 w-full bg-indigo-600 hover:bg-indigo-700"
+              className="mt-4 w-full gap-2 bg-indigo-600 hover:bg-indigo-700"
               disabled={Boolean(isSubmitting) || isSetupLoading || totalGaps > 0}
             >
-              {isSubmitting ? "Generating..." : "Generate policy"}
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                "Generate policy"
+              )}
             </Button>
             {totalGaps > 0 ? (
               <p className="mt-2 text-xs text-slate-400">Fill the remaining gaps to create the draft.</p>

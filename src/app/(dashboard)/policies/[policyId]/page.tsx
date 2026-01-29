@@ -8,8 +8,9 @@ import { PolicyStatusControl } from "@/components/policies/PolicyStatusControl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DEFAULT_ORGANIZATION_ID } from "@/lib/constants";
-import { findMissingTemplateVariables, renderClause } from "@/lib/policies/liquid-renderer";
+import { findMissingTemplateVariables, renderClause, renderLiquidTemplate } from "@/lib/policies/liquid-renderer";
 import { normalizePolicyMarkdown, renderPolicyMarkdown } from "@/lib/policies/markdown";
+import { sanitizeClauseContent, DEFAULT_SANITIZE_OPTIONS } from "@/lib/policies/content-sanitizer";
 import { getRequiredNoteSectionIds } from "@/lib/policies/section-notes";
 import { listEntityLinks, upsertEntityLink } from "@/lib/server/entity-link-store";
 import { getPolicyById } from "@/lib/server/policy-store";
@@ -65,6 +66,21 @@ function renderMarkdown(content: string, glossary: Record<string, string>) {
   const normalized = normalizePolicyMarkdown(content);
   const withGlossary = Object.keys(glossary).length ? injectGlossary(normalized, glossary) : normalized;
   return renderPolicyMarkdown(withGlossary, { normalize: false });
+}
+
+const POLICY_SANITIZE_OPTIONS = {
+  ...DEFAULT_SANITIZE_OPTIONS,
+  preserveProceduralLists: false,
+};
+
+const NOTE_SANITIZE_OPTIONS = {
+  ...DEFAULT_SANITIZE_OPTIONS,
+  preserveProceduralLists: false,
+};
+
+function sanitizeForSection(content: string, sectionType?: string) {
+  const options = sectionType === "procedure" ? DEFAULT_SANITIZE_OPTIONS : POLICY_SANITIZE_OPTIONS;
+  return sanitizeClauseContent(content, options);
 }
 
 function renderMissingChip(path: string) {
@@ -296,20 +312,25 @@ export default async function PolicyDetailPage({
     const clauses = section.clauses.map((clause) => {
       const context = { ...renderContext, ...(clauseVariables[clause.id] ?? {}) };
       findMissingTemplateVariables(clause.content, context).forEach((path) => sectionMissingVars.add(path));
+      const rendered = renderClause(clause.content, renderContext, clauseVariables[clause.id] ?? {}, {
+        onMissingVariable: renderMissingChip,
+      });
+      const sanitized = sanitizeForSection(rendered, section.sectionType);
       return {
         id: clause.id,
         title: clause.title,
         summary: clause.summary,
         isMandatory: clause.isMandatory,
-        contentHtml: renderMarkdown(
-          renderClause(clause.content, renderContext, clauseVariables[clause.id] ?? {}, {
-            onMissingVariable: renderMissingChip,
-          }),
-          glossary,
-        ),
+        contentHtml: renderMarkdown(sanitized, glossary),
       };
     });
-    const customTextHtml = section.customText ? renderMarkdown(section.customText, glossary) : "";
+    const renderedNotes = section.customText
+      ? renderLiquidTemplate(section.customText, renderContext)
+      : "";
+    const sanitizedNotes = renderedNotes
+      ? sanitizeClauseContent(renderedNotes, NOTE_SANITIZE_OPTIONS)
+      : "";
+    const customTextHtml = sanitizedNotes ? renderMarkdown(sanitizedNotes, glossary) : "";
     return {
       id: section.id,
       title: section.title,
@@ -317,7 +338,7 @@ export default async function PolicyDetailPage({
       sectionType: section.sectionType,
       requiresFirmNotes: section.requiresFirmNotes,
       customTextHtml: customTextHtml || undefined,
-      customTextExcerpt: section.customText ? toExcerpt(section.customText) : undefined,
+      customTextExcerpt: sanitizedNotes ? toExcerpt(sanitizedNotes) : undefined,
       clauseCount: section.clauses.length,
       clauseHighlights: section.clauses.slice(0, 3).map((clause) => ({ id: clause.id, title: clause.title })),
       missingVariableCount: sectionMissingVars.size || undefined,
@@ -496,6 +517,7 @@ export default async function PolicyDetailPage({
               linkedProcedures: governanceProcedures,
             }}
             initialCustomContent={customContent as Record<string, unknown>}
+            firmName={firmName ?? undefined}
           />
 
           <section className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">

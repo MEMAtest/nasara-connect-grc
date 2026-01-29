@@ -11,6 +11,7 @@ import {
 import { upsertEntityLink } from "@/lib/server/entity-link-store";
 import { initDatabase, createPolicyActivity } from "@/lib/database";
 import { sanitizeString } from "@/lib/validation";
+import { enhanceClausesWithAi, DEFAULT_POLICY_MODEL } from "@/lib/policies/ai-policy-writer";
 import type { FirmPermissions } from "@/lib/policies";
 import type { PolicyClause, PolicyTemplate } from "@/lib/policies/templates";
 import { createNotification } from "@/lib/server/notifications-store";
@@ -20,6 +21,7 @@ const fallbackPolicies: StoredPolicy[] = [];
 function nowIso() {
   return new Date().toISOString();
 }
+
 
 function buildFallbackPolicy(input: {
   id?: string;
@@ -97,9 +99,12 @@ export async function POST(request: Request) {
   }
 
   const detailLevel = typeof body.detailLevel === "string" ? body.detailLevel : undefined;
+  const aiEnhanceRequested = body.aiEnhance !== false;
+  const aiDetailLevel: "detailed" | "standard" =
+    body.aiDetail === "standard" ? "standard" : "detailed";
 
   const governance = typeof body.governance === "object" && body.governance !== null ? body.governance : undefined;
-  const customContent = {
+  let customContent = {
     firmProfile: body.firmProfile ?? {},
     policyInputs: body.policyInputs ?? {},
     sectionClauses,
@@ -110,6 +115,30 @@ export async function POST(request: Request) {
     approvals,
     ...(governance ? { governance } : {}),
   };
+
+  let finalClauses = selectedClauses;
+  if (aiEnhanceRequested) {
+    const aiResult = await enhanceClausesWithAi({
+      clauses: selectedClauses,
+      template,
+      sectionClauses,
+      firmProfile: body.firmProfile ?? {},
+      policyInputs: body.policyInputs ?? {},
+      sectionNotes: body.sectionNotes ?? {},
+      detailLevel: aiDetailLevel,
+    });
+    finalClauses = aiResult.clauses;
+    customContent = {
+      ...customContent,
+      aiEnhanced: {
+        enabled: aiResult.used,
+        model: aiResult.used ? DEFAULT_POLICY_MODEL : null,
+        detailLevel: aiDetailLevel,
+        generatedAt: aiResult.used ? nowIso() : null,
+        failures: aiResult.failures,
+      },
+    };
+  }
 
   const suggestedMappings = Array.isArray((template as PolicyTemplate & { suggestedMappings?: unknown }).suggestedMappings)
     ? ((template as PolicyTemplate & { suggestedMappings?: Array<{ toType: string; toId: string; metadata?: Record<string, unknown> }> })
@@ -143,7 +172,7 @@ export async function POST(request: Request) {
       description: template.description,
       permissions,
       template,
-      clauses: selectedClauses,
+      clauses: finalClauses,
       customContent,
       approvals,
       status: "draft",
@@ -189,7 +218,7 @@ export async function POST(request: Request) {
       id: body.id,
       template,
       permissions,
-      clauses: selectedClauses,
+      clauses: finalClauses,
       customContent,
       approvals,
     });

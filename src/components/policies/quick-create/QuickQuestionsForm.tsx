@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Loader2 } from "lucide-react";
 import type { PolicyTemplate } from "@/lib/policies/templates";
 import type { QuickAnswers, QuickQuestion } from "@/lib/policies/quick-defaults";
 
@@ -90,11 +91,18 @@ export function QuickQuestionsForm({
           Back
         </Button>
         <Button
-          className="bg-indigo-600 hover:bg-indigo-700"
+          className="gap-2 bg-indigo-600 hover:bg-indigo-700"
           type="submit"
           disabled={Boolean(isSubmitting) || requiredMissing}
         >
-          {isSubmitting ? "Creating policy..." : "Create policy"}
+          {isSubmitting ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Creating policy...
+            </>
+          ) : (
+            "Create policy"
+          )}
         </Button>
       </div>
     </form>

@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { PDFDocument, StandardFonts, rgb, PDFFont, PDFPage } from "pdf-lib";
 import { DEFAULT_ORGANIZATION_ID } from "@/lib/constants";
 import { getPolicyById } from "@/lib/server/policy-store";
-import { renderClause } from "@/lib/policies/liquid-renderer";
+import { renderClause, renderLiquidTemplate } from "@/lib/policies/liquid-renderer";
+import { sanitizeClauseContent, DEFAULT_SANITIZE_OPTIONS } from "@/lib/policies/content-sanitizer";
 import { applyTiering, type DetailLevel, type TieredSection } from "@/lib/policies/clause-tiers";
 import { applyOptionSelections } from "@/lib/policies/section-options";
 
@@ -98,7 +99,7 @@ function normalizeMarkdownTables(input: string): string {
 
 function stripHtml(html: string): string {
   const normalized = normalizeMarkdownTables(html);
-  const cleaned = normalized
+  let cleaned = normalized
     .replace(/<br\s*\/?>/gi, "\n")
     .replace(/<\/p>/gi, "\n\n")
     .replace(/<\/li>/gi, "\n")
@@ -116,6 +117,19 @@ function stripHtml(html: string): string {
     .replace(/:([A-Za-z])/g, ": $1")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
+
+  const lines = cleaned.split("\n").map((line) => {
+    if (/^\s*[•·]\s+/.test(line)) {
+      return line.replace(/^\s*[•·]\s+/, "• ");
+    }
+    return line
+      .replace(/\s*[•·]\s*/g, ", ")
+      .replace(/^,\s*/, "")
+      .replace(/,\s*$/, "")
+      .replace(/,\s*,/g, ",");
+  });
+
+  cleaned = lines.join("\n").trim();
   return stripTocArtifacts(cleaned);
 }
 
@@ -164,6 +178,21 @@ interface RenderedSection {
   sectionType?: string;
   clauses: RenderedClause[];
   customNotes?: string;
+}
+
+const POLICY_SANITIZE_OPTIONS = {
+  ...DEFAULT_SANITIZE_OPTIONS,
+  preserveProceduralLists: false,
+};
+
+const NOTE_SANITIZE_OPTIONS = {
+  ...DEFAULT_SANITIZE_OPTIONS,
+  preserveProceduralLists: false,
+};
+
+function sanitizeForSection(content: string, sectionType?: string): string {
+  const options = sectionType === "procedure" ? DEFAULT_SANITIZE_OPTIONS : POLICY_SANITIZE_OPTIONS;
+  return sanitizeClauseContent(content, options);
 }
 
 function hexToRgb(hex: string): { r: number; g: number; b: number } {
@@ -280,42 +309,10 @@ function drawParagraph(ctx: DrawContext, text: string): void {
 }
 
 function drawNoteBlock(ctx: DrawContext, text: string): void {
-  const cleaned = stripHtml(text);
+  const cleaned = stripHtml(sanitizeClauseContent(text, NOTE_SANITIZE_OPTIONS));
   if (!cleaned) return;
-  const maxWidth = ctx.width - ctx.margin * 2;
-  const fontSize = 10;
-  const lineHeight = fontSize * 1.4;
-  const lines = wrapText(cleaned, ctx.fontRegular, fontSize, maxWidth - 12);
-  const boxHeight = lines.length * lineHeight + 12;
-
-  ensurePage(ctx, boxHeight + 12);
-
-  const boxTop = ctx.y;
-  const boxY = boxTop - boxHeight;
-
-  ctx.page.drawRectangle({
-    x: ctx.margin,
-    y: boxY,
-    width: maxWidth,
-    height: boxHeight,
-    color: rgb(0.99, 0.96, 0.78),
-    borderColor: rgb(0.93, 0.78, 0.25),
-    borderWidth: 1,
-  });
-
-  let textY = boxTop - 8;
-  for (const line of lines) {
-    ctx.page.drawText(line, {
-      x: ctx.margin + 6,
-      y: textY,
-      font: ctx.fontRegular,
-      size: fontSize,
-      color: rgb(0.12, 0.16, 0.22),
-    });
-    textY -= lineHeight;
-  }
-
-  ctx.y = boxY - 10;
+  drawText(ctx, "Firm-specific detail", ctx.fontBold, 11, { r: 0.12, g: 0.16, b: 0.22 }, 4);
+  drawParagraph(ctx, cleaned);
 }
 
 export async function GET(
@@ -332,6 +329,7 @@ export async function GET(
 
     const url = new URL(request.url);
     const detailLevelParam = url.searchParams.get("detailLevel") as DetailLevel | null;
+    const inline = url.searchParams.get("inline") === "1";
 
     const customContent = (policy.customContent ?? {}) as {
       firmProfile?: Record<string, unknown>;
@@ -417,12 +415,18 @@ export async function GET(
           return null;
         }
 
+        const rawNotes = sectionNotes[sectionId];
+        const renderedNotes =
+          typeof rawNotes === "string" && rawNotes.trim().length > 0
+            ? renderLiquidTemplate(rawNotes, renderContext)
+            : rawNotes;
+
         return {
           id: tieredSection.id,
           title: tieredSection.title,
           sectionType: tieredSection.sectionType,
           clauses: renderedClauses,
-          customNotes: sectionNotes[sectionId],
+          customNotes: renderedNotes,
         };
       })
       .filter((section): section is RenderedSection => section !== null);
@@ -663,7 +667,7 @@ export async function GET(
           drawHeading(ctx, clause.title, 2);
         }
 
-        const plainText = stripHtml(clause.rendered_body);
+        const plainText = stripHtml(sanitizeForSection(clause.rendered_body, section.sectionType));
         drawParagraph(ctx, plainText);
 
         ctx.y -= 8;
@@ -701,11 +705,12 @@ export async function GET(
     const timestamp = new Date().toISOString().split("T")[0];
     const filename = `${sanitizeFilename(policy.name)}_v${sanitizeFilename(policyVersion)}_${timestamp}.pdf`;
 
+    const disposition = inline ? "inline" : "attachment";
     return new NextResponse(Buffer.from(pdfBytes), {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="${filename}"`,
+        "Content-Disposition": `${disposition}; filename="${filename}"`,
         "Content-Length": pdfBytes.length.toString(),
       },
     });

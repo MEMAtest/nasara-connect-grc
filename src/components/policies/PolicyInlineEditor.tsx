@@ -9,6 +9,7 @@ import { SectionNotesPicker } from "@/components/policies/SectionNotesPicker";
 import {
   formatNoteValue,
   getNoteSections,
+  parseNoteCustomText,
   parseNoteSelections,
 } from "@/lib/policies/section-notes";
 
@@ -37,6 +38,7 @@ interface PolicyInlineEditorProps {
   initialSectionNotes: Record<string, string>;
   initialGovernance: InlineGovernance;
   initialCustomContent: Record<string, unknown>;
+  firmName?: string;
 }
 
 export function PolicyInlineEditor({
@@ -46,6 +48,7 @@ export function PolicyInlineEditor({
   initialSectionNotes,
   initialGovernance,
   initialCustomContent,
+  firmName,
 }: PolicyInlineEditorProps) {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
@@ -68,6 +71,7 @@ export function PolicyInlineEditor({
     () => getNoteSections({ code: templateCode, sections }),
     [templateCode, sections],
   );
+  const noteSectionMap = useMemo(() => new Map(noteSections.map((section) => [section.id, section])), [noteSections]);
   const requiredSections = useMemo(
     () => noteSections.filter((section) => section.required),
     [noteSections],
@@ -77,11 +81,21 @@ export function PolicyInlineEditor({
 
   const handleSectionNoteToggle = (sectionId: string, option: string, checked: boolean) => {
     setSectionNotes((prev) => {
-      const current = parseNoteSelections(prev[sectionId]);
+      const options = noteSectionMap.get(sectionId)?.options ?? [];
+      const current = parseNoteSelections(prev[sectionId], options, firmName);
+      const customText = parseNoteCustomText(prev[sectionId], options, firmName);
       const next = checked
         ? Array.from(new Set([...current, option]))
         : current.filter((value) => value !== option);
-      return { ...prev, [sectionId]: formatNoteValue(next) };
+      return { ...prev, [sectionId]: formatNoteValue(next, customText) };
+    });
+  };
+
+  const handleSectionNoteCustomChange = (sectionId: string, value: string) => {
+    setSectionNotes((prev) => {
+      const options = noteSectionMap.get(sectionId)?.options ?? [];
+      const current = parseNoteSelections(prev[sectionId], options, firmName);
+      return { ...prev, [sectionId]: formatNoteValue(current, value) };
     });
   };
 
@@ -243,6 +257,8 @@ export function PolicyInlineEditor({
               sections={visibleSections}
               sectionNotes={sectionNotes}
               onToggle={handleSectionNoteToggle}
+              onCustomChange={handleSectionNoteCustomChange}
+              firmName={firmName}
             />
           </div>
 

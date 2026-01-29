@@ -18,6 +18,7 @@ import type { StoredPolicy } from "@/lib/server/policy-store";
 import {
   formatNoteValue,
   getNoteSections,
+  parseNoteCustomText,
   parseNoteSelections,
 } from "@/lib/policies/section-notes";
 
@@ -110,6 +111,9 @@ export function EditClient() {
     () => (templateCode ? getNoteSections({ code: templateCode, sections }) : []),
     [sections, templateCode],
   );
+  const noteSectionMap = useMemo(() => new Map(noteSections.map((section) => [section.id, section])), [noteSections]);
+  const firmProfile = (customContent as { firmProfile?: Record<string, unknown> } | null)?.firmProfile ?? {};
+  const firmName = typeof firmProfile.name === "string" ? firmProfile.name.trim() : "";
   const clausesBySectionId = useMemo(() => {
     if (!data) return {} as Record<string, StoredPolicy["clauses"]>;
     return sections.reduce<Record<string, StoredPolicy["clauses"]>>((acc, section) => {
@@ -123,11 +127,21 @@ export function EditClient() {
 
   const handleSectionNoteToggle = (sectionId: string, option: string, checked: boolean) => {
     setSectionNotes((prev) => {
-      const current = parseNoteSelections(prev[sectionId]);
+      const options = noteSectionMap.get(sectionId)?.options ?? [];
+      const current = parseNoteSelections(prev[sectionId], options, firmName);
+      const customText = parseNoteCustomText(prev[sectionId], options, firmName);
       const next = checked
         ? Array.from(new Set([...current, option]))
         : current.filter((value) => value !== option);
-      return { ...prev, [sectionId]: formatNoteValue(next) };
+      return { ...prev, [sectionId]: formatNoteValue(next, customText) };
+    });
+  };
+
+  const handleSectionNoteCustomChange = (sectionId: string, value: string) => {
+    setSectionNotes((prev) => {
+      const options = noteSectionMap.get(sectionId)?.options ?? [];
+      const current = parseNoteSelections(prev[sectionId], options, firmName);
+      return { ...prev, [sectionId]: formatNoteValue(current, value) };
     });
   };
 
@@ -417,6 +431,8 @@ export function EditClient() {
             sections={noteSections}
             sectionNotes={sectionNotes}
             onToggle={handleSectionNoteToggle}
+            onCustomChange={handleSectionNoteCustomChange}
+            firmName={firmName}
             renderFooter={(sectionId) => {
               const insertedClauses = clausesBySectionId[sectionId] ?? [];
               if (!insertedClauses.length) return null;

@@ -114,6 +114,14 @@ const KEYWORD_OPTIONS: Array<{ match: RegExp; options: string[] }> = [
     options: ["Risks are assessed and documented when exposures change."],
   },
   {
+    match: /kyc|kyb|customer due diligence|cdd/i,
+    options: [
+      "Customer due diligence is completed before onboarding.",
+      "Enhanced due diligence is applied to higher-risk customers.",
+      "Ongoing monitoring and periodic refresh are in place.",
+    ],
+  },
+  {
     match: /escalation|incident|breach|complaint/i,
     options: [
       "Escalation triggers and timelines are defined.",
@@ -161,13 +169,30 @@ const KEYWORD_OPTIONS: Array<{ match: RegExp; options: string[] }> = [
   },
 ];
 
-const MAX_OPTIONS = 6;
+const MAX_OPTIONS = 8;
 
 const normalizeSentence = (value: string) => {
   const trimmed = value.trim();
   if (!trimmed) return "";
   return trimmed.endsWith(".") ? trimmed : `${trimmed}.`;
 };
+
+const normalizeNoteValue = (value: string) =>
+  value
+    .trim()
+    .replace(/\s+/g, " ")
+    .replace(/[.]+$/, "")
+    .toLowerCase();
+
+export const resolveNotePlaceholders = (value: string, firmName?: string) => {
+  const replacement = firmName && firmName.trim().length ? firmName.trim() : "the firm";
+  return value
+    .replace(/{{\s*firm\.name\s*}}/gi, replacement)
+    .replace(/{{\s*firm_name\s*}}/gi, replacement);
+};
+
+const stripListMarker = (line: string) =>
+  line.replace(/^[-*]\s*/, "").replace(/^\d+\.\s*/, "");
 
 const isAppendixSection = (section: NoteSectionInput) =>
   section.sectionType === "appendix" ||
@@ -176,11 +201,8 @@ const isAppendixSection = (section: NoteSectionInput) =>
 
 const buildDefaultNoteConfig = (section: NoteSectionInput): NoteOptionConfig => {
   const summary = section.summary ?? "";
-  const helper = summary ? `${normalizeSentence(summary)} ${DEFAULT_HELPER}` : DEFAULT_HELPER;
+  const helper = DEFAULT_HELPER;
   const options: string[] = [];
-  if (summary.trim()) {
-    options.push(normalizeSentence(summary));
-  }
 
   const haystack = `${section.title} ${summary}`.toLowerCase();
   KEYWORD_OPTIONS.forEach((entry) => {
@@ -234,14 +256,69 @@ export function getRequiredNoteSectionIds(
   return getNoteSections(template).filter((section) => section.required).map((section) => section.id);
 }
 
-export const parseNoteSelections = (value?: string) =>
-  (value ?? "")
-    .split(/\r?\n/)
-    .map((line) => line.replace(/^[-*]\s*/, "").replace(/^\d+\.\s*/, "").trim())
-    .filter(Boolean);
+export const parseNoteValue = (
+  value?: string,
+  options: string[] = [],
+  firmName?: string,
+): { selections: string[]; customText: string } => {
+  const optionMap = new Map<string, string>();
+  options.forEach((option) => {
+    const normalized = normalizeNoteValue(option);
+    if (normalized) optionMap.set(normalized, option);
+    const resolved = resolveNotePlaceholders(option, firmName);
+    const resolvedNormalized = normalizeNoteValue(resolved);
+    if (resolvedNormalized) optionMap.set(resolvedNormalized, option);
+  });
 
-export const formatNoteValue = (selections: string[]) =>
-  selections.length ? selections.map((entry) => `- ${entry}`).join("\n") : "";
+  const selections = new Set<string>();
+  const customLines: string[] = [];
+
+  const lines = (value ?? "").split(/\r?\n/);
+  lines.forEach((line) => {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      if (customLines.length) customLines.push("");
+      return;
+    }
+    const candidate = stripListMarker(trimmed).trim();
+    const normalized = normalizeNoteValue(candidate);
+    const matched = normalized ? optionMap.get(normalized) : undefined;
+    if (matched) {
+      selections.add(matched);
+    } else {
+      customLines.push(candidate);
+    }
+  });
+
+  return { selections: Array.from(selections), customText: customLines.join("\n").trim() };
+};
+
+export const parseNoteSelections = (value?: string, options?: string[], firmName?: string) => {
+  if (options && options.length) {
+    return parseNoteValue(value, options, firmName).selections;
+  }
+  return (value ?? "")
+    .split(/\r?\n/)
+    .map((line) => stripListMarker(line).trim())
+    .filter(Boolean);
+};
+
+export const parseNoteCustomText = (value?: string, options?: string[], firmName?: string) => {
+  if (!options || options.length === 0) {
+    return (value ?? "").trim();
+  }
+  return parseNoteValue(value, options, firmName).customText;
+};
+
+export const formatNoteValue = (selections: string[], customText?: string) => {
+  const lines: string[] = selections.length ? selections.map((entry) => `- ${entry}`) : [];
+  const trimmedCustom = customText?.trim();
+  if (trimmedCustom) {
+    if (lines.length) lines.push("");
+    lines.push(trimmedCustom);
+  }
+  return lines.join("\n");
+};
 
 export const mergeNoteOptions = (baseOptions: string[], selections: string[]) => {
   const merged: string[] = [];

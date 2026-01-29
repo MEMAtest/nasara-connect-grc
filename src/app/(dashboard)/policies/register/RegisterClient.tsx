@@ -3,9 +3,10 @@
 import { useMemo, useState } from "react";
 import useSWR from "swr";
 import Link from "next/link";
-import { Sparkles } from "lucide-react";
+import { Eye, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -55,6 +56,7 @@ export function RegisterClient() {
   const { profile, isLoading: isProfileLoading } = usePolicyProfile();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [previewPolicy, setPreviewPolicy] = useState<StoredPolicy | null>(null);
 
   const policies = data ?? [];
 
@@ -152,48 +154,74 @@ export function RegisterClient() {
         <p className="text-sm text-rose-600">Failed to load policies.</p>
       ) : policies.length ? (
         filteredPolicies.length ? (
-          <ul className="space-y-4">
+          <ul className="grid gap-6 lg:grid-cols-2">
             {filteredPolicies.map((policy) => {
               const governance = getGovernance(policy);
               const statusTone = STATUS_TONES[policy.status] ?? STATUS_TONES.draft;
               const ownerLabel = governance.owner?.trim() || "Unassigned";
               const reviewLabel = governance.nextReviewAt ? formatDate(governance.nextReviewAt) : "Not set";
+              const badgeTags = policy.template.badges?.map((badge) => badge.label) ?? [];
+              const tagList = badgeTags.length
+                ? badgeTags
+                : [policy.template.category, policy.code].filter(Boolean);
 
               return (
-                <li key={policy.id} className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="space-y-2">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="text-base font-semibold text-slate-900">{policy.name}</p>
-                        <Badge variant="outline" className={`text-[11px] ${statusTone}`}>
-                          {STATUS_LABELS[policy.status] ?? policy.status.replace("_", " ")}
-                        </Badge>
-                        <Badge variant="secondary" className="text-[11px]">
-                          {policy.template.category}
-                        </Badge>
+                <li key={policy.id} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                  <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-lg font-semibold text-slate-900">{policy.name}</p>
+                          <Badge variant="outline" className={`text-[11px] ${statusTone}`}>
+                            {STATUS_LABELS[policy.status] ?? policy.status.replace("_", " ")}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-slate-500">{policy.description}</p>
+                        <p className="text-xs text-slate-400">
+                          Code {policy.code} · Updated {formatDate(policy.updatedAt)}
+                        </p>
                       </div>
-                      <p className="text-xs text-slate-500">
-                        Code {policy.code} · Updated {formatDate(policy.updatedAt)}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm" asChild>
-                        <Link href={`/policies/${policy.id}`}>View</Link>
-                      </Button>
-                      <Button variant="outline" size="sm" asChild>
-                        <Link href={`/policies/${policy.id}/edit`}>Edit</Link>
-                      </Button>
-                    </div>
-                  </div>
 
-                  <div className="mt-4 grid gap-3 text-xs text-slate-500 sm:grid-cols-2">
-                    <div className="flex items-center justify-between rounded-2xl border border-slate-100 bg-slate-50/80 px-3 py-2">
-                      <span className="text-[11px] uppercase tracking-[0.2em] text-slate-400">Owner</span>
-                      <span className="text-sm font-semibold text-slate-700">{ownerLabel}</span>
+                      {tagList.length ? (
+                        <div className="flex flex-wrap items-center gap-2">
+                          {tagList.map((tag) => (
+                            <span
+                              key={tag}
+                              className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold text-slate-600"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      ) : null}
                     </div>
-                    <div className="flex items-center justify-between rounded-2xl border border-slate-100 bg-slate-50/80 px-3 py-2">
-                      <span className="text-[11px] uppercase tracking-[0.2em] text-slate-400">Next review</span>
-                      <span className="text-sm font-semibold text-slate-700">{reviewLabel}</span>
+
+                    <div className="flex flex-col gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Button variant="outline" size="sm" asChild>
+                          <button type="button" onClick={() => setPreviewPolicy(policy)}>
+                            <Eye className="mr-2 h-4 w-4" />
+                            Preview
+                          </button>
+                        </Button>
+                        <Button variant="outline" size="sm" asChild>
+                          <Link href={`/policies/${policy.id}`}>View</Link>
+                        </Button>
+                        <Button variant="outline" size="sm" asChild>
+                          <Link href={`/policies/${policy.id}/edit`}>Edit</Link>
+                        </Button>
+                      </div>
+
+                      <div className="grid gap-3 text-xs text-slate-500 sm:grid-cols-2 lg:grid-cols-1">
+                        <div className="flex items-center justify-between rounded-2xl border border-slate-100 bg-slate-50/80 px-3 py-2">
+                          <span className="text-[11px] uppercase tracking-[0.2em] text-slate-400">Owner</span>
+                          <span className="text-sm font-semibold text-slate-700">{ownerLabel}</span>
+                        </div>
+                        <div className="flex items-center justify-between rounded-2xl border border-slate-100 bg-slate-50/80 px-3 py-2">
+                          <span className="text-[11px] uppercase tracking-[0.2em] text-slate-400">Next review</span>
+                          <span className="text-sm font-semibold text-slate-700">{reviewLabel}</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </li>
@@ -216,6 +244,33 @@ export function RegisterClient() {
           </Button>
         </div>
       )}
+
+      <Dialog open={Boolean(previewPolicy)} onOpenChange={(open) => (!open ? setPreviewPolicy(null) : null)}>
+        <DialogContent className="max-w-5xl">
+          <DialogHeader>
+            <DialogTitle>{previewPolicy?.name ?? "Policy preview"}</DialogTitle>
+          </DialogHeader>
+          {previewPolicy ? (
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                <span>Code {previewPolicy.code}</span>
+                <span>·</span>
+                <span>{previewPolicy.template.category}</span>
+                <span>·</span>
+                <span>Updated {formatDate(previewPolicy.updatedAt)}</span>
+              </div>
+              <iframe
+                title={`${previewPolicy.name} preview`}
+                src={`/api/policies/${previewPolicy.id}/documents/pdf?inline=1`}
+                className="h-[70vh] w-full rounded-2xl border border-slate-200"
+              />
+              <div className="text-xs text-slate-400">
+                Having trouble viewing the preview? Download the PDF from the policy view.
+              </div>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

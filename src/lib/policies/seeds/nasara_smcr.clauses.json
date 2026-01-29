@@ -3,84 +3,84 @@
     "id": "nasara_smcr-purpose-purpose_and_objectives",
     "policy_key": "smcr",
     "title": "Purpose and objectives",
-    "body_md": "This policy sets out how {{firm.name}} implements the Senior Managers and Certification Regime (SMCR) to strengthen accountability, conduct, and governance.\n\nObjectives:\n- define roles within the SMCR population.\n- maintain Statements of Responsibilities (SoRs) and evidence of reasonable steps.\n- assess certification staff annually as fit and proper.\n- embed COCON conduct rules across the firm.",
+    "body_md": "This policy sets out how {{firm.name}} applies the Senior Managers and Certification Regime (SMCR) to strengthen accountability, conduct, and governance across the firm. It defines how responsibilities are allocated, how oversight is exercised, and how the firm evidences reasonable steps in the delivery of its regulated activities.\n\nThe objectives are to allocate clear accountability through Statements of Responsibilities, maintain an up-to-date responsibility map, ensure certification staff are assessed as fit and proper at least annually, embed the Conduct Rules across all relevant staff, and maintain evidence and governance that demonstrate compliance with FCA expectations.",
     "source_template_filename": "MODULE_SMCR.txt"
   },
   {
     "id": "nasara_smcr-scope-scope_and_applicability",
     "policy_key": "smcr",
     "title": "Scope and applicability",
-    "body_md": "This policy applies to Senior Managers (SMFs), Certification Staff, and Conduct Rules staff. It covers all areas where regulated activities are performed and extends to relevant contractors and appointed representatives where required.",
+    "body_md": "This policy applies to all UK regulated activities carried on by {{firm.name}} and to all staff who fall within SMCR scope, including Senior Managers, Certification Staff, and Conduct Rules Staff. It also applies to directors, secondees, contractors, and temporary staff where they perform roles in scope or have influence over regulated activities.\n\nWhere {{firm.name}} operates multiple legal entities or business lines, this policy applies to each entity in scope and is supported by entity-specific Statements of Responsibilities, responsibility maps, and governance arrangements.",
     "source_template_filename": "MODULE_SMCR.txt"
   },
   {
     "id": "nasara_smcr-roles-smcr_roles_and_scope",
     "policy_key": "smcr",
     "title": "SMCR roles and scope",
-    "body_md": "Roles are grouped into three populations:\n- Senior Managers (SMFs) with FCA approval and defined responsibilities.\n- Certification Staff assessed annually by the firm for fitness and propriety.\n- Conduct Rules staff who must comply with COCON.\n\n{% if smcrPopulationsList %}\nSMCR populations in scope:\n{{ smcrPopulationsList }}\n{% endif %}\n\nRole allocation must follow the firm role catalogue and responsibility map.",
+    "body_md": "SMCR divides the firm into three populations: Senior Managers who hold FCA-approved SMF roles and carry prescribed responsibilities; Certification Staff who are assessed by {{firm.name}} as fit and proper because they can cause significant harm; and Conduct Rules Staff who are subject to the FCA Conduct Rules.\n\nRole allocation follows the firm\u2019s approved role catalogue and responsibility map. Senior Managers must have a clear allocation of responsibilities with no material gaps or overlaps, and any changes to role scope are assessed and documented before implementation.",
     "source_template_filename": "MODULE_SMCR.txt"
   },
   {
     "id": "nasara_smcr-sors-statements_of_responsibility",
     "policy_key": "smcr",
     "title": "Statements of Responsibilities and reasonable steps",
-    "body_md": "Each Senior Manager must have a clear, up-to-date Statement of Responsibilities (SoR).\n\nReasonable steps include effective governance, appropriate delegation with oversight, documented challenge and decisions, and timely escalation of issues. Evidence should include MI packs, action logs, and handover records.",
+    "body_md": "Each Senior Manager must have a clear, current Statement of Responsibilities (SoR) that describes their role, accountabilities, and prescribed responsibilities. SoRs are reviewed on appointment, on any material change, and at least annually, and are kept in a controlled register.\n\nReasonable steps evidence includes governance structures, delegated authorities, decision-making records, MI packs, challenge and escalation logs, handovers, and assurance activity. {{firm.name}} maintains these records to demonstrate that responsibilities are appropriately managed and risks are effectively controlled.",
     "source_template_filename": "MODULE_SMCR.txt"
   },
   {
     "id": "nasara_smcr-duty-duty_of_responsibility",
     "policy_key": "smcr",
     "title": "Duty of Responsibility",
-    "body_md": "A Senior Manager may be held accountable if a breach occurs in their area and they did not take reasonable steps to prevent or stop it.\n\nReasonable steps must be proportionate, documented, and timely.",
+    "body_md": "Under the Duty of Responsibility, a Senior Manager may be held accountable if a regulatory breach occurs in their area and they did not take reasonable steps to prevent or stop it. The firm therefore expects Senior Managers to maintain effective oversight, ensure clear reporting lines, and act promptly on issues.\n\nWhere issues arise, Senior Managers must assess impact, implement remediation, and document decisions, including escalation to the Board or Compliance where required.",
     "source_template_filename": "MODULE_SMCR.txt"
   },
   {
     "id": "nasara_smcr-certification-certification_regime",
     "policy_key": "smcr",
     "title": "Certification regime",
-    "body_md": "Certification Staff must be assessed annually as fit and proper based on honesty and integrity, competence and capability, and financial soundness.\n\nEvidence includes training and competence logs, QA outcomes, role profiles, and regulatory references.\n\n{% if smcrCertificationCadenceList %}\nCertification assessments are completed on the following cadence:\n{{ smcrCertificationCadenceList }}\n{% endif %}",
+    "body_md": "{{firm.name}} maintains a certification regime for staff whose roles can cause significant harm. Certification assessments are completed at least annually and whenever a material change occurs to role, conduct, or competence.\n\nAssessments consider honesty and integrity, competence and capability, and financial soundness. Evidence includes role profiles, training and competence records, performance reviews, disciplinary outcomes, and regulatory references where applicable. Certification decisions are recorded, and access to regulated activities is restricted where certification is not granted or is withdrawn.",
     "source_template_filename": "MODULE_SMCR.txt"
   },
   {
     "id": "nasara_smcr-cocon-conduct_rules",
     "policy_key": "smcr",
     "title": "COCON conduct rules",
-    "body_md": "COCON applies to all Conduct Rules staff (Tier 1) with additional rules for Senior Managers (Tier 2).\n\nTier 1 includes acting with integrity, due skill and care, treating customers fairly, and cooperating with regulators. Tier 2 includes ensuring effective control of the business, oversight, and appropriate disclosure to regulators.",
+    "body_md": "The FCA Conduct Rules apply to all Conduct Rules Staff, with additional rules for Senior Managers. {{firm.name}} ensures that staff understand the standards of integrity, due skill and care, fair treatment of customers, and cooperation with regulators.\n\nBreaches of the Conduct Rules are investigated promptly, assessed for regulatory impact, and reported to the FCA within required timeframes. Outcomes and remedial actions are recorded and used to inform training and performance management.",
     "source_template_filename": "MODULE_SMCR.txt"
   },
   {
     "id": "nasara_smcr-nfm-non_financial_misconduct",
     "policy_key": "smcr",
     "title": "Non-financial misconduct",
-    "body_md": "Serious, substantiated non-financial misconduct (such as bullying or harassment) can affect fitness and propriety.\n\nCases must be assessed with HR and Compliance, and may trigger certification decisions and notifications as required.\n\n{% if smcrNonFinancialMisconduct %}\nNon-financial misconduct is explicitly considered in fitness and propriety assessments.\n{% endif %}\n{% unless smcrNonFinancialMisconduct %}\nNon-financial misconduct is assessed on a case-by-case basis for regulatory impact.\n{% endunless %}",
+    "body_md": "Non-financial misconduct, such as bullying, harassment, discrimination, or dishonesty, can affect fitness and propriety and is assessed under the SMCR framework. {{firm.name}} treats such matters as potentially relevant to certification decisions and Senior Manager accountability.\n\nCases are assessed jointly by HR and Compliance, with outcomes documented and escalated where regulatory notification is required.",
     "source_template_filename": "MODULE_SMCR.txt"
   },
   {
     "id": "nasara_smcr-references-regulatory_references",
     "policy_key": "smcr",
     "title": "Regulatory references",
-    "body_md": "Regulatory references are required for certain roles, including Senior Managers and Certification Staff.\n\nReferences and responses must be retained and used in fit and proper decisions.",
+    "body_md": "Regulatory references are obtained for Senior Managers and Certification Staff in line with FCA requirements. {{firm.name}} requests and provides references within required timeframes and ensures that references are considered as part of fit and proper assessments.\n\nRecords of requests, responses, and decisions are retained and used to support certification and appointment decisions.",
     "source_template_filename": "MODULE_SMCR.txt"
   },
   {
     "id": "nasara_smcr-records-records_and_evidence",
     "policy_key": "smcr",
     "title": "Records and evidence",
-    "body_md": "Records must include SoRs, responsibility maps, fit and proper assessments, conduct rule training records, disciplinary outcomes, and notification decisions.\n\n{% if smcrEvidenceList %}\nKey SMCR evidence maintained:\n{{ smcrEvidenceList }}\n{% endif %}\n\nRecords must be retained in line with regulatory requirements.",
+    "body_md": "{{firm.name}} maintains comprehensive SMCR records, including Statements of Responsibilities, responsibility maps, certification assessments, conduct rule training, breach investigations, disciplinary outcomes, and regulatory notifications. Records are maintained in controlled systems with appropriate access restrictions.\n\nRetention periods follow FCA and legal requirements, and records are available for audit and supervisory review.",
     "source_template_filename": "MODULE_SMCR.txt"
   },
   {
     "id": "nasara_smcr-training-training_and_awareness",
     "policy_key": "smcr",
     "title": "Training and awareness",
-    "body_md": "All staff must receive conduct rules training relevant to their role. Senior Managers and Certification Staff must complete enhanced training, with completion recorded and refreshed as required.",
+    "body_md": "All staff in scope receive SMCR and Conduct Rules training at induction and on a regular refresher cycle. Senior Managers and Certification Staff receive role-specific training that reflects their responsibilities and regulatory obligations.\n\nCompletion, attestations, and outcomes are recorded and monitored by Compliance, with remedial training delivered where gaps are identified.",
     "source_template_filename": "MODULE_SMCR.txt"
   },
   {
     "id": "nasara_smcr-governance-governance_and_review",
     "policy_key": "smcr",
     "title": "Governance and review",
-    "body_md": "Compliance and HR oversee SMCR governance. Senior management reviews SMCR MI, breach reporting, and training completion on a defined cadence.",
+    "body_md": "Overall ownership of SMCR sits with an accountable Senior Manager, supported by Compliance and HR. MI is reported to senior management on matters such as certification status, conduct rule breaches, training completion, and regulatory reporting.\n\nThe policy is reviewed at least annually, and sooner where regulatory change, organisational change, or incidents indicate the need for update. Updates are approved through the firm\u2019s governance process and communicated to affected staff.",
     "source_template_filename": "MODULE_SMCR.txt"
   }
 ]

@@ -122,6 +122,16 @@ const COLORS = {
   error: 'EF4444',
 };
 
+const NOTE_SANITIZE_OPTIONS = {
+  ...DEFAULT_SANITIZE_OPTIONS,
+  preserveProceduralLists: false,
+};
+
+const POLICY_SANITIZE_OPTIONS = {
+  ...DEFAULT_SANITIZE_OPTIONS,
+  preserveProceduralLists: false,
+};
+
 // =====================================================
 // MARKDOWN PARSER
 // =====================================================
@@ -661,6 +671,64 @@ function createSectionContent(
   primaryColor: string
 ): (Paragraph | Table)[] {
   const elements: (Paragraph | Table)[] = [];
+  const appendParsedContent = (parsedContent: ParsedContent[]) => {
+    parsedContent.forEach((item) => {
+      switch (item.type) {
+        case 'heading':
+          elements.push(
+            new Paragraph({
+              text: item.text || '',
+              heading: item.level === 2 ? HeadingLevel.HEADING_2
+                     : item.level === 3 ? HeadingLevel.HEADING_3
+                     : HeadingLevel.HEADING_4,
+              spacing: { before: 200, after: 100 },
+            })
+          );
+          break;
+
+        case 'paragraph':
+          if (item.text) {
+            elements.push(
+              new Paragraph({
+                children: parseInlineFormatting(item.text),
+                spacing: { after: 120 },
+              })
+            );
+          }
+          break;
+
+        case 'list':
+          if (item.items) {
+            item.items.forEach((listItem) => {
+              elements.push(
+                new Paragraph({
+                  children: parseInlineFormatting(listItem),
+                  bullet: { level: 0 },
+                  spacing: { after: 60 },
+                })
+              );
+            });
+          }
+          break;
+
+        case 'blockquote':
+          if (item.text) {
+            elements.push(
+              new Paragraph({
+                children: parseInlineFormatting(item.text),
+                spacing: { after: 120 },
+                indent: { left: convertInchesToTwip(0.4) },
+                shading: { fill: 'F3F4F6' },
+                border: {
+                  left: { color: primaryColor, space: 1, style: BorderStyle.SINGLE, size: 16 },
+                },
+              })
+            );
+          }
+          break;
+      }
+    });
+  };
 
   // Section heading
   const sectionLabel = isAppendix
@@ -705,15 +773,21 @@ function createSectionContent(
   if (section.customNotes) {
     elements.push(
       new Paragraph({
-        children: parseInlineFormatting(section.customNotes),
-        spacing: { after: 200 },
-        shading: { fill: 'FEF3C7' },
-        border: {
-          left: { color: COLORS.warning, space: 1, style: BorderStyle.SINGLE, size: 12 },
-        },
-        indent: { left: convertInchesToTwip(0.1) },
+        children: [
+          new TextRun({
+            text: 'Firm-specific detail',
+            bold: true,
+            size: 20,
+            color: COLORS.muted,
+          }),
+        ],
+        spacing: { after: 100 },
       })
     );
+    const sanitizedNotes = sanitizeClauseContent(section.customNotes, NOTE_SANITIZE_OPTIONS);
+    const parsedNotes = parseMarkdownToStructure(sanitizedNotes);
+    appendParsedContent(parsedNotes);
+    elements.push(new Paragraph({ text: '', spacing: { after: 120 } }));
   }
 
   // Render each clause
@@ -737,65 +811,12 @@ function createSectionContent(
     }
 
     // Sanitize and parse clause content
-    const sanitizedContent = sanitizeClauseContent(clause.rendered_body, DEFAULT_SANITIZE_OPTIONS);
+    const sanitizeOptions =
+      section.sectionType === 'procedure' ? DEFAULT_SANITIZE_OPTIONS : POLICY_SANITIZE_OPTIONS;
+    const sanitizedContent = sanitizeClauseContent(clause.rendered_body, sanitizeOptions);
     const parsedContent = parseMarkdownToStructure(sanitizedContent);
 
-    parsedContent.forEach((item) => {
-      switch (item.type) {
-        case 'heading':
-          elements.push(
-            new Paragraph({
-              text: item.text || '',
-              heading: item.level === 2 ? HeadingLevel.HEADING_2
-                     : item.level === 3 ? HeadingLevel.HEADING_3
-                     : HeadingLevel.HEADING_4,
-              spacing: { before: 200, after: 100 },
-            })
-          );
-          break;
-
-        case 'paragraph':
-          if (item.text) {
-            elements.push(
-              new Paragraph({
-                children: parseInlineFormatting(item.text),
-                spacing: { after: 120 },
-              })
-            );
-          }
-          break;
-
-        case 'list':
-          if (item.items) {
-            item.items.forEach((listItem, listIdx) => {
-              elements.push(
-                new Paragraph({
-                  children: parseInlineFormatting(listItem),
-                  bullet: { level: 0 },
-                  spacing: { after: 60 },
-                })
-              );
-            });
-          }
-          break;
-
-        case 'blockquote':
-          if (item.text) {
-            elements.push(
-              new Paragraph({
-                children: parseInlineFormatting(item.text),
-                spacing: { after: 120 },
-                indent: { left: convertInchesToTwip(0.4) },
-                shading: { fill: 'F3F4F6' },
-                border: {
-                  left: { color: primaryColor, space: 1, style: BorderStyle.SINGLE, size: 16 },
-                },
-              })
-            );
-          }
-          break;
-      }
-    });
+    appendParsedContent(parsedContent);
 
     // Spacing between clauses
     if (clauseIdx < section.clauses.length - 1) {
