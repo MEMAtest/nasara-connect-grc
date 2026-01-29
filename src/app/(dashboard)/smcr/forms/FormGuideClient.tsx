@@ -4,24 +4,28 @@ import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, User, Briefcase, AlertTriangle } from "lucide-react";
+import { FileText, User, Briefcase, AlertTriangle, Edit3, ArrowRightLeft } from "lucide-react";
 import { format } from "date-fns";
 import { useSmcrData } from "../context/SmcrDataContext";
 
 // Types
-import type { FormAState, FormCState, EmploymentEntry, DirectorshipEntry } from './types/form-types';
+import type { FormAState, FormCState, FormDState, FormEState, EmploymentEntry, DirectorshipEntry } from './types/form-types';
 
 // Utils
 import { validators, validationMessages, type ValidatorKey } from './utils/form-validators';
 import {
   FORM_A_STORAGE_KEY,
   FORM_C_STORAGE_KEY,
+  FORM_D_STORAGE_KEY,
+  FORM_E_STORAGE_KEY,
   initialFormA,
   initialFormC,
+  initialFormD,
+  initialFormE,
   createEmptyEmployment,
   createEmptyDirectorship
 } from './utils/form-constants';
-import { generateFormHTML, generateFormCHTML, sanitizeFilename } from './utils/form-export';
+import { generateFormHTML, generateFormCHTML, generateFormDHTML, generateFormEHTML, sanitizeFilename } from './utils/form-export';
 
 // Components
 import { SectionInfo } from './components/SectionInfo';
@@ -47,6 +51,23 @@ import { FormCSection4Circumstances } from './components/FormCSection4Circumstan
 import { FormCSection5Handover } from './components/FormCSection5Handover';
 import { FormCSection6Declaration } from './components/FormCSection6Declaration';
 
+// Form D Components
+import { FormDSection1FirmDetails } from './components/FormDSection1FirmDetails';
+import { FormDSection2IndividualDetails } from './components/FormDSection2IndividualDetails';
+import { FormDSection3ChangeDetails } from './components/FormDSection3ChangeDetails';
+import { FormDSection4Declaration } from './components/FormDSection4Declaration';
+
+// Form E Components
+import { FormESection1FirmDetails } from './components/FormESection1FirmDetails';
+import { FormESection2IndividualDetails } from './components/FormESection2IndividualDetails';
+import { FormESection3CurrentFunctions } from './components/FormESection3CurrentFunctions';
+import { FormESection4NewFunctions } from './components/FormESection4NewFunctions';
+import { FormESection5TransferReason } from './components/FormESection5TransferReason';
+import { FormESection6Responsibilities } from './components/FormESection6Responsibilities';
+import { FormESection7Competency } from './components/FormESection7Competency';
+import { FormESection8Fitness } from './components/FormESection8Fitness';
+import { FormESection9Declarations } from './components/FormESection9Declarations';
+
 type SaveStatus = 'saved' | 'saving' | 'error' | 'quota-exceeded' | null;
 
 export function FormGuideClient() {
@@ -56,6 +77,8 @@ export function FormGuideClient() {
   const [activeTab, setActiveTab] = useState("form-a");
   const [activeSection, setActiveSection] = useState("1");
   const [formCSectionActive, setFormCSectionActive] = useState("1");
+  const [formDSectionActive, setFormDSectionActive] = useState("1");
+  const [formESectionActive, setFormESectionActive] = useState("1");
   const [formA, setFormA] = useState<FormAState>({
     ...initialFormA,
     firmName: activeFirm?.name || "",
@@ -64,8 +87,18 @@ export function FormGuideClient() {
     ...initialFormC,
     firmName: activeFirm?.name || "",
   });
+  const [formD, setFormD] = useState<FormDState>({
+    ...initialFormD,
+    firmName: activeFirm?.name || "",
+  });
+  const [formE, setFormE] = useState<FormEState>({
+    ...initialFormE,
+    firmName: activeFirm?.name || "",
+  });
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [formCValidationErrors, setFormCValidationErrors] = useState<Record<string, string>>({});
+  const [formDValidationErrors, setFormDValidationErrors] = useState<Record<string, string>>({});
+  const [formEValidationErrors, setFormEValidationErrors] = useState<Record<string, string>>({});
   const [saveStatus, setSaveStatus] = useState<SaveStatus>(null);
   const [exportError, setExportError] = useState<string | null>(null);
 
@@ -85,6 +118,24 @@ export function FormGuideClient() {
       if (savedDataC) {
         const parsed = JSON.parse(savedDataC) as Partial<FormCState>;
         setFormC(prev => ({
+          ...prev,
+          ...parsed,
+          firmName: activeFirm?.name || parsed.firmName || prev.firmName,
+        }));
+      }
+      const savedDataD = localStorage.getItem(FORM_D_STORAGE_KEY);
+      if (savedDataD) {
+        const parsed = JSON.parse(savedDataD) as Partial<FormDState>;
+        setFormD(prev => ({
+          ...prev,
+          ...parsed,
+          firmName: activeFirm?.name || parsed.firmName || prev.firmName,
+        }));
+      }
+      const savedDataE = localStorage.getItem(FORM_E_STORAGE_KEY);
+      if (savedDataE) {
+        const parsed = JSON.parse(savedDataE) as Partial<FormEState>;
+        setFormE(prev => ({
           ...prev,
           ...parsed,
           firmName: activeFirm?.name || parsed.firmName || prev.firmName,
@@ -137,6 +188,48 @@ export function FormGuideClient() {
     return () => clearTimeout(timeoutId);
   }, [formC]);
 
+  // Auto-save Form D data to localStorage (debounced)
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      try {
+        setSaveStatus('saving');
+        localStorage.setItem(FORM_D_STORAGE_KEY, JSON.stringify(formD));
+        setSaveStatus('saved');
+        setTimeout(() => setSaveStatus(null), 2000);
+      } catch (error) {
+        console.error('Failed to save Form D data:', error);
+        if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+          setSaveStatus('quota-exceeded');
+        } else {
+          setSaveStatus('error');
+        }
+      }
+    }, 1000);
+
+    return () => clearTimeout(timeoutId);
+  }, [formD]);
+
+  // Auto-save Form E data to localStorage (debounced)
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      try {
+        setSaveStatus('saving');
+        localStorage.setItem(FORM_E_STORAGE_KEY, JSON.stringify(formE));
+        setSaveStatus('saved');
+        setTimeout(() => setSaveStatus(null), 2000);
+      } catch (error) {
+        console.error('Failed to save Form E data:', error);
+        if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+          setSaveStatus('quota-exceeded');
+        } else {
+          setSaveStatus('error');
+        }
+      }
+    }, 1000);
+
+    return () => clearTimeout(timeoutId);
+  }, [formE]);
+
   // Clear saved form data
   const clearSavedForm = useCallback(() => {
     try {
@@ -147,13 +240,27 @@ export function FormGuideClient() {
           firmName: activeFirm?.name || "",
         });
         setValidationErrors({});
-      } else {
+      } else if (activeTab === "form-c") {
         localStorage.removeItem(FORM_C_STORAGE_KEY);
         setFormC({
           ...initialFormC,
           firmName: activeFirm?.name || "",
         });
         setFormCValidationErrors({});
+      } else if (activeTab === "form-d") {
+        localStorage.removeItem(FORM_D_STORAGE_KEY);
+        setFormD({
+          ...initialFormD,
+          firmName: activeFirm?.name || "",
+        });
+        setFormDValidationErrors({});
+      } else if (activeTab === "form-e") {
+        localStorage.removeItem(FORM_E_STORAGE_KEY);
+        setFormE({
+          ...initialFormE,
+          firmName: activeFirm?.name || "",
+        });
+        setFormEValidationErrors({});
       }
     } catch (error) {
       console.error('Failed to clear saved form:', error);
@@ -182,6 +289,40 @@ export function FormGuideClient() {
     if (validatorKey && validators[validatorKey as ValidatorKey]) {
       const isValid = validators[validatorKey as ValidatorKey](value);
       setFormCValidationErrors(prev => {
+        if (isValid) {
+          const { [field]: _, ...rest } = prev;
+          return rest;
+        } else {
+          return { ...prev, [field]: validationMessages[validatorKey] };
+        }
+      });
+      return isValid;
+    }
+    return true;
+  }, []);
+
+  // Validate a specific field for Form D
+  const validateFormDField = useCallback((field: string, value: string, validatorKey?: string) => {
+    if (validatorKey && validators[validatorKey as ValidatorKey]) {
+      const isValid = validators[validatorKey as ValidatorKey](value);
+      setFormDValidationErrors(prev => {
+        if (isValid) {
+          const { [field]: _, ...rest } = prev;
+          return rest;
+        } else {
+          return { ...prev, [field]: validationMessages[validatorKey] };
+        }
+      });
+      return isValid;
+    }
+    return true;
+  }, []);
+
+  // Validate a specific field for Form E
+  const validateFormEField = useCallback((field: string, value: string, validatorKey?: string) => {
+    if (validatorKey && validators[validatorKey as ValidatorKey]) {
+      const isValid = validators[validatorKey as ValidatorKey](value);
+      setFormEValidationErrors(prev => {
         if (isValid) {
           const { [field]: _, ...rest } = prev;
           return rest;
@@ -296,6 +437,16 @@ export function FormGuideClient() {
     setFormC((prev) => ({ ...prev, [field]: value }));
   };
 
+  // Form D update function
+  const updateFormD = <K extends keyof FormDState>(field: K, value: FormDState[K]) => {
+    setFormD((prev) => ({ ...prev, [field]: value }));
+  };
+
+  // Form E update function
+  const updateFormE = <K extends keyof FormEState>(field: K, value: FormEState[K]) => {
+    setFormE((prev) => ({ ...prev, [field]: value }));
+  };
+
   // Form C progress calculation
   const formCProgress = useMemo(() => {
     let filled = 0;
@@ -319,6 +470,61 @@ export function FormGuideClient() {
 
     return Math.round((filled / total) * 100);
   }, [formC]);
+
+  // Form D progress calculation
+  const formDProgress = useMemo(() => {
+    let filled = 0;
+    let total = 0;
+
+    const requiredFields = [
+      formD.firmName, formD.firmFRN, formD.submitterName,
+      formD.surname, formD.forenames, formD.individualReferenceNumber,
+      formD.currentFunction, formD.changeCategory,
+      formD.declarantName, formD.declarantSignature, formD.declarantDate,
+    ];
+
+    requiredFields.forEach((field) => {
+      total++;
+      if (field && String(field).trim()) filled++;
+    });
+
+    total++;
+    if (formD.firmDeclaration) filled++;
+
+    return Math.round((filled / total) * 100);
+  }, [formD]);
+
+  // Form E progress calculation
+  const formEProgress = useMemo(() => {
+    let filled = 0;
+    let total = 0;
+
+    const requiredFields = [
+      formE.firmName, formE.firmFRN, formE.submitterName,
+      formE.surname, formE.forenames, formE.individualReferenceNumber,
+      formE.ceasingDate, formE.newFunctionStartDate, formE.newJobTitle,
+      formE.transferReason, formE.relevantExperience,
+      formE.candidateSignature, formE.candidateSignatureDate,
+      formE.firmSignature, formE.firmSignatureDate,
+    ];
+
+    requiredFields.forEach((field) => {
+      total++;
+      if (field && String(field).trim()) filled++;
+    });
+
+    // Array fields
+    total += 2;
+    if (formE.currentFunctions.length > 0) filled++;
+    if (formE.newFunctions.length > 0) filled++;
+
+    // Boolean fields
+    total += 2;
+    if (formE.candidateDeclaration) filled++;
+    if (formE.firmDeclaration) filled++;
+
+    return Math.round((filled / total) * 100);
+  }, [formE]);
 
   const handlePrint = () => window.print();
 
@@ -360,6 +566,44 @@ export function FormGuideClient() {
     }
   };
 
+  const handleExportFormD = () => {
+    try {
+      setExportError(null);
+      const html = generateFormDHTML(formD);
+      const blob = new Blob([html], { type: "text/html" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `Form-D-${sanitizeFilename(formD.surname)}-${format(new Date(), "yyyy-MM-dd")}.html`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 100);
+    } catch (error) {
+      console.error('Export failed:', error);
+      setExportError('Failed to export form. Please try again.');
+    }
+  };
+
+  const handleExportFormE = () => {
+    try {
+      setExportError(null);
+      const html = generateFormEHTML(formE);
+      const blob = new Blob([html], { type: "text/html" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `Form-E-${sanitizeFilename(formE.surname)}-${format(new Date(), "yyyy-MM-dd")}.html`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 100);
+    } catch (error) {
+      console.error('Export failed:', error);
+      setExportError('Failed to export form. Please try again.');
+    }
+  };
+
   // Section navigation helpers
   const goToSection = (section: string) => setActiveSection(section);
   const nextSection = (current: string) => {
@@ -387,6 +631,22 @@ export function FormGuideClient() {
     validateField: validateFormCField,
   };
 
+  // Common props for Form D section components
+  const formDSectionProps = {
+    formData: formD,
+    updateField: updateFormD,
+    validationErrors: formDValidationErrors,
+    validateField: validateFormDField,
+  };
+
+  // Common props for Form E section components
+  const formESectionProps = {
+    formData: formE,
+    updateField: updateFormE,
+    validationErrors: formEValidationErrors,
+    validateField: validateFormEField,
+  };
+
   // Form C navigation helpers
   const nextFormCSection = (current: string) => {
     const next = String(Number(current) + 1);
@@ -397,12 +657,37 @@ export function FormGuideClient() {
     setFormCSectionActive(prev);
   };
 
+  // Form D navigation helpers
+  const nextFormDSection = (current: string) => {
+    const next = String(Number(current) + 1);
+    setFormDSectionActive(next);
+  };
+  const prevFormDSection = (current: string) => {
+    const prev = String(Number(current) - 1);
+    setFormDSectionActive(prev);
+  };
+
+  // Form E navigation helpers
+  const nextFormESection = (current: string) => {
+    const next = String(Number(current) + 1);
+    setFormESectionActive(next);
+  };
+  const prevFormESection = (current: string) => {
+    const prev = String(Number(current) - 1);
+    setFormESectionActive(prev);
+  };
+
   return (
     <div className="p-6 space-y-6">
       <FormHeader
         saveStatus={saveStatus}
         onPrint={handlePrint}
-        onExport={activeTab === "form-a" ? handleExport : handleExportFormC}
+        onExport={
+          activeTab === "form-a" ? handleExport :
+          activeTab === "form-c" ? handleExportFormC :
+          activeTab === "form-d" ? handleExportFormD :
+          handleExportFormE
+        }
         onClear={clearSavedForm}
       />
 
@@ -426,14 +711,22 @@ export function FormGuideClient() {
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="form-a" className="gap-2">
-            <User className="h-4 w-4" />
-            Form A (Long)
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="form-a" className="gap-1 text-xs">
+            <User className="h-3 w-3" />
+            Form A
           </TabsTrigger>
-          <TabsTrigger value="form-c" className="gap-2">
-            <Briefcase className="h-4 w-4" />
+          <TabsTrigger value="form-c" className="gap-1 text-xs">
+            <Briefcase className="h-3 w-3" />
             Form C
+          </TabsTrigger>
+          <TabsTrigger value="form-d" className="gap-1 text-xs">
+            <Edit3 className="h-3 w-3" />
+            Form D
+          </TabsTrigger>
+          <TabsTrigger value="form-e" className="gap-1 text-xs">
+            <ArrowRightLeft className="h-3 w-3" />
+            Form E
           </TabsTrigger>
         </TabsList>
 
@@ -605,6 +898,170 @@ export function FormGuideClient() {
               {...formCSectionProps}
               onBack={() => prevFormCSection("6")}
               onExport={handleExportFormC}
+            />
+          )}
+        </TabsContent>
+
+        <TabsContent value="form-d" className="space-y-4 mt-4">
+          <FormProgress progress={formDProgress} />
+
+          <SectionInfo title="Form D - Amendment to Details" variant="info">
+            <p>Use this form to notify the FCA of changes to an approved person's details, including name changes, contact details, or fitness and propriety matters.</p>
+          </SectionInfo>
+
+          {/* Form D Section Navigation */}
+          <div className="flex flex-wrap gap-1">
+            {[
+              { id: "1", label: "Firm" },
+              { id: "2", label: "Individual" },
+              { id: "3", label: "Changes" },
+              { id: "4", label: "Declaration" },
+            ].map((section) => (
+              <Button
+                key={section.id}
+                variant={formDSectionActive === section.id ? "default" : "outline"}
+                size="sm"
+                onClick={() => setFormDSectionActive(section.id)}
+                className="text-xs"
+              >
+                {section.id}. {section.label}
+              </Button>
+            ))}
+          </div>
+
+          {formDSectionActive === "1" && (
+            <FormDSection1FirmDetails
+              {...formDSectionProps}
+              onNext={() => nextFormDSection("1")}
+            />
+          )}
+
+          {formDSectionActive === "2" && (
+            <FormDSection2IndividualDetails
+              {...formDSectionProps}
+              onNext={() => nextFormDSection("2")}
+              onBack={() => prevFormDSection("2")}
+            />
+          )}
+
+          {formDSectionActive === "3" && (
+            <FormDSection3ChangeDetails
+              {...formDSectionProps}
+              onNext={() => nextFormDSection("3")}
+              onBack={() => prevFormDSection("3")}
+            />
+          )}
+
+          {formDSectionActive === "4" && (
+            <FormDSection4Declaration
+              {...formDSectionProps}
+              onBack={() => prevFormDSection("4")}
+              onExport={handleExportFormD}
+            />
+          )}
+        </TabsContent>
+
+        <TabsContent value="form-e" className="space-y-4 mt-4">
+          <FormProgress progress={formEProgress} />
+
+          <SectionInfo title="Form E - Internal Transfer" variant="warning">
+            <p><strong>Processing time:</strong> SMF transfers take up to 3 months. The individual must not perform the new function until FCA approval is granted.</p>
+            <p className="mt-1">Use this form when transferring an approved person to a different controlled function within the same firm.</p>
+          </SectionInfo>
+
+          {/* Form E Section Navigation */}
+          <div className="flex flex-wrap gap-1">
+            {[
+              { id: "1", label: "Firm" },
+              { id: "2", label: "Individual" },
+              { id: "3", label: "Ceasing" },
+              { id: "4", label: "New Role" },
+              { id: "5", label: "Reason" },
+              { id: "6", label: "SoR" },
+              { id: "7", label: "Competency" },
+              { id: "8", label: "F&P" },
+              { id: "9", label: "Declaration" },
+            ].map((section) => (
+              <Button
+                key={section.id}
+                variant={formESectionActive === section.id ? "default" : "outline"}
+                size="sm"
+                onClick={() => setFormESectionActive(section.id)}
+                className="text-xs"
+              >
+                {section.id}. {section.label}
+              </Button>
+            ))}
+          </div>
+
+          {formESectionActive === "1" && (
+            <FormESection1FirmDetails
+              {...formESectionProps}
+              onNext={() => nextFormESection("1")}
+            />
+          )}
+
+          {formESectionActive === "2" && (
+            <FormESection2IndividualDetails
+              {...formESectionProps}
+              onNext={() => nextFormESection("2")}
+              onBack={() => prevFormESection("2")}
+            />
+          )}
+
+          {formESectionActive === "3" && (
+            <FormESection3CurrentFunctions
+              {...formESectionProps}
+              onNext={() => nextFormESection("3")}
+              onBack={() => prevFormESection("3")}
+            />
+          )}
+
+          {formESectionActive === "4" && (
+            <FormESection4NewFunctions
+              {...formESectionProps}
+              onNext={() => nextFormESection("4")}
+              onBack={() => prevFormESection("4")}
+            />
+          )}
+
+          {formESectionActive === "5" && (
+            <FormESection5TransferReason
+              {...formESectionProps}
+              onNext={() => nextFormESection("5")}
+              onBack={() => prevFormESection("5")}
+            />
+          )}
+
+          {formESectionActive === "6" && (
+            <FormESection6Responsibilities
+              {...formESectionProps}
+              onNext={() => nextFormESection("6")}
+              onBack={() => prevFormESection("6")}
+            />
+          )}
+
+          {formESectionActive === "7" && (
+            <FormESection7Competency
+              {...formESectionProps}
+              onNext={() => nextFormESection("7")}
+              onBack={() => prevFormESection("7")}
+            />
+          )}
+
+          {formESectionActive === "8" && (
+            <FormESection8Fitness
+              {...formESectionProps}
+              onNext={() => nextFormESection("8")}
+              onBack={() => prevFormESection("8")}
+            />
+          )}
+
+          {formESectionActive === "9" && (
+            <FormESection9Declarations
+              {...formESectionProps}
+              onBack={() => prevFormESection("9")}
+              onExport={handleExportFormE}
             />
           )}
         </TabsContent>

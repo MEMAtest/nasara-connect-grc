@@ -218,3 +218,141 @@ export interface SectionItem {
   label: string;
   icon: React.ComponentType<{ className?: string }>;
 }
+
+// Form D - Amendment to Details of Approved Person
+export interface FormDState {
+  // Section 1: Firm Details
+  firmName: string;
+  firmFRN: string;
+  firmAddress: string;
+  submitterName: string;
+  submitterEmail: string;
+  submitterPhone: string;
+  submitterPosition: string;
+
+  // Section 2: Individual Details
+  title: string;
+  surname: string;
+  forenames: string;
+  individualReferenceNumber: string;
+  dateOfBirth: string;
+  currentFunction: string;
+
+  // Section 3: Change Category
+  changeCategory: string; // name, contact, ni, fitness, other
+
+  // Section 3a: Name Change
+  previousSurname: string;
+  previousForenames: string;
+  newSurname: string;
+  newForenames: string;
+  reasonForNameChange: string;
+  nameChangeDate: string;
+
+  // Section 3b: Contact Changes
+  previousAddress: string;
+  newAddress: string;
+  previousEmail: string;
+  newEmail: string;
+  previousPhone: string;
+  newPhone: string;
+
+  // Section 3c: NI Number Correction
+  previousNI: string;
+  correctedNI: string;
+  niCorrectionReason: string;
+
+  // Section 3d: Fitness & Propriety Updates
+  fitnessCategory: string; // criminal, civil, regulatory, financial, other
+  fitnessDetails: string;
+  dateOfOccurrence: string;
+
+  // Section 3e: Other Changes
+  otherChangeDescription: string;
+  otherChangeDetails: string;
+
+  // Section 4: Declaration
+  firmDeclaration: boolean;
+  declarantName: string;
+  declarantPosition: string;
+  declarantSignature: string;
+  declarantDate: string;
+}
+
+// Form D Section props
+export interface FormDSectionProps {
+  formData: FormDState;
+  updateField: <K extends keyof FormDState>(field: K, value: FormDState[K]) => void;
+  validationErrors: Record<string, string>;
+  validateField: (field: string, value: string, validator?: string) => boolean;
+  onNext?: () => void;
+  onBack?: () => void;
+}
+
+// Form E - Internal Transfer
+export interface FormEState {
+  // Section 1: Firm Details
+  firmName: string;
+  firmFRN: string;
+  firmAddress: string;
+  submitterName: string;
+  submitterEmail: string;
+  submitterPhone: string;
+  submitterPosition: string;
+
+  // Section 2: Individual Details
+  title: string;
+  surname: string;
+  forenames: string;
+  individualReferenceNumber: string;
+  dateOfBirth: string;
+  nationalInsurance: string;
+
+  // Section 3: Current Function(s) Being Ceased
+  currentFunctions: string[];
+  ceasingDate: string;
+
+  // Section 4: New Function(s) Being Applied For
+  newFunctions: string[];
+  newFunctionStartDate: string;
+  newJobTitle: string;
+  newReportingTo: string;
+  newDirectReports: string;
+  timeCommitment: string;
+  hoursPerWeek: string;
+
+  // Section 5: Reason for Transfer
+  transferReason: string; // promotion, restructure, business-need, personal-request, other
+  transferDetails: string;
+
+  // Section 6: Statement of Responsibilities (for SMF)
+  newResponsibilities: string;
+  prescribedResponsibilities: string[];
+  additionalResponsibilities: string;
+
+  // Section 7: Competency for New Role
+  relevantExperience: string;
+  additionalTraining: string;
+
+  // Section 8: Fitness & Propriety
+  hasNewFitnessMatters: boolean;
+  fitnessMattersDetails: string;
+
+  // Section 9: Declarations
+  candidateDeclaration: boolean;
+  candidateSignature: string;
+  candidateSignatureDate: string;
+  firmDeclaration: boolean;
+  firmSignature: string;
+  firmSignatureDate: string;
+}
+
+// Form E Section props
+export interface FormESectionProps {
+  formData: FormEState;
+  updateField: <K extends keyof FormEState>(field: K, value: FormEState[K]) => void;
+  validationErrors: Record<string, string>;
+  validateField: (field: string, value: string, validator?: string) => boolean;
+  onNext?: () => void;
+  onBack?: () => void;
+}
