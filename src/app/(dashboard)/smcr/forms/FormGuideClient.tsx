@@ -4,12 +4,12 @@ import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, User, Briefcase, AlertTriangle, Edit3, ArrowRightLeft } from "lucide-react";
+import { FileText, User, Briefcase, AlertTriangle, Edit3, ArrowRightLeft, CreditCard } from "lucide-react";
 import { format } from "date-fns";
 import { useSmcrData } from "../context/SmcrDataContext";
 
 // Types
-import type { FormAState, FormCState, FormDState, FormEState, EmploymentEntry, DirectorshipEntry } from './types/form-types';
+import type { FormAState, FormCState, FormDState, FormEState, PSDIndividualFormState, EmploymentEntry, DirectorshipEntry, PSDEmploymentEntry, PSDQualificationEntry, PSDAddressEntry } from './types/form-types';
 
 // Utils
 import { validators, validationMessages, type ValidatorKey } from './utils/form-validators';
@@ -18,14 +18,19 @@ import {
   FORM_C_STORAGE_KEY,
   FORM_D_STORAGE_KEY,
   FORM_E_STORAGE_KEY,
+  PSD_FORM_STORAGE_KEY,
   initialFormA,
   initialFormC,
   initialFormD,
   initialFormE,
+  initialPSDIndividualForm,
   createEmptyEmployment,
-  createEmptyDirectorship
+  createEmptyDirectorship,
+  createEmptyPSDEmployment,
+  createEmptyPSDQualification,
+  createEmptyPSDAddress
 } from './utils/form-constants';
-import { generateFormHTML, generateFormCHTML, generateFormDHTML, generateFormEHTML, sanitizeFilename } from './utils/form-export';
+import { generateFormHTML, generateFormCHTML, generateFormDHTML, generateFormEHTML, generatePSDIndividualHTML, sanitizeFilename } from './utils/form-export';
 
 // Components
 import { SectionInfo } from './components/SectionInfo';
@@ -68,6 +73,15 @@ import { FormESection7Competency } from './components/FormESection7Competency';
 import { FormESection8Fitness } from './components/FormESection8Fitness';
 import { FormESection9Declarations } from './components/FormESection9Declarations';
 
+// PSD Individual Form Components
+import { PSDSection1PersonalDetails } from './components/PSDSection1PersonalDetails';
+import { PSDSection2FirmDetails } from './components/PSDSection2FirmDetails';
+import { PSDSection3Arrangements } from './components/PSDSection3Arrangements';
+import { PSDSection4Employment } from './components/PSDSection4Employment';
+import { PSDSection5FitnessPropriety } from './components/PSDSection5FitnessPropriety';
+import { PSDSection6SupplementaryInfo } from './components/PSDSection6SupplementaryInfo';
+import { PSDSection7Declarations } from './components/PSDSection7Declarations';
+
 type SaveStatus = 'saved' | 'saving' | 'error' | 'quota-exceeded' | null;
 
 export function FormGuideClient() {
@@ -79,6 +93,7 @@ export function FormGuideClient() {
   const [formCSectionActive, setFormCSectionActive] = useState("1");
   const [formDSectionActive, setFormDSectionActive] = useState("1");
   const [formESectionActive, setFormESectionActive] = useState("1");
+  const [psdSectionActive, setPSDSectionActive] = useState("1");
   const [formA, setFormA] = useState<FormAState>({
     ...initialFormA,
     firmName: activeFirm?.name || "",
@@ -95,10 +110,15 @@ export function FormGuideClient() {
     ...initialFormE,
     firmName: activeFirm?.name || "",
   });
+  const [formPSD, setFormPSD] = useState<PSDIndividualFormState>({
+    ...initialPSDIndividualForm,
+    firmName: activeFirm?.name || "",
+  });
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [formCValidationErrors, setFormCValidationErrors] = useState<Record<string, string>>({});
   const [formDValidationErrors, setFormDValidationErrors] = useState<Record<string, string>>({});
   const [formEValidationErrors, setFormEValidationErrors] = useState<Record<string, string>>({});
+  const [formPSDValidationErrors, setFormPSDValidationErrors] = useState<Record<string, string>>({});
   const [saveStatus, setSaveStatus] = useState<SaveStatus>(null);
   const [exportError, setExportError] = useState<string | null>(null);
 
@@ -136,6 +156,15 @@ export function FormGuideClient() {
       if (savedDataE) {
         const parsed = JSON.parse(savedDataE) as Partial<FormEState>;
         setFormE(prev => ({
+          ...prev,
+          ...parsed,
+          firmName: activeFirm?.name || parsed.firmName || prev.firmName,
+        }));
+      }
+      const savedDataPSD = localStorage.getItem(PSD_FORM_STORAGE_KEY);
+      if (savedDataPSD) {
+        const parsed = JSON.parse(savedDataPSD) as Partial<PSDIndividualFormState>;
+        setFormPSD(prev => ({
           ...prev,
           ...parsed,
           firmName: activeFirm?.name || parsed.firmName || prev.firmName,
@@ -230,6 +259,27 @@ export function FormGuideClient() {
     return () => clearTimeout(timeoutId);
   }, [formE]);
 
+  // Auto-save PSD Individual Form data to localStorage (debounced)
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      try {
+        setSaveStatus('saving');
+        localStorage.setItem(PSD_FORM_STORAGE_KEY, JSON.stringify(formPSD));
+        setSaveStatus('saved');
+        setTimeout(() => setSaveStatus(null), 2000);
+      } catch (error) {
+        console.error('Failed to save PSD form data:', error);
+        if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+          setSaveStatus('quota-exceeded');
+        } else {
+          setSaveStatus('error');
+        }
+      }
+    }, 1000);
+
+    return () => clearTimeout(timeoutId);
+  }, [formPSD]);
+
   // Clear saved form data
   const clearSavedForm = useCallback(() => {
     try {
@@ -261,6 +311,13 @@ export function FormGuideClient() {
           firmName: activeFirm?.name || "",
         });
         setFormEValidationErrors({});
+      } else if (activeTab === "psd-individual") {
+        localStorage.removeItem(PSD_FORM_STORAGE_KEY);
+        setFormPSD({
+          ...initialPSDIndividualForm,
+          firmName: activeFirm?.name || "",
+        });
+        setFormPSDValidationErrors({});
       }
     } catch (error) {
       console.error('Failed to clear saved form:', error);
@@ -323,6 +380,23 @@ export function FormGuideClient() {
     if (validatorKey && validators[validatorKey as ValidatorKey]) {
       const isValid = validators[validatorKey as ValidatorKey](value);
       setFormEValidationErrors(prev => {
+        if (isValid) {
+          const { [field]: _, ...rest } = prev;
+          return rest;
+        } else {
+          return { ...prev, [field]: validationMessages[validatorKey] };
+        }
+      });
+      return isValid;
+    }
+    return true;
+  }, []);
+
+  // Validate a specific field for PSD Individual Form
+  const validateFormPSDField = useCallback((field: string, value: string, validatorKey?: string) => {
+    if (validatorKey && validators[validatorKey as ValidatorKey]) {
+      const isValid = validators[validatorKey as ValidatorKey](value);
+      setFormPSDValidationErrors(prev => {
         if (isValid) {
           const { [field]: _, ...rest } = prev;
           return rest;
@@ -447,6 +521,95 @@ export function FormGuideClient() {
     setFormE((prev) => ({ ...prev, [field]: value }));
   };
 
+  // PSD Individual Form update function
+  const updateFormPSD = <K extends keyof PSDIndividualFormState>(field: K, value: PSDIndividualFormState[K]) => {
+    setFormPSD((prev) => ({ ...prev, [field]: value }));
+  };
+
+  // PSD Employment management
+  const addPSDEmployment = () => {
+    setFormPSD((prev) => ({
+      ...prev,
+      employmentHistory: [...prev.employmentHistory, createEmptyPSDEmployment()],
+    }));
+  };
+
+  const updatePSDEmployment = <K extends keyof PSDEmploymentEntry>(
+    id: string,
+    field: K,
+    value: PSDEmploymentEntry[K]
+  ) => {
+    setFormPSD((prev) => ({
+      ...prev,
+      employmentHistory: prev.employmentHistory.map((emp) =>
+        emp.id === id ? { ...emp, [field]: value } : emp
+      ),
+    }));
+  };
+
+  const removePSDEmployment = (id: string) => {
+    setFormPSD((prev) => ({
+      ...prev,
+      employmentHistory: prev.employmentHistory.filter((emp) => emp.id !== id),
+    }));
+  };
+
+  // PSD Qualification management
+  const addPSDQualification = () => {
+    setFormPSD((prev) => ({
+      ...prev,
+      qualifications: [...prev.qualifications, createEmptyPSDQualification()],
+    }));
+  };
+
+  const updatePSDQualification = <K extends keyof PSDQualificationEntry>(
+    id: string,
+    field: K,
+    value: PSDQualificationEntry[K]
+  ) => {
+    setFormPSD((prev) => ({
+      ...prev,
+      qualifications: prev.qualifications.map((qual) =>
+        qual.id === id ? { ...qual, [field]: value } : qual
+      ),
+    }));
+  };
+
+  const removePSDQualification = (id: string) => {
+    setFormPSD((prev) => ({
+      ...prev,
+      qualifications: prev.qualifications.filter((qual) => qual.id !== id),
+    }));
+  };
+
+  // PSD Address management
+  const addPSDAddress = () => {
+    setFormPSD((prev) => ({
+      ...prev,
+      previousAddresses: [...prev.previousAddresses, createEmptyPSDAddress()],
+    }));
+  };
+
+  const updatePSDAddress = <K extends keyof PSDAddressEntry>(
+    id: string,
+    field: K,
+    value: PSDAddressEntry[K]
+  ) => {
+    setFormPSD((prev) => ({
+      ...prev,
+      previousAddresses: prev.previousAddresses.map((addr) =>
+        addr.id === id ? { ...addr, [field]: value } : addr
+      ),
+    }));
+  };
+
+  const removePSDAddress = (id: string) => {
+    setFormPSD((prev) => ({
+      ...prev,
+      previousAddresses: prev.previousAddresses.filter((addr) => addr.id !== id),
+    }));
+  };
+
   // Form C progress calculation
   const formCProgress = useMemo(() => {
     let filled = 0;
@@ -526,6 +689,32 @@ export function FormGuideClient() {
     return Math.round((filled / total) * 100);
   }, [formE]);
 
+  // PSD Individual Form progress calculation
+  const formPSDProgress = useMemo(() => {
+    let filled = 0;
+    let total = 0;
+
+    const requiredFields = [
+      formPSD.surname, formPSD.forenames, formPSD.dateOfBirth, formPSD.nationality,
+      formPSD.currentAddress, formPSD.currentPostcode,
+      formPSD.firmName, formPSD.firmFRN, formPSD.contactName, formPSD.contactEmail,
+      formPSD.positionType, formPSD.keyDutiesResponsibilities,
+      formPSD.individualFullName, formPSD.individualSignature, formPSD.individualSignatureDate,
+      formPSD.firmNameDeclaration, formPSD.firmSignatoryName, formPSD.firmSignature, formPSD.firmSignatureDate,
+    ];
+
+    requiredFields.forEach((field) => {
+      total++;
+      if (field && String(field).trim()) filled++;
+    });
+
+    // Employment history
+    total++;
+    if (formPSD.employmentHistory.length > 0 && formPSD.employmentHistory[0].employerName) filled++;
+
+    return Math.round((filled / total) * 100);
+  }, [formPSD]);
+
   const handlePrint = () => window.print();
 
   const handleExport = () => {
@@ -604,6 +793,25 @@ export function FormGuideClient() {
     }
   };
 
+  const handleExportFormPSD = () => {
+    try {
+      setExportError(null);
+      const html = generatePSDIndividualHTML(formPSD);
+      const blob = new Blob([html], { type: "text/html" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `PSD-Individual-${sanitizeFilename(formPSD.surname)}-${format(new Date(), "yyyy-MM-dd")}.html`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 100);
+    } catch (error) {
+      console.error('Export failed:', error);
+      setExportError('Failed to export form. Please try again.');
+    }
+  };
+
   // Section navigation helpers
   const goToSection = (section: string) => setActiveSection(section);
   const nextSection = (current: string) => {
@@ -647,6 +855,14 @@ export function FormGuideClient() {
     validateField: validateFormEField,
   };
 
+  // Common props for PSD Individual Form section components
+  const formPSDSectionProps = {
+    formData: formPSD,
+    updateField: updateFormPSD,
+    validationErrors: formPSDValidationErrors,
+    validateField: validateFormPSDField,
+  };
+
   // Form C navigation helpers
   const nextFormCSection = (current: string) => {
     const next = String(Number(current) + 1);
@@ -677,6 +893,16 @@ export function FormGuideClient() {
     setFormESectionActive(prev);
   };
 
+  // PSD navigation helpers
+  const nextPSDSection = (current: string) => {
+    const next = String(Number(current) + 1);
+    setPSDSectionActive(next);
+  };
+  const prevPSDSection = (current: string) => {
+    const prev = String(Number(current) - 1);
+    setPSDSectionActive(prev);
+  };
+
   return (
     <div className="p-6 space-y-6">
       <FormHeader
@@ -686,7 +912,8 @@ export function FormGuideClient() {
           activeTab === "form-a" ? handleExport :
           activeTab === "form-c" ? handleExportFormC :
           activeTab === "form-d" ? handleExportFormD :
-          handleExportFormE
+          activeTab === "form-e" ? handleExportFormE :
+          handleExportFormPSD
         }
         onClear={clearSavedForm}
       />
@@ -711,7 +938,7 @@ export function FormGuideClient() {
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="form-a" className="gap-1 text-xs">
             <User className="h-3 w-3" />
             Form A
@@ -727,6 +954,10 @@ export function FormGuideClient() {
           <TabsTrigger value="form-e" className="gap-1 text-xs">
             <ArrowRightLeft className="h-3 w-3" />
             Form E
+          </TabsTrigger>
+          <TabsTrigger value="psd-individual" className="gap-1 text-xs">
+            <CreditCard className="h-3 w-3" />
+            PSD
           </TabsTrigger>
         </TabsList>
 
@@ -1062,6 +1293,102 @@ export function FormGuideClient() {
               {...formESectionProps}
               onBack={() => prevFormESection("9")}
               onExport={handleExportFormE}
+            />
+          )}
+        </TabsContent>
+
+        <TabsContent value="psd-individual" className="space-y-4 mt-4">
+          <FormProgress progress={formPSDProgress} />
+
+          <SectionInfo title="PSD Individual Form - Payment Services" variant="info">
+            <p>Application Form for an individual responsible for the management of a Payment Institution under Payment Services Regulations 2017.</p>
+            <p className="mt-1"><strong>Important:</strong> A full 10-year employment history must be provided. All gaps must be accounted for.</p>
+          </SectionInfo>
+
+          {/* PSD Section Navigation */}
+          <div className="flex flex-wrap gap-1">
+            {[
+              { id: "1", label: "Personal" },
+              { id: "2", label: "Firm" },
+              { id: "3", label: "Arrangements" },
+              { id: "4", label: "Employment" },
+              { id: "5", label: "F&P" },
+              { id: "6", label: "Supplementary" },
+              { id: "7", label: "Declaration" },
+            ].map((section) => (
+              <Button
+                key={section.id}
+                variant={psdSectionActive === section.id ? "default" : "outline"}
+                size="sm"
+                onClick={() => setPSDSectionActive(section.id)}
+                className="text-xs"
+              >
+                {section.id}. {section.label}
+              </Button>
+            ))}
+          </div>
+
+          {psdSectionActive === "1" && (
+            <PSDSection1PersonalDetails
+              {...formPSDSectionProps}
+              addAddress={addPSDAddress}
+              updateAddress={updatePSDAddress}
+              removeAddress={removePSDAddress}
+              onNext={() => nextPSDSection("1")}
+            />
+          )}
+
+          {psdSectionActive === "2" && (
+            <PSDSection2FirmDetails
+              {...formPSDSectionProps}
+              onNext={() => nextPSDSection("2")}
+              onBack={() => prevPSDSection("2")}
+            />
+          )}
+
+          {psdSectionActive === "3" && (
+            <PSDSection3Arrangements
+              {...formPSDSectionProps}
+              onNext={() => nextPSDSection("3")}
+              onBack={() => prevPSDSection("3")}
+            />
+          )}
+
+          {psdSectionActive === "4" && (
+            <PSDSection4Employment
+              {...formPSDSectionProps}
+              addEmployment={addPSDEmployment}
+              updateEmployment={updatePSDEmployment}
+              removeEmployment={removePSDEmployment}
+              addQualification={addPSDQualification}
+              updateQualification={updatePSDQualification}
+              removeQualification={removePSDQualification}
+              onNext={() => nextPSDSection("4")}
+              onBack={() => prevPSDSection("4")}
+            />
+          )}
+
+          {psdSectionActive === "5" && (
+            <PSDSection5FitnessPropriety
+              {...formPSDSectionProps}
+              onNext={() => nextPSDSection("5")}
+              onBack={() => prevPSDSection("5")}
+            />
+          )}
+
+          {psdSectionActive === "6" && (
+            <PSDSection6SupplementaryInfo
+              {...formPSDSectionProps}
+              onNext={() => nextPSDSection("6")}
+              onBack={() => prevPSDSection("6")}
+            />
+          )}
+
+          {psdSectionActive === "7" && (
+            <PSDSection7Declarations
+              {...formPSDSectionProps}
+              onBack={() => prevPSDSection("7")}
+              onExport={handleExportFormPSD}
             />
           )}
         </TabsContent>
