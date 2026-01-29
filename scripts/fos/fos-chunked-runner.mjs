@@ -5,6 +5,7 @@
 */
 
 import { spawnSync } from "node:child_process";
+import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -70,6 +71,26 @@ function run(cmd, args) {
   }
 }
 
+function dedupeIndex(filePath) {
+  const raw = readFileSync(filePath, "utf8");
+  const lines = raw.split("\n").map((line) => line.trim()).filter(Boolean);
+  const seen = new Set();
+  const output = [];
+  for (const line of lines) {
+    try {
+      const row = JSON.parse(line);
+      const key = row.pdf_url || row.source_url || row.decision_reference;
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      output.push(JSON.stringify(row));
+    } catch {
+      // ignore malformed lines
+    }
+  }
+  writeFileSync(filePath, `${output.join("\n")}\n`, "utf8");
+  return output.length;
+}
+
 function main() {
   const args = parseArgs(process.argv.slice(2));
   const startDate = args["start-date"] || "2013-04-01";
@@ -115,6 +136,11 @@ function main() {
       parseArgs.push("--index", indexPath);
     }
     run("node", parseArgs);
+
+    if (indexPath) {
+      const total = dedupeIndex(indexPath);
+      console.log(`Deduped index → ${indexPath} (${total} rows)`);
+    }
   }
 }
 

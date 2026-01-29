@@ -11,10 +11,17 @@ import { NasaraLoader } from "@/components/ui/nasara-loader";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { WorkspaceHeader } from "./WorkspaceHeader";
-import { FCAChecklist } from "./FCAChecklist";
+import { TimelineProgress } from "./TimelineProgress";
+import { ChecklistCards } from "./ChecklistCards";
 import { packTypeLabels, PackType } from "@/lib/authorization-pack-templates";
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 import { Calendar, FileText, BarChart3, Download, Target } from "lucide-react";
+import { type ChecklistItemStatus } from "@/lib/fca-api-checklist";
+import {
+  isValidChecklistResponse,
+  isValidProjectResponse,
+  isValidReadinessResponse,
+} from "@/lib/checklist-constants";
 
 interface PackRow {
   id: string;
@@ -43,6 +50,11 @@ interface ProjectSummary {
   name: string;
 }
 
+interface ProjectPlan {
+  startDate?: string;
+  totalWeeks?: number;
+}
+
 // Status options for pack
 const PACK_STATUS_OPTIONS = [
   { value: "draft", label: "Draft", color: "bg-slate-100 text-slate-700" },
@@ -66,10 +78,13 @@ export function OverviewClient() {
   const [readiness, setReadiness] = useState<ReadinessSummary | null>(null);
   const [templates, setTemplates] = useState<TemplateSummary[]>([]);
   const [project, setProject] = useState<ProjectSummary | null>(null);
+  const [projectPlan, setProjectPlan] = useState<ProjectPlan | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [mutationError, setMutationError] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [selectedPhase, setSelectedPhase] = useState<string | null>(null);
+  const [checklistStatuses, setChecklistStatuses] = useState<Record<string, ChecklistItemStatus>>({});
 
   const [wizardState, setWizardState] = useState({
     name: "",
@@ -81,7 +96,7 @@ export function OverviewClient() {
     setIsLoading(true);
     setLoadError(null);
     try {
-      const packResponse = await fetchWithTimeout("/api/authorization-pack/packs?organizationId=default-org").catch(
+      const packResponse = await fetchWithTimeout("/api/authorization-pack/packs").catch(
         () => null
       );
       if (!packResponse || !packResponse.ok) {
@@ -100,23 +115,56 @@ export function OverviewClient() {
           router.replace(`/authorization-pack/workspace?packId=${activePack.id}`);
         }
 
-        const [readinessResponse, projectResponse] = await Promise.all([
+        const [readinessResponse, projectResponse, checklistResponse] = await Promise.all([
           fetchWithTimeout(`/api/authorization-pack/packs/${activePack.id}`).catch(() => null),
           fetchWithTimeout(`/api/authorization-pack/packs/${activePack.id}/project`).catch(() => null),
+          fetchWithTimeout(`/api/authorization-pack/packs/${activePack.id}/checklist`).catch(() => null),
         ]);
 
         if (readinessResponse?.ok) {
           const readinessData = await readinessResponse.json();
-          setReadiness(readinessData.readiness);
+          // Validate response before using
+          if (isValidReadinessResponse(readinessData)) {
+            setReadiness(readinessData.readiness);
+          } else {
+            console.warn("Invalid readiness response format:", readinessData);
+          }
         }
 
         if (projectResponse?.ok) {
           const projectData = await projectResponse.json();
-          setProject(projectData.project || null);
+          // Validate response before using
+          if (isValidProjectResponse(projectData)) {
+            setProject(projectData.project || null);
+            // Also fetch project plan if project exists
+            if (projectData.project?.id) {
+              const planResponse = await fetchWithTimeout(
+                `/api/authorization-pack/projects/${projectData.project.id}`
+              ).catch(() => null);
+              if (planResponse?.ok) {
+                const planData = await planResponse.json();
+                setProjectPlan(planData.project?.projectPlan || null);
+              }
+            }
+          } else {
+            console.warn("Invalid project response format:", projectData);
+          }
+        }
+
+        if (checklistResponse?.ok) {
+          const checklistData = await checklistResponse.json();
+          // Validate response before using
+          if (isValidChecklistResponse(checklistData)) {
+            setChecklistStatuses(checklistData.checklist as Record<string, ChecklistItemStatus>);
+          } else {
+            console.warn("Invalid checklist response format:", checklistData);
+          }
         }
       } else {
         setReadiness(null);
         setProject(null);
+        setProjectPlan(null);
+        setChecklistStatuses({});
         const templateResponse = await fetchWithTimeout("/api/authorization-pack/templates").catch(() => null);
         if (!templateResponse || !templateResponse.ok) {
           setLoadError("Unable to load templates. Check the database connection and try again.");
@@ -153,7 +201,6 @@ export function OverviewClient() {
         body: JSON.stringify({
           name: wizardState.name,
           templateType: wizardState.templateType,
-          organizationId: "default-org",
           targetSubmissionDate: wizardState.targetSubmissionDate || null,
         }),
       });
@@ -194,6 +241,11 @@ export function OverviewClient() {
       setPack((prev) => (prev ? { ...prev, status: previousStatus } : null));
       setMutationError(error instanceof Error ? error.message : "Failed to update status. Please try again.");
     }
+  };
+
+  // Handler for checklist status updates (for syncing timeline progress)
+  const handleChecklistStatusChange = (itemId: string, status: ChecklistItemStatus) => {
+    setChecklistStatuses((prev) => ({ ...prev, [itemId]: status }));
   };
 
   // Loading state
@@ -441,8 +493,21 @@ export function OverviewClient() {
         </Card>
       </div>
 
-      {/* FCA API Documentation Checklist */}
-      <FCAChecklist packId={pack.id} />
+      {/* Project Timeline */}
+      <TimelineProgress
+        statuses={checklistStatuses}
+        startDate={projectPlan?.startDate}
+        selectedPhase={selectedPhase}
+        onPhaseSelect={setSelectedPhase}
+      />
+
+      {/* Documentation Checklist Cards */}
+      <ChecklistCards
+        packId={pack.id}
+        selectedPhase={selectedPhase}
+        initialStatuses={checklistStatuses}
+        onStatusChange={handleChecklistStatusChange}
+      />
     </div>
   );
 }

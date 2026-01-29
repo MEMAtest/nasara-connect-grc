@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createPack, getPack, getPackTemplates, getPacks } from "@/lib/authorization-pack-db";
 import { requireAuth } from "@/lib/auth-utils";
-import { DEFAULT_ORGANIZATION_ID } from "@/lib/constants";
 import { createNotification } from "@/lib/server/notifications-store";
 import {
   checkRateLimit,
@@ -82,7 +81,7 @@ export async function POST(request: NextRequest) {
 
     try {
       await createNotification({
-        organizationId: DEFAULT_ORGANIZATION_ID,
+        organizationId: auth.organizationId,
         title: "Authorization pack created",
         message: `Pack "${name}" created from ${template.name}.`,
         severity: "success",

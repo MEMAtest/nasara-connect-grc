@@ -1,4 +1,4 @@
-import type { FormAState, FormCState, FormDState, FormEState, EmploymentEntry, DirectorshipEntry, PrescribedResponsibility } from '../types/form-types';
+import type { FormAState, FormCState, FormDState, FormEState, PSDIndividualFormState, EmploymentEntry, DirectorshipEntry, PrescribedResponsibility, PSDEmploymentEntry, PSDQualificationEntry, PSDAddressEntry } from '../types/form-types';
 
 // LocalStorage keys for form persistence
 export const FORM_A_STORAGE_KEY = 'nasara-form-a-draft';
@@ -360,6 +360,170 @@ export const initialFormE: FormEState = {
   candidateSignature: "",
   candidateSignatureDate: "",
   firmDeclaration: false,
+  firmSignature: "",
+  firmSignatureDate: "",
+};
+
+// PSD Individual Form - Payment Services Regulations 2017
+export const PSD_FORM_STORAGE_KEY = 'nasara-psd-individual-draft';
+
+export const psdPositionTypes = [
+  { value: "executive-director", label: "Executive Director / Partner or other member of the executive management board" },
+  { value: "non-executive", label: "Non-executive Director or Manager of the Payment Institution" },
+  { value: "other", label: "Other" },
+];
+
+export const psdNatureOfEmployment = [
+  { value: "employed", label: "Employed" },
+  { value: "self-employed", label: "Self-employed" },
+  { value: "unemployed", label: "Unemployed" },
+  { value: "education", label: "In full-time education" },
+];
+
+export const psdReasonsForLeaving = [
+  { value: "resignation", label: "Resignation" },
+  { value: "redundancy", label: "Redundancy" },
+  { value: "retirement", label: "Retirement" },
+  { value: "termination", label: "Termination/dismissal" },
+  { value: "end-of-contract", label: "End of contract" },
+  { value: "other", label: "Other" },
+];
+
+export const createEmptyPSDEmployment = (): PSDEmploymentEntry => ({
+  id: generateId(),
+  period: "",
+  fromDate: "",
+  toDate: "",
+  natureOfEmployment: "",
+  employmentDetails: "",
+  employerName: "",
+  employerAddress: "",
+  previousEmployerNames: "",
+  natureOfBusiness: "",
+  isRegulated: false,
+  regulatorName: "",
+  positionHeld: "",
+  responsibilities: "",
+  reasonForLeaving: "",
+  reasonDetails: "",
+});
+
+export const createEmptyPSDQualification = (): PSDQualificationEntry => ({
+  id: generateId(),
+  fromDate: "",
+  toDate: "",
+  qualification: "",
+  issuingOrganisation: "",
+});
+
+export const createEmptyPSDAddress = (): PSDAddressEntry => ({
+  id: generateId(),
+  address: "",
+  postcode: "",
+  fromDate: "",
+  toDate: "",
+});
+
+export const initialPSDIndividualForm: PSDIndividualFormState = {
+  // Section 1: Personal identification details
+  fcaIRN: "",
+  previousRegulatoryBody: "",
+  previousReferenceNumber: "",
+  title: "",
+  surname: "",
+  forenames: "",
+  nameKnownBy: "",
+  previousNames: "",
+  dateOfNameChange: "",
+  gender: "",
+  dateOfBirth: "",
+  placeOfBirth: "",
+  nationalInsurance: "",
+  passportNumber: "",
+  nationality: "",
+  currentAddress: "",
+  currentPostcode: "",
+  currentAddressFromDate: "",
+  previousAddresses: [],
+
+  // Section 2: Firm identification details
+  firmName: "",
+  firmFRN: "",
+  contactName: "",
+  contactPosition: "",
+  contactPhone: "",
+  contactFax: "",
+  contactEmail: "",
+
+  // Section 3: Arrangements
+  positionType: "",
+  positionOtherDetails: "",
+  attachedDocuments: [],
+  plannedStartDate: "",
+  hasExpectedEndDate: false,
+  expectedEndDate: "",
+  keyDutiesResponsibilities: "",
+
+  // Section 4: Employment history and qualifications
+  employmentHistory: [createEmptyPSDEmployment()],
+  qualifications: [],
+  cvAvailable: false,
+  suitabilityAssessmentAttached: false,
+
+  // Section 5: Fitness and propriety - Part A Criminal
+  hasCriminalConviction: false,
+  hasPendingInvestigation: false,
+  hasCurrentCriminalProceedings: false,
+  hasPastCriminalProceedings: false,
+  hasCriminalRecordCheck: false,
+  hasOrganisationInsolvency: false,
+  partADetailsProvided: false,
+
+  // Section 5: Part B Civil and administrative
+  hasCivilInvestigations: false,
+  hasCivilDecisionsAgainst: false,
+  hasCivilEnforcement: false,
+  hasSupervisoryInvolvement: false,
+  civilCertificateAttached: false,
+  hasBankruptcyFiled: false,
+  hasBeenBankrupt: false,
+  hasBankruptcyRestrictions: false,
+  hasCreditorArrangements: false,
+  hasAssetsSequestrated: false,
+  hasBankruptcyProceedings: false,
+  hasCurrentBankruptcyProceedings: false,
+  hasOutstandingFinancialObligations: false,
+  partBDetailsProvided: false,
+
+  // Section 5: Part C Business and employment
+  hasBeenDismissed: false,
+  hasBeenAskedToResign: false,
+  hasBeenSuspended: false,
+  hasBeenDisqualifiedDirector: false,
+  hasDisciplinaryProceedings: false,
+  hasDisciplinaryInvestigation: false,
+  hasNotifiedDisciplinary: false,
+  hasMalpracticeAllegations: false,
+  partCDetailsProvided: false,
+
+  // Section 5: Part D Regulatory matters
+  hasRefusedAuthorisation: false,
+  hasBeenExcluded: false,
+  hasPreviousReputationAssessment: false,
+  previousAssessmentDetails: "",
+  partDDetailsProvided: false,
+
+  // Section 6: Supplementary information
+  supplementaryInfo: "",
+  additionalSheets: 0,
+
+  // Section 7: Declarations
+  individualFullName: "",
+  individualSignature: "",
+  individualSignatureDate: "",
+  firmNameDeclaration: "",
+  firmSignatoryName: "",
+  firmSignatoryJobTitle: "",
   firmSignature: "",
   firmSignatureDate: "",
 };

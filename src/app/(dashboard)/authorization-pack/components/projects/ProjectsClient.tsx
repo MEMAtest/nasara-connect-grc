@@ -63,7 +63,7 @@ export function ProjectsClient() {
     setIsLoading(true);
     setLoadError(null);
     try {
-      const response = await fetchWithTimeout("/api/authorization-pack/projects?organizationId=default-org").catch(
+      const response = await fetchWithTimeout("/api/authorization-pack/projects").catch(
         () => null
       );
       if (!response || !response.ok) {

@@ -347,7 +347,29 @@ async function tryPaginate(page, options) {
     const href = await nextLink.first().getAttribute("href");
     if (href) {
       const target = href.startsWith("http") ? href : new URL(href, page.url()).toString();
-      await page.goto(target, { waitUntil: "networkidle", timeout: 60000 });
+      try {
+        await page.goto(target, { waitUntil: "domcontentloaded", timeout: 60000 });
+      } catch (error) {
+        const message = String(error?.message || error);
+        if (message.includes("ERR_NETWORK_IO_SUSPENDED") || message.includes("Timeout")) {
+          log("Pagination navigation stalled; retrying after 5s.");
+          await page.waitForTimeout(5000);
+          try {
+            await page.goto(target, { waitUntil: "domcontentloaded", timeout: 60000 });
+          } catch (retryError) {
+            log(`Pagination retry failed: ${String(retryError?.message || retryError).slice(0, 200)}`);
+            return false;
+          }
+        } else {
+          log(`Pagination failed: ${message.slice(0, 200)}`);
+          return false;
+        }
+      }
+      try {
+        await page.waitForSelector('a[href*=".pdf"]', { timeout: 15000 });
+      } catch {
+        // ignore
+      }
       await page.waitForTimeout(maxWaitMs);
       return true;
     }

@@ -4,7 +4,6 @@ import { createAuthorizationProject, getAuthorizationProjects } from "@/lib/auth
 import { PermissionCode } from "@/lib/authorization-pack-ecosystems";
 import { requireAuth } from "@/lib/auth-utils";
 import { createNotification } from "@/lib/server/notifications-store";
-import { DEFAULT_ORGANIZATION_ID } from "@/lib/constants";
 import {
   ApiError,
   checkRateLimit,
@@ -71,7 +70,7 @@ export async function POST(request: NextRequest) {
 
     try {
       await createNotification({
-        organizationId: DEFAULT_ORGANIZATION_ID,
+        organizationId: auth.organizationId,
         title: "Authorization project created",
         message: `Project "${project.name}" created for ${permissionCode}.`,
         severity: "success",

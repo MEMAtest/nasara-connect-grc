@@ -24,8 +24,29 @@ export interface ChecklistItem {
 export interface ChecklistCategory {
   id: string;
   title: string;
+  icon: string;
+  phase: string;
+  accentColor: 'teal' | 'blue' | 'purple' | 'amber' | 'green';
   items: ChecklistItem[];
 }
+
+// Timeline phases with their week ranges and colors
+export const TIMELINE_PHASES = [
+  { id: 'assessment', name: 'Assessment & Scoping', startWeek: 1, endWeek: 2, color: 'teal' },
+  { id: 'narrative', name: 'Narrative & Business Plan', startWeek: 3, endWeek: 16, color: 'blue' },
+  { id: 'policies', name: 'Policies & Controls', startWeek: 17, endWeek: 37, color: 'purple' },
+  { id: 'governance', name: 'Governance & SMCR', startWeek: 21, endWeek: 53, color: 'amber' },
+  { id: 'submission', name: 'Review & Submission', startWeek: 54, endWeek: 56, color: 'green' },
+] as const;
+
+// Map phases to their associated checklist category IDs
+export const PHASE_TO_CATEGORY_MAP: Record<string, string[]> = {
+  'Assessment & Scoping': ['connect-forms', 'corporate-legal'],
+  'Narrative & Business Plan': ['programme-operations', 'business-plan-financials', 'capital-own-funds'],
+  'Policies & Controls': ['safeguarding', 'it-security', 'aml-ctf', 'policies-procedures'],
+  'Governance & SMCR': ['governance-controls', 'outsourcing-structure'],
+  'Review & Submission': [],
+};
 
 export const CHECKLIST_STATUS_OPTIONS: Array<{
   value: ChecklistItemStatus;
@@ -82,6 +103,9 @@ export const FCA_API_CHECKLIST: ChecklistCategory[] = [
   {
     id: 'connect-forms',
     title: 'Connect Submission Forms',
+    icon: 'FileText',
+    phase: 'Assessment & Scoping',
+    accentColor: 'teal',
     items: [
       {
         id: 'api-form',
@@ -118,6 +142,9 @@ export const FCA_API_CHECKLIST: ChecklistCategory[] = [
   {
     id: 'corporate-legal',
     title: 'Corporate & Legal',
+    icon: 'Building2',
+    phase: 'Assessment & Scoping',
+    accentColor: 'teal',
     items: [
       {
         id: 'cert-incorporation',
@@ -148,6 +175,9 @@ export const FCA_API_CHECKLIST: ChecklistCategory[] = [
   {
     id: 'programme-operations',
     title: 'Programme of Operations & Agreements',
+    icon: 'BarChart3',
+    phase: 'Narrative & Business Plan',
+    accentColor: 'blue',
     items: [
       {
         id: 'poo-document',
@@ -209,6 +239,9 @@ export const FCA_API_CHECKLIST: ChecklistCategory[] = [
   {
     id: 'outsourcing-structure',
     title: 'Outsourcing & Structure',
+    icon: 'Network',
+    phase: 'Governance & SMCR',
+    accentColor: 'amber',
     items: [
       {
         id: 'org-chart',
@@ -233,6 +266,9 @@ export const FCA_API_CHECKLIST: ChecklistCategory[] = [
   {
     id: 'business-plan-financials',
     title: 'Business Plan & Financials',
+    icon: 'Briefcase',
+    phase: 'Narrative & Business Plan',
+    accentColor: 'blue',
     items: [
       {
         id: 'business-plan',
@@ -281,6 +317,9 @@ export const FCA_API_CHECKLIST: ChecklistCategory[] = [
   {
     id: 'capital-own-funds',
     title: 'Capital & Own Funds',
+    icon: 'Landmark',
+    phase: 'Narrative & Business Plan',
+    accentColor: 'blue',
     items: [
       {
         id: 'initial-capital',
@@ -299,6 +338,9 @@ export const FCA_API_CHECKLIST: ChecklistCategory[] = [
   {
     id: 'safeguarding',
     title: 'Safeguarding',
+    icon: 'Shield',
+    phase: 'Policies & Controls',
+    accentColor: 'purple',
     items: [
       {
         id: 'safeguarding-methodology',
@@ -325,6 +367,9 @@ export const FCA_API_CHECKLIST: ChecklistCategory[] = [
   {
     id: 'governance-controls',
     title: 'Governance & Controls',
+    icon: 'Settings2',
+    phase: 'Governance & SMCR',
+    accentColor: 'amber',
     items: [
       {
         id: 'governance-arrangements',
@@ -361,6 +406,9 @@ export const FCA_API_CHECKLIST: ChecklistCategory[] = [
   {
     id: 'it-security',
     title: 'IT & Security',
+    icon: 'Lock',
+    phase: 'Policies & Controls',
+    accentColor: 'purple',
     items: [
       {
         id: 'incident-management',
@@ -409,6 +457,9 @@ export const FCA_API_CHECKLIST: ChecklistCategory[] = [
   {
     id: 'aml-ctf',
     title: 'AML/CTF',
+    icon: 'Scale',
+    phase: 'Policies & Controls',
+    accentColor: 'purple',
     items: [
       {
         id: 'aml-policies',
@@ -433,6 +484,9 @@ export const FCA_API_CHECKLIST: ChecklistCategory[] = [
   {
     id: 'policies-procedures',
     title: 'Policies & Procedures',
+    icon: 'ScrollText',
+    phase: 'Policies & Controls',
+    accentColor: 'purple',
     items: [
       {
         id: 'policy-index',
@@ -544,4 +598,39 @@ export function calculateCategoryCompletion(
   ).length;
 
   return { completed, total };
+}
+
+/**
+ * Get categories that belong to a specific phase
+ */
+export function getCategoriesByPhase(phase: string): ChecklistCategory[] {
+  return FCA_API_CHECKLIST.filter(c => c.phase === phase);
+}
+
+/**
+ * Calculate phase completion percentage based on checklist statuses
+ */
+export function calculatePhaseCompletion(
+  phase: string,
+  statuses: Record<string, ChecklistItemStatus>,
+  completedStatuses: ChecklistItemStatus[] = ['final_ready', 'submitted']
+): { completed: number; total: number; percentage: number } {
+  const categories = getCategoriesByPhase(phase);
+  let completed = 0;
+  let total = 0;
+
+  categories.forEach(category => {
+    category.items.forEach(item => {
+      total++;
+      if (completedStatuses.includes(statuses[item.id] || 'not_started')) {
+        completed++;
+      }
+    });
+  });
+
+  return {
+    completed,
+    total,
+    percentage: total > 0 ? Math.round((completed / total) * 100) : 0,
+  };
 }

@@ -356,3 +356,156 @@ export interface FormESectionProps {
   onNext?: () => void;
   onBack?: () => void;
 }
+
+// PSD Employment entry for Payment Services Individual form
+export interface PSDEmploymentEntry {
+  id: string;
+  period: string; // from-to mm/yy
+  fromDate: string;
+  toDate: string;
+  natureOfEmployment: string; // employed, self-employed, unemployed, education
+  employmentDetails: string; // if unemployed or education
+  employerName: string;
+  employerAddress: string;
+  previousEmployerNames: string;
+  natureOfBusiness: string;
+  isRegulated: boolean;
+  regulatorName: string;
+  positionHeld: string;
+  responsibilities: string;
+  reasonForLeaving: string; // resignation, redundancy, retirement, termination, end-of-contract, other
+  reasonDetails: string;
+}
+
+// PSD Qualification entry
+export interface PSDQualificationEntry {
+  id: string;
+  fromDate: string;
+  toDate: string;
+  qualification: string;
+  issuingOrganisation: string;
+}
+
+// Previous address entry for PSD
+export interface PSDAddressEntry {
+  id: string;
+  address: string;
+  postcode: string;
+  fromDate: string;
+  toDate: string;
+}
+
+// PSD Individual Form - Payment Services Regulations 2017
+export interface PSDIndividualFormState {
+  // Section 1: Personal identification details
+  fcaIRN: string; // 1.1a - FCA Individual Reference Number
+  previousRegulatoryBody: string; // 1.1b
+  previousReferenceNumber: string; // 1.1c
+  title: string; // 1.2
+  surname: string; // 1.3
+  forenames: string; // 1.4
+  nameKnownBy: string; // 1.5
+  previousNames: string; // 1.6
+  dateOfNameChange: string; // 1.7
+  gender: string; // 1.8
+  dateOfBirth: string; // 1.9
+  placeOfBirth: string; // 1.10
+  nationalInsurance: string; // 1.11
+  passportNumber: string; // 1.12
+  nationality: string; // 1.13
+  currentAddress: string; // 1.14
+  currentPostcode: string;
+  currentAddressFromDate: string;
+  previousAddresses: PSDAddressEntry[]; // 1.15
+
+  // Section 2: Firm identification details
+  firmName: string; // 2.1
+  firmFRN: string; // 2.2
+  contactName: string; // 2.3
+  contactPosition: string;
+  contactPhone: string;
+  contactFax: string;
+  contactEmail: string;
+
+  // Section 3: Arrangements
+  positionType: string; // 3.1 - executive-director, non-executive, other
+  positionOtherDetails: string;
+  attachedDocuments: string[]; // 3.2 - letter, contract, offer
+  plannedStartDate: string; // 3.3
+  hasExpectedEndDate: boolean; // 3.4
+  expectedEndDate: string;
+  keyDutiesResponsibilities: string; // 3.5
+
+  // Section 4: Employment history and qualifications
+  employmentHistory: PSDEmploymentEntry[]; // 4.1
+  qualifications: PSDQualificationEntry[]; // 4.2
+  cvAvailable: boolean; // 4.3
+  suitabilityAssessmentAttached: boolean; // 4.4
+
+  // Section 5: Fitness and propriety - Part A Criminal
+  hasCriminalConviction: boolean; // 5.1i
+  hasPendingInvestigation: boolean; // 5.1ii
+  hasCurrentCriminalProceedings: boolean; // 5.2i
+  hasPastCriminalProceedings: boolean; // 5.2ii
+  hasCriminalRecordCheck: boolean; // 5.2iii
+  hasOrganisationInsolvency: boolean; // 5.3
+  partADetailsProvided: boolean; // 5.4
+
+  // Section 5: Part B Civil and administrative
+  hasCivilInvestigations: boolean; // 5.5i
+  hasCivilDecisionsAgainst: boolean; // 5.5ii
+  hasCivilEnforcement: boolean; // 5.5iii
+  hasSupervisoryInvolvement: boolean; // 5.5iv
+  civilCertificateAttached: boolean; // 5.6
+  hasBankruptcyFiled: boolean; // 5.7i
+  hasBeenBankrupt: boolean; // 5.7ii
+  hasBankruptcyRestrictions: boolean; // 5.7iii
+  hasCreditorArrangements: boolean; // 5.7iv
+  hasAssetsSequestrated: boolean; // 5.7v
+  hasBankruptcyProceedings: boolean; // 5.7vi
+  hasCurrentBankruptcyProceedings: boolean; // 5.8
+  hasOutstandingFinancialObligations: boolean; // 5.9
+  partBDetailsProvided: boolean; // 5.10
+
+  // Section 5: Part C Business and employment
+  hasBeenDismissed: boolean; // 5.11i
+  hasBeenAskedToResign: boolean; // 5.11ii
+  hasBeenSuspended: boolean; // 5.11iii
+  hasBeenDisqualifiedDirector: boolean; // 5.12i
+  hasDisciplinaryProceedings: boolean; // 5.12ii
+  hasDisciplinaryInvestigation: boolean; // 5.12iii
+  hasNotifiedDisciplinary: boolean; // 5.12iv
+  hasMalpracticeAllegations: boolean; // 5.12v
+  partCDetailsProvided: boolean; // 5.13
+
+  // Section 5: Part D Regulatory matters
+  hasRefusedAuthorisation: boolean; // 5.14i
+  hasBeenExcluded: boolean; // 5.14ii
+  hasPreviousReputationAssessment: boolean; // 5.15
+  previousAssessmentDetails: string;
+  partDDetailsProvided: boolean; // 5.16
+
+  // Section 6: Supplementary information
+  supplementaryInfo: string;
+  additionalSheets: number;
+
+  // Section 7: Declarations
+  individualFullName: string;
+  individualSignature: string;
+  individualSignatureDate: string;
+  firmNameDeclaration: string;
+  firmSignatoryName: string;
+  firmSignatoryJobTitle: string;
+  firmSignature: string;
+  firmSignatureDate: string;
+}
+
+// PSD Individual Form Section props
+export interface PSDFormSectionProps {
+  formData: PSDIndividualFormState;
+  updateField: <K extends keyof PSDIndividualFormState>(field: K, value: PSDIndividualFormState[K]) => void;
+  validationErrors: Record<string, string>;
+  validateField: (field: string, value: string, validator?: string) => boolean;
+  onNext?: () => void;
+  onBack?: () => void;
+}

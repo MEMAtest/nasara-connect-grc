@@ -187,7 +187,7 @@ export function SectionWorkspaceClient() {
       setIsLoading(true);
       setLoadError(null);
       try {
-        const packResponse = await fetchWithTimeout("/api/authorization-pack/packs?organizationId=default-org").catch(
+        const packResponse = await fetchWithTimeout("/api/authorization-pack/packs").catch(
           () => null
         );
         if (!packResponse || !packResponse.ok) {

@@ -66,7 +66,7 @@ export function WorkspaceHeader({ pack, readiness, showCTA = true }: WorkspaceHe
 
   useEffect(() => {
     const loadPacks = async () => {
-      const response = await fetchWithTimeout("/api/authorization-pack/packs?organizationId=default-org").catch(
+      const response = await fetchWithTimeout("/api/authorization-pack/packs").catch(
         () => null
       );
       if (response?.ok) {

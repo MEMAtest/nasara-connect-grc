@@ -19,7 +19,7 @@ import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 import { ProjectHeader } from "./ProjectHeader";
 import { AddressAutocomplete } from "./AddressAutocomplete";
 import type { BusinessPlanProfile } from "@/lib/business-plan-profile";
-import { buildQuestionContext, type QuestionResponse } from "@/lib/assessment-question-bank";
+import { buildQuestionContext, isQuestionAnswered, type QuestionResponse } from "@/lib/assessment-question-bank";
 
 // Error Boundary for Question Bank
 interface ErrorBoundaryState {
@@ -578,15 +578,20 @@ export function AssessmentClient() {
     for (const question of allQuestions) {
       if (!question.weight) continue;
 
-      // Calculate max possible score for this question
-      const maxScore = question.options?.reduce((max, opt) => Math.max(max, opt.score ?? 0), 0) ?? question.weight;
+      const response = responses[question.id];
+      const hasScoredOptions = Boolean(question.options?.some((opt) => typeof opt.score === "number"));
+      const maxScore = hasScoredOptions
+        ? question.options?.reduce((max, opt) => Math.max(max, opt.score ?? 0), 0) ?? 0
+        : 1;
       totalPossible += maxScore * question.weight;
 
-      // Get earned score
-      const response = responses[question.id];
-      if (response?.score !== undefined) {
-        totalEarned += response.score * question.weight;
-      }
+      const answered = isQuestionAnswered(question, response);
+      const earned = response?.score !== undefined
+        ? response.score
+        : answered
+        ? maxScore
+        : 0;
+      totalEarned += earned * question.weight;
     }
 
     if (totalPossible === 0) return null;
