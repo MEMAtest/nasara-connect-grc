@@ -7,6 +7,11 @@ describe("chart-utils month bucketing", () => {
     expect(getMonthKey("2025-02-01T00:00:00Z")).toBe("2025-02");
   });
 
+  it("parses day-first date strings for month keys", () => {
+    expect(getMonthKey("31/01/2026")).toBe("2026-01");
+    expect(getMonthKey("01/12/2025")).toBe("2025-12");
+  });
+
   it("builds stable month buckets from an anchor date", () => {
     const anchor = new Date(Date.UTC(2025, 0, 15));
     const buckets = getMonthBuckets(3, "en-US", anchor);
@@ -39,4 +44,3 @@ describe("chart-utils month bucketing", () => {
     expect(valuesByKey["2025-01"]).toBe(2);
   });
 });
-

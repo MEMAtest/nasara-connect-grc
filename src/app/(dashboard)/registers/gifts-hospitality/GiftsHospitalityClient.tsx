@@ -236,7 +236,7 @@ export function GiftsHospitalityClient() {
 
   const filteredRecords = useMemo(() => {
     if (!monthFilter) return baseFilteredRecords;
-    return baseFilteredRecords.filter((r) => getMonthKey(r.date_of_event) === monthFilter.key);
+    return baseFilteredRecords.filter((r) => getMonthKey(r.created_at) === monthFilter.key);
   }, [baseFilteredRecords, monthFilter]);
 
   // Pagination
@@ -280,14 +280,18 @@ export function GiftsHospitalityClient() {
   }, [filteredRecords]);
 
   const trendData = useMemo(() => {
-    return generateTrendData(baseFilteredRecords, 6, 'date_of_event');
+    return generateTrendData(baseFilteredRecords, 6, 'created_at');
   }, [baseFilteredRecords]);
 
   const monthOptions = useMemo(
     () =>
       trendData.map((point) => ({
         value: point.monthKey,
-        label: new Date(point.startDate).toLocaleDateString("en-GB", { month: "short", year: "numeric" }),
+        label: new Date(point.startDate).toLocaleDateString("en-GB", {
+          month: "short",
+          year: "numeric",
+          timeZone: "UTC",
+        }),
       })),
     [trendData]
   );
@@ -393,7 +397,11 @@ export function GiftsHospitalityClient() {
       return;
     }
     const label = point.startDate
-      ? new Date(point.startDate).toLocaleDateString("en-GB", { month: "short", year: "numeric" })
+      ? new Date(point.startDate).toLocaleDateString("en-GB", {
+          month: "short",
+          year: "numeric",
+          timeZone: "UTC",
+        })
       : point.label;
     setMonthFilter({ key, label });
   };
@@ -559,7 +567,7 @@ export function GiftsHospitalityClient() {
 
           <TrendChart
             data={trendData}
-            title="Entries Trend (6 Months)"
+            title="Entries Added (6 Months)"
             color="#ec4899"
             onPointClick={handleMonthFilter}
             activePointKey={monthFilter?.key}

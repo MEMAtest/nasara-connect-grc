@@ -297,7 +297,7 @@ export function ComplaintsRegisterClient() {
 
   const filteredRecords = useMemo(() => {
     if (!monthFilter) return baseFilteredRecords;
-    return baseFilteredRecords.filter((r) => getMonthKey(r.received_date) === monthFilter.key);
+    return baseFilteredRecords.filter((r) => getMonthKey(r.created_at) === monthFilter.key);
   }, [baseFilteredRecords, monthFilter]);
 
   // Pagination
@@ -336,14 +336,18 @@ export function ComplaintsRegisterClient() {
   }, [filteredRecords]);
 
   const trendData = useMemo(() => {
-    return generateTrendData(baseFilteredRecords, 6, 'received_date');
+    return generateTrendData(baseFilteredRecords, 6, 'created_at');
   }, [baseFilteredRecords]);
 
   const monthOptions = useMemo(
     () =>
       trendData.map((point) => ({
         value: point.monthKey,
-        label: new Date(point.startDate).toLocaleDateString("en-GB", { month: "short", year: "numeric" }),
+        label: new Date(point.startDate).toLocaleDateString("en-GB", {
+          month: "short",
+          year: "numeric",
+          timeZone: "UTC",
+        }),
       })),
     [trendData]
   );
@@ -463,7 +467,11 @@ export function ComplaintsRegisterClient() {
       return;
     }
     const label = point.startDate
-      ? new Date(point.startDate).toLocaleDateString("en-GB", { month: "short", year: "numeric" })
+      ? new Date(point.startDate).toLocaleDateString("en-GB", {
+          month: "short",
+          year: "numeric",
+          timeZone: "UTC",
+        })
       : point.label;
     setMonthFilter({ key, label });
   };
@@ -637,7 +645,7 @@ export function ComplaintsRegisterClient() {
           <div className="grid gap-6 lg:grid-cols-2">
             <TrendChart
               data={trendData}
-              title="Complaints Trend (6 Months)"
+              title="Complaints Logged (6 Months)"
               color="#f59e0b"
               onPointClick={handleMonthFilter}
               activePointKey={monthFilter?.key}

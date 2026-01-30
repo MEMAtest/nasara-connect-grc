@@ -282,7 +282,7 @@ export function SarNcaClient() {
     () =>
       monthFilter
         ? baseFilteredRecords.filter(
-            (record) => getMonthKey(record.discovery_date || record.created_at) === monthFilter.key
+            (record) => getMonthKey(record.created_at) === monthFilter.key
           )
         : baseFilteredRecords,
     [baseFilteredRecords, monthFilter]
@@ -378,7 +378,7 @@ export function SarNcaClient() {
     () =>
       monthBuckets.map((bucket) => {
         const monthRecords = baseFilteredRecords.filter(
-          (r) => getMonthKey(r.discovery_date || r.created_at) === bucket.monthKey
+          (r) => getMonthKey(r.created_at) === bucket.monthKey
         );
         return {
           month: bucket.label,

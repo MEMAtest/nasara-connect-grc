@@ -241,7 +241,7 @@ export function ConflictsRegisterClient() {
 
   const filteredRecords = useMemo(() => {
     if (!monthFilter) return baseFilteredRecords;
-    return baseFilteredRecords.filter((r) => getMonthKey(r.declaration_date) === monthFilter.key);
+    return baseFilteredRecords.filter((r) => getMonthKey(r.created_at) === monthFilter.key);
   }, [baseFilteredRecords, monthFilter]);
 
   // Pagination
@@ -284,14 +284,18 @@ export function ConflictsRegisterClient() {
   }, [filteredRecords]);
 
   const trendData = useMemo(() => {
-    return generateTrendData(baseFilteredRecords, 6, 'declaration_date');
+    return generateTrendData(baseFilteredRecords, 6, 'created_at');
   }, [baseFilteredRecords]);
 
   const monthOptions = useMemo(
     () =>
       trendData.map((point) => ({
         value: point.monthKey,
-        label: new Date(point.startDate).toLocaleDateString("en-GB", { month: "short", year: "numeric" }),
+        label: new Date(point.startDate).toLocaleDateString("en-GB", {
+          month: "short",
+          year: "numeric",
+          timeZone: "UTC",
+        }),
       })),
     [trendData]
   );
@@ -395,7 +399,11 @@ export function ConflictsRegisterClient() {
       return;
     }
     const label = point.startDate
-      ? new Date(point.startDate).toLocaleDateString("en-GB", { month: "short", year: "numeric" })
+      ? new Date(point.startDate).toLocaleDateString("en-GB", {
+          month: "short",
+          year: "numeric",
+          timeZone: "UTC",
+        })
       : point.label;
     setMonthFilter({ key, label });
   };
@@ -563,7 +571,7 @@ export function ConflictsRegisterClient() {
 
           <TrendChart
             data={trendData}
-            title="Declarations Trend (6 Months)"
+            title="Declarations Logged (6 Months)"
             color="#8b5cf6"
             onPointClick={handleMonthFilter}
             activePointKey={monthFilter?.key}

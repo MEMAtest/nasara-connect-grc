@@ -498,7 +498,11 @@ export function ThirdPartyRegisterClient() {
     () =>
       trendData.map((point) => ({
         value: point.monthKey,
-        label: new Date(point.startDate).toLocaleDateString("en-GB", { month: "short", year: "numeric" }),
+        label: new Date(point.startDate).toLocaleDateString("en-GB", {
+          month: "short",
+          year: "numeric",
+          timeZone: "UTC",
+        }),
       })),
     [trendData]
   );
@@ -525,7 +529,11 @@ export function ThirdPartyRegisterClient() {
       return;
     }
     const label = point.startDate
-      ? new Date(point.startDate).toLocaleDateString("en-GB", { month: "short", year: "numeric" })
+      ? new Date(point.startDate).toLocaleDateString("en-GB", {
+          month: "short",
+          year: "numeric",
+          timeZone: "UTC",
+        })
       : point.label;
     setMonthFilter({ key, label });
   };

@@ -264,7 +264,7 @@ export function RegulatoryBreachClient() {
 
   const filteredRecords = useMemo(() => {
     if (!monthFilter) return baseFilteredRecords;
-    return baseFilteredRecords.filter((r) => getMonthKey(r.identified_date) === monthFilter.key);
+    return baseFilteredRecords.filter((r) => getMonthKey(r.created_at) === monthFilter.key);
   }, [baseFilteredRecords, monthFilter]);
 
   // Pagination
@@ -308,14 +308,18 @@ export function RegulatoryBreachClient() {
   }, [filteredRecords]);
 
   const trendData = useMemo(() => {
-    return generateTrendData(baseFilteredRecords, 6, 'identified_date');
+    return generateTrendData(baseFilteredRecords, 6, 'created_at');
   }, [baseFilteredRecords]);
 
   const monthOptions = useMemo(
     () =>
       trendData.map((point) => ({
         value: point.monthKey,
-        label: new Date(point.startDate).toLocaleDateString("en-GB", { month: "short", year: "numeric" }),
+        label: new Date(point.startDate).toLocaleDateString("en-GB", {
+          month: "short",
+          year: "numeric",
+          timeZone: "UTC",
+        }),
       })),
     [trendData]
   );
@@ -423,7 +427,11 @@ export function RegulatoryBreachClient() {
       return;
     }
     const label = point.startDate
-      ? new Date(point.startDate).toLocaleDateString("en-GB", { month: "short", year: "numeric" })
+      ? new Date(point.startDate).toLocaleDateString("en-GB", {
+          month: "short",
+          year: "numeric",
+          timeZone: "UTC",
+        })
       : point.label;
     setMonthFilter({ key, label });
   };
@@ -596,7 +604,7 @@ export function RegulatoryBreachClient() {
 
           <TrendChart
             data={trendData}
-            title="Breaches Trend (6 Months)"
+            title="Breaches Logged (6 Months)"
             color="#ef4444"
             onPointClick={handleMonthFilter}
             activePointKey={monthFilter?.key}

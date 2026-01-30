@@ -225,7 +225,7 @@ export function InsiderListClient() {
     () =>
       monthFilter
         ? baseFilteredRecords.filter(
-            (record) => getMonthKey(record.date_added) === monthFilter.key
+            (record) => getMonthKey(record.created_at) === monthFilter.key
           )
         : baseFilteredRecords,
     [baseFilteredRecords, monthFilter]
@@ -339,7 +339,7 @@ export function InsiderListClient() {
     () =>
       monthBuckets.map((bucket) => {
         const monthRecords = baseFilteredRecords.filter(
-          (r) => getMonthKey(r.date_added) === bucket.monthKey
+          (r) => getMonthKey(r.created_at) === bucket.monthKey
         );
         return {
           month: bucket.label,

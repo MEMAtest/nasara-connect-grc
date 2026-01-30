@@ -58,10 +58,57 @@ export function parsePositiveNumber(value: unknown): number | null {
  * Validate that a date string is valid and return Date object or null
  */
 export function parseValidDate(value: unknown): Date | null {
-  if (!value || typeof value !== "string") {
-    return null;
+  if (!value) return null;
+  if (value instanceof Date) {
+    return isNaN(value.getTime()) ? null : value;
   }
-  const date = new Date(value);
+  const raw = String(value).trim();
+  if (!raw) return null;
+
+  const isoMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw);
+  if (isoMatch) {
+    const year = Number(isoMatch[1]);
+    const month = Number(isoMatch[2]) - 1;
+    const day = Number(isoMatch[3]);
+    const utcDate = new Date(Date.UTC(year, month, day));
+    return isNaN(utcDate.getTime()) ? null : utcDate;
+  }
+
+  const altIsoMatch = /^(\d{4})[\/.](\d{1,2})[\/.](\d{1,2})$/.exec(raw);
+  if (altIsoMatch) {
+    const year = Number(altIsoMatch[1]);
+    const month = Number(altIsoMatch[2]) - 1;
+    const day = Number(altIsoMatch[3]);
+    const utcDate = new Date(Date.UTC(year, month, day));
+    return isNaN(utcDate.getTime()) ? null : utcDate;
+  }
+
+  const slashedMatch = /^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/.exec(raw);
+  if (slashedMatch) {
+    const first = Number(slashedMatch[1]);
+    const second = Number(slashedMatch[2]);
+    const year = Number(slashedMatch[3]);
+
+    let day = first;
+    let month = second - 1;
+
+    if (first > 12 && second <= 12) {
+      day = first;
+      month = second - 1;
+    } else if (second > 12 && first <= 12) {
+      day = second;
+      month = first - 1;
+    } else {
+      // Ambiguous: default to day/month for compliance (UK-style) data.
+      day = first;
+      month = second - 1;
+    }
+
+    const utcDate = new Date(Date.UTC(year, month, day));
+    return isNaN(utcDate.getTime()) ? null : utcDate;
+  }
+
+  const date = new Date(raw);
   if (isNaN(date.getTime())) {
     return null;
   }

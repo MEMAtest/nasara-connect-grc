@@ -282,7 +282,7 @@ export function PaDealingClient() {
     () =>
       monthFilter
         ? baseFilteredRecords.filter(
-            (record) => getMonthKey(record.request_date) === monthFilter.key
+            (record) => getMonthKey(record.created_at) === monthFilter.key
           )
         : baseFilteredRecords,
     [baseFilteredRecords, monthFilter]
@@ -394,7 +394,7 @@ export function PaDealingClient() {
     () =>
       monthBuckets.map((bucket) => {
         const monthRecords = baseFilteredRecords.filter(
-          (r) => getMonthKey(r.request_date) === bucket.monthKey
+          (r) => getMonthKey(r.created_at) === bucket.monthKey
         );
         return {
           month: bucket.label,

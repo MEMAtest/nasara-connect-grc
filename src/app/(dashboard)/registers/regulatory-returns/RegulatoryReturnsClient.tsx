@@ -255,7 +255,7 @@ export function RegulatoryReturnsClient() {
     () =>
       monthFilter
         ? baseFilteredRecords.filter(
-            (record) => getMonthKey(record.due_date) === monthFilter.key
+            (record) => getMonthKey(record.created_at) === monthFilter.key
           )
         : baseFilteredRecords,
     [baseFilteredRecords, monthFilter]
@@ -387,7 +387,7 @@ export function RegulatoryReturnsClient() {
     () =>
       monthBuckets.map((bucket) => {
         const monthRecords = baseFilteredRecords.filter(
-          (r) => getMonthKey(r.due_date) === bucket.monthKey
+          (r) => getMonthKey(r.created_at) === bucket.monthKey
         );
         return {
           month: bucket.label,

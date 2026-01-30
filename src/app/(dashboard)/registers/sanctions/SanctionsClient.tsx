@@ -281,7 +281,7 @@ export function SanctionsClient() {
     () =>
       monthFilter
         ? baseFilteredRecords.filter(
-            (record) => getMonthKey(record.screening_date) === monthFilter.key
+            (record) => getMonthKey(record.created_at) === monthFilter.key
           )
         : baseFilteredRecords,
     [baseFilteredRecords, monthFilter]
@@ -375,7 +375,7 @@ export function SanctionsClient() {
     () =>
       monthBuckets.map((bucket) => {
         const monthRecords = baseFilteredRecords.filter(
-          (r) => getMonthKey(r.screening_date) === bucket.monthKey
+          (r) => getMonthKey(r.created_at) === bucket.monthKey
         );
         return {
           month: bucket.label,

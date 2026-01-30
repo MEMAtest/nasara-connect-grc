@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { generateTrendData, getMonthKey, type TrendPoint } from "@/lib/chart-utils";
 import { useToast } from "@/components/toast-provider";
-import { Plus, Loader2, User, Shield, AlertTriangle, CheckCircle, Clock, FileCheck } from "lucide-react";
+import { Plus, Loader2, User, AlertTriangle, CheckCircle, FileCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -68,12 +68,6 @@ const statusColors: Record<string, string> = {
   under_review: "bg-amber-100 text-amber-700",
 };
 
-const approvalColors: Record<string, string> = {
-  pending: "bg-amber-100 text-amber-700",
-  approved: "bg-emerald-100 text-emerald-700",
-  rejected: "bg-red-100 text-red-700",
-};
-
 const riskChartColors: Record<string, string> = {
   low: "#10b981",
   medium: "#f59e0b",
@@ -117,7 +111,7 @@ export function PEPRegisterClient() {
     notes: "",
   });
 
-  const loadRecords = async () => {
+  const loadRecords = useCallback(async () => {
     setIsLoading(true);
     try {
       const url = packId ? `/api/registers/pep?packId=${packId}` : "/api/registers/pep";
@@ -130,11 +124,11 @@ export function PEPRegisterClient() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [packId]);
 
   useEffect(() => {
     loadRecords();
-  }, [packId]);
+  }, [loadRecords]);
 
   const resetForm = () =>
     setFormData({
@@ -258,7 +252,7 @@ export function PEPRegisterClient() {
 
   const filteredRecords = useMemo(() => {
     if (!monthFilter) return baseFilteredRecords;
-    return baseFilteredRecords.filter((r) => getMonthKey(r.identification_date) === monthFilter.key);
+    return baseFilteredRecords.filter((r) => getMonthKey(r.created_at) === monthFilter.key);
   }, [baseFilteredRecords, monthFilter]);
 
   // Pagination
@@ -302,14 +296,18 @@ export function PEPRegisterClient() {
   }, [filteredRecords]);
 
   const trendData = useMemo(() => {
-    return generateTrendData(baseFilteredRecords, 6, 'identification_date');
+    return generateTrendData(baseFilteredRecords, 6, 'created_at');
   }, [baseFilteredRecords]);
 
   const monthOptions = useMemo(
     () =>
       trendData.map((point) => ({
         value: point.monthKey,
-        label: new Date(point.startDate).toLocaleDateString("en-GB", { month: "short", year: "numeric" }),
+        label: new Date(point.startDate).toLocaleDateString("en-GB", {
+          month: "short",
+          year: "numeric",
+          timeZone: "UTC",
+        }),
       })),
     [trendData]
   );
@@ -426,7 +424,11 @@ export function PEPRegisterClient() {
       return;
     }
     const label = point.startDate
-      ? new Date(point.startDate).toLocaleDateString("en-GB", { month: "short", year: "numeric" })
+      ? new Date(point.startDate).toLocaleDateString("en-GB", {
+          month: "short",
+          year: "numeric",
+          timeZone: "UTC",
+        })
       : point.label;
     setMonthFilter({ key, label });
   };
@@ -595,7 +597,7 @@ export function PEPRegisterClient() {
 
           <TrendChart
             data={trendData}
-            title="PEP Identifications (6 Months)"
+            title="PEP Records Added (6 Months)"
             color="#f43f5e"
             onPointClick={handleMonthFilter}
             activePointKey={monthFilter?.key}

@@ -38,6 +38,31 @@ function parseDateValue(value: unknown): Date | null {
     const utcDate = new Date(Date.UTC(year, month, day));
     return Number.isNaN(utcDate.getTime()) ? null : utcDate;
   }
+  const altIsoMatch = /^(\d{4})[\/.](\d{1,2})[\/.](\d{1,2})$/.exec(raw);
+  if (altIsoMatch) {
+    const year = Number(altIsoMatch[1]);
+    const month = Number(altIsoMatch[2]) - 1;
+    const day = Number(altIsoMatch[3]);
+    const utcDate = new Date(Date.UTC(year, month, day));
+    return Number.isNaN(utcDate.getTime()) ? null : utcDate;
+  }
+  const slashedMatch = /^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/.exec(raw);
+  if (slashedMatch) {
+    const first = Number(slashedMatch[1]);
+    const second = Number(slashedMatch[2]);
+    const year = Number(slashedMatch[3]);
+    let day = first;
+    let month = second - 1;
+    if (first > 12 && second <= 12) {
+      day = first;
+      month = second - 1;
+    } else if (second > 12 && first <= 12) {
+      day = second;
+      month = first - 1;
+    }
+    const utcDate = new Date(Date.UTC(year, month, day));
+    return Number.isNaN(utcDate.getTime()) ? null : utcDate;
+  }
   const parsed = new Date(raw);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
