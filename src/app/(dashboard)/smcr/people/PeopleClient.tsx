@@ -51,6 +51,7 @@ import {
   PersonAssessment,
   FCAVerificationData,
 } from "../context/SmcrDataContext";
+import { useToast } from "@/components/toast-provider";
 import { fetchDocumentBlob } from "../utils/document-storage";
 import { allSMFs, certificationFunctions } from "../data/core-functions";
 import { useAllMismatches } from "@/hooks/useRoleMismatchDetection";
@@ -245,6 +246,7 @@ export function PeopleClient() {
     firms,
     activeFirmId,
   } = useSmcrData();
+  const toast = useToast();
 
   const { people, documents, roles, assessments } = state;
   const firmPeople = useMemo(() => {
@@ -709,8 +711,9 @@ export function PeopleClient() {
                     )}
                     {person.fcaVerification?.lastChecked && (() => {
                       const checkedDate = new Date(person.fcaVerification!.lastChecked);
-                      if (Number.isNaN(checkedDate.getTime()) || checkedDate.getTime() > Date.now()) return null;
-                      const daysSince = Math.floor((Date.now() - checkedDate.getTime()) / (1000 * 60 * 60 * 24));
+                      // Allow up to 5 minutes of clock skew tolerance
+                      if (Number.isNaN(checkedDate.getTime()) || checkedDate.getTime() > Date.now() + 5 * 60 * 1000) return null;
+                      const daysSince = Math.max(0, Math.floor((Date.now() - checkedDate.getTime()) / (1000 * 60 * 60 * 24)));
                       const threshold = state.settings?.verificationStaleThresholdDays ?? 30;
                       if (daysSince >= threshold) {
                         return (
@@ -1749,7 +1752,11 @@ export function PeopleClient() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(verificationData),
-              }).catch((err) => console.error('Failed to persist verification:', err));
+              }).then((res) => {
+                if (!res.ok) throw new Error(`Server returned ${res.status}`);
+              }).catch(() => {
+                toast.warning('Verification saved locally but failed to persist to server. Changes may be lost on refresh.');
+              });
             }}
           />
         );

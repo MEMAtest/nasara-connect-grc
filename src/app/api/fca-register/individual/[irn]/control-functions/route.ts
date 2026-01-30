@@ -50,14 +50,19 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       associatedFirms: firms,
     });
   } catch (error) {
-    console.error("FCA Register control functions lookup error:", error);
-
     if (isFCAApiError(error)) {
+      if (error.status === 404) {
+        console.warn(`FCA Register: Control functions not found for ${(await params).irn}`);
+      } else {
+        console.error("FCA Register control functions lookup error:", error);
+      }
       return NextResponse.json(
         { error: error.message },
         { status: error.status }
       );
     }
+
+    console.error("FCA Register control functions lookup error:", error);
 
     return NextResponse.json(
       { error: "Unable to fetch control functions" },

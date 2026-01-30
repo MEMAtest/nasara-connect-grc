@@ -43,14 +43,19 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       raw: individual,
     });
   } catch (error) {
-    console.error("FCA Register individual lookup error:", error);
-
     if (isFCAApiError(error)) {
+      if (error.status === 404) {
+        console.warn(`FCA Register: Individual ${(await params).irn} not found`);
+      } else {
+        console.error("FCA Register individual lookup error:", error);
+      }
       return NextResponse.json(
         { error: error.message },
         { status: error.status }
       );
     }
+
+    console.error("FCA Register individual lookup error:", error);
 
     return NextResponse.json(
       { error: "Unable to fetch individual details" },

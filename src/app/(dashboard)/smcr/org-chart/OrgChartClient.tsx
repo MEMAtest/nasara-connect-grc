@@ -32,6 +32,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/components/toast-provider";
 import { useSmcrData, PersonRecord, RoleAssignment } from "../context/SmcrDataContext";
 import { OrgChartIcon } from "../components/SmcrIcons";
 import { FirmSwitcher } from "../components/FirmSwitcher";
@@ -545,6 +546,7 @@ function ConnectorLines({ connectors }: ConnectorLinesProps) {
 
 export function OrgChartClient() {
   const { state, firms, activeFirmId, updatePerson, addPerson, assignRole } = useSmcrData();
+  const toast = useToast();
   const { people, roles } = state;
 
   // Filter data by firm
@@ -735,17 +737,25 @@ export function OrgChartClient() {
 
     // Assign selected SMCR roles
     if (addPersonForm.smcrRoles.length > 0) {
+      const failedRoles: string[] = [];
       for (const roleId of addPersonForm.smcrRoles) {
         const smf = allSMFs.find((s) => s.id === roleId);
         if (smf) {
-          assignRole({
-            personId,
-            functionId: smf.id,
-            functionType: "SMF",
-            startDate: new Date().toISOString(),
-            approvalStatus: "draft",
-          });
+          try {
+            assignRole({
+              personId,
+              functionId: smf.id,
+              functionType: "SMF",
+              startDate: new Date().toISOString(),
+              approvalStatus: "draft",
+            });
+          } catch {
+            failedRoles.push(smf.smf_number || smf.id);
+          }
         }
+      }
+      if (failedRoles.length > 0) {
+        toast.warning(`Person added but failed to assign: ${failedRoles.join(", ")}. You can assign roles from the People page.`);
       }
     }
 
