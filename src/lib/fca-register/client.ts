@@ -129,14 +129,14 @@ export class FCARegisterClient {
    * Get individual details by IRN
    */
   async getIndividual(irn: string): Promise<IndividualResponse> {
-    return this.request<IndividualResponse>(`/Individual/${irn}`);
+    return this.request<IndividualResponse>(`/Individuals/${irn}`);
   }
 
   /**
    * Get control functions for an individual by IRN
    */
   async getIndividualControlFunctions(irn: string): Promise<ControlFunctionsResponse> {
-    return this.request<ControlFunctionsResponse>(`/Individual/${irn}/ControlFunctions`);
+    return this.request<ControlFunctionsResponse>(`/Individuals/${irn}/CF`);
   }
 
   // ============================================

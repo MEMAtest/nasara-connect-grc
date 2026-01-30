@@ -73,13 +73,40 @@ export interface DisciplinaryAction {
 // ============================================
 
 export interface FCAIndividual {
-  "IRN": string;
-  "Name": string;
-  "Status": IndividualStatus;
-  "Date of Birth"?: string;
+  Details?: {
+    "IRN": string;
+    "Full Name": string;
+    "Commonly Used Name"?: string;
+    "Status": string;
+    "Disciplinary History"?: string;
+    "Current roles & activities"?: string;
+  };
+  // Fallback fields for alternative response shapes
+  "IRN"?: string;
+  "Name"?: string;
+  "Status"?: string;
 }
 
-export type IndividualStatus = "Active" | "Inactive" | "Banned";
+export type IndividualStatus = "Active" | "Inactive" | "Banned" | string;
+
+/** Raw CF entry as returned by the FCA API within Current/Previous groups */
+export interface FCAControlFunctionEntry {
+  "Name": string;
+  "Firm Name": string;
+  "URL"?: string;
+  "Effective Date"?: string;
+  "End Date"?: string;
+  "Customer Engagement Method"?: string;
+  "Restriction"?: string;
+  "Suspension / Restriction Start Date"?: string;
+  "Suspension / Restriction End Date"?: string;
+}
+
+/** FCA API groups control functions into Current and Previous */
+export interface FCAControlFunctionsData {
+  Current?: Record<string, FCAControlFunctionEntry>;
+  Previous?: Record<string, FCAControlFunctionEntry>;
+}
 
 export interface IndividualControlFunction {
   "Firm Name": string;
@@ -121,7 +148,7 @@ export interface PermissionsResponse extends FCAApiResponse<FirmPermission> {}
 export interface IndividualsResponse extends FCAApiResponse<FirmIndividual> {}
 export interface DisciplinaryResponse extends FCAApiResponse<DisciplinaryAction> {}
 export interface IndividualResponse extends FCAApiResponse<FCAIndividual> {}
-export interface ControlFunctionsResponse extends FCAApiResponse<IndividualControlFunction> {}
+export interface ControlFunctionsResponse extends FCAApiResponse<FCAControlFunctionsData> {}
 export interface SearchResponse extends FCAApiResponse<FCASearchResult> {}
 
 // ============================================

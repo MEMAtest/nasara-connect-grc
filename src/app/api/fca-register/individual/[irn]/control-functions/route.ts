@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createFCAClient, isFCAApiError } from "@/lib/fca-register";
+import type { FCAControlFunctionEntry } from "@/lib/fca-register/types";
 
 interface RouteParams {
   params: Promise<{ irn: string }>;
@@ -24,22 +25,43 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const client = createFCAClient();
     const response = await client.getIndividualControlFunctions(irn);
 
-    const controlFunctions = (response.Data || []).map((cf) => ({
-      firmName: cf["Firm Name"],
-      frn: cf["FRN"],
-      function: cf["Function"],
-      status: cf["Status"],
-      effectiveFrom: cf["Effective From"],
-      effectiveTo: cf["Effective To"],
-    }));
+    // FCA API returns { Data: [{ Current: { "(1)Name": {...} }, Previous: { ... } }] }
+    const rawData = response.Data?.[0] || {};
+    const currentRoles = rawData.Current || {};
+    const previousRoles = rawData.Previous || {};
 
-    // Identify active SMF roles
+    function extractFRN(url?: string): string {
+      if (!url) return "";
+      const match = url.match(/Firm\/(\d+)/);
+      return match ? match[1] : "";
+    }
+
+    function parseRoles(roles: Record<string, FCAControlFunctionEntry>, isCurrent: boolean) {
+      return Object.entries(roles).map(([key, value]) => {
+        const functionName = value["Name"] || key.replace(/^\(\d+\)/, "");
+        return {
+          firmName: value["Firm Name"] || "",
+          frn: extractFRN(value["URL"]),
+          function: functionName,
+          status: isCurrent ? "Current" : "Previous",
+          effectiveFrom: value["Effective Date"] || "",
+          effectiveTo: isCurrent ? "" : (value["End Date"] || ""),
+        };
+      });
+    }
+
+    const controlFunctions = [
+      ...parseRoles(currentRoles, true),
+      ...parseRoles(previousRoles, false),
+    ];
+
+    // Identify active SMF roles (current roles starting with "SMF")
     const activeSMFs = controlFunctions.filter(
-      (cf) => cf.function.startsWith("SMF") && !cf.effectiveTo
+      (cf) => cf.function.startsWith("SMF") && cf.status === "Current"
     );
 
     // Get unique firms where individual has roles
-    const firms = [...new Set(controlFunctions.map((cf) => cf.frn))];
+    const firms = [...new Set(controlFunctions.map((cf) => cf.frn).filter(Boolean))];
 
     return NextResponse.json({
       irn,

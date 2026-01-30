@@ -31,16 +31,18 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    const individual = response.Data[0];
+    const raw = response.Data[0];
+    // FCA API nests individual fields under "Details"
+    const details = (raw.Details || raw) as Record<string, string | undefined>;
     const normalized = {
-      irn: individual["IRN"],
-      name: individual["Name"],
-      status: individual["Status"],
+      irn: details["IRN"] || irn,
+      name: details["Full Name"] || details["Name"] || "",
+      status: details["Status"] || "",
     };
 
     return NextResponse.json({
       individual: normalized,
-      raw: individual,
+      raw,
     });
   } catch (error) {
     if (isFCAApiError(error)) {
