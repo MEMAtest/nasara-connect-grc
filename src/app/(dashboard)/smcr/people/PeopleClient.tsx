@@ -1244,6 +1244,10 @@ export function PeopleClient() {
                           })
                           .then((data) => {
                             setInlineVerifyResult({ name: data.individual.name, status: data.individual.status });
+                            // Auto-populate name if empty
+                            if (!formState.name.trim()) {
+                              setFormState((prev) => ({ ...prev, name: data.individual.name }));
+                            }
                           })
                           .catch(() => {
                             setInlineVerifyError("Individual not found on FCA Register");

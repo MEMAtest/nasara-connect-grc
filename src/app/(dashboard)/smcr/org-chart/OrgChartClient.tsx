@@ -1293,6 +1293,10 @@ export function OrgChartClient() {
                         })
                         .then((data) => {
                           setIrnVerifyResult({ name: data.individual.name, status: data.individual.status });
+                          // Auto-populate name if empty or still default
+                          if (!addPersonForm.name.trim()) {
+                            setAddPersonForm((prev) => ({ ...prev, name: data.individual.name }));
+                          }
                         })
                         .catch(() => {
                           setIrnVerifyError("Not found on FCA Register");
