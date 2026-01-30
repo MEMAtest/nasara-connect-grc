@@ -2,67 +2,17 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import {
-  Plus,
-  ChevronRight,
-  AlertCircle,
-  CheckCircle,
-  Clock,
-  FileText,
-  Users,
-  Shield,
-  AlertTriangle,
-  Heart,
-  Scale,
-  Gift,
-  Megaphone,
-  Search,
-  FileSearch,
-  FileCheck,
-  FileWarning,
-  BarChart3,
-  CreditCard,
-  BookOpen,
-  Award,
-  Calendar,
-  Briefcase,
-  Database,
-  ShieldAlert,
-  Building2,
-} from "lucide-react";
+import { Plus, ChevronRight, CheckCircle, Clock, FileText, Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { FirmType, FIRM_TYPES, REGISTER_CATEGORIES, RegisterCategory } from "@/lib/types/register-hub";
 import { REGISTER_DEFINITIONS } from "@/lib/register-hub/definitions";
-
-// Icon mapping for register codes
-const REGISTER_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
-  pep: Users,
-  sanctions: Shield,
-  "aml-cdd": FileSearch,
-  "edd-cases": FileCheck,
-  "sar-nca": FileWarning,
-  "tx-monitoring": BarChart3,
-  complaints: FileText,
-  conflicts: Scale,
-  "gifts-hospitality": Gift,
-  "fin-prom": Megaphone,
-  "vulnerable-customers": Heart,
-  "product-governance": Search,
-  "tc-record": BookOpen,
-  "smcr-certification": Award,
-  "regulatory-returns": Calendar,
-  "pa-dealing": CreditCard,
-  "insider-list": Database,
-  "outside-business": Briefcase,
-  incidents: AlertTriangle,
-  "third-party": Building2,
-  "data-breach-dsar": ShieldAlert,
-  "op-resilience": Shield,
-  "regulatory-breach": AlertCircle,
-};
+import {
+  DefaultRegisterIllustration,
+  REGISTER_ILLUSTRATIONS,
+} from "@/components/register-hub/RegisterIllustrations";
 
 interface RegisterStat {
   code: string;
@@ -314,7 +264,8 @@ export function MyRegistersHub({
 
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {registers.map((register) => {
-                  const Icon = REGISTER_ICONS[register.code] || FileText;
+                  const Illustration =
+                    REGISTER_ILLUSTRATIONS[register.code] || DefaultRegisterIllustration;
                   const stats = registerStats[register.code];
 
                   return (
@@ -322,8 +273,8 @@ export function MyRegistersHub({
                       <Card className="group h-full cursor-pointer transition-all hover:border-teal-200 hover:shadow-md">
                         <CardHeader className="pb-2">
                           <div className="flex items-start justify-between">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 transition-colors group-hover:bg-teal-100">
-                              <Icon className="h-5 w-5 text-slate-600 transition-colors group-hover:text-teal-600" />
+                            <div className="flex h-12 w-12 items-center justify-center">
+                              <Illustration className="h-12 w-12 transition-transform group-hover:scale-105" />
                             </div>
                             <ChevronRight className="h-5 w-5 text-slate-300 transition-all group-hover:translate-x-1 group-hover:text-teal-500" />
                           </div>

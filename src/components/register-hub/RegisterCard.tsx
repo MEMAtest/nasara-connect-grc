@@ -2,33 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Users,
-  Shield,
-  FileSearch,
-  FileCheck,
-  AlertTriangle,
-  Activity,
-  MessageSquareWarning,
-  Scale,
-  Gift,
-  Megaphone,
-  Heart,
-  Package,
-  GraduationCap,
-  BadgeCheck,
-  Calendar,
-  TrendingUp,
-  Lock,
-  Briefcase,
-  AlertOctagon,
-  Building2,
-  Database,
-  AlertCircle,
-  ExternalLink,
-  Check,
-  Info,
-} from "lucide-react";
+import { ExternalLink, Check, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -41,32 +15,10 @@ import {
 } from "@/components/ui/tooltip";
 import { RegisterDefinitionRecord, RegisterSubscriptionRecord } from "@/lib/database";
 import { RecommendationLevel } from "@/lib/types/register-hub";
-
-// Icon mapping
-const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
-  Users,
-  Shield,
-  FileSearch,
-  FileCheck,
-  AlertTriangle,
-  Activity,
-  MessageSquareWarning,
-  Scale,
-  Gift,
-  Megaphone,
-  Heart,
-  Package,
-  GraduationCap,
-  BadgeCheck,
-  Calendar,
-  TrendingUp,
-  Lock,
-  Briefcase,
-  AlertOctagon,
-  Building2,
-  Database,
-  AlertCircle,
-};
+import {
+  DefaultRegisterIllustration,
+  REGISTER_ILLUSTRATIONS,
+} from "@/components/register-hub/RegisterIllustrations";
 
 // Category colors
 const CATEGORY_COLORS: Record<string, { bg: string; text: string; border: string }> = {
@@ -116,7 +68,8 @@ export function RegisterCard({
   const router = useRouter();
   const [toggling, setToggling] = useState(false);
 
-  const Icon = ICON_MAP[definition.icon_key] || AlertCircle;
+  const Illustration =
+    REGISTER_ILLUSTRATIONS[definition.code] || DefaultRegisterIllustration;
   const colors = CATEGORY_COLORS[definition.category] || CATEGORY_COLORS.operational;
   const badge = RECOMMENDATION_BADGES[recommendationLevel];
   const isEnabled = subscription?.enabled ?? false;
@@ -147,13 +100,8 @@ export function RegisterCard({
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3">
-          <div
-            className={cn(
-              "flex h-10 w-10 items-center justify-center rounded-lg",
-              colors.bg
-            )}
-          >
-            <Icon className={cn("h-5 w-5", colors.text)} />
+          <div className="flex h-12 w-12 items-center justify-center">
+            <Illustration className="h-12 w-12" />
           </div>
           <div className="min-w-0 flex-1">
             <h3 className="font-semibold text-slate-900 line-clamp-1">

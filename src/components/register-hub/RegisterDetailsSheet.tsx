@@ -1,35 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import {
-  Users,
-  Shield,
-  FileSearch,
-  FileCheck,
-  AlertTriangle,
-  Activity,
-  MessageSquareWarning,
-  Scale,
-  Gift,
-  Megaphone,
-  Heart,
-  Package,
-  GraduationCap,
-  BadgeCheck,
-  Calendar,
-  TrendingUp,
-  Lock,
-  Briefcase,
-  AlertOctagon,
-  Building2,
-  Database,
-  AlertCircle,
-  ExternalLink,
-  BookOpen,
-  FileText,
-  CheckCircle,
-  XCircle,
-} from "lucide-react";
+import { AlertCircle, ExternalLink, BookOpen, FileText, CheckCircle, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -45,32 +17,10 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { RegisterDefinitionRecord, RegisterSubscriptionRecord } from "@/lib/database";
 import { RecommendationLevel, REGISTER_CATEGORIES } from "@/lib/types/register-hub";
-
-// Icon mapping
-const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
-  Users,
-  Shield,
-  FileSearch,
-  FileCheck,
-  AlertTriangle,
-  Activity,
-  MessageSquareWarning,
-  Scale,
-  Gift,
-  Megaphone,
-  Heart,
-  Package,
-  GraduationCap,
-  BadgeCheck,
-  Calendar,
-  TrendingUp,
-  Lock,
-  Briefcase,
-  AlertOctagon,
-  Building2,
-  Database,
-  AlertCircle,
-};
+import {
+  DefaultRegisterIllustration,
+  REGISTER_ILLUSTRATIONS,
+} from "@/components/register-hub/RegisterIllustrations";
 
 // Category colors
 const CATEGORY_COLORS: Record<string, { bg: string; text: string; border: string; badge: string }> = {
@@ -125,7 +75,8 @@ export function RegisterDetailsSheet({
 
   if (!definition) return null;
 
-  const Icon = ICON_MAP[definition.icon_key] || AlertCircle;
+  const Illustration =
+    REGISTER_ILLUSTRATIONS[definition.code] || DefaultRegisterIllustration;
   const colors = CATEGORY_COLORS[definition.category] || CATEGORY_COLORS.operational;
   const recommendation = RECOMMENDATION_STYLES[recommendationLevel];
   const RecommendationIcon = recommendation.icon;
@@ -148,13 +99,8 @@ export function RegisterDetailsSheet({
       <SheetContent className="w-full sm:max-w-lg">
         <SheetHeader className="pb-4">
           <div className="flex items-start gap-4">
-            <div
-              className={cn(
-                "flex h-14 w-14 items-center justify-center rounded-xl",
-                colors.bg
-              )}
-            >
-              <Icon className={cn("h-7 w-7", colors.text)} />
+            <div className="flex h-16 w-16 items-center justify-center">
+              <Illustration className="h-16 w-16" />
             </div>
             <div className="flex-1">
               <SheetTitle className="text-xl">{definition.name}</SheetTitle>
