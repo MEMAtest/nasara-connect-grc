@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { FCAVerificationSheet } from "@/components/fca-register/FCAVerificationSheet";
+import type { FCAVerificationResult } from "@/hooks/useFCAVerification";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -46,6 +48,7 @@ import {
   RoleAssignment,
   RoleApprovalStatus,
   PersonAssessment,
+  FCAVerificationData,
 } from "../context/SmcrDataContext";
 import { fetchDocumentBlob } from "../utils/document-storage";
 import { allSMFs, certificationFunctions } from "../data/core-functions";
@@ -101,6 +104,7 @@ type FormState = {
   phone: string;
   address: string;
   lineManager: string;
+  irn: string;
   startDate?: Date;
   hireDate?: Date;
   assessmentStatus: AssessmentStatus;
@@ -142,6 +146,7 @@ function createInitialFormState(): FormState {
     phone: "",
     address: "",
     lineManager: "",
+    irn: "",
     startDate: undefined,
     hireDate: undefined,
     assessmentStatus: "not_required",
@@ -277,6 +282,20 @@ export function PeopleClient() {
   const [roleFeedback, setRoleFeedback] = useState<string | null>(null);
   const [recentRoleId, setRecentRoleId] = useState<string | null>(null);
 
+  // FCA Verification Sheet state
+  const [verificationSheetOpen, setVerificationSheetOpen] = useState(false);
+  const [verificationPersonId, setVerificationPersonId] = useState<string | null>(null);
+
+  // Close verification sheet if the target person was deleted
+  useEffect(() => {
+    if (!verificationPersonId) return;
+    const personExists = firmPeople.some((p) => p.id === verificationPersonId && p.irn);
+    if (!personExists) {
+      setVerificationSheetOpen(false);
+      setVerificationPersonId(null);
+    }
+  }, [verificationPersonId, firmPeople]);
+
   // Generator dialogs state
   const [cvGeneratorOpen, setCvGeneratorOpen] = useState(false);
   const [dbsGeneratorOpen, setDbsGeneratorOpen] = useState(false);
@@ -350,6 +369,7 @@ export function PeopleClient() {
       phone: person.phone ?? "",
       address: person.address ?? "",
       lineManager: person.lineManager ?? "",
+      irn: person.irn ?? "",
       startDate: fromISO(person.startDate),
       hireDate: fromISO(person.hireDate),
       assessmentStatus: person.assessment.status,
@@ -376,6 +396,7 @@ export function PeopleClient() {
         phone: formState.phone,
         address: formState.address,
         lineManager: formState.lineManager,
+        irn: formState.irn || undefined,
         startDate: toISO(formState.startDate),
         hireDate: toISO(formState.hireDate),
         assessment: {
@@ -652,9 +673,36 @@ export function PeopleClient() {
                     <CardTitle className="text-lg text-slate-900">{person.name}</CardTitle>
                     <CardDescription>{person.employeeId}</CardDescription>
                   </div>
-                  <Badge className={cn("text-xs", statusBadgeClass[person.assessment.status])}>
-                    F&amp;P {person.assessment.status.replace("_", " ")}
-                  </Badge>
+                  <div className="flex flex-col items-end gap-1">
+                    <Badge className={cn("text-xs", statusBadgeClass[person.assessment.status])}>
+                      F&amp;P {person.assessment.status.replace("_", " ")}
+                    </Badge>
+                    {person.irn && (
+                      person.fcaVerification ? (
+                        <Badge
+                          variant="outline"
+                          className={cn("text-xs",
+                            person.fcaVerification.status === "Active" || person.fcaVerification.status === "Authorised"
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                              : person.fcaVerification.hasEnforcementHistory || person.fcaVerification.status === "Banned"
+                              ? "bg-rose-50 text-rose-700 border-rose-200"
+                              : "bg-slate-50 text-slate-600 border-slate-200"
+                          )}
+                        >
+                          {person.fcaVerification.status === "Active" || person.fcaVerification.status === "Authorised"
+                            ? <><CheckCircle2 className="h-3 w-3 mr-1" />FCA Verified</>
+                            : person.fcaVerification.hasEnforcementHistory || person.fcaVerification.status === "Banned"
+                            ? <><AlertTriangle className="h-3 w-3 mr-1" />Issues Found</>
+                            : <><Shield className="h-3 w-3 mr-1" />{person.fcaVerification.status}</>
+                          }
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-xs bg-slate-50 text-slate-500 border-slate-200">
+                          Unverified
+                        </Badge>
+                      )
+                    )}
+                  </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 text-sm text-slate-600">
                   {person.title && (
@@ -846,7 +894,58 @@ export function PeopleClient() {
                   )}
                 </div>
 
+                {person.fcaVerification && person.fcaVerification.controlFunctions.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-sm font-semibold text-slate-700">FCA Register Roles</p>
+                    <div className="space-y-2">
+                      {person.fcaVerification.controlFunctions
+                        .filter((cf) => cf.status === "Active" || cf.status === "Current")
+                        .map((cf) => (
+                          <div
+                            key={`fca-${cf.function}-${cf.frn}-${cf.effectiveFrom}`}
+                            className="flex items-start justify-between rounded-lg border border-emerald-200 bg-emerald-50/50 px-3 py-2 text-sm"
+                          >
+                            <div>
+                              <div className="font-medium text-slate-800">{cf.function}</div>
+                              <div className="text-xs text-slate-500 space-y-0.5">
+                                <div>Firm: {cf.firmName} (FRN: {cf.frn})</div>
+                                <div>Effective from: {cf.effectiveFrom}</div>
+                                {cf.effectiveTo && <div>Effective to: {cf.effectiveTo}</div>}
+                              </div>
+                            </div>
+                            <Badge variant="outline" className="text-xs bg-emerald-100 text-emerald-700 border-emerald-300">
+                              {cf.status}
+                            </Badge>
+                          </div>
+                        ))}
+                      {person.fcaVerification.controlFunctions.filter(
+                        (cf) => cf.status !== "Active" && cf.status !== "Current"
+                      ).length > 0 && (
+                        <p className="text-xs text-slate-400">
+                          + {person.fcaVerification.controlFunctions.filter(
+                            (cf) => cf.status !== "Active" && cf.status !== "Current"
+                          ).length} inactive role(s) on FCA Register
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 <div className="space-y-2 pt-2 border-t">
+                  {person.irn && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => {
+                        setVerificationPersonId(person.id);
+                        setVerificationSheetOpen(true);
+                      }}
+                    >
+                      <Shield className="h-4 w-4 mr-1" />
+                      Verify on FCA Register
+                    </Button>
+                  )}
                   <div className="flex gap-2">
                     <Button
                       size="sm"
@@ -1021,6 +1120,19 @@ export function PeopleClient() {
               </div>
             </div>
 
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <Label htmlFor="irn">FCA Individual Reference Number (IRN)</Label>
+                <Input
+                  id="irn"
+                  value={formState.irn}
+                  onChange={(event) => setFormState((prev) => ({ ...prev, irn: event.target.value }))}
+                  placeholder="e.g. ABC12345"
+                />
+                <p className="text-xs text-slate-500 mt-1">Used to verify this person against the FCA Register</p>
+              </div>
+            </div>
+
             <div>
               <Label htmlFor="address">Address</Label>
               <Textarea
@@ -1132,8 +1244,8 @@ export function PeopleClient() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                <div>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <div className="min-w-0">
                   <Label>Last Assessment</Label>
                   <DatePickerField
                     label=""
@@ -1149,7 +1261,7 @@ export function PeopleClient() {
                     }}
                   />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <Label>Assessment Frequency</Label>
                   <Select
                     value={formState.assessmentFrequency}
@@ -1173,7 +1285,7 @@ export function PeopleClient() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div>
+                <div className="min-w-0">
                   <div className="flex items-center gap-1.5 mb-1">
                     <Label>Next Assessment</Label>
                     <Tooltip>
@@ -1523,6 +1635,38 @@ export function PeopleClient() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* FCA Verification Sheet */}
+      {verificationPersonId && (() => {
+        const verifyPerson = firmPeople.find((p) => p.id === verificationPersonId);
+        if (!verifyPerson || !verifyPerson.irn) return null;
+        return (
+          <FCAVerificationSheet
+            open={verificationSheetOpen}
+            onOpenChange={setVerificationSheetOpen}
+            personName={verifyPerson.name}
+            irn={verifyPerson.irn}
+            onVerified={(result) => {
+              const verificationData: FCAVerificationData = {
+                status: result.status,
+                lastChecked: result.lastChecked,
+                controlFunctions: result.controlFunctions.map((cf) => ({
+                  function: cf.function,
+                  firmName: cf.firmName,
+                  frn: cf.frn,
+                  status: cf.status,
+                  effectiveFrom: cf.effectiveFrom,
+                  effectiveTo: cf.effectiveTo,
+                })),
+                hasEnforcementHistory: result.hasEnforcementHistory,
+              };
+              updatePerson(verificationPersonId, {
+                fcaVerification: verificationData,
+              } as Partial<PersonRecord>);
+            }}
+          />
+        );
+      })()}
 
       {/* Generator Dialogs */}
       {generatorPersonId && (() => {

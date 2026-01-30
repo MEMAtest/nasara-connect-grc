@@ -125,7 +125,7 @@ const navigationGroups: NavigationGroup[] = [
         badge: { text: "5", variant: "info" },
       },
       {
-        label: "SM&CR Management",
+        label: "Governance & People",
         icon: Shield,
         href: "/smcr",
         badge: { text: "NEW", variant: "success" },

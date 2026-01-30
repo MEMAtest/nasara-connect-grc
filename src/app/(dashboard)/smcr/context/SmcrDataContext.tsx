@@ -35,6 +35,20 @@ export interface PersonAssessment {
   trainingCompletion?: number;
 }
 
+export interface FCAVerificationData {
+  status: string;
+  lastChecked: string;
+  controlFunctions: Array<{
+    function: string;
+    firmName: string;
+    frn: string;
+    status: string;
+    effectiveFrom: string;
+    effectiveTo?: string;
+  }>;
+  hasEnforcementHistory: boolean;
+}
+
 export interface PersonRecord {
   id: string;
   firmId: string;
@@ -49,6 +63,8 @@ export interface PersonRecord {
   startDate?: string;
   hireDate?: string;
   endDate?: string;
+  irn?: string;
+  fcaVerification?: FCAVerificationData;
   assessment: PersonAssessment;
   createdAt: string;
   updatedAt: string;
@@ -405,6 +421,7 @@ type NewPersonInput = {
   phone?: string;
   address?: string;
   lineManager?: string;
+  irn?: string;
   startDate?: string;
   hireDate?: string;
   endDate?: string;
@@ -821,6 +838,7 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
             phone: input.phone?.trim() || undefined,
             address: input.address?.trim() || undefined,
             lineManager: input.lineManager?.trim() || undefined,
+            irn: input.irn?.trim() || undefined,
             startDate: input.startDate,
             hireDate: input.hireDate ?? input.startDate,
             endDate: input.endDate,

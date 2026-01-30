@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useCallback, useMemo, useState } from "react";
+import { FCAVerificationSheet } from "@/components/fca-register/FCAVerificationSheet";
+import type { FCAVerificationResult } from "@/hooks/useFCAVerification";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,7 +27,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { allSMFs } from "../data/core-functions";
-import { useSmcrData, RoleAssignment, RoleApprovalStatus } from "../context/SmcrDataContext";
+import { useSmcrData, RoleAssignment, RoleApprovalStatus, PersonRecord, FCAVerificationData } from "../context/SmcrDataContext";
 import { SmfIcon } from "../components/SmcrIcons";
 import { formATips, sorTips, formCTips } from "../forms/form-data";
 
@@ -35,8 +37,11 @@ interface AssignmentRow {
   functionNumber: string;
   category: string;
   personName: string;
+  personId: string;
   employeeId: string;
   email: string;
+  irn?: string;
+  fcaVerification?: FCAVerificationData;
   entity?: string;
 }
 
@@ -60,7 +65,7 @@ function toISO(date?: Date) {
 }
 
 export function SMFsClient() {
-  const { state, isReady, assignRole, removeRole } = useSmcrData();
+  const { state, isReady, assignRole, removeRole, updatePerson } = useSmcrData();
   const { people, roles } = state;
 
   const smfAssignments: AssignmentRow[] = useMemo(() => {
@@ -75,12 +80,29 @@ export function SMFsClient() {
           functionNumber: meta?.smf_number ?? role.functionLabel,
           category: meta?.category ?? "universal",
           personName: person?.name ?? "Unknown",
+          personId: person?.id ?? "",
           employeeId: person?.employeeId ?? "",
           email: person?.email ?? "",
+          irn: person?.irn,
+          fcaVerification: person?.fcaVerification,
           entity: role.entity,
         } satisfies AssignmentRow;
       });
   }, [roles, people]);
+
+  // FCA Verification Sheet state
+  const [verificationSheetOpen, setVerificationSheetOpen] = useState(false);
+  const [verificationPersonId, setVerificationPersonId] = useState<string | null>(null);
+
+  // Close verification sheet if the target person was deleted
+  React.useEffect(() => {
+    if (!verificationPersonId) return;
+    const personExists = people.some((p) => p.id === verificationPersonId && p.irn);
+    if (!personExists) {
+      setVerificationSheetOpen(false);
+      setVerificationPersonId(null);
+    }
+  }, [verificationPersonId, people]);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<RoleApprovalStatus | "all">("all");
@@ -276,16 +298,43 @@ export function SMFsClient() {
             </CardContent>
           </Card>
         ) : (
-          filteredAssignments.map(({ role, functionTitle, functionNumber, category, personName, employeeId, email, entity }) => (
+          filteredAssignments.map(({ role, functionTitle, functionNumber, category, personName, personId, employeeId, email, irn, fcaVerification, entity }) => (
             <Card key={role.id}>
               <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <CardTitle className="text-lg text-slate-900">{functionNumber} &middot; {functionTitle}</CardTitle>
                   <CardDescription>{category.replace("_", " ")}</CardDescription>
                 </div>
-                <Badge className={cn("text-xs uppercase", approvalColours[role.approvalStatus])}>
-                  {role.approvalStatus}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  {irn && (
+                    fcaVerification ? (
+                      <Badge
+                        variant="outline"
+                        className={cn("text-xs",
+                          fcaVerification.status === "Active" || fcaVerification.status === "Authorised"
+                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                            : fcaVerification.hasEnforcementHistory || fcaVerification.status === "Banned"
+                            ? "bg-rose-50 text-rose-700 border-rose-200"
+                            : "bg-slate-50 text-slate-600 border-slate-200"
+                        )}
+                      >
+                        {fcaVerification.status === "Active" || fcaVerification.status === "Authorised"
+                          ? "FCA Verified"
+                          : fcaVerification.hasEnforcementHistory || fcaVerification.status === "Banned"
+                          ? "Issues Found"
+                          : fcaVerification.status
+                        }
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-xs bg-slate-50 text-slate-500 border-slate-200">
+                        Unverified
+                      </Badge>
+                    )
+                  )}
+                  <Badge className={cn("text-xs uppercase", approvalColours[role.approvalStatus])}>
+                    {role.approvalStatus}
+                  </Badge>
+                </div>
               </CardHeader>
               <CardContent className="space-y-4 text-sm text-slate-600">
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -294,6 +343,7 @@ export function SMFsClient() {
                     <p className="font-medium text-slate-800">{personName}</p>
                     <p className="text-xs text-slate-500">{employeeId}</p>
                     <p className="text-xs text-slate-500">{email}</p>
+                    {irn && <p className="text-xs text-slate-500">IRN: {irn}</p>}
                   </div>
                   <div>
                     <p className="text-xs uppercase tracking-wide text-slate-500">Entity</p>
@@ -305,7 +355,20 @@ export function SMFsClient() {
                   <InfoBlock label="End Date" value={role.endDate} />
                   <InfoBlock label="Last Assessment" value={role.assessmentDate} />
                 </div>
-                <div className="flex justify-end">
+                <div className="flex justify-end gap-2">
+                  {irn && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setVerificationPersonId(personId);
+                        setVerificationSheetOpen(true);
+                      }}
+                    >
+                      <Shield className="h-4 w-4 mr-2" />
+                      Verify
+                    </Button>
+                  )}
                   <Button size="sm" variant="outline" onClick={() => handleRemove(role.id)}>
                     <Trash2 className="h-4 w-4 mr-2" />
                     Remove
@@ -316,6 +379,38 @@ export function SMFsClient() {
           ))
         )}
       </div>
+
+      {/* FCA Verification Sheet */}
+      {verificationPersonId && (() => {
+        const verifyPerson = people.find((p) => p.id === verificationPersonId);
+        if (!verifyPerson || !verifyPerson.irn) return null;
+        return (
+          <FCAVerificationSheet
+            open={verificationSheetOpen}
+            onOpenChange={setVerificationSheetOpen}
+            personName={verifyPerson.name}
+            irn={verifyPerson.irn}
+            onVerified={(result) => {
+              const verificationData: FCAVerificationData = {
+                status: result.status,
+                lastChecked: result.lastChecked,
+                controlFunctions: result.controlFunctions.map((cf) => ({
+                  function: cf.function,
+                  firmName: cf.firmName,
+                  frn: cf.frn,
+                  status: cf.status,
+                  effectiveFrom: cf.effectiveFrom,
+                  effectiveTo: cf.effectiveTo,
+                })),
+                hasEnforcementHistory: result.hasEnforcementHistory,
+              };
+              updatePerson(verificationPersonId, {
+                fcaVerification: verificationData,
+              } as Partial<PersonRecord>);
+            }}
+          />
+        );
+      })()}
 
       <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">

@@ -11,6 +11,7 @@ import {
   FileText,
   GitBranch,
   Network,
+  Search,
 } from "lucide-react";
 import { SmcrDataProvider } from "./context/SmcrDataContext";
 import { ModuleSidebar, type ModuleSidebarItem } from "@/components/dashboard/ModuleSidebar";
@@ -26,6 +27,7 @@ const smcrNavItems: ModuleSidebarItem[] = [
   { label: "Forms", href: "/smcr/forms", icon: FileText },
   { label: "Workflows", href: "/smcr/workflows", icon: GitBranch },
   { label: "Org Chart", href: "/smcr/org-chart", icon: Network },
+  { label: "FCA Reg.", href: "/smcr/fca-register", icon: Search },
 ];
 
 export default function SmcrLayout({ children }: { children: ReactNode }) {

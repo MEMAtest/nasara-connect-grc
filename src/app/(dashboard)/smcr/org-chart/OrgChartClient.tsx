@@ -23,6 +23,8 @@ import {
   Plus,
   GripVertical,
   HelpCircle,
+  Building2,
+  FolderOpen,
 } from "lucide-react";
 import {
   Tooltip,
@@ -45,6 +47,7 @@ interface AddPersonForm {
   department: string;
   email: string;
   lineManager: string;
+  irn: string;
 }
 
 const initialAddPersonForm: AddPersonForm = {
@@ -54,15 +57,21 @@ const initialAddPersonForm: AddPersonForm = {
   department: "",
   email: "",
   lineManager: "",
+  irn: "",
 };
 
 // ============================================================================
 // TYPES
 // ============================================================================
 
+type OrgNodeType = "person" | "company" | "department";
+
 interface OrgNode {
   id: string;
-  person: PersonRecord;
+  type: OrgNodeType;
+  person?: PersonRecord;
+  label: string;
+  subtitle?: string;
   roles: RoleAssignment[];
   managerId?: string;
   children: OrgNode[];
@@ -105,7 +114,12 @@ const PADDING = 40;
 // UTILITY FUNCTIONS
 // ============================================================================
 
-function buildOrgTree(people: PersonRecord[], roles: RoleAssignment[]): OrgNode[] {
+function buildOrgTree(
+  people: PersonRecord[],
+  roles: RoleAssignment[],
+  firmName?: string,
+  customDepartments?: string[]
+): OrgNode[] {
   const rolesByPerson = new Map<string, RoleAssignment[]>();
   roles.forEach((role) => {
     const list = rolesByPerson.get(role.personId) ?? [];
@@ -113,11 +127,15 @@ function buildOrgTree(people: PersonRecord[], roles: RoleAssignment[]): OrgNode[
     rolesByPerson.set(role.personId, list);
   });
 
-  const nodes = new Map<string, OrgNode>();
+  // Build person nodes
+  const personNodes = new Map<string, OrgNode>();
   people.forEach((person) => {
-    nodes.set(person.id, {
+    personNodes.set(person.id, {
       id: person.id,
+      type: "person",
       person,
+      label: person.name,
+      subtitle: person.title || person.department,
       roles: rolesByPerson.get(person.id) ?? [],
       managerId: person.lineManager
         ? people.find((p) => p.name.toLowerCase() === person.lineManager?.toLowerCase())?.id
@@ -126,24 +144,77 @@ function buildOrgTree(people: PersonRecord[], roles: RoleAssignment[]): OrgNode[
     });
   });
 
-  const roots: OrgNode[] = [];
-  nodes.forEach((node) => {
-    if (node.managerId && nodes.has(node.managerId)) {
-      const parent = nodes.get(node.managerId)!;
+  // Resolve manager relationships within person nodes
+  const topLevelPeople: OrgNode[] = [];
+  personNodes.forEach((node) => {
+    if (node.managerId && personNodes.has(node.managerId)) {
+      const parent = personNodes.get(node.managerId)!;
       parent.children.push(node);
     } else {
-      roots.push(node);
+      topLevelPeople.push(node);
     }
   });
 
+  // Sort children
   const sortChildren = (node: OrgNode) => {
-    node.children.sort((a, b) => a.person.name.localeCompare(b.person.name));
+    node.children.sort((a, b) => a.label.localeCompare(b.label));
     node.children.forEach(sortChildren);
   };
-  roots.sort((a, b) => a.person.name.localeCompare(b.person.name));
-  roots.forEach(sortChildren);
+  topLevelPeople.sort((a, b) => a.label.localeCompare(b.label));
+  topLevelPeople.forEach(sortChildren);
 
-  return roots;
+  // Group top-level people by department
+  const departments = new Map<string, OrgNode[]>();
+  const noDept: OrgNode[] = [];
+
+  topLevelPeople.forEach((node) => {
+    const dept = node.person?.department;
+    if (dept && dept !== "General") {
+      const list = departments.get(dept) ?? [];
+      list.push(node);
+      departments.set(dept, list);
+    } else {
+      noDept.push(node);
+    }
+  });
+
+  // Add any custom (manually created) departments that have no people
+  customDepartments?.forEach((dept) => {
+    if (!departments.has(dept)) {
+      departments.set(dept, []);
+    }
+  });
+
+  // Create department nodes
+  const deptNodes: OrgNode[] = [];
+  departments.forEach((deptPeople, deptName) => {
+    deptNodes.push({
+      id: `dept-${deptName.toLowerCase().replace(/\s+/g, "-")}`,
+      type: "department",
+      label: deptName,
+      subtitle: `${deptPeople.length} ${deptPeople.length === 1 ? "person" : "people"}`,
+      roles: [],
+      children: deptPeople,
+    });
+  });
+
+  deptNodes.sort((a, b) => a.label.localeCompare(b.label));
+
+  // Create company root node if firm name exists
+  if (firmName) {
+    const companyNode: OrgNode = {
+      id: "company-root",
+      type: "company",
+      label: firmName,
+      subtitle: `${people.length} ${people.length === 1 ? "person" : "people"}`,
+      roles: [],
+      children: [...deptNodes, ...noDept],
+    };
+    return [companyNode];
+  }
+
+  // If no firm name, just return dept nodes + unassigned people
+  return [...deptNodes, ...noDept];
 }
 
 function getRoleColor(functionType?: string): string {
@@ -318,6 +389,27 @@ interface OrgChartNodeProps {
   onToggle: (id: string) => void;
 }
 
+function getNodeTypeStyles(type: OrgNodeType) {
+  switch (type) {
+    case "company":
+      return {
+        border: "border-blue-400",
+        bg: "bg-blue-50",
+        iconBg: "from-blue-500 to-blue-600",
+        icon: Building2,
+      };
+    case "department":
+      return {
+        border: "border-slate-400",
+        bg: "bg-slate-50",
+        iconBg: "from-slate-400 to-slate-500",
+        icon: FolderOpen,
+      };
+    default:
+      return null;
+  }
+}
+
 function OrgChartNode({
   node,
   position,
@@ -327,6 +419,8 @@ function OrgChartNode({
   onSelect,
   onToggle,
 }: OrgChartNodeProps) {
+  const typeStyles = getNodeTypeStyles(node.type);
+
   return (
     <g
       transform={`translate(${position.x}, ${position.y})`}
@@ -338,30 +432,47 @@ function OrgChartNode({
         <div
           className={cn(
             "h-full w-full rounded-lg border-2 bg-white p-2 shadow-sm transition-all hover:shadow-md",
-            getNodeBorderColor(node.roles),
+            typeStyles ? typeStyles.border : getNodeBorderColor(node.roles),
+            typeStyles?.bg,
             isSelected && "ring-2 ring-teal-500 ring-offset-2"
           )}
         >
           <div className="flex h-full items-center gap-2">
-            {/* Avatar */}
-            <div
-              className={cn(
-                "flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br",
-                getNodeGradient(node.roles)
-              )}
-            >
-              <User className="h-5 w-5 text-white" />
-            </div>
+            {/* Avatar / Icon */}
+            {typeStyles ? (
+              <div
+                className={cn(
+                  "flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br",
+                  typeStyles.iconBg
+                )}
+              >
+                <typeStyles.icon className="h-5 w-5 text-white" />
+              </div>
+            ) : (
+              <div
+                className={cn(
+                  "flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br",
+                  getNodeGradient(node.roles)
+                )}
+              >
+                <User className="h-5 w-5 text-white" />
+              </div>
+            )}
 
             {/* Info */}
             <div className="flex-1 min-w-0 overflow-hidden">
-              <p className="text-sm font-medium text-slate-900 truncate">
-                {node.person.name}
+              <p className={cn(
+                "font-medium text-slate-900 truncate",
+                node.type === "company" ? "text-sm font-semibold" : "text-sm"
+              )}>
+                {node.label}
               </p>
-              <p className="text-xs text-slate-500 truncate">
-                {node.person.title || node.person.department}
-              </p>
-              {node.roles.length > 0 && (
+              {node.subtitle && (
+                <p className="text-xs text-slate-500 truncate">
+                  {node.subtitle}
+                </p>
+              )}
+              {node.type === "person" && node.roles.length > 0 && (
                 <div className="flex gap-1 mt-1">
                   {node.roles.slice(0, 1).map((role) => (
                     <Badge
@@ -446,8 +557,17 @@ export function OrgChartClient() {
     return roles.filter((role) => role.firmId === activeFirmId);
   }, [roles, activeFirmId]);
 
+  // Custom departments state
+  const [customDepartments, setCustomDepartments] = useState<string[]>([]);
+  const [addDeptDialogOpen, setAddDeptDialogOpen] = useState(false);
+  const [newDeptName, setNewDeptName] = useState("");
+
   // Build org tree
-  const orgTree = useMemo(() => buildOrgTree(firmPeople, firmRoles), [firmPeople, firmRoles]);
+  const activeFirm = firms.find((f) => f.id === activeFirmId);
+  const orgTree = useMemo(
+    () => buildOrgTree(firmPeople, firmRoles, activeFirm?.name, customDepartments),
+    [firmPeople, firmRoles, activeFirm?.name, customDepartments]
+  );
 
   // State
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(() => {
@@ -586,7 +706,7 @@ export function OrgChartClient() {
   };
 
   const handleEditReportingLine = () => {
-    if (!selectedNode) return;
+    if (!selectedNode || !selectedNode.person) return;
     setEditManager(selectedNode.person.lineManager ?? "");
     setEditDialogOpen(true);
   };
@@ -609,6 +729,7 @@ export function OrgChartClient() {
       department: addPersonForm.department.trim() || "General",
       email: addPersonForm.email.trim() || `${addPersonForm.employeeId.toLowerCase()}@company.com`,
       lineManager: addPersonForm.lineManager || undefined,
+      irn: addPersonForm.irn.trim() || undefined,
     });
 
     setAddPersonForm(initialAddPersonForm);
@@ -682,6 +803,10 @@ export function OrgChartClient() {
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <FirmSwitcher />
+          <Button variant="outline" onClick={() => setAddDeptDialogOpen(true)}>
+            <FolderOpen className="h-4 w-4 mr-2" />
+            Add Department
+          </Button>
           <Button onClick={() => setAddPersonDialogOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Add Person
@@ -782,7 +907,15 @@ export function OrgChartClient() {
           </div>
 
           {/* Legend */}
-          <div className="flex items-center gap-4 ml-auto">
+          <div className="flex items-center gap-4 ml-auto flex-wrap">
+            <div className="flex items-center gap-2">
+              <div className="h-3 w-3 rounded-full bg-blue-500" />
+              <span className="text-xs text-slate-600">Company</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-3 w-3 rounded-full bg-slate-400" />
+              <span className="text-xs text-slate-600">Dept</span>
+            </div>
             <div className="flex items-center gap-2">
               <div className="h-3 w-3 rounded-full bg-amber-400" />
               <span className="text-xs text-slate-600">SMF</span>
@@ -790,10 +923,6 @@ export function OrgChartClient() {
             <div className="flex items-center gap-2">
               <div className="h-3 w-3 rounded-full bg-sky-400" />
               <span className="text-xs text-slate-600">CF</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="h-3 w-3 rounded-full bg-slate-400" />
-              <span className="text-xs text-slate-600">Other</span>
             </div>
           </div>
         </CardContent>
@@ -880,75 +1009,125 @@ export function OrgChartClient() {
             <CardContent>
               {selectedNode ? (
                 <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={cn(
-                        "flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br",
-                        getNodeGradient(selectedNode.roles)
-                      )}
-                    >
-                      <User className="h-6 w-6 text-white" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-slate-900">{selectedNode.person.name}</p>
-                      <p className="text-xs text-slate-500">{selectedNode.person.employeeId}</p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2 text-sm">
-                    <div>
-                      <span className="text-slate-500">Title:</span>
-                      <span className="ml-2 text-slate-700">{selectedNode.person.title || "—"}</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-500">Department:</span>
-                      <span className="ml-2 text-slate-700">{selectedNode.person.department}</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-500">Reports to:</span>
-                      <span className="ml-2 text-slate-700">
-                        {selectedNode.person.lineManager || "—"}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-slate-500">Direct reports:</span>
-                      <span className="ml-2 text-slate-700">{selectedNode.children.length}</span>
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="text-xs font-medium text-slate-500 uppercase mb-2">
-                      Assigned Roles
-                    </p>
-                    {selectedNode.roles.length === 0 ? (
-                      <p className="text-sm text-slate-500">No roles assigned</p>
-                    ) : (
-                      <div className="space-y-2">
-                        {selectedNode.roles.map((role) => (
-                          <div
-                            key={role.id}
-                            className={cn(
-                              "rounded-lg border p-2",
-                              getRoleColor(role.functionType)
-                            )}
-                          >
-                            <p className="text-xs font-medium">{role.functionLabel}</p>
-                            <p className="text-[10px] opacity-75">{role.functionType}</p>
-                          </div>
-                        ))}
+                  {selectedNode.type === "company" && (
+                    <>
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-600">
+                          <Building2 className="h-6 w-6 text-white" />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-slate-900">{selectedNode.label}</p>
+                          <p className="text-xs text-slate-500">Company</p>
+                        </div>
                       </div>
-                    )}
-                  </div>
+                      <div className="space-y-2 text-sm">
+                        <div>
+                          <span className="text-slate-500">Departments:</span>
+                          <span className="ml-2 text-slate-700">
+                            {selectedNode.children.filter(c => c.type === "department").length}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-slate-500">Total People:</span>
+                          <span className="ml-2 text-slate-700">{firmPeople.length}</span>
+                        </div>
+                      </div>
+                    </>
+                  )}
 
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
-                    onClick={handleEditReportingLine}
-                  >
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit Reporting Line
-                  </Button>
+                  {selectedNode.type === "department" && (
+                    <>
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-slate-400 to-slate-500">
+                          <FolderOpen className="h-6 w-6 text-white" />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-slate-900">{selectedNode.label}</p>
+                          <p className="text-xs text-slate-500">Department</p>
+                        </div>
+                      </div>
+                      <div className="space-y-2 text-sm">
+                        <div>
+                          <span className="text-slate-500">People:</span>
+                          <span className="ml-2 text-slate-700">{selectedNode.children.length}</span>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {selectedNode.type === "person" && selectedNode.person && (
+                    <>
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={cn(
+                            "flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br",
+                            getNodeGradient(selectedNode.roles)
+                          )}
+                        >
+                          <User className="h-6 w-6 text-white" />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-slate-900">{selectedNode.person.name}</p>
+                          <p className="text-xs text-slate-500">{selectedNode.person.employeeId}</p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2 text-sm">
+                        <div>
+                          <span className="text-slate-500">Title:</span>
+                          <span className="ml-2 text-slate-700">{selectedNode.person.title || "—"}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-500">Department:</span>
+                          <span className="ml-2 text-slate-700">{selectedNode.person.department}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-500">Reports to:</span>
+                          <span className="ml-2 text-slate-700">
+                            {selectedNode.person.lineManager || "—"}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-slate-500">Direct reports:</span>
+                          <span className="ml-2 text-slate-700">{selectedNode.children.length}</span>
+                        </div>
+                      </div>
+
+                      <div>
+                        <p className="text-xs font-medium text-slate-500 uppercase mb-2">
+                          Assigned Roles
+                        </p>
+                        {selectedNode.roles.length === 0 ? (
+                          <p className="text-sm text-slate-500">No roles assigned</p>
+                        ) : (
+                          <div className="space-y-2">
+                            {selectedNode.roles.map((role) => (
+                              <div
+                                key={role.id}
+                                className={cn(
+                                  "rounded-lg border p-2",
+                                  getRoleColor(role.functionType)
+                                )}
+                              >
+                                <p className="text-xs font-medium">{role.functionLabel}</p>
+                                <p className="text-[10px] opacity-75">{role.functionType}</p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        onClick={handleEditReportingLine}
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit Reporting Line
+                      </Button>
+                    </>
+                  )}
                 </div>
               ) : (
                 <p className="text-sm text-slate-500">
@@ -966,7 +1145,7 @@ export function OrgChartClient() {
           <DialogHeader>
             <DialogTitle>Edit Reporting Line</DialogTitle>
             <DialogDescription>
-              Update who {selectedNode?.person.name} reports to.
+              Update who {selectedNode?.person?.name ?? selectedNode?.label} reports to.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -1048,15 +1227,26 @@ export function OrgChartClient() {
                 />
               </div>
             </div>
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={addPersonForm.email}
-                onChange={(e) => setAddPersonForm((prev) => ({ ...prev, email: e.target.value }))}
-                placeholder="person@company.com"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={addPersonForm.email}
+                  onChange={(e) => setAddPersonForm((prev) => ({ ...prev, email: e.target.value }))}
+                  placeholder="person@company.com"
+                />
+              </div>
+              <div>
+                <Label htmlFor="irn">FCA IRN</Label>
+                <Input
+                  id="irn"
+                  value={addPersonForm.irn}
+                  onChange={(e) => setAddPersonForm((prev) => ({ ...prev, irn: e.target.value }))}
+                  placeholder="e.g., ABC12345"
+                />
+              </div>
             </div>
             <div>
               <Label htmlFor="line-manager">Reports to</Label>
@@ -1087,6 +1277,47 @@ export function OrgChartClient() {
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Person
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Department Dialog */}
+      <Dialog open={addDeptDialogOpen} onOpenChange={setAddDeptDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Department</DialogTitle>
+            <DialogDescription>
+              Create a new department grouping in the org chart.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="dept-name">Department Name *</Label>
+              <Input
+                id="dept-name"
+                value={newDeptName}
+                onChange={(e) => setNewDeptName(e.target.value)}
+                placeholder="e.g., Risk Management"
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setAddDeptDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  if (newDeptName.trim()) {
+                    setCustomDepartments(prev => [...prev, newDeptName.trim()]);
+                    setNewDeptName("");
+                    setAddDeptDialogOpen(false);
+                  }
+                }}
+                disabled={!newDeptName.trim()}
+              >
+                <FolderOpen className="h-4 w-4 mr-2" />
+                Add Department
               </Button>
             </div>
           </div>

@@ -221,7 +221,7 @@ export function SMCRClient() {
       <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-4 py-3">
         <div className="flex items-center gap-3">
           <DashboardIcon size={24} />
-          <h1 className="text-lg font-semibold text-slate-900">SM&CR Dashboard</h1>
+          <h1 className="text-lg font-semibold text-slate-900">Governance & People Dashboard</h1>
         </div>
         <div className="flex items-center gap-3">
           <FirmSwitcher />
@@ -233,7 +233,7 @@ export function SMCRClient() {
         <Card className="border-teal-200 bg-gradient-to-r from-teal-50 to-emerald-50">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-slate-900">Getting Started with SM&CR</h3>
+              <h3 className="font-semibold text-slate-900">Getting Started with Governance & People</h3>
               <Button
                 variant="ghost"
                 size="sm"
@@ -676,7 +676,7 @@ export function SMCRClient() {
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Next Actions</CardTitle>
-              <CardDescription>Shortcuts across the SM&CR workspace.</CardDescription>
+              <CardDescription>Shortcuts across the Governance & People workspace.</CardDescription>
             </CardHeader>
             <CardContent className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
               <ActionLinkWithIcon href="/smcr/people" label="Update F&P Records" Icon={PeopleIcon} description="Capture assessment outcomes, attach supporting evidence, and update documentation." />

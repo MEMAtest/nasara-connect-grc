@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import {
   Search,
   Building2,
@@ -16,6 +16,7 @@ import {
   ExternalLink,
   ClipboardList,
   UserCheck,
+  UserPlus,
   Gavel,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -80,7 +81,7 @@ interface SearchResult {
   status: string;
 }
 
-interface ControlFunctionEntry {
+export interface ControlFunctionEntry {
   firmName: string;
   frn: string;
   function: string;
@@ -91,9 +92,42 @@ interface ControlFunctionEntry {
 
 type LookupTab = "firm" | "individual" | "search";
 
+// Per-tab state types
+interface FirmTabState {
+  query: string;
+  firm: NormalizedFirm | null;
+  permissions: NormalizedPermission[];
+  individuals: NormalizedIndividual[];
+  disciplinaryHistory: DisciplinaryAction[];
+  fetchErrors: Set<string>;
+  secondaryLoading: boolean;
+}
+
+interface IndividualTabState {
+  query: string;
+  individual: NormalizedIndividual | null;
+  controlFunctions: ControlFunctionEntry[];
+  fetchErrors: Set<string>;
+}
+
+interface SearchTabState {
+  query: string;
+  searchResults: SearchResult[];
+  hasSearched: boolean;
+}
+
+export interface FCAPersonToAdd {
+  name: string;
+  irn: string;
+  status: string;
+}
+
 interface FCALookupProps {
   onFirmSelected?: (firm: NormalizedFirm) => void;
   onIndividualSelected?: (individual: NormalizedIndividual) => void;
+  onAddPerson?: (person: FCAPersonToAdd) => void;
+  /** IRNs that have already been added — renders a checkmark instead of the add button */
+  addedIrns?: Set<string>;
   className?: string;
   defaultFrn?: string;
 }
@@ -101,27 +135,40 @@ interface FCALookupProps {
 export function FCALookup({
   onFirmSelected,
   onIndividualSelected,
+  onAddPerson,
+  addedIrns,
   className = "",
   defaultFrn,
 }: FCALookupProps) {
   const [activeTab, setActiveTab] = useState<LookupTab>("firm");
-  const [query, setQuery] = useState(defaultFrn || "");
+
+  // Shared loading/error state (only one operation at a time)
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Results state
-  const [firm, setFirm] = useState<NormalizedFirm | null>(null);
-  const [permissions, setPermissions] = useState<NormalizedPermission[]>([]);
-  const [individuals, setIndividuals] = useState<NormalizedIndividual[]>([]);
-  const [disciplinaryHistory, setDisciplinaryHistory] = useState<DisciplinaryAction[]>([]);
-  const [individual, setIndividual] = useState<NormalizedIndividual | null>(null);
-  const [controlFunctions, setControlFunctions] = useState<ControlFunctionEntry[]>([]);
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
-  const [hasSearched, setHasSearched] = useState(false);
+  // Per-tab state — each tab keeps its own query and results
+  const [firmTab, setFirmTab] = useState<FirmTabState>({
+    query: defaultFrn || "",
+    firm: null,
+    permissions: [],
+    individuals: [],
+    disciplinaryHistory: [],
+    fetchErrors: new Set(),
+    secondaryLoading: false,
+  });
 
-  // Track secondary data loading and errors
-  const [secondaryLoading, setSecondaryLoading] = useState(false);
-  const [fetchErrors, setFetchErrors] = useState<Set<string>>(new Set());
+  const [individualTab, setIndividualTab] = useState<IndividualTabState>({
+    query: "",
+    individual: null,
+    controlFunctions: [],
+    fetchErrors: new Set(),
+  });
+
+  const [searchTab, setSearchTab] = useState<SearchTabState>({
+    query: "",
+    searchResults: [],
+    hasSearched: false,
+  });
 
   // Expanded sections
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
@@ -129,32 +176,30 @@ export function FCALookup({
   );
 
   const toggleSection = (section: string) => {
-    const newExpanded = new Set(expandedSections);
-    if (newExpanded.has(section)) {
-      newExpanded.delete(section);
-    } else {
-      newExpanded.add(section);
-    }
-    setExpandedSections(newExpanded);
+    setExpandedSections((prev) => {
+      const next = new Set(prev);
+      if (next.has(section)) {
+        next.delete(section);
+      } else {
+        next.add(section);
+      }
+      return next;
+    });
   };
-
-  // Clear results
-  const clearResults = useCallback(() => {
-    setFirm(null);
-    setPermissions([]);
-    setIndividuals([]);
-    setDisciplinaryHistory([]);
-    setIndividual(null);
-    setControlFunctions([]);
-    setSearchResults([]);
-    setError(null);
-    setFetchErrors(new Set());
-  }, []);
 
   // Lookup firm by FRN
   const lookupFirm = async (frn: string) => {
     setIsLoading(true);
-    clearResults();
+    setError(null);
+    setFirmTab((prev) => ({
+      ...prev,
+      firm: null,
+      permissions: [],
+      individuals: [],
+      disciplinaryHistory: [],
+      fetchErrors: new Set(),
+      secondaryLoading: false,
+    }));
 
     try {
       const firmRes = await fetch(`/api/fca-register/firm/${frn}`);
@@ -163,11 +208,11 @@ export function FCALookup({
         throw new Error(data.error || "Firm not found");
       }
       const firmData = await firmRes.json();
-      setFirm(firmData.firm);
+      setFirmTab((prev) => ({ ...prev, firm: firmData.firm }));
       onFirmSelected?.(firmData.firm);
 
       // Fetch secondary data
-      setSecondaryLoading(true);
+      setFirmTab((prev) => ({ ...prev, secondaryLoading: true }));
       const [permResult, indResult, discResult] = await Promise.allSettled([
         fetch(`/api/fca-register/firm/${frn}/permissions`),
         fetch(`/api/fca-register/firm/${frn}/individuals`),
@@ -178,39 +223,44 @@ export function FCALookup({
 
       if (permResult.status === "fulfilled" && permResult.value.ok) {
         const permData = await permResult.value.json();
-        setPermissions(permData.permissions || []);
+        setFirmTab((prev) => ({ ...prev, permissions: permData.permissions || [] }));
       } else {
         errors.add("permissions");
       }
 
       if (indResult.status === "fulfilled" && indResult.value.ok) {
         const indData = await indResult.value.json();
-        setIndividuals(indData.individuals || []);
+        setFirmTab((prev) => ({ ...prev, individuals: indData.individuals || [] }));
       } else {
         errors.add("individuals");
       }
 
       if (discResult.status === "fulfilled" && discResult.value.ok) {
         const discData = await discResult.value.json();
-        setDisciplinaryHistory(discData.actions || []);
+        setFirmTab((prev) => ({ ...prev, disciplinaryHistory: discData.actions || [] }));
       } else {
         errors.add("disciplinary");
       }
 
-      setFetchErrors(errors);
-      setSecondaryLoading(false);
+      setFirmTab((prev) => ({ ...prev, fetchErrors: errors, secondaryLoading: false }));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to lookup firm");
     } finally {
       setIsLoading(false);
-      setSecondaryLoading(false);
+      setFirmTab((prev) => ({ ...prev, secondaryLoading: false }));
     }
   };
 
   // Lookup individual by IRN
   const lookupIndividual = async (irn: string) => {
     setIsLoading(true);
-    clearResults();
+    setError(null);
+    setIndividualTab((prev) => ({
+      ...prev,
+      individual: null,
+      controlFunctions: [],
+      fetchErrors: new Set(),
+    }));
 
     try {
       const [indRes, cfRes] = await Promise.allSettled([
@@ -224,17 +274,17 @@ export function FCALookup({
       }
 
       const indData = await indRes.value.json();
-      setIndividual(indData.individual);
+      setIndividualTab((prev) => ({ ...prev, individual: indData.individual }));
       onIndividualSelected?.(indData.individual);
 
       const errors = new Set<string>();
       if (cfRes.status === "fulfilled" && cfRes.value.ok) {
         const cfData = await cfRes.value.json();
-        setControlFunctions(cfData.controlFunctions || []);
+        setIndividualTab((prev) => ({ ...prev, controlFunctions: cfData.controlFunctions || [] }));
       } else {
         errors.add("controlFunctions");
       }
-      setFetchErrors(errors);
+      setIndividualTab((prev) => ({ ...prev, fetchErrors: errors }));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to lookup individual");
     } finally {
@@ -250,8 +300,8 @@ export function FCALookup({
     }
 
     setIsLoading(true);
-    clearResults();
-    setHasSearched(false);
+    setError(null);
+    setSearchTab((prev) => ({ ...prev, searchResults: [], hasSearched: false }));
 
     try {
       const res = await fetch(
@@ -262,8 +312,7 @@ export function FCALookup({
         throw new Error(data.error || "Search failed");
       }
       const data = await res.json();
-      setSearchResults(data.results || []);
-      setHasSearched(true);
+      setSearchTab((prev) => ({ ...prev, searchResults: data.results || [], hasSearched: true }));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to perform search");
     } finally {
@@ -274,17 +323,15 @@ export function FCALookup({
   // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!query.trim()) return;
-
     switch (activeTab) {
       case "firm":
-        lookupFirm(query.trim());
+        if (firmTab.query.trim()) lookupFirm(firmTab.query.trim());
         break;
       case "individual":
-        lookupIndividual(query.trim());
+        if (individualTab.query.trim()) lookupIndividual(individualTab.query.trim());
         break;
       case "search":
-        performSearch(query.trim());
+        if (searchTab.query.trim()) performSearch(searchTab.query.trim());
         break;
     }
   };
@@ -321,8 +368,8 @@ export function FCALookup({
   };
 
   // Section error indicator
-  const SectionError = ({ section }: { section: string }) => {
-    if (!fetchErrors.has(section)) return null;
+  const SectionError = ({ section, errors }: { section: string; errors: Set<string> }) => {
+    if (!errors.has(section)) return null;
     return (
       <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-xs">
         <AlertTriangle className="h-3 w-3 mr-1" />
@@ -330,6 +377,17 @@ export function FCALookup({
       </Badge>
     );
   };
+
+  // Determine what to show based on active tab
+  const showFirmResults = activeTab === "firm" && firmTab.firm;
+  const showIndividualResults = activeTab === "individual" && individualTab.individual;
+  const showSearchResults = activeTab === "search" && searchTab.searchResults.length > 0;
+  const showNoSearchResults = activeTab === "search" && !isLoading && !error && searchTab.hasSearched && searchTab.searchResults.length === 0;
+  const showEmptyState = !isLoading && !error && (
+    (activeTab === "firm" && !firmTab.firm) ||
+    (activeTab === "individual" && !individualTab.individual) ||
+    (activeTab === "search" && searchTab.searchResults.length === 0 && !searchTab.hasSearched)
+  );
 
   return (
     <Card className={className}>
@@ -344,12 +402,11 @@ export function FCALookup({
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {/* Tabs */}
+        {/* Tabs — switching just changes the active tab, no state clearing */}
         <Tabs value={activeTab} onValueChange={(v) => {
           setActiveTab(v as LookupTab);
-          setQuery("");
-          clearResults();
-          setHasSearched(false);
+          setError(null);
+          setIsLoading(false);
         }}>
           <TabsList className="grid w-full grid-cols-3" aria-label="FCA Register lookup type">
             <TabsTrigger value="firm" className="flex items-center gap-2">
@@ -372,14 +429,14 @@ export function FCALookup({
             <form onSubmit={handleSubmit} className="flex gap-2" role="search" aria-label="Look up firm by FRN">
               <Input
                 type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                value={firmTab.query}
+                onChange={(e) => setFirmTab((prev) => ({ ...prev, query: e.target.value }))}
                 placeholder="Enter FRN (e.g., 122702)"
                 className="flex-1"
                 aria-label="Firm Reference Number"
               />
-              <Button type="submit" disabled={isLoading || !query.trim()} aria-label="Look up firm">
-                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Search className="h-4 w-4" aria-hidden="true" />}
+              <Button type="submit" disabled={isLoading || !firmTab.query.trim()} aria-label="Look up firm">
+                {isLoading && activeTab === "firm" ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Search className="h-4 w-4" aria-hidden="true" />}
               </Button>
             </form>
           </TabsContent>
@@ -388,14 +445,14 @@ export function FCALookup({
             <form onSubmit={handleSubmit} className="flex gap-2" role="search" aria-label="Look up individual by IRN">
               <Input
                 type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                value={individualTab.query}
+                onChange={(e) => setIndividualTab((prev) => ({ ...prev, query: e.target.value }))}
                 placeholder="Enter IRN"
                 className="flex-1"
                 aria-label="Individual Reference Number"
               />
-              <Button type="submit" disabled={isLoading || !query.trim()} aria-label="Look up individual">
-                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Search className="h-4 w-4" aria-hidden="true" />}
+              <Button type="submit" disabled={isLoading || !individualTab.query.trim()} aria-label="Look up individual">
+                {isLoading && activeTab === "individual" ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Search className="h-4 w-4" aria-hidden="true" />}
               </Button>
             </form>
           </TabsContent>
@@ -404,14 +461,14 @@ export function FCALookup({
             <form onSubmit={handleSubmit} className="flex gap-2" role="search" aria-label="Search FCA Register">
               <Input
                 type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                value={searchTab.query}
+                onChange={(e) => setSearchTab((prev) => ({ ...prev, query: e.target.value }))}
                 placeholder="Search firms or individuals..."
                 className="flex-1"
                 aria-label="Search query"
               />
-              <Button type="submit" disabled={isLoading || !query.trim()} aria-label="Search">
-                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Search className="h-4 w-4" aria-hidden="true" />}
+              <Button type="submit" disabled={isLoading || !searchTab.query.trim()} aria-label="Search">
+                {isLoading && activeTab === "search" ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Search className="h-4 w-4" aria-hidden="true" />}
               </Button>
             </form>
           </TabsContent>
@@ -426,7 +483,7 @@ export function FCALookup({
         )}
 
         {/* Firm Results */}
-        {firm && (
+        {showFirmResults && (
           <div className="space-y-3">
             <Collapsible open={expandedSections.has("details")} onOpenChange={() => toggleSection("details")}>
               <CollapsibleTrigger asChild>
@@ -442,35 +499,35 @@ export function FCALookup({
                 <div className="p-4 border rounded-lg space-y-3">
                   <div className="flex items-start justify-between">
                     <div>
-                      <h4 className="font-semibold text-lg">{firm.name}</h4>
-                      <p className="text-sm text-muted-foreground">FRN: {firm.frn}</p>
+                      <h4 className="font-semibold text-lg">{firmTab.firm!.name}</h4>
+                      <p className="text-sm text-muted-foreground">FRN: {firmTab.firm!.frn}</p>
                     </div>
-                    <StatusBadge status={firm.status} />
+                    <StatusBadge status={firmTab.firm!.status} />
                   </div>
                   <dl className="grid grid-cols-2 gap-2 text-sm">
                     <div>
                       <dt className="text-muted-foreground">Status Effective Date</dt>
-                      <dd>{firm.statusEffectiveDate}</dd>
+                      <dd>{firmTab.firm!.statusEffectiveDate}</dd>
                     </div>
-                    {firm.companiesHouseNumber && (
+                    {firmTab.firm!.companiesHouseNumber && (
                       <div>
                         <dt className="text-muted-foreground">Companies House</dt>
-                        <dd>{firm.companiesHouseNumber}</dd>
+                        <dd>{firmTab.firm!.companiesHouseNumber}</dd>
                       </div>
                     )}
-                    {firm.address?.line1 && (
+                    {firmTab.firm!.address?.line1 && (
                       <div className="col-span-2">
                         <dt className="text-muted-foreground">Address</dt>
                         <dd>
-                          {[firm.address.line1, firm.address.line2, firm.address.town, firm.address.postcode]
+                          {[firmTab.firm!.address.line1, firmTab.firm!.address.line2, firmTab.firm!.address.town, firmTab.firm!.address.postcode]
                             .filter(Boolean)
                             .join(", ")}
                         </dd>
                       </div>
                     )}
                   </dl>
-                  {firm.businessType && (
-                    <Badge variant="secondary">{firm.businessType}</Badge>
+                  {firmTab.firm!.businessType && (
+                    <Badge variant="secondary">{firmTab.firm!.businessType}</Badge>
                   )}
                 </div>
               </CollapsibleContent>
@@ -481,24 +538,24 @@ export function FCALookup({
                 <Button variant="ghost" className="w-full flex items-center justify-between p-3 bg-slate-50 hover:bg-slate-100 rounded-lg">
                   <div className="flex items-center gap-2">
                     <ClipboardList className="h-4 w-4 text-slate-500" aria-hidden="true" />
-                    <span className="font-medium">Permissions ({permissions.length})</span>
-                    {secondaryLoading && <Loader2 className="h-3 w-3 animate-spin text-slate-400" aria-label="Loading permissions" />}
-                    <SectionError section="permissions" />
+                    <span className="font-medium">Permissions ({firmTab.permissions.length})</span>
+                    {firmTab.secondaryLoading && <Loader2 className="h-3 w-3 animate-spin text-slate-400" aria-label="Loading permissions" />}
+                    <SectionError section="permissions" errors={firmTab.fetchErrors} />
                   </div>
                   {expandedSections.has("permissions") ? <ChevronUp className="h-4 w-4" aria-hidden="true" /> : <ChevronDown className="h-4 w-4" aria-hidden="true" />}
                 </Button>
               </CollapsibleTrigger>
               <CollapsibleContent className="pt-3">
                 <div className="border rounded-lg p-3 max-h-64 overflow-y-auto space-y-2">
-                  {fetchErrors.has("permissions") ? (
+                  {firmTab.fetchErrors.has("permissions") ? (
                     <div className="flex items-center gap-2 text-sm text-amber-700 bg-amber-50 p-3 rounded">
                       <AlertTriangle className="h-4 w-4" aria-hidden="true" />
                       Unable to load permissions. Try looking up the firm again.
                     </div>
-                  ) : permissions.length === 0 ? (
+                  ) : firmTab.permissions.length === 0 ? (
                     <p className="text-sm text-muted-foreground text-center py-4">No permissions found</p>
                   ) : (
-                    permissions.map((perm, idx) => (
+                    firmTab.permissions.map((perm, idx) => (
                       <div key={idx} className="p-2 bg-slate-50 rounded text-sm">
                         <div className="flex items-start justify-between gap-2">
                           <p className="font-medium">{perm.permission}</p>
@@ -516,30 +573,50 @@ export function FCALookup({
                 <Button variant="ghost" className="w-full flex items-center justify-between p-3 bg-slate-50 hover:bg-slate-100 rounded-lg">
                   <div className="flex items-center gap-2">
                     <UserCheck className="h-4 w-4 text-slate-500" aria-hidden="true" />
-                    <span className="font-medium">Approved Persons ({individuals.length})</span>
-                    {secondaryLoading && <Loader2 className="h-3 w-3 animate-spin text-slate-400" aria-label="Loading individuals" />}
-                    <SectionError section="individuals" />
+                    <span className="font-medium">Approved Persons ({firmTab.individuals.length})</span>
+                    {firmTab.secondaryLoading && <Loader2 className="h-3 w-3 animate-spin text-slate-400" aria-label="Loading individuals" />}
+                    <SectionError section="individuals" errors={firmTab.fetchErrors} />
                   </div>
                   {expandedSections.has("individuals") ? <ChevronUp className="h-4 w-4" aria-hidden="true" /> : <ChevronDown className="h-4 w-4" aria-hidden="true" />}
                 </Button>
               </CollapsibleTrigger>
               <CollapsibleContent className="pt-3">
                 <div className="border rounded-lg p-3 max-h-64 overflow-y-auto space-y-2">
-                  {fetchErrors.has("individuals") ? (
+                  {firmTab.fetchErrors.has("individuals") ? (
                     <div className="flex items-center gap-2 text-sm text-amber-700 bg-amber-50 p-3 rounded">
                       <AlertTriangle className="h-4 w-4" aria-hidden="true" />
                       Unable to load approved persons. Try looking up the firm again.
                     </div>
-                  ) : individuals.length === 0 ? (
+                  ) : firmTab.individuals.length === 0 ? (
                     <p className="text-sm text-muted-foreground text-center py-4">No approved persons found</p>
                   ) : (
-                    individuals.map((ind, idx) => (
-                      <div key={idx} className="flex items-center justify-between p-2 bg-slate-50 rounded text-sm">
-                        <div>
+                    firmTab.individuals.map((ind, idx) => (
+                      <div key={idx} className="flex items-center justify-between gap-2 p-2 bg-slate-50 rounded text-sm">
+                        <div className="min-w-0 flex-1">
                           <p className="font-medium">{ind.name}</p>
                           <p className="text-xs text-muted-foreground">IRN: {ind.irn}</p>
                         </div>
-                        <StatusBadge status={ind.status} />
+                        <div className="flex items-center gap-2 shrink-0">
+                          <StatusBadge status={ind.status} />
+                          {onAddPerson && (
+                            addedIrns?.has(ind.irn) ? (
+                              <span className="inline-flex items-center h-7 px-2 text-xs text-emerald-600" title="Added to People">
+                                <CheckCircle className="h-3.5 w-3.5" />
+                              </span>
+                            ) : (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-7 px-2 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                onClick={() => onAddPerson({ name: ind.name, irn: ind.irn, status: ind.status })}
+                                title="Add to People"
+                                aria-label={`Add ${ind.name} to People`}
+                              >
+                                <UserPlus className="h-3.5 w-3.5" />
+                              </Button>
+                            )
+                          )}
+                        </div>
                       </div>
                     ))
                   )}
@@ -552,12 +629,12 @@ export function FCALookup({
                 <Button variant="ghost" className="w-full flex items-center justify-between p-3 bg-slate-50 hover:bg-slate-100 rounded-lg">
                   <div className="flex items-center gap-2">
                     <Gavel className="h-4 w-4 text-slate-500" aria-hidden="true" />
-                    <span className="font-medium">Enforcement History ({disciplinaryHistory.length})</span>
-                    {secondaryLoading && <Loader2 className="h-3 w-3 animate-spin text-slate-400" aria-label="Loading enforcement history" />}
-                    <SectionError section="disciplinary" />
-                    {!fetchErrors.has("disciplinary") && disciplinaryHistory.length > 0 && (
+                    <span className="font-medium">Enforcement History ({firmTab.disciplinaryHistory.length})</span>
+                    {firmTab.secondaryLoading && <Loader2 className="h-3 w-3 animate-spin text-slate-400" aria-label="Loading enforcement history" />}
+                    <SectionError section="disciplinary" errors={firmTab.fetchErrors} />
+                    {!firmTab.fetchErrors.has("disciplinary") && firmTab.disciplinaryHistory.length > 0 && (
                       <Badge variant="destructive" className="text-xs">
-                        {disciplinaryHistory.length} action{disciplinaryHistory.length > 1 ? "s" : ""}
+                        {firmTab.disciplinaryHistory.length} action{firmTab.disciplinaryHistory.length > 1 ? "s" : ""}
                       </Badge>
                     )}
                   </div>
@@ -566,19 +643,19 @@ export function FCALookup({
               </CollapsibleTrigger>
               <CollapsibleContent className="pt-3">
                 <div className="border rounded-lg p-3">
-                  {fetchErrors.has("disciplinary") ? (
+                  {firmTab.fetchErrors.has("disciplinary") ? (
                     <div className="flex items-center gap-2 text-sm text-amber-700 bg-amber-50 p-3 rounded">
                       <AlertTriangle className="h-4 w-4" aria-hidden="true" />
                       Unable to load enforcement history. Try looking up the firm again.
                     </div>
-                  ) : disciplinaryHistory.length === 0 ? (
+                  ) : firmTab.disciplinaryHistory.length === 0 ? (
                     <div className="flex items-center gap-2 text-sm text-emerald-700 bg-emerald-50 p-3 rounded">
                       <CheckCircle className="h-4 w-4" aria-hidden="true" />
                       No enforcement actions on record
                     </div>
                   ) : (
                     <div className="space-y-2 max-h-64 overflow-y-auto">
-                      {disciplinaryHistory.map((action, idx) => (
+                      {firmTab.disciplinaryHistory.map((action, idx) => (
                         <div key={idx} className="p-3 bg-rose-50 border border-rose-100 rounded text-sm">
                           <div className="flex items-start justify-between gap-4">
                             <div className="flex-1">
@@ -598,25 +675,50 @@ export function FCALookup({
         )}
 
         {/* Individual Results */}
-        {individual && (
+        {showIndividualResults && (
           <div className="border rounded-lg p-4 space-y-3">
             <div className="flex items-start justify-between">
               <div>
-                <h4 className="font-semibold text-lg">{individual.name}</h4>
-                <p className="text-sm text-muted-foreground">IRN: {individual.irn}</p>
+                <h4 className="font-semibold text-lg">{individualTab.individual!.name}</h4>
+                <p className="text-sm text-muted-foreground">IRN: {individualTab.individual!.irn}</p>
               </div>
-              <StatusBadge status={individual.status} />
+              <div className="flex items-center gap-2">
+                <StatusBadge status={individualTab.individual!.status} />
+                {onAddPerson && (
+                  addedIrns?.has(individualTab.individual!.irn) ? (
+                    <Badge variant="outline" className="text-xs bg-emerald-50 text-emerald-700 border-emerald-200">
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      Added
+                    </Badge>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-xs"
+                      onClick={() => onAddPerson({
+                        name: individualTab.individual!.name,
+                        irn: individualTab.individual!.irn,
+                        status: individualTab.individual!.status,
+                      })}
+                      aria-label={`Add ${individualTab.individual!.name} to People`}
+                    >
+                      <UserPlus className="h-3.5 w-3.5 mr-1.5" />
+                      Add to People
+                    </Button>
+                  )
+                )}
+              </div>
             </div>
-            {fetchErrors.has("controlFunctions") ? (
+            {individualTab.fetchErrors.has("controlFunctions") ? (
               <div className="flex items-center gap-2 text-sm text-amber-700 bg-amber-50 p-3 rounded">
                 <AlertTriangle className="h-4 w-4" aria-hidden="true" />
                 Unable to load control functions. Try looking up the individual again.
               </div>
-            ) : controlFunctions.length > 0 ? (
+            ) : individualTab.controlFunctions.length > 0 ? (
               <div>
                 <h5 className="text-sm font-medium mb-2">Control Functions</h5>
                 <div className="space-y-2">
-                  {controlFunctions.map((cf, idx) => (
+                  {individualTab.controlFunctions.map((cf, idx) => (
                     <div key={idx} className="flex items-start justify-between p-2 bg-slate-50 rounded text-sm">
                       <div>
                         <p className="font-medium">{cf.function}</p>
@@ -636,21 +738,22 @@ export function FCALookup({
         )}
 
         {/* Search Results */}
-        {searchResults.length > 0 && (
+        {showSearchResults && (
           <div className="space-y-2">
             <p className="text-sm text-muted-foreground">
-              Found {searchResults.length} result{searchResults.length > 1 ? "s" : ""}
+              Found {searchTab.searchResults.length} result{searchTab.searchResults.length > 1 ? "s" : ""}
             </p>
             <div className="space-y-2 max-h-96 overflow-y-auto" role="list" aria-label="Search results">
-              {searchResults.map((result, idx) => (
+              {searchTab.searchResults.map((result, idx) => (
                 <button
                   key={idx}
                   onClick={() => {
-                    setQuery(result.reference);
                     if (result.type === "Firm") {
+                      setFirmTab((prev) => ({ ...prev, query: result.reference }));
                       setActiveTab("firm");
                       lookupFirm(result.reference);
                     } else {
+                      setIndividualTab((prev) => ({ ...prev, query: result.reference }));
                       setActiveTab("individual");
                       lookupIndividual(result.reference);
                     }
@@ -680,7 +783,7 @@ export function FCALookup({
         )}
 
         {/* No results found after search */}
-        {!isLoading && !error && hasSearched && searchResults.length === 0 && activeTab === "search" && (
+        {showNoSearchResults && (
           <div className="text-center py-8 text-muted-foreground">
             <Search className="h-8 w-8 mx-auto mb-3 opacity-30" aria-hidden="true" />
             <p className="text-sm font-medium">No results found</p>
@@ -691,7 +794,7 @@ export function FCALookup({
         )}
 
         {/* Empty state */}
-        {!isLoading && !error && !firm && !individual && searchResults.length === 0 && !hasSearched && (
+        {showEmptyState && (
           <div className="text-center py-8 text-muted-foreground">
             <Info className="h-8 w-8 mx-auto mb-3 opacity-30" aria-hidden="true" />
             <p className="text-sm">

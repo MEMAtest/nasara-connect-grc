@@ -18,7 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 import { ProjectHeader } from "./ProjectHeader";
 import { AddressAutocomplete } from "./AddressAutocomplete";
-import { FCALookup } from "@/components/fca-register/FCALookup";
+import Link from "next/link";
 import type { BusinessPlanProfile } from "@/lib/business-plan-profile";
 import { buildQuestionContext, isQuestionAnswered, type QuestionResponse } from "@/lib/assessment-question-bank";
 
@@ -1366,16 +1366,18 @@ export function AssessmentClient() {
         </CardContent>
       </Card>
 
-      {/* FCA Register Lookup */}
-      <FCALookup
-        className="border border-slate-200"
-        onFirmSelected={(firm) => {
-          // If the firm is already authorised, we could populate some fields
-          if (firm.companiesHouseNumber && !assessment.basics?.companyNumber) {
-            updateBasics("companyNumber", firm.companiesHouseNumber);
-          }
-        }}
-      />
+      {/* FCA Register Lookup — moved to Governance & People module */}
+      <Card className="border border-slate-200">
+        <CardContent className="flex items-center justify-between py-4">
+          <div>
+            <p className="text-sm font-medium text-slate-900">FCA Register Lookup</p>
+            <p className="text-xs text-slate-500">Verify firms and individuals on the FCA Register.</p>
+          </div>
+          <Link href="/smcr/fca-register">
+            <Button variant="outline" size="sm">Open FCA Register</Button>
+          </Link>
+        </CardContent>
+      </Card>
 
       <Card className="border border-slate-200">
         <CardHeader>

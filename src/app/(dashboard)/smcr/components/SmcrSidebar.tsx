@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronLeft, ChevronRight, Lightbulb, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Lightbulb, Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,6 +32,7 @@ const navItems: NavItem[] = [
   { label: "Conduct Rules", href: "/smcr/conduct-rules", Icon: ConductRulesIcon },
   { label: "Workflows", href: "/smcr/workflows", Icon: WorkflowsIcon },
   { label: "Org Chart", href: "/smcr/org-chart", Icon: OrgChartIcon },
+  { label: "FCA Reg.", href: "/smcr/fca-register", Icon: ({ size, className }: { size?: number; className?: string }) => <Search size={size} className={className} /> },
 ];
 
 export function SmcrSidebar() {
@@ -79,7 +80,7 @@ export function SmcrSidebar() {
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
         aria-controls="smcr-sidebar"
-        aria-label={isOpen ? "Close SM&CR navigation" : "Open SM&CR navigation"}
+        aria-label={isOpen ? "Close Governance & People navigation" : "Open Governance & People navigation"}
         className={cn(
           "fixed top-20 z-40 h-10 shadow-md border-slate-300 bg-white hover:bg-teal-50 transition-all duration-300",
           isOpen ? "right-[225px]" : "right-4"
@@ -90,7 +91,7 @@ export function SmcrSidebar() {
         ) : (
           <ChevronLeft className="h-4 w-4 mr-1" />
         )}
-        <span className="text-xs font-medium">SM&CR</span>
+        <span className="text-xs font-medium">G&P</span>
       </Button>
 
       {/* Overlay when sidebar is open */}
@@ -109,7 +110,7 @@ export function SmcrSidebar() {
         id="smcr-sidebar"
         role="dialog"
         aria-modal="true"
-        aria-label="SM&CR Module Navigation"
+        aria-label="Governance & People Module Navigation"
         tabIndex={-1}
         className={cn(
           "fixed right-0 top-16 z-40 h-[calc(100vh-4rem)] w-56 border-l border-slate-200 bg-white shadow-xl transition-transform duration-300 focus:outline-none",
@@ -119,7 +120,7 @@ export function SmcrSidebar() {
         <div className="flex h-full flex-col">
           <div className="flex items-center justify-between border-b border-slate-200 p-3">
             <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-              SM&CR Module
+              Governance & People
             </span>
             <Button
               variant="ghost"
@@ -208,10 +209,10 @@ export function SmcrSidebarMobile() {
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
         aria-controls="smcr-sidebar-mobile"
-        aria-label={isOpen ? "Close SM&CR navigation" : "Open SM&CR navigation"}
+        aria-label={isOpen ? "Close Governance & People navigation" : "Open Governance & People navigation"}
       >
         <ChevronLeft className="h-4 w-4 mr-1" />
-        SM&CR
+        G&P
       </Button>
 
       {/* Mobile overlay */}
@@ -230,7 +231,7 @@ export function SmcrSidebarMobile() {
         id="smcr-sidebar-mobile"
         role="dialog"
         aria-modal="true"
-        aria-label="SM&CR Module Navigation"
+        aria-label="Governance & People Module Navigation"
         tabIndex={-1}
         className={cn(
           "fixed right-0 top-0 z-50 h-full w-64 transform bg-white shadow-xl transition-transform duration-300 md:hidden focus:outline-none",
@@ -239,7 +240,7 @@ export function SmcrSidebarMobile() {
       >
         <div className="flex h-full flex-col">
           <div className="flex items-center justify-between border-b border-slate-200 p-4">
-            <span className="text-sm font-semibold text-slate-900">SM&CR Navigation</span>
+            <span className="text-sm font-semibold text-slate-900">Governance & People</span>
             <Button
               variant="ghost"
               size="icon"
