@@ -725,6 +725,20 @@ export function PeopleClient() {
                       }
                       return null;
                     })()}
+                    {person.fcaVerification?.name && person.fcaVerification.name.toLowerCase().trim() !== person.name.toLowerCase().trim() && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-200 cursor-help">
+                            <AlertTriangle className="h-3 w-3 mr-1" />
+                            Name Mismatch
+                          </Badge>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>FCA Register name: {person.fcaVerification.name}</p>
+                          <p>Record name: {person.name}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
                     {mismatchesByPerson.has(person.id) && (
                       <Badge variant="outline" className="text-xs bg-rose-50 text-rose-700 border-rose-200">
                         <AlertTriangle className="h-3 w-3 mr-1" />
@@ -1735,6 +1749,7 @@ export function PeopleClient() {
               const verificationData: FCAVerificationData = {
                 status: result.status,
                 lastChecked: result.lastChecked,
+                name: result.name,
                 controlFunctions: result.controlFunctions.map((cf) => ({
                   function: cf.function,
                   firmName: cf.firmName,
@@ -1748,6 +1763,10 @@ export function PeopleClient() {
               updatePerson(verificationPersonId, {
                 fcaVerification: verificationData,
               } as Partial<PersonRecord>);
+              // Warn if the FCA name doesn't match the person record
+              if (result.name && verifyPerson.name.toLowerCase().trim() !== result.name.toLowerCase().trim()) {
+                toast.warning(`Name mismatch: record says "${verifyPerson.name}" but FCA Register says "${result.name}".`);
+              }
               fetch(`/api/smcr/people/${verificationPersonId}/fca-verification`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

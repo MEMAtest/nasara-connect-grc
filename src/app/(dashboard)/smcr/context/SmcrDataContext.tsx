@@ -38,6 +38,7 @@ export interface PersonAssessment {
 export interface FCAVerificationData {
   status: string;
   lastChecked: string;
+  name?: string;
   controlFunctions: Array<{
     function: string;
     firmName: string;
@@ -350,6 +351,10 @@ export interface FitnessAssessmentRecord {
   responses: FitnessAssessmentResponse[];
 }
 
+export interface SmcrSettings {
+  verificationStaleThresholdDays: number;
+}
+
 interface SmcrDataState {
   people: PersonRecord[];
   documents: DocumentMetadata[];
@@ -358,9 +363,14 @@ interface SmcrDataState {
   workflowDocuments: WorkflowDocument[];
   assessments: FitnessAssessmentRecord[];
   breaches: ConductBreach[];
+  settings: SmcrSettings;
 }
 
 const STORAGE_KEY = "smcr-data-v1";
+
+const defaultSettings: SmcrSettings = {
+  verificationStaleThresholdDays: 30,
+};
 
 const emptyState: SmcrDataState = {
   people: [],
@@ -370,6 +380,7 @@ const emptyState: SmcrDataState = {
   workflowDocuments: [],
   assessments: [],
   breaches: [],
+  settings: defaultSettings,
 };
 
 interface SmcrContextValue {
@@ -411,6 +422,8 @@ interface SmcrContextValue {
   updateBreach: (id: string, updates: Partial<ConductBreach>) => void;
   addBreachTimelineEntry: (breachId: string, entry: Omit<BreachTimelineEntry, "id">) => void;
   removeBreach: (id: string) => void;
+  // Settings
+  updateSettings: (updates: Partial<SmcrSettings>) => void;
 }
 
 type NewPersonInput = {
@@ -695,6 +708,7 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
               workflowDocuments: snapshot.data.workflowDocuments ?? [],
               assessments: snapshot.data.assessments ?? [],
               breaches: snapshot.data.breaches ?? [],
+              settings: { ...defaultSettings, ...snapshot.data.settings },
             });
             setFirms(snapshot.firms ?? []);
             setActiveFirmId(snapshot.activeFirmId ?? snapshot.firms?.[0]?.id ?? null);
@@ -734,6 +748,7 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
                 ...breach,
                 firmId: breach.firmId ?? defaultFirmId,
               })),
+              settings: defaultSettings,
             });
             setFirms([defaultFirm]);
             setActiveFirmId(defaultFirmId);
@@ -1650,6 +1665,13 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  const updateSettings = useCallback((updates: Partial<SmcrSettings>) => {
+    setState((prev) => ({
+      ...prev,
+      settings: { ...prev.settings, ...updates },
+    }));
+  }, []);
+
   const value = useMemo<SmcrContextValue>(
     () => ({
       state,
@@ -1689,6 +1711,7 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
       updateBreach,
       addBreachTimelineEntry,
       removeBreach,
+      updateSettings,
     }),
     [
       state,
@@ -1728,6 +1751,7 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
       updateBreach,
       addBreachTimelineEntry,
       removeBreach,
+      updateSettings,
     ],
   );
 
