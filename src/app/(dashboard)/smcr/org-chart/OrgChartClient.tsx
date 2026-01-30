@@ -1307,6 +1307,7 @@ export function OrgChartClient() {
                         {smf?.smf_number} — {smf?.title}
                         <button
                           type="button"
+                          aria-label={`Remove ${smf?.smf_number || "role"}`}
                           className="ml-1 hover:text-destructive"
                           onClick={() =>
                             setAddPersonForm((prev) => ({

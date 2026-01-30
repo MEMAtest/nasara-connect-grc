@@ -339,7 +339,8 @@ export function PeopleClient() {
       const term = searchTerm.trim().toLowerCase();
       const matchesSearch = !term
         || person.name.toLowerCase().includes(term)
-        || person.employeeId.toLowerCase().includes(term)
+        || (person.title || "").toLowerCase().includes(term)
+        || (person.irn || "").toLowerCase().includes(term)
         || person.email.toLowerCase().includes(term);
       const matchesDepartment = selectedDepartment === "all" || person.department === selectedDepartment;
       const matchesStatus = selectedStatus === "all" || person.assessment.status === selectedStatus;
@@ -675,7 +676,7 @@ export function PeopleClient() {
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <CardTitle className="text-lg text-slate-900">{person.name}</CardTitle>
-                    <CardDescription>{person.employeeId}</CardDescription>
+                    <CardDescription>{person.title || person.department}</CardDescription>
                   </div>
                   <div className="flex flex-col items-end gap-1">
                     <Badge className={cn("text-xs", statusBadgeClass[person.assessment.status])}>
@@ -1197,7 +1198,7 @@ export function PeopleClient() {
                     type="button"
                     variant="outline"
                     size="sm"
-                    disabled={!formState.irn.trim()}
+                    disabled={!formState.irn.trim() || !activePersonId}
                     onClick={() => {
                       if (activePersonId && formState.irn.trim()) {
                         setVerificationPersonId(activePersonId);
@@ -1520,7 +1521,7 @@ export function PeopleClient() {
 
               <div className="rounded-lg border border-slate-200 p-4">
                 <p className="text-sm font-semibold text-slate-700">{roleDialogPerson.name}</p>
-                <p className="text-xs text-slate-500">{roleDialogPerson.employeeId}</p>
+                <p className="text-xs text-slate-500">{roleDialogPerson.title || roleDialogPerson.department}</p>
               </div>
 
               <div className="space-y-3">
