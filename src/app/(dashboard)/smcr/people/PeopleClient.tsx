@@ -30,6 +30,7 @@ import {
   Phone,
   Plus,
   Save,
+  Search,
   Shield,
   Trash2,
   Upload,
@@ -52,6 +53,7 @@ import {
 } from "../context/SmcrDataContext";
 import { fetchDocumentBlob } from "../utils/document-storage";
 import { allSMFs, certificationFunctions } from "../data/core-functions";
+import { useAllMismatches } from "@/hooks/useRoleMismatchDetection";
 import { TrainingStatus } from "../data/role-training";
 import { FirmSwitcher } from "../components/FirmSwitcher";
 import { PeopleIcon } from "../components/SmcrIcons";
@@ -266,6 +268,8 @@ export function PeopleClient() {
     if (!activeFirmId) return [] as typeof assessments;
     return assessments.filter((assessment) => assessment.firmId === activeFirmId);
   }, [assessments, activeFirmId]);
+
+  const { byPerson: mismatchesByPerson } = useAllMismatches(firmPeople, firmRoles);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState<string>("all");
@@ -702,6 +706,27 @@ export function PeopleClient() {
                         </Badge>
                       )
                     )}
+                    {person.fcaVerification?.lastChecked && (() => {
+                      const checkedDate = new Date(person.fcaVerification!.lastChecked);
+                      if (Number.isNaN(checkedDate.getTime()) || checkedDate.getTime() > Date.now()) return null;
+                      const daysSince = Math.floor((Date.now() - checkedDate.getTime()) / (1000 * 60 * 60 * 24));
+                      const threshold = state.settings?.verificationStaleThresholdDays ?? 30;
+                      if (daysSince >= threshold) {
+                        return (
+                          <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-200">
+                            <AlertTriangle className="h-3 w-3 mr-1" />
+                            Stale ({daysSince}d ago)
+                          </Badge>
+                        );
+                      }
+                      return null;
+                    })()}
+                    {mismatchesByPerson.has(person.id) && (
+                      <Badge variant="outline" className="text-xs bg-rose-50 text-rose-700 border-rose-200">
+                        <AlertTriangle className="h-3 w-3 mr-1" />
+                        {mismatchesByPerson.get(person.id)!.mismatches.length} role mismatch{mismatchesByPerson.get(person.id)!.mismatches.length !== 1 ? "es" : ""}
+                      </Badge>
+                    )}
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 text-sm text-slate-600">
@@ -931,6 +956,43 @@ export function PeopleClient() {
                   </div>
                 )}
 
+                {mismatchesByPerson.has(person.id) && (
+                  <details className="space-y-2">
+                    <summary className="text-sm font-semibold text-rose-700 cursor-pointer">
+                      Role Mismatches ({mismatchesByPerson.get(person.id)!.mismatches.length})
+                    </summary>
+                    <div className="space-y-2 mt-2">
+                      {mismatchesByPerson.get(person.id)!.mismatches.map((mismatch, idx) => (
+                        <div
+                          key={`mismatch-${person.id}-${idx}`}
+                          className="flex items-start justify-between rounded-lg border border-rose-200 bg-rose-50/50 px-3 py-2 text-sm"
+                        >
+                          <div>
+                            <div className="font-medium text-slate-800">{mismatch.smfNumber}</div>
+                            <div className="text-xs text-slate-600">{mismatch.description}</div>
+                          </div>
+                          <Badge
+                            variant="outline"
+                            className={cn("text-xs",
+                              mismatch.type === "status_conflict"
+                                ? "bg-rose-100 text-rose-700 border-rose-300"
+                                : mismatch.type === "missing_from_fca"
+                                ? "bg-amber-100 text-amber-700 border-amber-300"
+                                : "bg-amber-100 text-amber-700 border-amber-300"
+                            )}
+                          >
+                            {mismatch.type === "status_conflict"
+                              ? "Conflict"
+                              : mismatch.type === "missing_from_fca"
+                              ? "Not on FCA"
+                              : "Not Local"}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </details>
+                )}
+
                 <div className="space-y-2 pt-2 border-t">
                   {person.irn && (
                     <Button
@@ -1123,12 +1185,31 @@ export function PeopleClient() {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <Label htmlFor="irn">FCA Individual Reference Number (IRN)</Label>
-                <Input
-                  id="irn"
-                  value={formState.irn}
-                  onChange={(event) => setFormState((prev) => ({ ...prev, irn: event.target.value }))}
-                  placeholder="e.g. ABC12345"
-                />
+                <div className="flex gap-2">
+                  <Input
+                    id="irn"
+                    value={formState.irn}
+                    onChange={(event) => setFormState((prev) => ({ ...prev, irn: event.target.value }))}
+                    placeholder="e.g. ABC12345"
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={!formState.irn.trim()}
+                    onClick={() => {
+                      if (activePersonId && formState.irn.trim()) {
+                        setVerificationPersonId(activePersonId);
+                        setVerificationSheetOpen(true);
+                      }
+                    }}
+                    className="shrink-0"
+                  >
+                    <Search className="h-4 w-4 mr-1" />
+                    Verify
+                  </Button>
+                </div>
                 <p className="text-xs text-slate-500 mt-1">Used to verify this person against the FCA Register</p>
               </div>
             </div>
@@ -1244,9 +1325,9 @@ export function PeopleClient() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-3">
                 <div className="min-w-0">
-                  <Label>Last Assessment</Label>
+                  <Label className="mb-1.5 block">Last Assessment</Label>
                   <DatePickerField
                     label=""
                     placeholder="Last assessment date"
@@ -1262,7 +1343,7 @@ export function PeopleClient() {
                   />
                 </div>
                 <div className="min-w-0">
-                  <Label>Assessment Frequency</Label>
+                  <Label className="mb-1.5 block">Assessment Frequency</Label>
                   <Select
                     value={formState.assessmentFrequency}
                     onValueChange={(value) => {
@@ -1275,7 +1356,7 @@ export function PeopleClient() {
                       }));
                     }}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -1286,7 +1367,7 @@ export function PeopleClient() {
                   </Select>
                 </div>
                 <div className="min-w-0">
-                  <div className="flex items-center gap-1.5 mb-1">
+                  <div className="flex items-center gap-1.5 mb-1.5">
                     <Label>Next Assessment</Label>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -1663,6 +1744,11 @@ export function PeopleClient() {
               updatePerson(verificationPersonId, {
                 fcaVerification: verificationData,
               } as Partial<PersonRecord>);
+              fetch(`/api/smcr/people/${verificationPersonId}/fca-verification`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(verificationData),
+              }).catch((err) => console.error('Failed to persist verification:', err));
             }}
           />
         );

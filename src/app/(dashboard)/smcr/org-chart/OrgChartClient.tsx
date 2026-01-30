@@ -35,6 +35,7 @@ import { cn } from "@/lib/utils";
 import { useSmcrData, PersonRecord, RoleAssignment } from "../context/SmcrDataContext";
 import { OrgChartIcon } from "../components/SmcrIcons";
 import { FirmSwitcher } from "../components/FirmSwitcher";
+import { allSMFs } from "../data/core-functions";
 
 // ============================================================================
 // ADD PERSON FORM
@@ -42,22 +43,22 @@ import { FirmSwitcher } from "../components/FirmSwitcher";
 
 interface AddPersonForm {
   name: string;
-  employeeId: string;
   title: string;
   department: string;
   email: string;
   lineManager: string;
   irn: string;
+  smcrRoles: string[];
 }
 
 const initialAddPersonForm: AddPersonForm = {
   name: "",
-  employeeId: "",
   title: "",
   department: "",
   email: "",
   lineManager: "",
   irn: "",
+  smcrRoles: [],
 };
 
 // ============================================================================
@@ -543,7 +544,7 @@ function ConnectorLines({ connectors }: ConnectorLinesProps) {
 // ============================================================================
 
 export function OrgChartClient() {
-  const { state, firms, activeFirmId, updatePerson, addPerson } = useSmcrData();
+  const { state, firms, activeFirmId, updatePerson, addPerson, assignRole } = useSmcrData();
   const { people, roles } = state;
 
   // Filter data by firm
@@ -721,16 +722,32 @@ export function OrgChartClient() {
   };
 
   const handleAddPerson = () => {
-    if (!addPersonForm.name || !addPersonForm.employeeId) return;
+    if (!addPersonForm.name.trim()) return;
 
-    addPerson({
+    const personId = addPerson({
       name: addPersonForm.name.trim(),
       title: addPersonForm.title.trim() || undefined,
       department: addPersonForm.department.trim() || "General",
-      email: addPersonForm.email.trim() || `${addPersonForm.employeeId.toLowerCase()}@company.com`,
+      email: addPersonForm.email.trim() || "",
       lineManager: addPersonForm.lineManager || undefined,
       irn: addPersonForm.irn.trim() || undefined,
     });
+
+    // Assign selected SMCR roles
+    if (addPersonForm.smcrRoles.length > 0) {
+      for (const roleId of addPersonForm.smcrRoles) {
+        const smf = allSMFs.find((s) => s.id === roleId);
+        if (smf) {
+          assignRole({
+            personId,
+            functionId: smf.id,
+            functionType: "SMF",
+            startDate: new Date().toISOString(),
+            approvalStatus: "draft",
+          });
+        }
+      }
+    }
 
     setAddPersonForm(initialAddPersonForm);
     setAddPersonDialogOpen(false);
@@ -1068,7 +1085,7 @@ export function OrgChartClient() {
                         </div>
                         <div>
                           <p className="font-semibold text-slate-900">{selectedNode.person.name}</p>
-                          <p className="text-xs text-slate-500">{selectedNode.person.employeeId}</p>
+                          {selectedNode.person.title && <p className="text-xs text-slate-500">{selectedNode.person.title}</p>}
                         </div>
                       </div>
 
@@ -1198,12 +1215,12 @@ export function OrgChartClient() {
                 />
               </div>
               <div>
-                <Label htmlFor="employee-id">Employee ID *</Label>
+                <Label htmlFor="department">Department</Label>
                 <Input
-                  id="employee-id"
-                  value={addPersonForm.employeeId}
-                  onChange={(e) => setAddPersonForm((prev) => ({ ...prev, employeeId: e.target.value }))}
-                  placeholder="e.g., EMP001"
+                  id="department"
+                  value={addPersonForm.department}
+                  onChange={(e) => setAddPersonForm((prev) => ({ ...prev, department: e.target.value }))}
+                  placeholder="e.g., Risk Management"
                 />
               </div>
             </div>
@@ -1218,17 +1235,6 @@ export function OrgChartClient() {
                 />
               </div>
               <div>
-                <Label htmlFor="department">Department</Label>
-                <Input
-                  id="department"
-                  value={addPersonForm.department}
-                  onChange={(e) => setAddPersonForm((prev) => ({ ...prev, department: e.target.value }))}
-                  placeholder="e.g., Risk Management"
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
@@ -1238,6 +1244,8 @@ export function OrgChartClient() {
                   placeholder="person@company.com"
                 />
               </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="irn">FCA IRN</Label>
                 <Input
@@ -1247,25 +1255,73 @@ export function OrgChartClient() {
                   placeholder="e.g., ABC12345"
                 />
               </div>
+              <div>
+                <Label htmlFor="line-manager">Reports to</Label>
+                <Select
+                  value={addPersonForm.lineManager || "__none__"}
+                  onValueChange={(v) => setAddPersonForm((prev) => ({ ...prev, lineManager: v === "__none__" ? "" : v }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="No manager (top level)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">No manager (top level)</SelectItem>
+                    {firmPeople.map((person) => (
+                      <SelectItem key={person.id} value={person.name}>
+                        {person.name} ({person.department})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <div>
-              <Label htmlFor="line-manager">Reports to</Label>
+              <Label>SMCR Role (optional)</Label>
               <Select
-                value={addPersonForm.lineManager || "__none__"}
-                onValueChange={(v) => setAddPersonForm((prev) => ({ ...prev, lineManager: v === "__none__" ? "" : v }))}
+                value=""
+                onValueChange={(v) => {
+                  if (v && !addPersonForm.smcrRoles.includes(v)) {
+                    setAddPersonForm((prev) => ({ ...prev, smcrRoles: [...prev.smcrRoles, v] }));
+                  }
+                }}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select manager (optional)" />
+                  <SelectValue placeholder="Select SMCR role..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__none__">No manager (top level)</SelectItem>
-                  {firmPeople.map((person) => (
-                    <SelectItem key={person.id} value={person.name}>
-                      {person.name} ({person.department})
-                    </SelectItem>
-                  ))}
+                  {allSMFs
+                    .filter((s) => !addPersonForm.smcrRoles.includes(s.id))
+                    .map((smf) => (
+                      <SelectItem key={smf.id} value={smf.id}>
+                        {smf.smf_number} — {smf.title}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
+              {addPersonForm.smcrRoles.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {addPersonForm.smcrRoles.map((roleId) => {
+                    const smf = allSMFs.find((s) => s.id === roleId);
+                    return (
+                      <Badge key={roleId} variant="secondary" className="gap-1">
+                        {smf?.smf_number} — {smf?.title}
+                        <button
+                          type="button"
+                          className="ml-1 hover:text-destructive"
+                          onClick={() =>
+                            setAddPersonForm((prev) => ({
+                              ...prev,
+                              smcrRoles: prev.smcrRoles.filter((r) => r !== roleId),
+                            }))
+                          }
+                        >
+                          ×
+                        </button>
+                      </Badge>
+                    );
+                  })}
+                </div>
+              )}
             </div>
             <div className="flex justify-end gap-2 pt-4 border-t">
               <Button variant="outline" onClick={() => setAddPersonDialogOpen(false)}>
@@ -1273,7 +1329,7 @@ export function OrgChartClient() {
               </Button>
               <Button
                 onClick={handleAddPerson}
-                disabled={!addPersonForm.name.trim() || !addPersonForm.employeeId.trim()}
+                disabled={!addPersonForm.name.trim()}
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Person
