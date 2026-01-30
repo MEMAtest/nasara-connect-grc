@@ -25,6 +25,7 @@ import {
   HelpCircle,
   Building2,
   FolderOpen,
+  Search,
 } from "lucide-react";
 import {
   Tooltip,
@@ -595,6 +596,11 @@ export function OrgChartClient() {
   const [addPersonDialogOpen, setAddPersonDialogOpen] = useState(false);
   const [addPersonForm, setAddPersonForm] = useState<AddPersonForm>(initialAddPersonForm);
 
+  // Inline IRN verification for add person
+  const [irnVerifyLoading, setIrnVerifyLoading] = useState(false);
+  const [irnVerifyResult, setIrnVerifyResult] = useState<{ name: string; status: string } | null>(null);
+  const [irnVerifyError, setIrnVerifyError] = useState<string | null>(null);
+
   // Pan/drag state
   const [isPanning, setIsPanning] = useState(false);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
@@ -688,8 +694,7 @@ export function OrgChartClient() {
     if (!svgRef.current || !containerRef.current) return;
 
     try {
-      // Dynamic import of html2canvas (optional dependency)
-      // @ts-expect-error - html2canvas is an optional dependency
+      // Dynamic import of html2canvas
       const html2canvasModule = await import("html2canvas");
       const html2canvas = html2canvasModule.default;
       const container = containerRef.current;
@@ -760,6 +765,8 @@ export function OrgChartClient() {
     }
 
     setAddPersonForm(initialAddPersonForm);
+    setIrnVerifyResult(null);
+    setIrnVerifyError(null);
     setAddPersonDialogOpen(false);
   };
 
@@ -1258,12 +1265,55 @@ export function OrgChartClient() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="irn">FCA IRN</Label>
-                <Input
-                  id="irn"
-                  value={addPersonForm.irn}
-                  onChange={(e) => setAddPersonForm((prev) => ({ ...prev, irn: e.target.value }))}
-                  placeholder="e.g., ABC12345"
-                />
+                <div className="flex gap-2">
+                  <Input
+                    id="irn"
+                    value={addPersonForm.irn}
+                    onChange={(e) => {
+                      setAddPersonForm((prev) => ({ ...prev, irn: e.target.value }));
+                      setIrnVerifyResult(null);
+                      setIrnVerifyError(null);
+                    }}
+                    placeholder="e.g., ABC12345"
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={!addPersonForm.irn.trim() || irnVerifyLoading}
+                    onClick={() => {
+                      setIrnVerifyLoading(true);
+                      setIrnVerifyResult(null);
+                      setIrnVerifyError(null);
+                      fetch(`/api/fca-register/individual/${encodeURIComponent(addPersonForm.irn.trim())}`)
+                        .then((res) => {
+                          if (!res.ok) throw new Error("Not found");
+                          return res.json();
+                        })
+                        .then((data) => {
+                          setIrnVerifyResult({ name: data.individual.name, status: data.individual.status });
+                        })
+                        .catch(() => {
+                          setIrnVerifyError("Not found on FCA Register");
+                        })
+                        .finally(() => setIrnVerifyLoading(false));
+                    }}
+                    className="shrink-0"
+                  >
+                    <Search className="h-4 w-4 mr-1" />
+                    {irnVerifyLoading ? "..." : "Verify"}
+                  </Button>
+                </div>
+                {irnVerifyResult && (
+                  <div className="mt-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-1.5">
+                    <p className="text-sm font-medium text-emerald-800">{irnVerifyResult.name}</p>
+                    <p className="text-xs text-emerald-600">{irnVerifyResult.status}</p>
+                  </div>
+                )}
+                {irnVerifyError && (
+                  <p className="text-xs text-rose-600 mt-1">{irnVerifyError}</p>
+                )}
               </div>
               <div>
                 <Label htmlFor="line-manager">Reports to</Label>

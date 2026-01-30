@@ -292,6 +292,15 @@ export function PeopleClient() {
   const [verificationSheetOpen, setVerificationSheetOpen] = useState(false);
   const [verificationPersonId, setVerificationPersonId] = useState<string | null>(null);
 
+  // Name mismatch dialog state
+  const [nameMismatchOpen, setNameMismatchOpen] = useState(false);
+  const [nameMismatchData, setNameMismatchData] = useState<{ personId: string; currentName: string; fcaName: string } | null>(null);
+
+  // Inline IRN verification for create mode (no person saved yet)
+  const [inlineVerifyLoading, setInlineVerifyLoading] = useState(false);
+  const [inlineVerifyResult, setInlineVerifyResult] = useState<{ name: string; status: string } | null>(null);
+  const [inlineVerifyError, setInlineVerifyError] = useState<string | null>(null);
+
   // Close verification sheet if the target person was deleted
   useEffect(() => {
     if (!verificationPersonId) return;
@@ -358,6 +367,8 @@ export function PeopleClient() {
     setFormState(createInitialFormState());
     setActivePersonId(null);
     setDialogMode("create");
+    setInlineVerifyResult(null);
+    setInlineVerifyError(null);
   }, []);
 
   const openCreateDialog = () => {
@@ -1215,20 +1226,49 @@ export function PeopleClient() {
                     type="button"
                     variant="outline"
                     size="sm"
-                    disabled={!formState.irn.trim() || !activePersonId}
+                    disabled={!formState.irn.trim() || inlineVerifyLoading}
                     onClick={() => {
                       if (activePersonId && formState.irn.trim()) {
+                        // Edit mode: open full verification sheet
                         setVerificationPersonId(activePersonId);
                         setVerificationSheetOpen(true);
+                      } else if (formState.irn.trim()) {
+                        // Create mode: inline lookup
+                        setInlineVerifyLoading(true);
+                        setInlineVerifyResult(null);
+                        setInlineVerifyError(null);
+                        fetch(`/api/fca-register/individual/${encodeURIComponent(formState.irn.trim())}`)
+                          .then((res) => {
+                            if (!res.ok) throw new Error("Not found on FCA Register");
+                            return res.json();
+                          })
+                          .then((data) => {
+                            setInlineVerifyResult({ name: data.individual.name, status: data.individual.status });
+                          })
+                          .catch(() => {
+                            setInlineVerifyError("Individual not found on FCA Register");
+                          })
+                          .finally(() => setInlineVerifyLoading(false));
                       }
                     }}
                     className="shrink-0"
                   >
                     <Search className="h-4 w-4 mr-1" />
-                    Verify
+                    {inlineVerifyLoading ? "Checking..." : "Verify"}
                   </Button>
                 </div>
-                <p className="text-xs text-slate-500 mt-1">Used to verify this person against the FCA Register</p>
+                {inlineVerifyResult && (
+                  <div className="mt-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2">
+                    <p className="text-sm font-medium text-emerald-800">{inlineVerifyResult.name}</p>
+                    <p className="text-xs text-emerald-600">{inlineVerifyResult.status}</p>
+                  </div>
+                )}
+                {inlineVerifyError && (
+                  <p className="text-xs text-rose-600 mt-1">{inlineVerifyError}</p>
+                )}
+                {!inlineVerifyResult && !inlineVerifyError && (
+                  <p className="text-xs text-slate-500 mt-1">Used to verify this person against the FCA Register</p>
+                )}
               </div>
             </div>
 
@@ -1343,7 +1383,7 @@ export function PeopleClient() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-3">
+              <div className="grid grid-cols-1 gap-x-8 gap-y-4 md:grid-cols-3">
                 <div className="min-w-0">
                   <Label className="mb-1.5 block">Last Assessment</Label>
                   <DatePickerField
@@ -1763,9 +1803,10 @@ export function PeopleClient() {
               updatePerson(verificationPersonId, {
                 fcaVerification: verificationData,
               } as Partial<PersonRecord>);
-              // Warn if the FCA name doesn't match the person record
+              // If FCA name differs, prompt user to choose
               if (result.name && verifyPerson.name.toLowerCase().trim() !== result.name.toLowerCase().trim()) {
-                toast.warning(`Name mismatch: record says "${verifyPerson.name}" but FCA Register says "${result.name}".`);
+                setNameMismatchData({ personId: verificationPersonId, currentName: verifyPerson.name, fcaName: result.name });
+                setNameMismatchOpen(true);
               }
               fetch(`/api/smcr/people/${verificationPersonId}/fca-verification`, {
                 method: 'POST',
@@ -1780,6 +1821,46 @@ export function PeopleClient() {
           />
         );
       })()}
+
+      {/* Name Mismatch Dialog */}
+      <Dialog open={nameMismatchOpen} onOpenChange={setNameMismatchOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Name Mismatch</DialogTitle>
+            <DialogDescription>
+              The name on your record does not match the FCA Register. Which name would you like to use?
+            </DialogDescription>
+          </DialogHeader>
+          {nameMismatchData && (
+            <div className="space-y-3 pt-2">
+              <Button
+                className="w-full justify-start"
+                variant="outline"
+                onClick={() => {
+                  updatePerson(nameMismatchData.personId, { name: nameMismatchData.fcaName } as Partial<PersonRecord>);
+                  toast.success(`Name updated to "${nameMismatchData.fcaName}"`);
+                  setNameMismatchOpen(false);
+                  setNameMismatchData(null);
+                }}
+              >
+                <CheckCircle2 className="h-4 w-4 mr-2 text-emerald-600" />
+                Use FCA name: <span className="font-semibold ml-1">{nameMismatchData.fcaName}</span>
+              </Button>
+              <Button
+                className="w-full justify-start"
+                variant="outline"
+                onClick={() => {
+                  setNameMismatchOpen(false);
+                  setNameMismatchData(null);
+                }}
+              >
+                <User className="h-4 w-4 mr-2 text-slate-500" />
+                Keep current: <span className="font-semibold ml-1">{nameMismatchData.currentName}</span>
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Generator Dialogs */}
       {generatorPersonId && (() => {
