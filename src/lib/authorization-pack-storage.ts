@@ -63,6 +63,33 @@ export async function readAuthorizationPackPdf(storageKey: string) {
   return { buffer, contentType: null, contentLength: buffer.length };
 }
 
+/**
+ * Store an arbitrary file (document upload) and return a storageKey.
+ */
+export async function writeAuthorizationPackFile(
+  packId: string,
+  fileName: string,
+  buffer: Buffer,
+  contentType: string
+): Promise<{ storageKey: string }> {
+  const safeName = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
+  const key = `documents/${packId}/${Date.now()}-${safeName}`;
+
+  if (usesBlobStorage()) {
+    const blob = await put(key, buffer, {
+      access: "public",
+      addRandomSuffix: true,
+      contentType,
+    });
+    return { storageKey: blob.url };
+  }
+
+  const storagePath = resolveAuthorizationPackPath(key);
+  await fs.mkdir(path.dirname(storagePath), { recursive: true });
+  await fs.writeFile(storagePath, buffer);
+  return { storageKey: key };
+}
+
 export async function removeAuthorizationPackPdf(storageKey: string) {
   if (isRemoteStorageKey(storageKey)) {
     if (!usesBlobStorage()) {

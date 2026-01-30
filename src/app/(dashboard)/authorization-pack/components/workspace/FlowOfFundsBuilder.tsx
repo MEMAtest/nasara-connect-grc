@@ -21,6 +21,7 @@ import {
   Download,
   Eraser,
   Loader2,
+  Pencil,
   Plus,
   Save,
   Trash2,
@@ -32,6 +33,7 @@ import {
   Wand2,
   X,
   RotateCcw,
+  Link2,
 } from "lucide-react";
 
 // ============================================================================
@@ -69,10 +71,10 @@ interface FlowOfFundsBuilderProps {
 // ============================================================================
 
 const NODE_TYPES = [
-  { value: "source" as const, label: "Source", icon: ArrowRight, color: "bg-green-100 border-green-300 text-green-800" },
-  { value: "process" as const, label: "Process", icon: ArrowLeftRight, color: "bg-blue-100 border-blue-300 text-blue-800" },
-  { value: "destination" as const, label: "Destination", icon: Target, color: "bg-red-100 border-red-300 text-red-800" },
-  { value: "account" as const, label: "Account", icon: Wallet, color: "bg-purple-100 border-purple-300 text-purple-800" },
+  { value: "source" as const, label: "Source", description: "Where funds originate (e.g. customer, borrower, investor)", icon: ArrowRight, color: "bg-green-100 border-green-300 text-green-800" },
+  { value: "process" as const, label: "Process", description: "A processing step (e.g. payment gateway, AML check, credit scoring)", icon: ArrowLeftRight, color: "bg-blue-100 border-blue-300 text-blue-800" },
+  { value: "destination" as const, label: "Destination", description: "Where funds end up (e.g. bank, merchant, settlement)", icon: Target, color: "bg-red-100 border-red-300 text-red-800" },
+  { value: "account" as const, label: "Account", description: "A holding account (e.g. safeguarded funds, float, client money)", icon: Wallet, color: "bg-purple-100 border-purple-300 text-purple-800" },
 ];
 
 const FLOW_TYPE_COLORS = {
@@ -216,7 +218,19 @@ export function FlowOfFundsBuilder({ packId }: FlowOfFundsBuilderProps) {
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [pendingTemplate, setPendingTemplate] = useState<FlowDiagramState | null>(null);
   const [dragState, setDragState] = useState<{ nodeId: string; startX: number; startY: number; nodeStartX: number; nodeStartY: number } | null>(null);
+  const [editingNode, setEditingNode] = useState<FlowNode | null>(null);
+  const [editNodeForm, setEditNodeForm] = useState({ label: "", description: "" });
   const svgRef = useRef<SVGSVGElement>(null);
+
+  // Connect mode state
+  const [connectMode, setConnectMode] = useState(false);
+  const [connectSource, setConnectSource] = useState<string | null>(null);
+  const [showConnectPrompt, setShowConnectPrompt] = useState(false);
+  const [connectTargetId, setConnectTargetId] = useState<string | null>(null);
+  const [connectForm, setConnectForm] = useState({
+    flowType: "internal" as FlowConnection["flowType"],
+    label: "",
+  });
 
   // New node form
   const [newNode, setNewNode] = useState({
@@ -244,19 +258,16 @@ export function FlowOfFundsBuilder({ packId }: FlowOfFundsBuilderProps) {
             setNodes(data.diagram.nodes);
             setConnections(data.diagram.connections || []);
           } else {
-            // No saved diagram — load default demo
-            setNodes(DEFAULT_PAYMENT_FLOW.nodes);
-            setConnections(DEFAULT_PAYMENT_FLOW.connections);
+            // No saved diagram — open wizard so user can pick a template
+            setShowWizard(true);
           }
         } else {
-          // API error — load default demo
-          setNodes(DEFAULT_PAYMENT_FLOW.nodes);
-          setConnections(DEFAULT_PAYMENT_FLOW.connections);
+          // API error — open wizard
+          setShowWizard(true);
         }
       } catch {
-        // Diagram may not exist yet — load default demo
-        setNodes(DEFAULT_PAYMENT_FLOW.nodes);
-        setConnections(DEFAULT_PAYMENT_FLOW.connections);
+        // Diagram may not exist yet — open wizard
+        setShowWizard(true);
       } finally {
         setIsLoading(false);
       }
@@ -366,6 +377,24 @@ export function FlowOfFundsBuilder({ packId }: FlowOfFundsBuilderProps) {
     setConnections((prev) => prev.filter((c) => c.id !== connId));
   };
 
+  // Edit node
+  const handleOpenEditNode = (node: FlowNode) => {
+    setEditingNode(node);
+    setEditNodeForm({ label: node.label, description: node.description || "" });
+  };
+
+  const handleSaveNodeEdit = () => {
+    if (!editingNode || !editNodeForm.label.trim()) return;
+    setNodes((prev) =>
+      prev.map((n) =>
+        n.id === editingNode.id
+          ? { ...n, label: editNodeForm.label.trim(), description: editNodeForm.description.trim() || undefined }
+          : n
+      )
+    );
+    setEditingNode(null);
+  };
+
   // Drag handling
   const handleMouseDown = (e: React.MouseEvent, nodeId: string) => {
     const node = nodes.find((n) => n.id === nodeId);
@@ -411,6 +440,54 @@ export function FlowOfFundsBuilder({ packId }: FlowOfFundsBuilderProps) {
     }
   }, [dragState, handleMouseMove, handleMouseUp]);
 
+  // Escape key to exit connect mode
+  useEffect(() => {
+    if (!connectMode) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setConnectMode(false);
+        setConnectSource(null);
+        setShowConnectPrompt(false);
+        setConnectTargetId(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [connectMode]);
+
+  // Handle node click in connect mode
+  const handleConnectNodeClick = (nodeId: string) => {
+    if (!connectMode) return;
+    if (connectSource === null) {
+      setConnectSource(nodeId);
+    } else if (nodeId === connectSource) {
+      // Clicking same node cancels
+      setConnectSource(null);
+    } else {
+      // Second node clicked — show prompt for flow type
+      setConnectTargetId(nodeId);
+      setConnectForm({ flowType: "internal", label: "" });
+      setShowConnectPrompt(true);
+    }
+  };
+
+  // Create connection from connect mode prompt
+  const handleConnectModeCreate = () => {
+    if (!connectSource || !connectTargetId) return;
+    const id = `conn-${Date.now()}`;
+    const conn: FlowConnection = {
+      id,
+      sourceId: connectSource,
+      targetId: connectTargetId,
+      label: connectForm.label.trim() || undefined,
+      flowType: connectForm.flowType,
+    };
+    setConnections((prev) => [...prev, conn]);
+    setConnectSource(null);
+    setConnectTargetId(null);
+    setShowConnectPrompt(false);
+  };
+
   // Calculate SVG dimensions
   const svgDimensions = useMemo(() => {
     if (nodes.length === 0) return { width: 800, height: 400 };
@@ -434,32 +511,146 @@ export function FlowOfFundsBuilder({ packId }: FlowOfFundsBuilderProps) {
     return `M ${sx} ${sy} C ${midX} ${sy}, ${midX} ${ty}, ${tx} ${ty}`;
   };
 
+  // Node type hex color map for SVG export
+  const NODE_TYPE_COLORS: Record<string, { fill: string; stroke: string }> = {
+    source: { fill: "#dcfce7", stroke: "#86efac" },
+    process: { fill: "#dbeafe", stroke: "#93c5fd" },
+    destination: { fill: "#fee2e2", stroke: "#fca5a5" },
+    account: { fill: "#f3e8ff", stroke: "#d8b4fe" },
+  };
+
+  // Build a clean export-only SVG string with pure SVG primitives
+  const buildExportSvg = () => {
+    const padding = 60;
+    const maxX = nodes.length > 0 ? Math.max(...nodes.map((n) => n.x + NODE_WIDTH)) : 0;
+    const maxY = nodes.length > 0 ? Math.max(...nodes.map((n) => n.y + NODE_HEIGHT)) : 0;
+    const exportW = Math.max(800, maxX) + padding * 2;
+    const exportH = Math.max(400, maxY) + padding * 2 + 60; // extra for title + legend
+
+    const escXml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    const font = 'font-family="system-ui, sans-serif"';
+
+    // Arrow marker defs
+    const markerDefs = (["incoming", "outgoing", "internal"] as const)
+      .map(
+        (type) =>
+          `<marker id="exp-arrow-${type}" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="${FLOW_TYPE_COLORS[type]}" />
+          </marker>`
+      )
+      .join("\n");
+
+    // Connection paths
+    const connPaths = connections
+      .map((conn) => {
+        const source = nodes.find((n) => n.id === conn.sourceId);
+        const target = nodes.find((n) => n.id === conn.targetId);
+        if (!source || !target) return "";
+        const sx = source.x + NODE_WIDTH + padding;
+        const sy = source.y + NODE_HEIGHT / 2 + padding + 30;
+        const tx = target.x + padding;
+        const ty = target.y + NODE_HEIGHT / 2 + padding + 30;
+        const midX = (sx + tx) / 2;
+        const d = `M ${sx} ${sy} C ${midX} ${sy}, ${midX} ${ty}, ${tx} ${ty}`;
+        const color = FLOW_TYPE_COLORS[conn.flowType];
+        const dash = conn.flowType === "internal" ? ' stroke-dasharray="6,3"' : "";
+
+        let labelSvg = "";
+        if (conn.label) {
+          const lx = (sx + tx) / 2;
+          const ly = (sy + ty) / 2 - 8;
+          const labelW = conn.label.length * 6 + 12;
+          labelSvg = `<rect x="${lx - labelW / 2}" y="${ly - 10}" width="${labelW}" height="16" rx="3" fill="white" stroke="#e2e8f0" stroke-width="0.5" />
+            <text x="${lx}" y="${ly + 1}" text-anchor="middle" font-size="9" fill="#475569" ${font}>${escXml(conn.label)}</text>`;
+        }
+        return `<path d="${d}" fill="none" stroke="${color}" stroke-width="2"${dash} marker-end="url(#exp-arrow-${conn.flowType})" />${labelSvg}`;
+      })
+      .join("\n");
+
+    // Node rects
+    const nodeElems = nodes
+      .map((node) => {
+        const colors = NODE_TYPE_COLORS[node.type] || { fill: "#f1f5f9", stroke: "#94a3b8" };
+        const nx = node.x + padding;
+        const ny = node.y + padding + 30; // offset for title
+        return `<rect x="${nx}" y="${ny}" width="${NODE_WIDTH}" height="${NODE_HEIGHT}" rx="8" fill="${colors.fill}" stroke="${colors.stroke}" stroke-width="2" />
+          <text x="${nx + 12}" y="${ny + 16}" font-size="8" fill="${colors.stroke}" font-weight="600" text-transform="uppercase" letter-spacing="0.5" ${font}>${escXml(node.type.toUpperCase())}</text>
+          <text x="${nx + 12}" y="${ny + 32}" font-size="11" fill="#1e293b" font-weight="600" ${font}>${escXml(node.label)}</text>
+          ${node.description ? `<text x="${nx + 12}" y="${ny + 46}" font-size="8" fill="#94a3b8" ${font}>${escXml(node.description.length > 28 ? node.description.slice(0, 26) + "..." : node.description)}</text>` : ""}`;
+      })
+      .join("\n");
+
+    // Legend at bottom
+    const legendY = exportH - 30;
+    const legendItems = [
+      { label: "Source", fill: "#dcfce7", stroke: "#86efac" },
+      { label: "Process", fill: "#dbeafe", stroke: "#93c5fd" },
+      { label: "Destination", fill: "#fee2e2", stroke: "#fca5a5" },
+      { label: "Account", fill: "#f3e8ff", stroke: "#d8b4fe" },
+    ];
+    const legendFlow = [
+      { label: "Incoming", color: FLOW_TYPE_COLORS.incoming, dash: "" },
+      { label: "Outgoing", color: FLOW_TYPE_COLORS.outgoing, dash: "" },
+      { label: "Internal", color: FLOW_TYPE_COLORS.internal, dash: "4,2" },
+    ];
+
+    let legendSvg = "";
+    let lx = padding;
+    for (const item of legendItems) {
+      legendSvg += `<rect x="${lx}" y="${legendY}" width="10" height="10" rx="2" fill="${item.fill}" stroke="${item.stroke}" stroke-width="1" />
+        <text x="${lx + 14}" y="${legendY + 9}" font-size="9" fill="#64748b" ${font}>${item.label}</text>`;
+      lx += item.label.length * 6 + 28;
+    }
+    lx += 10;
+    for (const item of legendFlow) {
+      legendSvg += `<line x1="${lx}" y1="${legendY + 5}" x2="${lx + 16}" y2="${legendY + 5}" stroke="${item.color}" stroke-width="2" ${item.dash ? `stroke-dasharray="${item.dash}"` : ""} />
+        <text x="${lx + 20}" y="${legendY + 9}" font-size="9" fill="#64748b" ${font}>${item.label}</text>`;
+      lx += item.label.length * 6 + 34;
+    }
+
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${exportW}" height="${exportH}" viewBox="0 0 ${exportW} ${exportH}">
+      <rect width="${exportW}" height="${exportH}" fill="white" />
+      <defs>${markerDefs}</defs>
+      <text x="${padding}" y="${padding - 10}" font-size="16" fill="#0f172a" font-weight="700" ${font}>Flow of Funds</text>
+      ${connPaths}
+      ${nodeElems}
+      ${legendSvg}
+    </svg>`;
+  };
+
   // Export as PNG
   const handleExport = async () => {
-    if (!svgRef.current) return;
+    if (nodes.length === 0) return;
     try {
-      const svgData = new XMLSerializer().serializeToString(svgRef.current);
+      const svgString = buildExportSvg();
       const canvas = document.createElement("canvas");
-      canvas.width = svgDimensions.width * 2;
-      canvas.height = svgDimensions.height * 2;
+      // Parse dimensions from SVG
+      const widthMatch = svgString.match(/width="(\d+)"/);
+      const heightMatch = svgString.match(/height="(\d+)"/);
+      const w = widthMatch ? parseInt(widthMatch[1]) : 800;
+      const h = heightMatch ? parseInt(heightMatch[1]) : 400;
+
+      canvas.width = w * 2;
+      canvas.height = h * 2;
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
-
       ctx.scale(2, 2);
+
       const img = new Image();
-      const blob = new Blob([svgData], { type: "image/svg+xml" });
+      const blob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
       const url = URL.createObjectURL(blob);
 
       img.onload = () => {
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(0, 0, svgDimensions.width, svgDimensions.height);
-        ctx.drawImage(img, 0, 0);
+        ctx.drawImage(img, 0, 0, w, h);
         URL.revokeObjectURL(url);
-
         const link = document.createElement("a");
         link.download = "flow-of-funds.png";
         link.href = canvas.toDataURL("image/png");
         link.click();
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        setError("Failed to export diagram");
       };
       img.src = url;
     } catch {
@@ -502,12 +693,27 @@ export function FlowOfFundsBuilder({ packId }: FlowOfFundsBuilderProps) {
                 <Plus className="h-4 w-4 mr-1" /> Node
               </Button>
               <Button
+                variant={connectMode ? "default" : "outline"}
+                size="sm"
+                onClick={() => {
+                  setConnectMode(!connectMode);
+                  setConnectSource(null);
+                  setShowConnectPrompt(false);
+                  setConnectTargetId(null);
+                }}
+                disabled={nodes.length < 2}
+                className={connectMode ? "bg-teal-600 hover:bg-teal-700 text-white" : ""}
+              >
+                <Link2 className="h-4 w-4 mr-1" /> {connectMode ? "Connecting..." : "Connect"}
+              </Button>
+              <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setShowAddConnection(true)}
                 disabled={nodes.length < 2}
+                title="Connect via dialog"
               >
-                <ArrowRight className="h-4 w-4 mr-1" /> Connect
+                <ArrowRight className="h-4 w-4" />
               </Button>
               <Button variant="outline" size="sm" onClick={handleResetToDemo}>
                 <RotateCcw className="h-4 w-4 mr-1" /> Reset to Demo
@@ -564,8 +770,8 @@ export function FlowOfFundsBuilder({ packId }: FlowOfFundsBuilderProps) {
                 ref={svgRef}
                 width={svgDimensions.width}
                 height={svgDimensions.height}
-                className="cursor-default"
-                onClick={() => setSelectedNodeId(null)}
+                className={connectMode ? "cursor-crosshair" : "cursor-default"}
+                onClick={() => { if (!connectMode) setSelectedNodeId(null); }}
               >
                 {/* Grid pattern */}
                 <defs>
@@ -650,6 +856,7 @@ export function FlowOfFundsBuilder({ packId }: FlowOfFundsBuilderProps) {
                 {nodes.map((node) => {
                   const typeConfig = NODE_TYPES.find((t) => t.value === node.type);
                   const isSelected = selectedNodeId === node.id;
+                  const isConnectSource = connectMode && connectSource === node.id;
 
                   return (
                     <g key={node.id}>
@@ -658,20 +865,28 @@ export function FlowOfFundsBuilder({ packId }: FlowOfFundsBuilderProps) {
                         y={node.y}
                         width={NODE_WIDTH}
                         height={NODE_HEIGHT}
-                        className="cursor-grab active:cursor-grabbing"
+                        className={connectMode ? "cursor-crosshair" : "cursor-grab active:cursor-grabbing"}
                         onMouseDown={(e) => {
                           e.stopPropagation();
-                          handleMouseDown(e, node.id);
+                          if (!connectMode) handleMouseDown(e, node.id);
                         }}
                         onClick={(e) => {
                           e.stopPropagation();
-                          setSelectedNodeId(node.id);
+                          if (connectMode) {
+                            handleConnectNodeClick(node.id);
+                          } else {
+                            setSelectedNodeId(node.id);
+                          }
+                        }}
+                        onDoubleClick={(e) => {
+                          e.stopPropagation();
+                          if (!connectMode) handleOpenEditNode(node);
                         }}
                       >
                         <div
                           className={`h-full rounded-lg border-2 px-3 py-2 shadow-sm transition-all ${
                             typeConfig?.color || "bg-slate-100 border-slate-300"
-                          } ${isSelected ? "ring-2 ring-teal-500 ring-offset-1" : ""}`}
+                          } ${isSelected && !connectMode ? "ring-2 ring-teal-500 ring-offset-1" : ""} ${isConnectSource ? "ring-2 ring-teal-400 ring-offset-1 animate-pulse" : ""}`}
                         >
                           <div className="flex items-center gap-1.5 mb-1">
                             <GripVertical className="h-3 w-3 opacity-40" />
@@ -686,24 +901,42 @@ export function FlowOfFundsBuilder({ packId }: FlowOfFundsBuilderProps) {
                         </div>
                       </foreignObject>
 
-                      {/* Delete button for selected node */}
+                      {/* Edit + Delete buttons for selected node */}
                       {isSelected && (
-                        <foreignObject
-                          x={node.x + NODE_WIDTH - 12}
-                          y={node.y - 8}
-                          width={20}
-                          height={20}
-                        >
-                          <button
-                            className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white shadow hover:bg-red-600"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteNode(node.id);
-                            }}
+                        <>
+                          <foreignObject
+                            x={node.x + NODE_WIDTH - 34}
+                            y={node.y - 8}
+                            width={20}
+                            height={20}
                           >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </foreignObject>
+                            <button
+                              className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-500 text-white shadow hover:bg-teal-600"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenEditNode(node);
+                              }}
+                            >
+                              <Pencil className="h-2.5 w-2.5" />
+                            </button>
+                          </foreignObject>
+                          <foreignObject
+                            x={node.x + NODE_WIDTH - 12}
+                            y={node.y - 8}
+                            width={20}
+                            height={20}
+                          >
+                            <button
+                              className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white shadow hover:bg-red-600"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteNode(node.id);
+                              }}
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </foreignObject>
+                        </>
                       )}
                     </g>
                   );
@@ -760,7 +993,10 @@ export function FlowOfFundsBuilder({ packId }: FlowOfFundsBuilderProps) {
                 <SelectContent>
                   {NODE_TYPES.map((t) => (
                     <SelectItem key={t.value} value={t.value}>
-                      {t.label}
+                      <div>
+                        <span>{t.label}</span>
+                        <p className="text-[11px] text-muted-foreground font-normal">{t.description}</p>
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -917,6 +1153,16 @@ export function FlowOfFundsBuilder({ packId }: FlowOfFundsBuilderProps) {
               </Card>
             ))}
           </div>
+          <div className="flex justify-center pt-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-slate-500 hover:text-slate-700"
+              onClick={() => setShowWizard(false)}
+            >
+              Start from scratch
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -958,6 +1204,104 @@ export function FlowOfFundsBuilder({ packId }: FlowOfFundsBuilderProps) {
               onClick={() => { if (pendingTemplate) applyTemplate(pendingTemplate); }}
             >
               Replace
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Node Dialog */}
+      <Dialog open={!!editingNode} onOpenChange={(open) => { if (!open) { setEditingNode(null); setEditNodeForm({ label: "", description: "" }); } }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Node</DialogTitle>
+            <DialogDescription>Update the label and description for this node</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>Label</Label>
+              <Input
+                value={editNodeForm.label}
+                onChange={(e) => setEditNodeForm((prev) => ({ ...prev, label: e.target.value }))}
+                placeholder="e.g. Customer Bank Account"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Description (optional)</Label>
+              <Input
+                value={editNodeForm.description}
+                onChange={(e) => setEditNodeForm((prev) => ({ ...prev, description: e.target.value }))}
+                placeholder="Brief description"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingNode(null)}>
+              Cancel
+            </Button>
+            <Button className="bg-teal-600 hover:bg-teal-700" onClick={handleSaveNodeEdit} disabled={!editNodeForm.label.trim()}>
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Connect Mode Flow Type Prompt */}
+      <Dialog open={showConnectPrompt} onOpenChange={(open) => {
+        if (!open) {
+          setShowConnectPrompt(false);
+          setConnectTargetId(null);
+          setConnectSource(null);
+        }
+      }}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Connection Type</DialogTitle>
+            <DialogDescription>
+              {connectSource && connectTargetId && (
+                <>
+                  {nodes.find((n) => n.id === connectSource)?.label} &rarr;{" "}
+                  {nodes.find((n) => n.id === connectTargetId)?.label}
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>Flow Type</Label>
+              <Select
+                value={connectForm.flowType}
+                onValueChange={(v) => setConnectForm((prev) => ({ ...prev, flowType: v as FlowConnection["flowType"] }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="incoming">Incoming (funds in)</SelectItem>
+                  <SelectItem value="outgoing">Outgoing (funds out)</SelectItem>
+                  <SelectItem value="internal">Internal (between accounts)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Label (optional)</Label>
+              <Input
+                value={connectForm.label}
+                onChange={(e) => setConnectForm((prev) => ({ ...prev, label: e.target.value }))}
+                placeholder="e.g. GBP payments"
+                onKeyDown={(e) => { if (e.key === "Enter") handleConnectModeCreate(); }}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setShowConnectPrompt(false);
+              setConnectTargetId(null);
+              setConnectSource(null);
+            }}>
+              Cancel
+            </Button>
+            <Button className="bg-teal-600 hover:bg-teal-700" onClick={handleConnectModeCreate}>
+              Connect
             </Button>
           </DialogFooter>
         </DialogContent>

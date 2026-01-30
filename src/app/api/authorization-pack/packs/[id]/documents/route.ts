@@ -8,6 +8,7 @@ import {
 } from "@/lib/authorization-pack-db";
 import { requireAuth, isValidUUID } from "@/lib/auth-utils";
 import { logError } from "@/lib/logger";
+import { writeAuthorizationPackFile } from "@/lib/authorization-pack-storage";
 
 const VALID_STATUSES = new Set(["draft", "review", "approved", "signed"]);
 
@@ -89,10 +90,42 @@ export async function POST(
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
-    const body = await request.json();
-    const name = body?.name;
-    const description = body?.description;
-    const sectionCode = body?.sectionCode;
+    const contentType = request.headers.get("content-type") || "";
+    const isMultipart = contentType.includes("multipart/form-data");
+
+    let name: string | undefined;
+    let description: string | undefined;
+    let sectionCode: string | undefined;
+    let storageKey: string | null = null;
+    let fileSizeBytes: number | null = null;
+    let mimeType: string | null = null;
+
+    if (isMultipart) {
+      const formData = await request.formData();
+      const file = formData.get("file") as File | null;
+      name = (formData.get("name") as string) || file?.name;
+      description = (formData.get("description") as string) || undefined;
+      sectionCode = (formData.get("sectionCode") as string) || undefined;
+
+      if (file && file.size > 0) {
+        const arrayBuffer = await file.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        const result = await writeAuthorizationPackFile(
+          packId,
+          file.name,
+          buffer,
+          file.type || "application/octet-stream"
+        );
+        storageKey = result.storageKey;
+        fileSizeBytes = file.size;
+        mimeType = file.type || "application/octet-stream";
+      }
+    } else {
+      const body = await request.json();
+      name = body?.name;
+      description = body?.description;
+      sectionCode = body?.sectionCode;
+    }
 
     if (!name || typeof name !== "string" || name.trim().length === 0) {
       return NextResponse.json({ error: "Document name is required" }, { status: 400 });
@@ -115,6 +148,9 @@ export async function POST(
       name: name.trim(),
       description: description?.trim() ?? null,
       sectionCode: sectionCode || null,
+      storageKey,
+      fileSizeBytes,
+      mimeType,
       uploadedBy: auth.userId,
       uploadedAt: new Date().toISOString(),
     });

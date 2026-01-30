@@ -13,9 +13,23 @@ import { Badge } from "@/components/ui/badge";
 import { WorkspaceHeader } from "./WorkspaceHeader";
 import { TimelineProgress } from "./TimelineProgress";
 import { ChecklistCards } from "./ChecklistCards";
+import { DocumentUploadSection } from "./DocumentUploadSection";
+import { FlowOfFundsBuilder } from "./FlowOfFundsBuilder";
+import { FinancialSection } from "./FinancialSection";
+import { OrgStructureSection } from "./OrgStructureSection";
 import { packTypeLabels, PackType } from "@/lib/authorization-pack-templates";
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
-import { Calendar, FileText, BarChart3, Download, Target } from "lucide-react";
+import {
+  Calendar,
+  FileText,
+  BarChart3,
+  Download,
+  FolderOpen,
+  ArrowLeftRight,
+  TrendingUp,
+  Building2,
+  LayoutGrid,
+} from "lucide-react";
 import { type ChecklistItemStatus } from "@/lib/fca-api-checklist";
 import {
   isValidChecklistResponse,
@@ -55,6 +69,17 @@ interface ProjectPlan {
   totalWeeks?: number;
 }
 
+// Tab definitions
+const WORKSPACE_TABS = [
+  { id: "overview", label: "Overview", icon: LayoutGrid },
+  { id: "documents", label: "Documents", icon: FolderOpen },
+  { id: "flow", label: "Flow of Funds", icon: ArrowLeftRight },
+  { id: "financials", label: "Financials", icon: TrendingUp },
+  { id: "structure", label: "Structure", icon: Building2 },
+] as const;
+
+type WorkspaceTab = typeof WORKSPACE_TABS[number]["id"];
+
 // Status options for pack
 const PACK_STATUS_OPTIONS = [
   { value: "draft", label: "Draft", color: "bg-slate-100 text-slate-700" },
@@ -64,15 +89,11 @@ const PACK_STATUS_OPTIONS = [
   { value: "submitted", label: "Submitted", color: "bg-teal-100 text-teal-700" },
 ];
 
-function getPackStatusColor(status: string) {
-  const option = PACK_STATUS_OPTIONS.find((opt) => opt.value === status);
-  return option?.color || "bg-slate-100 text-slate-700";
-}
-
 export function OverviewClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const packIdParam = searchParams.get("packId");
+  const tabParam = searchParams.get("tab") as WorkspaceTab | null;
 
   const [pack, setPack] = useState<PackRow | null>(null);
   const [readiness, setReadiness] = useState<ReadinessSummary | null>(null);
@@ -86,11 +107,28 @@ export function OverviewClient() {
   const [selectedPhase, setSelectedPhase] = useState<string | null>(null);
   const [checklistStatuses, setChecklistStatuses] = useState<Record<string, ChecklistItemStatus>>({});
 
+  // Active tab - defaults to "overview", persisted in URL
+  const [activeTab, setActiveTab] = useState<WorkspaceTab>(
+    WORKSPACE_TABS.some((t) => t.id === tabParam) ? (tabParam as WorkspaceTab) : "overview"
+  );
+
   const [wizardState, setWizardState] = useState({
     name: "",
     templateType: "payments-emi" as PackType,
     targetSubmissionDate: "",
   });
+
+  // Handle tab change with URL sync
+  const handleTabChange = (tab: WorkspaceTab) => {
+    setActiveTab(tab);
+    const url = new URL(window.location.href);
+    if (tab === "overview") {
+      url.searchParams.delete("tab");
+    } else {
+      url.searchParams.set("tab", tab);
+    }
+    router.replace(url.pathname + url.search);
+  };
 
   const loadPack = async () => {
     setIsLoading(true);
@@ -123,7 +161,6 @@ export function OverviewClient() {
 
         if (readinessResponse?.ok) {
           const readinessData = await readinessResponse.json();
-          // Validate response before using
           if (isValidReadinessResponse(readinessData)) {
             setReadiness(readinessData.readiness);
           } else {
@@ -133,10 +170,8 @@ export function OverviewClient() {
 
         if (projectResponse?.ok) {
           const projectData = await projectResponse.json();
-          // Validate response before using
           if (isValidProjectResponse(projectData)) {
             setProject(projectData.project || null);
-            // Also fetch project plan if project exists
             if (projectData.project?.id) {
               const planResponse = await fetchWithTimeout(
                 `/api/authorization-pack/projects/${projectData.project.id}`
@@ -153,7 +188,6 @@ export function OverviewClient() {
 
         if (checklistResponse?.ok) {
           const checklistData = await checklistResponse.json();
-          // Validate response before using
           if (isValidChecklistResponse(checklistData)) {
             setChecklistStatuses(checklistData.checklist as Record<string, ChecklistItemStatus>);
           } else {
@@ -246,6 +280,28 @@ export function OverviewClient() {
   // Handler for checklist status updates (for syncing timeline progress)
   const handleChecklistStatusChange = (itemId: string, status: ChecklistItemStatus) => {
     setChecklistStatuses((prev) => ({ ...prev, [itemId]: status }));
+  };
+
+  // Handler for changing the project start date
+  const handleStartDateChange = async (newDate: string) => {
+    if (!project?.id || !projectPlan) return;
+    const previousPlan = { ...projectPlan };
+    const updatedPlan = { ...projectPlan, startDate: newDate };
+    setProjectPlan(updatedPlan);
+
+    try {
+      const response = await fetch(`/api/authorization-pack/projects/${project.id}/plan`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: updatedPlan }),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to update start date");
+      }
+    } catch (error) {
+      setProjectPlan(previousPlan);
+      setMutationError(error instanceof Error ? error.message : "Failed to update start date.");
+    }
   };
 
   // Loading state
@@ -362,7 +418,6 @@ export function OverviewClient() {
 
   // Main dashboard with pack
   const exportHref = `/authorization-pack/export?packId=${pack.id}`;
-  const planHref = project ? `/authorization-pack/${project.id}/plan` : null;
 
   return (
     <div className="space-y-6">
@@ -380,8 +435,8 @@ export function OverviewClient() {
         </div>
       )}
 
-      {/* Quick Actions Bar */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Quick Actions Bar - 3 cards: Status, Target Date, Export */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {/* Status Card */}
         <Card className="border border-slate-200">
           <CardContent className="p-4">
@@ -454,27 +509,6 @@ export function OverviewClient() {
           </CardContent>
         </Card>
 
-        {/* View Plan Card */}
-        <Card className="border border-slate-200">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100">
-                <Target className="h-5 w-5 text-blue-600" />
-              </div>
-              <div className="flex-1">
-                <p className="text-xs text-slate-500">View Plan</p>
-                {planHref ? (
-                  <Button asChild variant="outline" size="sm" className="mt-1 h-8 text-xs">
-                    <Link href={planHref}>Open Gantt</Link>
-                  </Button>
-                ) : (
-                  <p className="text-sm text-slate-400 mt-1">No project linked</p>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
         {/* Export Card */}
         <Card className="border border-slate-200">
           <CardContent className="p-4">
@@ -493,21 +527,66 @@ export function OverviewClient() {
         </Card>
       </div>
 
-      {/* Project Timeline */}
-      <TimelineProgress
-        statuses={checklistStatuses}
-        startDate={projectPlan?.startDate}
-        selectedPhase={selectedPhase}
-        onPhaseSelect={setSelectedPhase}
-      />
+      {/* Tab Navigation */}
+      <div className="flex items-center gap-1 overflow-x-auto border-b border-slate-200 pb-px">
+        {WORKSPACE_TABS.map((tab) => {
+          const TabIcon = tab.icon;
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => handleTabChange(tab.id)}
+              className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium rounded-t-md border-b-2 transition-colors whitespace-nowrap ${
+                isActive
+                  ? "border-teal-500 text-teal-700 bg-teal-50/50"
+                  : "border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50"
+              }`}
+            >
+              <TabIcon className="h-4 w-4" />
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
 
-      {/* Documentation Checklist Cards */}
-      <ChecklistCards
-        packId={pack.id}
-        selectedPhase={selectedPhase}
-        initialStatuses={checklistStatuses}
-        onStatusChange={handleChecklistStatusChange}
-      />
+      {/* Tab Content */}
+      {activeTab === "overview" && (
+        <>
+          {/* Project Timeline */}
+          <TimelineProgress
+            statuses={checklistStatuses}
+            startDate={projectPlan?.startDate}
+            selectedPhase={selectedPhase}
+            onPhaseSelect={setSelectedPhase}
+            packId={pack.id}
+            onStartDateChange={project?.id ? handleStartDateChange : undefined}
+          />
+
+          {/* Documentation Checklist Cards */}
+          <ChecklistCards
+            packId={pack.id}
+            selectedPhase={selectedPhase}
+            initialStatuses={checklistStatuses}
+            onStatusChange={handleChecklistStatusChange}
+          />
+        </>
+      )}
+
+      {activeTab === "documents" && (
+        <DocumentUploadSection packId={pack.id} />
+      )}
+
+      {activeTab === "flow" && (
+        <FlowOfFundsBuilder packId={pack.id} />
+      )}
+
+      {activeTab === "financials" && (
+        <FinancialSection packId={pack.id} />
+      )}
+
+      {activeTab === "structure" && (
+        <OrgStructureSection packId={pack.id} />
+      )}
     </div>
   );
 }

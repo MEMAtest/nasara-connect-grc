@@ -74,6 +74,19 @@ export const TIMELINE_LAYOUT = {
 } as const;
 
 /**
+ * Get a formatted date string for the Monday of a given week number
+ * relative to a start date.
+ */
+export function getWeekDate(startDate: string, weekNumber: number): string {
+  const start = parseToUTCDate(startDate);
+  if (isNaN(start.getTime())) return "";
+  const dayOffset = (weekNumber - 1) * 7;
+  const weekDate = new Date(start.getTime() + dayOffset * 24 * 60 * 60 * 1000);
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  return `${months[weekDate.getUTCMonth()]} ${weekDate.getUTCDate()}`;
+}
+
+/**
  * Parse a date string consistently to UTC midnight
  * Prevents timezone-related parsing inconsistencies
  */
