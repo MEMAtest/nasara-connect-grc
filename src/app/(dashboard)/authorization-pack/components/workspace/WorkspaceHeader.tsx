@@ -110,13 +110,14 @@ export function WorkspaceHeader({ pack, readiness, showCTA = true }: WorkspaceHe
   const phaseItems = project
     ? [
         { key: "assessment", label: "Assessment", href: `/authorization-pack/${project.id}/assessment`, phase: 1 },
-        { key: "plan", label: "Plan", href: `/authorization-pack/${project.id}/plan`, phase: 2 },
-        { key: "opinion-pack", label: "Opinion Pack", href: `/authorization-pack/${project.id}/opinion-pack`, phase: 3 },
+        { key: "regulatory-questions", label: "Reg Questions", href: `/authorization-pack/${project.id}/regulatory-questions`, phase: 2 },
+        { key: "results", label: "Results", href: `/authorization-pack/${project.id}/results`, phase: 3 },
+        { key: "opinion-pack", label: "Opinion Pack", href: `/authorization-pack/${project.id}/opinion-pack`, phase: 4 },
         {
           key: "workspace",
           label: "Workspace",
           href: activePackId ? `/authorization-pack/workspace?packId=${activePackId}` : "/authorization-pack/workspace",
-          phase: 4,
+          phase: 5,
         },
       ]
     : [];
@@ -194,7 +195,8 @@ export function WorkspaceHeader({ pack, readiness, showCTA = true }: WorkspaceHe
             {phaseItems.map((item) => {
               const isActive =
                 (item.key === "assessment" && pathname.includes("/assessment")) ||
-                (item.key === "plan" && pathname.includes("/plan")) ||
+                (item.key === "regulatory-questions" && pathname.includes("/regulatory-questions")) ||
+                (item.key === "results" && pathname.includes("/results")) ||
                 (item.key === "opinion-pack" && pathname.includes("/opinion-pack")) ||
                 (item.key === "workspace" && isWorkspaceArea);
               const phaseBadgeClasses = isActive

@@ -135,7 +135,7 @@ export function ProjectDashboardClient() {
       actions.push("Complete the firm assessment to capture current readiness.");
     }
     if (hasAssessment && !hasPlan) {
-      actions.push("Generate the auto project plan and timeline.");
+      actions.push("Generate project plan and open workspace.");
     }
 
     if (uniqueSections.length) {
@@ -158,7 +158,7 @@ export function ProjectDashboardClient() {
       steps.push({ label: "Complete firm assessment", href: `/authorization-pack/${project.id}/assessment` });
     }
     if (hasAssessment && !hasPlan) {
-      steps.push({ label: "Generate project plan", href: `/authorization-pack/${project.id}/plan` });
+      steps.push({ label: "Generate project plan", href: `/authorization-pack/${project.id}/assessment` });
     }
     if (project.packId) {
       steps.push({ label: "Open pack workspace", href: `/authorization-pack/workspace?packId=${project.packId}` });
@@ -188,7 +188,7 @@ export function ProjectDashboardClient() {
         label: "Generate project plan",
         description: "Auto-build milestones, owners, and target dates.",
         done: hasPlan,
-        href: `/authorization-pack/${project.id}/plan`,
+        href: `/authorization-pack/${project.id}/assessment`,
         disabled: !hasAssessment,
       },
       {
@@ -277,7 +277,7 @@ export function ProjectDashboardClient() {
                 ))}
               </ul>
             ) : (
-              <p>Assessment and plan are complete. Continue executing in the workspace.</p>
+              <p>Assessment is complete. Continue executing in the workspace.</p>
             )}
             {nextSteps.length ? (
               <div className="space-y-2 rounded-lg border border-slate-100 bg-slate-50 p-3">

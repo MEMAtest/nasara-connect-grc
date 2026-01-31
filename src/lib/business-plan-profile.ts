@@ -75,6 +75,7 @@ export interface PackSectionScore {
 }
 
 export interface RegulatorySignal {
+  [key: string]: unknown;
   label: string;
   count: number;
 }

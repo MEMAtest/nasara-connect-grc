@@ -204,6 +204,12 @@ export async function PATCH(
     if (updates.name !== undefined) dbUpdates.name = updates.name.trim();
     if (updates.description !== undefined) dbUpdates.description = updates.description?.trim();
     if (updates.status !== undefined) dbUpdates.status = updates.status;
+    if (updates.sectionCode !== undefined) {
+      if (updates.sectionCode && !isValidSectionCode(updates.sectionCode)) {
+        return NextResponse.json({ error: "Invalid section code" }, { status: 400 });
+      }
+      dbUpdates.section_code = updates.sectionCode || null;
+    }
     if (updates.reviewedAt !== undefined) {
       dbUpdates.reviewed_at = updates.reviewedAt ? new Date(updates.reviewedAt) : null;
       dbUpdates.reviewed_by = auth.userId;

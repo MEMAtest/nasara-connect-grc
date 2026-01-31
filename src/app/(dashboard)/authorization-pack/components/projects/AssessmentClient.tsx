@@ -1,10 +1,7 @@
 "use client";
 
-import { Component, useEffect, useMemo, useState, useCallback, useRef } from "react";
-import type { ErrorInfo, ReactNode } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { AlertTriangle, ChevronDown } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -12,58 +9,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NasaraLoader } from "@/components/ui/nasara-loader";
 import { Progress } from "@/components/ui/progress";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 import { ProjectHeader } from "./ProjectHeader";
 import { AddressAutocomplete } from "./AddressAutocomplete";
-import Link from "next/link";
 import type { BusinessPlanProfile } from "@/lib/business-plan-profile";
-import { buildQuestionContext, isQuestionAnswered, type QuestionResponse } from "@/lib/assessment-question-bank";
-
-// Error Boundary for Question Bank
-interface ErrorBoundaryState {
-  hasError: boolean;
-  error?: Error;
-}
-
-class QuestionBankErrorBoundary extends Component<{ children: ReactNode }, ErrorBoundaryState> {
-  constructor(props: { children: ReactNode }) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    return { hasError: true, error };
-  }
-
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error("Question bank error:", error, errorInfo);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <Card className="border border-rose-200 bg-rose-50">
-          <CardContent className="p-6">
-            <div className="flex items-start gap-3">
-              <AlertTriangle className="h-5 w-5 text-rose-500 shrink-0 mt-0.5" />
-              <div>
-                <p className="font-medium text-rose-900">Unable to load regulatory questions</p>
-                <p className="text-sm text-rose-700 mt-1">
-                  An error occurred while rendering the question bank. Your other assessment data is safe.
-                  Please refresh the page to try again.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      );
-    }
-    return this.props.children;
-  }
-}
+import { buildQuestionContext, type QuestionResponse } from "@/lib/assessment-question-bank";
 import {
   deriveEntityTypeFromCompaniesHouse,
   deriveFirmStageFromIncorporation,
@@ -72,7 +23,6 @@ import {
   formatCompaniesHouseCompanyType,
   normalizeCompaniesHouseCountry,
 } from "@/lib/companies-house-utils";
-import type { QuestionDefinition, QuestionSection, QuestionOption } from "../../lib/questionBank";
 
 type ReadinessStatus = "missing" | "partial" | "complete";
 type TrainingStatus = "missing" | "in-progress" | "complete";
@@ -208,6 +158,16 @@ const DOCUMENT_STATUS_OPTIONS = [
   { value: "not-provided", label: "Not provided yet" },
   { value: "not-applicable", label: "Not applicable" },
 ];
+
+const ASSESSMENT_SECTIONS = [
+  { id: "firm-basics", label: "Firm Basics" },
+  { id: "identification", label: "Identification & Timings" },
+  { id: "head-office", label: "Head Office" },
+  { id: "professional-adviser", label: "Professional Adviser" },
+  { id: "programme-operations", label: "Programme of Operations" },
+  { id: "documents-attach", label: "Documents to Attach" },
+  { id: "companies-house", label: "Companies House" },
+] as const;
 
 const PAYMENT_SERVICE_OPTIONS = [
   { value: "cash-deposit", label: "Cash placed on a payment account" },
@@ -559,49 +519,63 @@ export function AssessmentClient() {
 
   const completion = useMemo(() => calculateCompletion(assessment, project?.permissionCode), [assessment, project?.permissionCode]);
 
-  // Build question bank context for rendering
-  const questionContext = useMemo(
-    () => buildQuestionContext(
-      { basics: assessment.basics, questionResponses: assessment.questionResponses, meta: assessment.meta },
-      project?.permissionCode
-    ),
-    [assessment.basics, assessment.questionResponses, assessment.meta, project?.permissionCode]
-  );
+  const [activeSection, setActiveSection] = useState<string>("firm-basics");
 
-  // Calculate readiness score from question responses
-  const readinessScore = useMemo(() => {
-    const responses = questionContext.responses;
-    const allQuestions = questionContext.sections.flatMap((s) => s.questions);
+  // Section completion indicators
+  const sectionCompletion = useMemo(() => {
+    const basics = assessment.basics ?? {};
+    const result: Record<string, { filled: number; total: number }> = {};
 
-    let totalPossible = 0;
-    let totalEarned = 0;
-
-    for (const question of allQuestions) {
-      if (!question.weight) continue;
-
-      const response = responses[question.id];
-      const hasScoredOptions = Boolean(question.options?.some((opt) => typeof opt.score === "number"));
-      const maxScore = hasScoredOptions
-        ? question.options?.reduce((max, opt) => Math.max(max, opt.score ?? 0), 0) ?? 0
-        : 1;
-      totalPossible += maxScore * question.weight;
-
-      const answered = isQuestionAnswered(question, response);
-      const earned = response?.score !== undefined
-        ? response.score
-        : answered
-        ? maxScore
-        : 0;
-      totalEarned += earned * question.weight;
-    }
-
-    if (totalPossible === 0) return null;
-    return {
-      earned: totalEarned,
-      possible: totalPossible,
-      percentage: Math.round((totalEarned / totalPossible) * 100),
+    // Firm Basics
+    const firmBasicsKeys = ["legalName", "incorporationDate", "companyNumber", "sicCode", "primaryJurisdiction", "primaryContact", "contactEmail", "firmStage", "headcount"];
+    result["firm-basics"] = {
+      filled: firmBasicsKeys.filter((k) => { const v = basics[k]; return v !== undefined && v !== null && String(v).trim().length > 0; }).length,
+      total: firmBasicsKeys.length,
     };
-  }, [questionContext]);
+
+    // Identification & Timings
+    const idKeys = ["priorFcaApplications", "firmType", "incorporationPlace", "financialYearEndDay", "financialYearEndMonth", "registeredNumberExists", "tradingName", "website", "previouslyRegulated", "tradeAssociations"];
+    result["identification"] = {
+      filled: idKeys.filter((k) => { const v = basics[k]; return v !== undefined && v !== null && String(v).trim().length > 0; }).length,
+      total: idKeys.length,
+    };
+
+    // Head Office
+    const hoKeys = ["registeredOfficeSameAsHeadOffice", "headOfficePhone", "headOfficeEmail", "headOfficeAddressLine1", "headOfficeCity", "headOfficePostcode"];
+    result["head-office"] = {
+      filled: hoKeys.filter((k) => { const v = basics[k]; return v !== undefined && v !== null && String(v).trim().length > 0; }).length,
+      total: hoKeys.length,
+    };
+
+    // Professional Adviser
+    const adviserAnswered = basics.usedProfessionalAdviser !== undefined && basics.usedProfessionalAdviser !== null && String(basics.usedProfessionalAdviser).trim().length > 0;
+    result["professional-adviser"] = {
+      filled: adviserAnswered ? 1 : 0,
+      total: 1,
+    };
+
+    // Programme of Operations
+    const opsKeys = ["pspType", "currentlyProvidingPIS", "currentlyProvidingAIS", "paymentServicesActivities"];
+    result["programme-operations"] = {
+      filled: opsKeys.filter((k) => { const v = basics[k]; return v !== undefined && v !== null && String(v).trim().length > 0; }).length,
+      total: opsKeys.length,
+    };
+
+    // Documents to Attach
+    const docKeys = ["certificateOfIncorporation", "articlesOfAssociation", "partnershipDeed", "llpAgreement"];
+    result["documents-attach"] = {
+      filled: docKeys.filter((k) => { const v = basics[k]; return v !== undefined && v !== null && String(v).trim().length > 0; }).length,
+      total: docKeys.length,
+    };
+
+    // Companies House
+    const chMeta = ((assessment.meta ?? {}) as Record<string, unknown>).companyHouse as CompanyHouseMeta | undefined;
+    const pscDone = chMeta?.pscConfirmed ? 1 : 0;
+    const psdDone = Array.isArray(chMeta?.psdCandidates) && chMeta!.psdCandidates!.length > 0 ? 1 : 0;
+    result["companies-house"] = { filled: pscDone + psdDone, total: 2 };
+
+    return result;
+  }, [assessment]);
 
   const updateBasics = (key: string, value: string) => {
     setAssessment((prev) => ({
@@ -778,7 +752,15 @@ export function AssessmentClient() {
     try {
       const response = await fetch(`/api/authorization-pack/projects/${projectId}/plan`, { method: "POST" });
       if (response.ok) {
-        router.push(`/authorization-pack/${projectId}/plan`);
+        // Re-fetch the project to get the packId (plan generation creates the pack)
+        const projectResponse = await fetchWithTimeout(`/api/authorization-pack/projects/${projectId}`).catch(() => null);
+        const projectData = projectResponse?.ok ? await projectResponse.json() : null;
+        const packId = projectData?.project?.packId;
+        if (packId) {
+          router.push(`/authorization-pack/workspace?packId=${packId}`);
+        } else {
+          router.push(`/authorization-pack/${projectId}`);
+        }
       } else {
         const errorData = await response.json().catch(() => ({}));
         setLoadError(errorData.error || "Unable to generate plan.");
@@ -934,7 +916,7 @@ export function AssessmentClient() {
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span>{saveNotice}</span>
                 <Button variant="link" size="sm" className="px-0 text-emerald-700" onClick={generatePlan}>
-                  Continue to plan
+                  Open Workspace
                 </Button>
               </div>
             </div>
@@ -946,6 +928,34 @@ export function AssessmentClient() {
         </CardContent>
       </Card>
 
+      <div className="border-b border-slate-200">
+        <div className="overflow-x-auto">
+          <div className="flex gap-1 w-max min-w-full">
+            {ASSESSMENT_SECTIONS.map((section) => {
+              const sc = sectionCompletion[section.id];
+              const isComplete = sc && sc.filled === sc.total && sc.total > 0;
+              return (
+                <button
+                  key={section.id}
+                  className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
+                    activeSection === section.id
+                      ? "border-teal-600 text-teal-600"
+                      : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+                  }`}
+                  onClick={() => setActiveSection(section.id)}
+                >
+                  {section.label}
+                  <span className={`ml-1.5 text-xs ${isComplete ? "text-emerald-600" : "text-slate-400"}`}>
+                    {isComplete ? "✓" : `${sc?.filled ?? 0}/${sc?.total ?? 0}`}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {activeSection === "firm-basics" && (
       <Card className="border border-slate-200">
         <CardHeader>
           <CardTitle>Firm basics</CardTitle>
@@ -1190,7 +1200,9 @@ export function AssessmentClient() {
           </div>
         </CardContent>
       </Card>
+      )}
 
+      {activeSection === "identification" && (
       <Card className="border border-slate-200">
         <CardHeader>
           <CardTitle>Identification details &amp; timings</CardTitle>
@@ -1365,20 +1377,9 @@ export function AssessmentClient() {
           </div>
         </CardContent>
       </Card>
+      )}
 
-      {/* FCA Register Lookup — moved to Governance & People module */}
-      <Card className="border border-slate-200">
-        <CardContent className="flex items-center justify-between py-4">
-          <div>
-            <p className="text-sm font-medium text-slate-900">FCA Register Lookup</p>
-            <p className="text-xs text-slate-500">Verify firms and individuals on the FCA Register.</p>
-          </div>
-          <Link href="/smcr/fca-register">
-            <Button variant="outline" size="sm">Open FCA Register</Button>
-          </Link>
-        </CardContent>
-      </Card>
-
+      {activeSection === "head-office" && (
       <Card className="border border-slate-200">
         <CardHeader>
           <CardTitle>Head office details</CardTitle>
@@ -1476,7 +1477,9 @@ export function AssessmentClient() {
           </div>
         </CardContent>
       </Card>
+      )}
 
+      {activeSection === "professional-adviser" && (
       <Card className="border border-slate-200">
         <CardHeader>
           <CardTitle>Professional adviser details</CardTitle>
@@ -1541,7 +1544,9 @@ export function AssessmentClient() {
           )}
         </CardContent>
       </Card>
+      )}
 
+      {activeSection === "programme-operations" && (
       <Card className="border border-slate-200">
         <CardHeader>
           <CardTitle>Programme of operations</CardTitle>
@@ -1643,7 +1648,9 @@ export function AssessmentClient() {
           </div>
         </CardContent>
       </Card>
+      )}
 
+      {activeSection === "documents-attach" && (
       <Card className="border border-slate-200">
         <CardHeader>
           <CardTitle>Documents to attach</CardTitle>
@@ -1677,7 +1684,9 @@ export function AssessmentClient() {
           ))}
         </CardContent>
       </Card>
+      )}
 
+      {activeSection === "companies-house" && (
       <Card className="border border-slate-200">
         <CardHeader className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
@@ -1837,462 +1846,8 @@ export function AssessmentClient() {
           </div>
         </CardContent>
       </Card>
+      )}
 
-      {questionContext.sections.length > 0 ? (
-        <QuestionBankErrorBoundary>
-          <Card className="border border-slate-200" role="region" aria-label="Regulatory assessment questions">
-            <CardHeader>
-              <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-                <div>
-                  <CardTitle>Regulatory assessment questions</CardTitle>
-                  <CardDescription>
-                    Additional questions to assess your regulatory readiness. Some questions may be pre-filled
-                    based on your responses above.
-                  </CardDescription>
-                </div>
-                <div className="flex flex-col items-end gap-2 md:flex-row md:items-center md:gap-6">
-                  {readinessScore ? (
-                    <div className="text-right">
-                      <p className="text-lg font-semibold text-slate-900">{readinessScore.percentage}%</p>
-                      <p className="text-xs text-slate-400">Readiness score</p>
-                    </div>
-                  ) : null}
-                  <div className="text-right">
-                    <p className="text-lg font-semibold text-slate-900">
-                      {questionContext.answeredCount} / {questionContext.requiredCount}
-                    </p>
-                    <p className="text-xs text-slate-400">Required questions answered</p>
-                  </div>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="p-0">
-              <Tabs
-                defaultValue={questionContext.sections[0]?.id}
-                className="w-full"
-              >
-                {/* Scrollable tab list */}
-                <div className="border-b border-slate-200 px-6">
-                  <div className="overflow-x-auto">
-                    <TabsList className="h-auto bg-transparent p-0 inline-flex gap-0 w-auto min-w-full">
-                      {questionContext.sections.map((section: QuestionSection) => {
-                        const answeredInSection = section.questions.filter(
-                          (q) => questionContext.responses[q.id]?.value !== undefined
-                        ).length;
-                        const isComplete = answeredInSection === section.questions.length;
-                        return (
-                          <TabsTrigger
-                            key={section.id}
-                            value={section.id}
-                            className="relative rounded-none border-b-2 border-transparent px-4 py-3 text-sm font-medium text-slate-500 hover:text-slate-700 data-[state=active]:border-teal-600 data-[state=active]:text-teal-600 data-[state=active]:shadow-none whitespace-nowrap"
-                          >
-                            <span className="flex items-center gap-2">
-                              {section.title}
-                              <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                                isComplete
-                                  ? "bg-emerald-100 text-emerald-700"
-                                  : "bg-slate-100 text-slate-500"
-                              }`}>
-                                {answeredInSection}/{section.questions.length}
-                              </span>
-                            </span>
-                          </TabsTrigger>
-                        );
-                      })}
-                    </TabsList>
-                  </div>
-                </div>
-
-                {/* Tab content panels */}
-                {questionContext.sections.map((section: QuestionSection) => (
-                  <TabsContent
-                    key={section.id}
-                    value={section.id}
-                    className="px-6 py-4 focus-visible:outline-none focus-visible:ring-0"
-                  >
-                    {section.description && (
-                      <p className="text-sm text-slate-600 mb-4 pb-4 border-b border-slate-100">
-                        {section.description}
-                      </p>
-                    )}
-                    <div className="space-y-6">
-                      {section.questions.map((question: QuestionDefinition) => (
-                        <QuestionRenderer
-                          key={question.id}
-                          question={question}
-                          response={questionContext.responses[question.id]}
-                          onResponseChange={updateQuestionResponse}
-                        />
-                      ))}
-                    </div>
-                  </TabsContent>
-                ))}
-              </Tabs>
-            </CardContent>
-          </Card>
-        </QuestionBankErrorBoundary>
-      ) : null}
-    </div>
-  );
-}
-
-interface QuestionSectionRendererProps {
-  section: QuestionSection;
-  responses: Record<string, QuestionResponse>;
-  onResponseChange: (questionId: string, value: unknown, score?: number) => void;
-}
-
-function QuestionSectionRenderer({ section, responses, onResponseChange }: QuestionSectionRendererProps) {
-  const sectionId = `section-${section.id}`;
-  return (
-    <section className="space-y-4" aria-labelledby={sectionId}>
-      <div className="border-b border-slate-100 pb-2">
-        <h3 id={sectionId} className="text-sm font-semibold text-slate-900">{section.title}</h3>
-        <p className="text-xs text-slate-500">{section.description}</p>
-      </div>
-      <div className="space-y-6" role="group" aria-label={`Questions in ${section.title}`}>
-        {section.questions.map((question: QuestionDefinition) => (
-          <QuestionRenderer
-            key={question.id}
-            question={question}
-            response={responses[question.id]}
-            onResponseChange={onResponseChange}
-          />
-        ))}
-      </div>
-    </section>
-  );
-}
-
-interface QuestionRendererProps {
-  question: QuestionDefinition;
-  response?: QuestionResponse;
-  onResponseChange: (questionId: string, value: unknown, score?: number) => void;
-}
-
-function QuestionRenderer({ question, response, onResponseChange }: QuestionRendererProps) {
-  const currentValue = response?.value;
-  const isAutoFilled = response?.source === "auto";
-  const questionLabelId = `question-label-${question.id}`;
-  const questionDescId = `question-desc-${question.id}`;
-
-  const handleChange = (value: unknown, score?: number) => {
-    onResponseChange(question.id, value, score);
-  };
-
-  const hasDescription = Boolean(question.description || question.helpText);
-
-  return (
-    <fieldset
-      className="rounded-lg border border-slate-100 bg-slate-50 p-4"
-      aria-labelledby={questionLabelId}
-      aria-describedby={hasDescription ? questionDescId : undefined}
-      aria-required={question.required}
-    >
-      <div className="flex flex-col gap-1">
-        <div className="flex items-start justify-between gap-2">
-          <legend id={questionLabelId} className="text-sm font-medium text-slate-900">
-            {question.title || question.question}
-            {question.required ? (
-              <span className="ml-1 text-rose-500" aria-label="required">*</span>
-            ) : null}
-          </legend>
-          {question.critical ? (
-            <span
-              className="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700"
-              role="status"
-              aria-label="This is a critical question"
-            >
-              Critical
-            </span>
-          ) : null}
-        </div>
-        {hasDescription ? (
-          <p id={questionDescId} className="text-xs text-slate-500">
-            {question.description || question.helpText}
-          </p>
-        ) : null}
-        {question.fcaReference ? (
-          <p className="text-xs text-teal-600">FCA: {question.fcaReference}</p>
-        ) : null}
-      </div>
-
-      <div className="mt-3">
-        {isAutoFilled ? (
-          <div className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2">
-            <p className="text-xs text-emerald-700">
-              Auto-filled from your responses above. Value:{" "}
-              <span className="font-medium">
-                {Array.isArray(currentValue) ? currentValue.join(", ") : String(currentValue ?? "")}
-              </span>
-            </p>
-          </div>
-        ) : question.type === "scale" ? (
-          <ScaleQuestion
-            question={question}
-            value={currentValue as number | undefined}
-            onChange={handleChange}
-          />
-        ) : question.type === "single-select" || question.type === "single-choice" ? (
-          <SingleSelectQuestion
-            question={question}
-            value={currentValue as string | undefined}
-            onChange={handleChange}
-          />
-        ) : question.type === "multi-select" || question.type === "multiple-choice" ? (
-          <MultiSelectQuestion
-            question={question}
-            value={currentValue as string[] | undefined}
-            onChange={handleChange}
-          />
-        ) : question.type === "text" ? (
-          <TextQuestion
-            question={question}
-            value={currentValue as string | undefined}
-            onChange={handleChange}
-          />
-        ) : question.type === "numeric-table" ? (
-          <NumericTableQuestion
-            question={question}
-            value={currentValue as Record<string, Record<string, string | number | null>> | undefined}
-            onChange={handleChange}
-          />
-        ) : null}
-      </div>
-
-      {question.evidenceRequired && question.evidenceRequired.length > 0 ? (
-        <div className="mt-3 rounded-md border border-slate-200 bg-white px-3 py-2" aria-label="Evidence requirements">
-          <p className="text-xs font-medium text-slate-500">Evidence required:</p>
-          <ul className="mt-1 list-inside list-disc text-xs text-slate-400" role="list">
-            {question.evidenceRequired.map((evidence: string, idx: number) => (
-              <li key={idx}>{evidence}</li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
-
-      {question.hardGate && question.hardGateMessage ? (
-        <div
-          className="mt-2 rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700"
-          role="alert"
-          aria-live="polite"
-        >
-          {question.hardGateMessage}
-        </div>
-      ) : null}
-    </fieldset>
-  );
-}
-
-interface ScaleQuestionProps {
-  question: QuestionDefinition;
-  value?: number;
-  onChange: (value: unknown, score?: number) => void;
-}
-
-function ScaleQuestion({ question, value, onChange }: ScaleQuestionProps) {
-  return (
-    <RadioGroup
-      value={value !== undefined ? String(value) : undefined}
-      onValueChange={(val: string) => {
-        const numVal = Number(val);
-        const option = question.options?.find((opt: QuestionOption) => Number(opt.value) === numVal);
-        onChange(numVal, option?.score);
-      }}
-      className="space-y-2"
-      aria-label={question.title || question.question || "Select an option"}
-    >
-      {question.options?.map((option: QuestionOption) => {
-        const optionId = `${question.id}-option-${option.value}`;
-        return (
-          <label
-            key={String(option.value)}
-            htmlFor={optionId}
-            className="flex cursor-pointer items-center gap-3 rounded-md border border-slate-200 bg-white px-3 py-2 hover:bg-slate-50"
-          >
-            <RadioGroupItem id={optionId} value={String(option.value)} />
-            <div className="flex-1">
-              <span className="text-sm text-slate-900">{option.label}</span>
-              {option.description ? (
-                <p className="text-xs text-slate-400">{option.description}</p>
-              ) : null}
-            </div>
-          </label>
-        );
-      })}
-    </RadioGroup>
-  );
-}
-
-interface SingleSelectQuestionProps {
-  question: QuestionDefinition;
-  value?: string;
-  onChange: (value: unknown, score?: number) => void;
-}
-
-function SingleSelectQuestion({ question, value, onChange }: SingleSelectQuestionProps) {
-  return (
-    <Select
-      value={value ?? ""}
-      onValueChange={(val: string) => {
-        const option = question.options?.find((opt: QuestionOption) => String(opt.value) === val);
-        onChange(val, option?.score);
-      }}
-    >
-      <SelectTrigger aria-label={question.title || question.question || "Select an option"}>
-        <SelectValue placeholder="Select an option" />
-      </SelectTrigger>
-      <SelectContent>
-        {question.options?.map((option: QuestionOption) => (
-          <SelectItem key={String(option.value)} value={String(option.value)}>
-            {option.label}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  );
-}
-
-interface MultiSelectQuestionProps {
-  question: QuestionDefinition;
-  value?: string[];
-  onChange: (value: unknown, score?: number) => void;
-}
-
-function MultiSelectQuestion({ question, value, onChange }: MultiSelectQuestionProps) {
-  const selected = new Set(value ?? []);
-
-  const toggle = (optionValue: string) => {
-    const next = new Set(selected);
-    if (next.has(optionValue)) {
-      next.delete(optionValue);
-    } else {
-      next.add(optionValue);
-    }
-    const arr = Array.from(next);
-    const totalScore = arr.reduce((sum: number, v: string) => {
-      const opt = question.options?.find((o: QuestionOption) => String(o.value) === v);
-      return sum + (opt?.score ?? 0);
-    }, 0);
-    onChange(arr, totalScore);
-  };
-
-  return (
-    <div
-      className="space-y-2"
-      role="group"
-      aria-label={question.title || question.question || "Select options"}
-    >
-      {question.options?.map((option: QuestionOption) => {
-        const optionId = `${question.id}-checkbox-${option.value}`;
-        return (
-          <label
-            key={String(option.value)}
-            htmlFor={optionId}
-            className="flex cursor-pointer items-center gap-3 rounded-md border border-slate-200 bg-white px-3 py-2 hover:bg-slate-50"
-          >
-            <Checkbox
-              id={optionId}
-              checked={selected.has(String(option.value))}
-              onCheckedChange={() => toggle(String(option.value))}
-              aria-describedby={option.description ? `${optionId}-desc` : undefined}
-            />
-            <div className="flex-1">
-              <span className="text-sm text-slate-900">{option.label}</span>
-              {option.description ? (
-                <p id={`${optionId}-desc`} className="text-xs text-slate-400">{option.description}</p>
-              ) : null}
-            </div>
-          </label>
-        );
-      })}
-    </div>
-  );
-}
-
-interface TextQuestionProps {
-  question: QuestionDefinition;
-  value?: string;
-  onChange: (value: unknown, score?: number) => void;
-}
-
-function TextQuestion({ question, value, onChange }: TextQuestionProps) {
-  return (
-    <Textarea
-      value={value ?? ""}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder="Enter your response..."
-      className="min-h-[100px]"
-      aria-label={question.title || question.question || "Enter your response"}
-    />
-  );
-}
-
-interface NumericTableQuestionProps {
-  question: QuestionDefinition;
-  value?: Record<string, Record<string, string | number | null>>;
-  onChange: (value: unknown, score?: number) => void;
-}
-
-function NumericTableQuestion({ question, value, onChange }: NumericTableQuestionProps) {
-  const columns = question.columns ?? [];
-  const rows = question.rows ?? [];
-  const tableData = value ?? {};
-
-  const updateCell = (rowLabel: string, colLabel: string, cellValue: string) => {
-    // Allow empty values but validate numeric input
-    if (cellValue !== "" && isNaN(Number(cellValue.replace(/,/g, "")))) {
-      return; // Reject non-numeric input
-    }
-    const nextData = { ...tableData };
-    if (!nextData[rowLabel]) {
-      nextData[rowLabel] = {};
-    }
-    const numericValue = cellValue === "" ? null : cellValue;
-    nextData[rowLabel] = { ...nextData[rowLabel], [colLabel]: numericValue };
-    onChange(nextData);
-  };
-
-  return (
-    <div className="overflow-x-auto">
-      <table
-        className="w-full text-sm"
-        aria-label={question.title || question.question || "Numeric data table"}
-      >
-        <thead>
-          <tr>
-            <th scope="col" className="border-b border-slate-200 px-2 py-1 text-left text-xs font-medium text-slate-500">
-              <span className="sr-only">Row label</span>
-            </th>
-            {columns.map((col: string) => (
-              <th scope="col" key={col} className="border-b border-slate-200 px-2 py-1 text-left text-xs font-medium text-slate-500">
-                {col}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row: string) => (
-            <tr key={row}>
-              <th scope="row" className="border-b border-slate-100 px-2 py-1 text-xs text-slate-600 font-normal text-left">
-                {row}
-              </th>
-              {columns.map((col: string) => (
-                <td key={col} className="border-b border-slate-100 px-2 py-1">
-                  <Input
-                    type="text"
-                    inputMode="numeric"
-                    value={String(tableData[row]?.[col] ?? "")}
-                    onChange={(e) => updateCell(row, col, e.target.value)}
-                    className="h-8 text-sm"
-                    aria-label={`${row} for ${col}`}
-                  />
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
     </div>
   );
 }

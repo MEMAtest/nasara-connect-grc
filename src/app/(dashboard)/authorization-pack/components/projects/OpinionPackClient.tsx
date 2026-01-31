@@ -584,9 +584,9 @@ export function OpinionPackClient() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="flex flex-wrap justify-start">
-          <TabsTrigger value="profile">Phase 1 - Business Plan Profile</TabsTrigger>
+          <TabsTrigger value="profile">Business Plan Profile</TabsTrigger>
           <TabsTrigger value="readiness">Readiness Assessment</TabsTrigger>
-          <TabsTrigger value="documents">Phase 2 - Opinion Pack</TabsTrigger>
+          <TabsTrigger value="documents">Opinion Pack</TabsTrigger>
         </TabsList>
 
         <TabsContent value="profile" className="space-y-6">
@@ -622,7 +622,7 @@ export function OpinionPackClient() {
             <div>
               <h2 className="text-xl font-semibold text-slate-900">Perimeter Opinion Pack</h2>
               <p className="text-sm text-slate-500">
-                Generated 5-7 page perimeter opinion based on Phase 1 profile responses.
+                Generated 5-7 page perimeter opinion based on profile responses.
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -660,8 +660,8 @@ export function OpinionPackClient() {
           <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Workflow</p>
             <p className="mt-2">
-              Complete the Business Plan Profile in Phase 1 first. Then click Generate Opinion Pack to create your 5-7 page
-              perimeter opinion. Regenerate anytime after updates.
+              Complete the Business Plan Profile first. Then click Generate Opinion Pack to create your 5-7 page perimeter
+              opinion. Regenerate anytime after updates.
             </p>
           </div>
 
@@ -839,7 +839,7 @@ export function OpinionPackClient() {
               <CardContent className="p-8 text-center">
                 <p className="text-slate-500">No opinion pack generated yet.</p>
                 <p className="mt-2 text-sm text-slate-400">
-                  Generate the opinion pack from Phase 1 answers to review it here.
+                  Generate the opinion pack from profile answers to review it here.
                 </p>
               </CardContent>
             </Card>

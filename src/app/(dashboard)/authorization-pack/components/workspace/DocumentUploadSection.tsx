@@ -96,7 +96,7 @@ export function DocumentUploadSection({ packId }: DocumentUploadSectionProps) {
   const [uploadCategory, setUploadCategory] = useState("none");
   const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
   const [editingDoc, setEditingDoc] = useState<PackDocument | null>(null);
-  const [editForm, setEditForm] = useState({ name: "", description: "" });
+  const [editForm, setEditForm] = useState({ name: "", description: "", sectionCode: "" });
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -202,7 +202,7 @@ export function DocumentUploadSection({ packId }: DocumentUploadSectionProps) {
 
   const handleOpenEditDoc = (doc: PackDocument) => {
     setEditingDoc(doc);
-    setEditForm({ name: doc.name, description: doc.description || "" });
+    setEditForm({ name: doc.name, description: doc.description || "", sectionCode: doc.sectionCode || "" });
   };
 
   const handleEditDocument = async () => {
@@ -216,13 +216,15 @@ export function DocumentUploadSection({ packId }: DocumentUploadSectionProps) {
           documentId: editingDoc.id,
           name: editForm.name.trim(),
           description: editForm.description.trim() || null,
+          sectionCode: editForm.sectionCode === "none" || !editForm.sectionCode ? null : editForm.sectionCode,
         }),
       });
       if (response.ok) {
+        const newSectionCode = editForm.sectionCode === "none" || !editForm.sectionCode ? null : editForm.sectionCode;
         setDocuments((prev) =>
           prev.map((d) =>
             d.id === editingDoc.id
-              ? { ...d, name: editForm.name.trim(), description: editForm.description.trim() || null }
+              ? { ...d, name: editForm.name.trim(), description: editForm.description.trim() || null, sectionCode: newSectionCode }
               : d
           )
         );
@@ -506,6 +508,25 @@ export function DocumentUploadSection({ packId }: DocumentUploadSectionProps) {
                 onChange={(e) => setEditForm((prev) => ({ ...prev, description: e.target.value }))}
                 placeholder="Brief description"
               />
+            </div>
+            <div className="space-y-2">
+              <Label>Category</Label>
+              <Select
+                value={editForm.sectionCode || "none"}
+                onValueChange={(value) => setEditForm((prev) => ({ ...prev, sectionCode: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No Category</SelectItem>
+                  {CATEGORY_OPTIONS.filter((c) => c.value !== "all").map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <DialogFooter>

@@ -13,7 +13,7 @@ interface ProjectHeaderProps {
     status: string;
     packId?: string | null;
   };
-  active: "overview" | "assessment" | "plan" | "opinion-pack" | "ecosystem" | "workspace";
+  active: "overview" | "assessment" | "regulatory-questions" | "results" | "opinion-pack" | "ecosystem" | "workspace";
 }
 
 export function ProjectHeader({ project, active }: ProjectHeaderProps) {
@@ -21,9 +21,10 @@ export function ProjectHeader({ project, active }: ProjectHeaderProps) {
   const workspaceHref = project.packId ? `/authorization-pack/workspace?packId=${project.packId}` : null;
   const phaseItems = [
     { key: "assessment", label: "Assessment", href: `/authorization-pack/${project.id}/assessment`, phase: 1 },
-    { key: "plan", label: "Plan", href: `/authorization-pack/${project.id}/plan`, phase: 2 },
-    { key: "opinion-pack", label: "Opinion Pack", href: `/authorization-pack/${project.id}/opinion-pack`, phase: 3 },
-    { key: "workspace", label: "Workspace", href: workspaceHref, phase: 4 },
+    { key: "regulatory-questions", label: "Reg Questions", href: `/authorization-pack/${project.id}/regulatory-questions`, phase: 2 },
+    { key: "results", label: "Results", href: `/authorization-pack/${project.id}/results`, phase: 3 },
+    { key: "opinion-pack", label: "Opinion Pack", href: `/authorization-pack/${project.id}/opinion-pack`, phase: 4 },
+    { key: "workspace", label: "Workspace", href: workspaceHref, phase: 5 },
   ] as const;
 
   return (

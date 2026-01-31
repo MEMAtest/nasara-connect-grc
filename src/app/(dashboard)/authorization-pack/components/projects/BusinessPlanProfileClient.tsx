@@ -43,8 +43,10 @@ import {
   getProfileSections,
   isProfilePermissionCode,
   SECTION_DEPENDENCIES,
+  type ProfileInsights,
   type ProfileQuestion,
   type ProfileResponse,
+  type RegulatorySignal,
 } from "@/lib/business-plan-profile";
 
 interface BusinessPlanProfileClientProps {
@@ -146,7 +148,7 @@ const SECTION_TAB_STYLES: Record<string, string> = {
   investments: "data-[state=active]:bg-sky-600 data-[state=active]:border-sky-600 data-[state=active]:text-white",
 };
 
-function HelpTooltip({ label, description }: { label: string; description: string }) {
+export function HelpTooltip({ label, description }: { label: string; description: string }) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
@@ -166,7 +168,7 @@ function HelpTooltip({ label, description }: { label: string; description: strin
   );
 }
 
-function CollapsibleInsightCard({
+export function CollapsibleInsightCard({
   title,
   description,
   helpLabel,
@@ -930,26 +932,6 @@ export function BusinessPlanProfileClient({
     );
   };
 
-  // These hooks must be called before any early returns to comply with Rules of Hooks
-  const regulatorySignals = useMemo(() => {
-    const tally = new Map<string, number>();
-    insights.regulatorySignals.forEach((item) => {
-      const key = item.label.trim();
-      if (!key) return;
-      tally.set(key, (tally.get(key) ?? 0) + item.count);
-    });
-    return Array.from(tally.entries())
-      .map(([label, count]) => ({ label, count }))
-      .sort((a, b) => b.count - a.count);
-  }, [insights]);
-
-  const regulatoryCoverage = useMemo(() => {
-    if (regulatorySignals.length <= 5) return regulatorySignals;
-    const top = regulatorySignals.slice(0, 5);
-    const remainder = regulatorySignals.slice(5).reduce((sum, item) => sum + item.count, 0);
-    return [...top, { label: "Other", count: remainder }];
-  }, [regulatorySignals]);
-
   // Early returns for loading/error states (after all hooks)
   if (isLoading) {
     return (
@@ -978,19 +960,6 @@ export function BusinessPlanProfileClient({
       </Card>
     );
   }
-
-  // Derived data (non-hooks, safe after early returns)
-  const sectionChartData = insights.sectionScores.map((section) => ({
-    name: section.label,
-    percent: section.percent,
-  }));
-
-  const focusCoverage = [...insights.packSectionScores]
-    .sort((a, b) => a.percent - b.percent)
-    .slice(0, 8)
-    .map((item) => ({ name: item.label, percent: item.percent }));
-
-  const regulatoryDrivers = regulatorySignals.slice(0, 6);
 
   return (
     <div className="space-y-6">
@@ -1742,6 +1711,47 @@ export function BusinessPlanProfileClient({
         </CardContent>
       </Card>
 
+    </div>
+  );
+}
+
+export function ProfileInsightsPanel({ insights }: { insights: ProfileInsights }) {
+  const regulatorySignals = useMemo<RegulatorySignal[]>(() => {
+    const tally = new Map<string, number>();
+    insights.regulatorySignals.forEach((item) => {
+      const key = item.label.trim();
+      if (!key) return;
+      tally.set(key, (tally.get(key) ?? 0) + item.count);
+    });
+    return Array.from(tally.entries())
+      .map(([label, count]) => ({ label, count }))
+      .sort((a, b) => b.count - a.count);
+  }, [insights]);
+
+  const regulatoryCoverage = useMemo<RegulatorySignal[]>(() => {
+    if (regulatorySignals.length <= 5) return regulatorySignals;
+    const top = regulatorySignals.slice(0, 5);
+    const remainder = regulatorySignals.slice(5).reduce((sum, item) => sum + item.count, 0);
+    return [...top, { label: "Other", count: remainder }];
+  }, [regulatorySignals]);
+
+  const sectionChartData = useMemo(
+    () => insights.sectionScores.map((section) => ({ name: section.label, percent: section.percent })),
+    [insights.sectionScores]
+  );
+
+  const focusCoverage = useMemo(
+    () => [...insights.packSectionScores]
+      .sort((a, b) => a.percent - b.percent)
+      .slice(0, 8)
+      .map((item) => ({ name: item.label, percent: item.percent })),
+    [insights.packSectionScores]
+  );
+
+  const regulatoryDrivers = regulatorySignals.slice(0, 6);
+
+  return (
+    <div className="space-y-4">
       <div className="grid gap-4 md:grid-cols-3">
         <CollapsibleInsightCard
           title="Activity Highlights"
@@ -1940,7 +1950,6 @@ export function BusinessPlanProfileClient({
           </p>
         </CardContent>
       </Card>
-
     </div>
   );
 }
