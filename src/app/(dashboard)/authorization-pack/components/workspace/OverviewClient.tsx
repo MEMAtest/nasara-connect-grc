@@ -100,6 +100,7 @@ export function OverviewClient() {
   const [templates, setTemplates] = useState<TemplateSummary[]>([]);
   const [project, setProject] = useState<ProjectSummary | null>(null);
   const [projectPlan, setProjectPlan] = useState<ProjectPlan | null>(null);
+  const [firmName, setFirmName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [mutationError, setMutationError] = useState<string | null>(null);
@@ -179,6 +180,9 @@ export function OverviewClient() {
               if (planResponse?.ok) {
                 const planData = await planResponse.json();
                 setProjectPlan(planData.project?.projectPlan || null);
+                // Extract the legal firm name from assessment data
+                const legalName = planData.project?.assessmentData?.basics?.legalName;
+                if (legalName) setFirmName(legalName);
               }
             }
           } else {
@@ -198,6 +202,7 @@ export function OverviewClient() {
         setReadiness(null);
         setProject(null);
         setProjectPlan(null);
+        setFirmName(null);
         setChecklistStatuses({});
         const templateResponse = await fetchWithTimeout("/api/authorization-pack/templates").catch(() => null);
         if (!templateResponse || !templateResponse.ok) {
@@ -585,7 +590,7 @@ export function OverviewClient() {
       )}
 
       {activeTab === "structure" && (
-        <OrgStructureSection packId={pack.id} />
+        <OrgStructureSection packId={pack.id} packName={pack.name} firmName={firmName || undefined} />
       )}
     </div>
   );

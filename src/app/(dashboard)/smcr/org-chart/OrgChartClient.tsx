@@ -26,7 +26,19 @@ import {
   Building2,
   FolderOpen,
   Search,
+  ChevronDown,
+  Link2,
+  Trash2,
+  FileSpreadsheet,
+  Image,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Switch } from "@/components/ui/switch";
 import {
   Tooltip,
   TooltipContent,
@@ -34,10 +46,10 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/toast-provider";
-import { useSmcrData, PersonRecord, RoleAssignment } from "../context/SmcrDataContext";
+import { useSmcrData, PersonRecord, RoleAssignment, GroupEntity } from "../context/SmcrDataContext";
 import { OrgChartIcon } from "../components/SmcrIcons";
 import { FirmSwitcher } from "../components/FirmSwitcher";
-import { allSMFs } from "../data/core-functions";
+import { allSMFs, psdFunctions } from "../data/core-functions";
 
 // ============================================================================
 // ADD PERSON FORM
@@ -67,18 +79,21 @@ const initialAddPersonForm: AddPersonForm = {
 // TYPES
 // ============================================================================
 
-type OrgNodeType = "person" | "company" | "department";
+type OrgNodeType = "person" | "company" | "department" | "entity";
 
 interface OrgNode {
   id: string;
   type: OrgNodeType;
   person?: PersonRecord;
+  entityData?: GroupEntity;
   label: string;
   subtitle?: string;
   roles: RoleAssignment[];
   managerId?: string;
   children: OrgNode[];
 }
+
+type ViewMode = "people" | "corporate";
 
 interface NodePosition {
   x: number;
@@ -99,6 +114,8 @@ interface ConnectorPath {
   path: string;
   parentId: string;
   childId: string;
+  isDashed?: boolean;
+  ownershipLabel?: string;
 }
 
 type LayoutDirection = "vertical" | "horizontal";
@@ -107,11 +124,13 @@ type LayoutDirection = "vertical" | "horizontal";
 // CONSTANTS
 // ============================================================================
 
-const NODE_WIDTH = 180;
-const NODE_HEIGHT = 80;
-const HORIZONTAL_GAP = 40;
-const VERTICAL_GAP = 60;
-const PADDING = 40;
+import {
+  ORG_NODE_WIDTH as NODE_WIDTH,
+  ORG_NODE_HEIGHT as NODE_HEIGHT,
+  ORG_HORIZONTAL_GAP as HORIZONTAL_GAP,
+  ORG_VERTICAL_GAP as VERTICAL_GAP,
+  ORG_PADDING as PADDING,
+} from "@/lib/org-chart-constants";
 
 // ============================================================================
 // UTILITY FUNCTIONS
@@ -130,6 +149,19 @@ function buildOrgTree(
     rolesByPerson.set(role.personId, list);
   });
 
+  // Manager resolution: try ID match first, then fall back to name match
+  const idSet = new Set(people.map((p) => p.id));
+  const nameToId = new Map<string, string>();
+  people.forEach((p) => nameToId.set(p.name.toLowerCase(), p.id));
+
+  function resolveManagerId(lineManager: string | undefined): string | undefined {
+    if (!lineManager) return undefined;
+    // If it's already a valid person ID, use directly
+    if (idSet.has(lineManager)) return lineManager;
+    // Fall back to name-based lookup
+    return nameToId.get(lineManager.toLowerCase());
+  }
+
   // Build person nodes
   const personNodes = new Map<string, OrgNode>();
   people.forEach((person) => {
@@ -140,68 +172,116 @@ function buildOrgTree(
       label: person.name,
       subtitle: person.title || person.department,
       roles: rolesByPerson.get(person.id) ?? [],
-      managerId: person.lineManager
-        ? people.find((p) => p.name.toLowerCase() === person.lineManager?.toLowerCase())?.id
-        : undefined,
+      managerId: resolveManagerId(person.lineManager),
       children: [],
     });
   });
 
-  // Resolve manager relationships within person nodes
-  const topLevelPeople: OrgNode[] = [];
-  personNodes.forEach((node) => {
-    if (node.managerId && personNodes.has(node.managerId)) {
-      const parent = personNodes.get(node.managerId)!;
-      parent.children.push(node);
-    } else {
-      topLevelPeople.push(node);
-    }
-  });
+  // Group ALL people by department
+  const departments = new Map<string, PersonRecord[]>();
+  const unassignedPeople: PersonRecord[] = [];
 
-  // Sort children
-  const sortChildren = (node: OrgNode) => {
-    node.children.sort((a, b) => a.label.localeCompare(b.label));
-    node.children.forEach(sortChildren);
-  };
-  topLevelPeople.sort((a, b) => a.label.localeCompare(b.label));
-  topLevelPeople.forEach(sortChildren);
-
-  // Group top-level people by department
-  const departments = new Map<string, OrgNode[]>();
-  const noDept: OrgNode[] = [];
-
-  topLevelPeople.forEach((node) => {
-    const dept = node.person?.department;
-    if (dept && dept !== "General") {
+  people.forEach((person) => {
+    const dept = person.department?.trim();
+    if (dept) {
       const list = departments.get(dept) ?? [];
-      list.push(node);
+      list.push(person);
       departments.set(dept, list);
     } else {
-      noDept.push(node);
+      unassignedPeople.push(person);
     }
   });
 
-  // Add any custom (manually created) departments that have no people
+  // Add custom departments with no people
   customDepartments?.forEach((dept) => {
     if (!departments.has(dept)) {
       departments.set(dept, []);
     }
   });
 
+  // Resolve manager chains within a group of people and return top-level nodes
+  function buildGroupTree(groupPeople: PersonRecord[]): OrgNode[] {
+    const groupIds = new Set(groupPeople.map((p) => p.id));
+
+    // Reset children for fresh build
+    groupPeople.forEach((person) => {
+      const node = personNodes.get(person.id);
+      if (node) node.children = [];
+    });
+
+    // Build parent→child within group
+    groupPeople.forEach((person) => {
+      const node = personNodes.get(person.id);
+      if (!node) return;
+      if (node.managerId && groupIds.has(node.managerId)) {
+        const parent = personNodes.get(node.managerId);
+        if (parent) parent.children.push(node);
+      }
+    });
+
+    // Collect top-level (no manager in same group)
+    const topLevel: OrgNode[] = [];
+    groupPeople.forEach((person) => {
+      const node = personNodes.get(person.id);
+      if (!node) return;
+      const managerInGroup = node.managerId && groupIds.has(node.managerId);
+      if (!managerInGroup) {
+        // Cross-department manager → annotate subtitle
+        if (node.managerId && !groupIds.has(node.managerId)) {
+          const mgr = personNodes.get(node.managerId);
+          if (mgr) {
+            node.subtitle = `${person.title || person.department} · Reports to: ${mgr.label}`;
+          }
+        }
+        topLevel.push(node);
+      }
+    });
+
+    // Sort recursively
+    const sortFn = (node: OrgNode) => {
+      node.children.sort((a, b) => a.label.localeCompare(b.label));
+      node.children.forEach(sortFn);
+    };
+    topLevel.sort((a, b) => a.label.localeCompare(b.label));
+    topLevel.forEach(sortFn);
+
+    return topLevel;
+  }
+
   // Create department nodes
   const deptNodes: OrgNode[] = [];
   departments.forEach((deptPeople, deptName) => {
+    const children = buildGroupTree(deptPeople);
+    // Count all people recursively
+    const countAll = (nodes: OrgNode[]): number =>
+      nodes.reduce((s, n) => s + 1 + countAll(n.children), 0);
+    const total = countAll(children);
+
     deptNodes.push({
       id: `dept-${deptName.toLowerCase().replace(/\s+/g, "-")}`,
       type: "department",
       label: deptName,
-      subtitle: `${deptPeople.length} ${deptPeople.length === 1 ? "person" : "people"}`,
+      subtitle: `${total} ${total === 1 ? "person" : "people"}`,
       roles: [],
-      children: deptPeople,
+      children,
     });
   });
 
   deptNodes.sort((a, b) => a.label.localeCompare(b.label));
+
+  // Handle unassigned people
+  const allDepts: OrgNode[] = [...deptNodes];
+  if (unassignedPeople.length > 0) {
+    const unassignedChildren = buildGroupTree(unassignedPeople);
+    allDepts.push({
+      id: "dept-unassigned",
+      type: "department",
+      label: "Unassigned",
+      subtitle: `${unassignedPeople.length} ${unassignedPeople.length === 1 ? "person" : "people"}`,
+      roles: [],
+      children: unassignedChildren,
+    });
+  }
 
   // Create company root node if firm name exists
   if (firmName) {
@@ -211,13 +291,113 @@ function buildOrgTree(
       label: firmName,
       subtitle: `${people.length} ${people.length === 1 ? "person" : "people"}`,
       roles: [],
-      children: [...deptNodes, ...noDept],
+      children: allDepts,
     };
     return [companyNode];
   }
 
-  // If no firm name, just return dept nodes + unassigned people
-  return [...deptNodes, ...noDept];
+  return allDepts;
+}
+
+// ============================================================================
+// ENTITY TREE BUILDER (Corporate View)
+// ============================================================================
+
+function buildEntityTree(entities: GroupEntity[]): OrgNode[] {
+  const nodeMap = new Map<string, OrgNode>();
+  entities.forEach((entity) => {
+    nodeMap.set(entity.id, {
+      id: entity.id,
+      type: "entity",
+      entityData: entity,
+      label: entity.name,
+      subtitle: `${entity.type}${entity.country ? ` · ${entity.country}` : ""}`,
+      roles: [],
+      children: [],
+    });
+  });
+
+  const roots: OrgNode[] = [];
+  entities.forEach((entity) => {
+    const node = nodeMap.get(entity.id)!;
+    if (entity.parentId && nodeMap.has(entity.parentId)) {
+      nodeMap.get(entity.parentId)!.children.push(node);
+    } else {
+      roots.push(node);
+    }
+  });
+
+  const sortFn = (node: OrgNode) => {
+    node.children.sort((a, b) => a.label.localeCompare(b.label));
+    node.children.forEach(sortFn);
+  };
+  roots.sort((a, b) => a.label.localeCompare(b.label));
+  roots.forEach(sortFn);
+  return roots;
+}
+
+// ============================================================================
+// MAP HELPERS (for PPTX export)
+// ============================================================================
+
+function mapToOrgPersons(
+  people: PersonRecord[],
+  roles: RoleAssignment[]
+): { id: string; name: string; role: string; department: string; reportsTo?: string; smcrRole?: string }[] {
+  const idSet = new Set(people.map((p) => p.id));
+  const nameToId = new Map<string, string>();
+  people.forEach((p) => nameToId.set(p.name.toLowerCase(), p.id));
+
+  function resolveManager(lineManager: string | undefined): string | undefined {
+    if (!lineManager) return undefined;
+    if (idSet.has(lineManager)) return lineManager;
+    return nameToId.get(lineManager.toLowerCase());
+  }
+
+  return people.map((p) => ({
+    id: p.id,
+    name: p.name,
+    role: p.title || p.department,
+    department: p.department,
+    reportsTo: resolveManager(p.lineManager),
+    smcrRole:
+      roles
+        .filter((r) => r.personId === p.id)
+        .map((r) => r.functionId)
+        .join(", ") || undefined,
+  }));
+}
+
+function mapGroupEntitiesToCorporate(
+  entities: GroupEntity[]
+): { id: string; name: string; type: GroupEntity["type"]; jurisdiction: string; ownershipPct?: number; parentEntityId?: string; isExternal?: boolean }[] {
+  return entities.map((e) => ({
+    id: e.id,
+    name: e.name,
+    type: e.type,
+    jurisdiction: e.country || "UK",
+    ownershipPct: e.ownershipPercent,
+    parentEntityId: e.parentId,
+    isExternal: e.isExternal,
+  }));
+}
+
+// ============================================================================
+// REPORTING CHAIN
+// ============================================================================
+
+function getReportingChain(personId: string, personNodes: Map<string, OrgNode>): Set<string> {
+  const chain = new Set<string>();
+  let current = personNodes.get(personId);
+  while (current) {
+    chain.add(current.id);
+    if (current.managerId) {
+      current = personNodes.get(current.managerId);
+    } else {
+      break;
+    }
+  }
+  return chain;
 }
 
 function getRoleColor(functionType?: string): string {
@@ -388,11 +568,20 @@ interface OrgChartNodeProps {
   isSelected: boolean;
   isExpanded: boolean;
   hasChildren: boolean;
+  isHighlighted?: boolean;
   onSelect: (node: OrgNode) => void;
   onToggle: (id: string) => void;
 }
 
-function getNodeTypeStyles(type: OrgNodeType) {
+const ENTITY_STYLES: Record<string, { border: string; bg: string; iconBg: string }> = {
+  holding: { border: "border-purple-400", bg: "bg-purple-50", iconBg: "from-purple-500 to-purple-600" },
+  subsidiary: { border: "border-blue-400", bg: "bg-blue-50", iconBg: "from-blue-500 to-blue-600" },
+  parent: { border: "border-amber-400", bg: "bg-amber-50", iconBg: "from-amber-500 to-amber-600" },
+  associate: { border: "border-emerald-400", bg: "bg-emerald-50", iconBg: "from-emerald-500 to-emerald-600" },
+  branch: { border: "border-slate-400", bg: "bg-slate-50", iconBg: "from-slate-400 to-slate-500" },
+};
+
+function getNodeTypeStyles(type: OrgNodeType, entityData?: GroupEntity) {
   switch (type) {
     case "company":
       return {
@@ -408,6 +597,15 @@ function getNodeTypeStyles(type: OrgNodeType) {
         iconBg: "from-slate-400 to-slate-500",
         icon: FolderOpen,
       };
+    case "entity": {
+      const s = ENTITY_STYLES[entityData?.type ?? "branch"];
+      return {
+        border: s.border,
+        bg: s.bg,
+        iconBg: s.iconBg,
+        icon: Building2,
+      };
+    }
     default:
       return null;
   }
@@ -419,10 +617,11 @@ function OrgChartNode({
   isSelected,
   isExpanded,
   hasChildren,
+  isHighlighted,
   onSelect,
   onToggle,
 }: OrgChartNodeProps) {
-  const typeStyles = getNodeTypeStyles(node.type);
+  const typeStyles = getNodeTypeStyles(node.type, node.entityData);
 
   return (
     <g
@@ -437,7 +636,11 @@ function OrgChartNode({
             "h-full w-full rounded-lg border-2 bg-white p-2 shadow-sm transition-all hover:shadow-md",
             typeStyles ? typeStyles.border : getNodeBorderColor(node.roles),
             typeStyles?.bg,
-            isSelected && "ring-2 ring-teal-500 ring-offset-2"
+            node.entityData?.isExternal && "border-dashed",
+            isSelected && "ring-2 ring-teal-500 ring-offset-2",
+            isHighlighted && "ring-2 ring-amber-400 ring-offset-1 shadow-md",
+            node.type === "person" && node.roles.some(r => r.functionType === "SMF") && isHighlighted && "ring-amber-500",
+            node.type === "person" && node.roles.some(r => r.functionType === "CF") && !node.roles.some(r => r.functionType === "SMF") && isHighlighted && "ring-sky-500"
           )}
         >
           <div className="flex h-full items-center gap-2">
@@ -493,6 +696,21 @@ function OrgChartNode({
                   )}
                 </div>
               )}
+              {node.type === "entity" && node.entityData && (
+                <div className="flex gap-1 mt-1">
+                  <Badge variant="outline" className="text-[9px] px-1 py-0 bg-slate-50 border-slate-200">
+                    {node.entityData.type}
+                  </Badge>
+                  {node.entityData.ownershipPercent !== undefined && (
+                    <Badge variant="outline" className="text-[9px] px-1 py-0 bg-purple-50 border-purple-200 text-purple-700">
+                      {node.entityData.ownershipPercent}%
+                    </Badge>
+                  )}
+                  {node.entityData.linkedFirmId && (
+                    <Link2 className="h-3 w-3 text-teal-500" />
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Expand/collapse button */}
@@ -502,6 +720,8 @@ function OrgChartNode({
                   e.stopPropagation();
                   onToggle(node.id);
                 }}
+                aria-label={isExpanded ? `Collapse ${node.label}` : `Expand ${node.label}`}
+                aria-expanded={isExpanded}
                 className={cn(
                   "flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium transition-colors",
                   isExpanded
@@ -521,22 +741,50 @@ function OrgChartNode({
 
 interface ConnectorLinesProps {
   connectors: ConnectorPath[];
+  highlightedIds?: Set<string>;
 }
 
-function ConnectorLines({ connectors }: ConnectorLinesProps) {
+function ConnectorLines({ connectors, highlightedIds }: ConnectorLinesProps) {
   return (
     <g className="connectors">
-      {connectors.map((connector) => (
-        <path
-          key={connector.id}
-          d={connector.path}
-          fill="none"
-          stroke="#cbd5e1"
-          strokeWidth={2}
-          strokeLinecap="round"
-          className="transition-all duration-300"
-        />
-      ))}
+      {connectors.map((connector) => {
+        const isHigh =
+          highlightedIds &&
+          highlightedIds.has(connector.parentId) &&
+          highlightedIds.has(connector.childId);
+
+        return (
+          <g key={connector.id}>
+            <path
+              d={connector.path}
+              fill="none"
+              stroke={isHigh ? "#f59e0b" : "#cbd5e1"}
+              strokeWidth={isHigh ? 3 : 2}
+              strokeLinecap="round"
+              strokeDasharray={connector.isDashed ? "6 4" : undefined}
+              className="transition-all duration-300"
+            />
+            {connector.ownershipLabel && (
+              <>
+                {/* Parse path to find midpoint for label */}
+                <text
+                  x={0}
+                  y={0}
+                  fontSize={10}
+                  fill="#7c3aed"
+                  fontWeight="bold"
+                  textAnchor="middle"
+                  className="pointer-events-none"
+                >
+                  <textPath href={`#${connector.id}-path`} startOffset="50%">
+                    {connector.ownershipLabel}
+                  </textPath>
+                </text>
+              </>
+            )}
+          </g>
+        );
+      })}
     </g>
   );
 }
@@ -546,7 +794,10 @@ function ConnectorLines({ connectors }: ConnectorLinesProps) {
 // ============================================================================
 
 export function OrgChartClient() {
-  const { state, firms, activeFirmId, updatePerson, addPerson, assignRole } = useSmcrData();
+  const {
+    state, firms, activeFirmId, updatePerson, addPerson, assignRole,
+    groupEntities, addGroupEntity, updateGroupEntity, removeGroupEntity,
+  } = useSmcrData();
   const toast = useToast();
   const { people, roles } = state;
 
@@ -601,6 +852,49 @@ export function OrgChartClient() {
   const [irnVerifyResult, setIrnVerifyResult] = useState<{ name: string; status: string } | null>(null);
   const [irnVerifyError, setIrnVerifyError] = useState<string | null>(null);
 
+  // View mode
+  const [viewMode, setViewMode] = useState<ViewMode>("people");
+
+  // Department rename
+  const [editingDeptName, setEditingDeptName] = useState<string | null>(null);
+  const [deptRenameValue, setDeptRenameValue] = useState("");
+
+  // Reporting chain highlight
+  const [highlightedChain, setHighlightedChain] = useState<Set<string>>(new Set());
+
+  // Entity dialog state
+  const [addEntityDialogOpen, setAddEntityDialogOpen] = useState(false);
+  const [entityForm, setEntityForm] = useState({
+    name: "",
+    type: "subsidiary" as GroupEntity["type"],
+    parentId: "",
+    ownershipPercent: "",
+    country: "",
+    regulatoryStatus: "",
+    isExternal: false,
+    linkedFirmId: "",
+  });
+
+  // Auto-seed active firm as root entity (persisted to context)
+  useEffect(() => {
+    if (!activeFirm || !activeFirmId) return;
+    const firmRootId = `firm-root-${activeFirmId}`;
+    const firmAlreadyExists = groupEntities.some(
+      (e) => e.id === firmRootId || (e.linkedFirmId === activeFirmId && !e.parentId)
+    );
+    if (!firmAlreadyExists) {
+      addGroupEntity({
+        name: activeFirm.name,
+        type: "parent",
+        linkedFirmId: activeFirmId,
+        country: "UK",
+      });
+    }
+  }, [activeFirmId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Build entity tree
+  const entityTree = useMemo(() => buildEntityTree(groupEntities), [groupEntities]);
+
   // Pan/drag state
   const [isPanning, setIsPanning] = useState(false);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
@@ -631,13 +925,16 @@ export function OrgChartClient() {
     };
   }, []);
 
+  // Active tree based on view mode
+  const activeTree = viewMode === "people" ? orgTree : entityTree;
+
   // Calculate layout
   const treeLayout = useMemo(
-    () => calculateTreeLayout(orgTree, expandedNodes, layoutDirection),
-    [orgTree, expandedNodes, layoutDirection]
+    () => calculateTreeLayout(activeTree, expandedNodes, layoutDirection),
+    [activeTree, expandedNodes, layoutDirection]
   );
 
-  // Update expanded nodes when tree changes
+  // Re-expand all nodes only when switching view modes
   useEffect(() => {
     const allIds = new Set<string>();
     const collectIds = (nodes: OrgNode[]) => {
@@ -646,9 +943,10 @@ export function OrgChartClient() {
         collectIds(node.children);
       });
     };
-    collectIds(orgTree);
+    collectIds(activeTree);
     setExpandedNodes(allIds);
-  }, [orgTree]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewMode]);
 
   // Handlers
   const handleToggle = useCallback((id: string) => {
@@ -663,9 +961,30 @@ export function OrgChartClient() {
     });
   }, []);
 
-  const handleSelect = useCallback((node: OrgNode) => {
-    setSelectedNode(node);
-  }, []);
+  // Build person node map for reporting chain lookups
+  const personNodeMap = useMemo(() => {
+    const map = new Map<string, OrgNode>();
+    const collect = (nodes: OrgNode[]) => {
+      nodes.forEach((n) => {
+        if (n.type === "person") map.set(n.id, n);
+        collect(n.children);
+      });
+    };
+    collect(orgTree);
+    return map;
+  }, [orgTree]);
+
+  const handleSelect = useCallback(
+    (node: OrgNode) => {
+      setSelectedNode(node);
+      if (node.type === "person" && viewMode === "people") {
+        setHighlightedChain(getReportingChain(node.id, personNodeMap));
+      } else {
+        setHighlightedChain(new Set());
+      }
+    },
+    [viewMode, personNodeMap]
+  );
 
   const handleExpandAll = () => {
     const allIds = new Set<string>();
@@ -675,13 +994,12 @@ export function OrgChartClient() {
         collectIds(node.children);
       });
     };
-    collectIds(orgTree);
+    collectIds(activeTree);
     setExpandedNodes(allIds);
   };
 
   const handleCollapseAll = () => {
-    // Keep only root nodes expanded
-    const rootIds = new Set(orgTree.map((n) => n.id));
+    const rootIds = new Set(activeTree.map((n) => n.id));
     setExpandedNodes(rootIds);
   };
 
@@ -710,6 +1028,75 @@ export function OrgChartClient() {
       link.click();
     } catch {
       window.alert("Export functionality requires html2canvas. Please install it with: npm install html2canvas");
+    }
+  };
+
+  const handleExportPPTX = async () => {
+    try {
+      const { exportOrgChartPptx } = await import("@/lib/org-chart-pptx-export");
+      const orgPersons = mapToOrgPersons(firmPeople, firmRoles);
+      const corpEntities = mapGroupEntitiesToCorporate(groupEntities);
+      await exportOrgChartPptx(orgPersons, corpEntities);
+      toast.success("PPTX exported successfully");
+    } catch (err) {
+      if (process.env.NODE_ENV !== "production") {
+        console.error("PPTX export failed:", err);
+      }
+      toast.error("Failed to export PPTX");
+    }
+  };
+
+  const handleAddEntity = () => {
+    if (!entityForm.name.trim()) return;
+    addGroupEntity({
+      name: entityForm.name.trim(),
+      type: entityForm.type,
+      parentId: entityForm.parentId || undefined,
+      ownershipPercent: entityForm.ownershipPercent
+        ? parseFloat(entityForm.ownershipPercent)
+        : undefined,
+      country: entityForm.country.trim() || undefined,
+      regulatoryStatus: entityForm.regulatoryStatus.trim() || undefined,
+      isExternal: entityForm.isExternal,
+      linkedFirmId: entityForm.linkedFirmId || undefined,
+    });
+    setEntityForm({
+      name: "",
+      type: "subsidiary",
+      parentId: "",
+      ownershipPercent: "",
+      country: "",
+      regulatoryStatus: "",
+      isExternal: false,
+      linkedFirmId: "",
+    });
+    setAddEntityDialogOpen(false);
+  };
+
+  const handleRenameDepartment = (oldName: string, newName: string) => {
+    if (!newName.trim() || newName.trim() === oldName) return;
+    const trimmed = newName.trim();
+    // Update all people in this department — collect failures
+    const toUpdate = firmPeople.filter((p) => p.department === oldName);
+    const failed: string[] = [];
+    for (const p of toUpdate) {
+      try {
+        updatePerson(p.id, { department: trimmed });
+      } catch {
+        failed.push(p.name);
+      }
+    }
+    // Update custom departments list
+    setCustomDepartments((prev) =>
+      prev.map((d) => (d === oldName ? trimmed : d))
+    );
+    setEditingDeptName(null);
+    setDeptRenameValue("");
+    setSelectedNode(null);
+    if (failed.length > 0) {
+      toast.warning(`Department renamed but failed to update: ${failed.join(", ")}`);
+    } else {
+      toast.success(`Department renamed to "${trimmed}"`);
     }
   };
 
@@ -765,6 +1152,7 @@ export function OrgChartClient() {
     }
 
     setAddPersonForm(initialAddPersonForm);
+    setIrnVerifyLoading(false);
     setIrnVerifyResult(null);
     setIrnVerifyError(null);
     setAddPersonDialogOpen(false);
@@ -793,17 +1181,20 @@ export function OrgChartClient() {
     setIsPanning(false);
   };
 
-  // Collect all nodes for rendering
-  const allNodes: Array<{ node: OrgNode; depth: number }> = [];
-  const collectNodes = (nodes: OrgNode[], depth: number = 0) => {
-    nodes.forEach((node) => {
-      allNodes.push({ node, depth });
-      if (expandedNodes.has(node.id)) {
-        collectNodes(node.children, depth + 1);
-      }
-    });
-  };
-  collectNodes(orgTree);
+  // Collect all visible nodes for rendering (memoized)
+  const allNodes = useMemo(() => {
+    const result: Array<{ node: OrgNode; depth: number }> = [];
+    const collectNodes = (nodes: OrgNode[], depth: number = 0) => {
+      nodes.forEach((node) => {
+        result.push({ node, depth });
+        if (expandedNodes.has(node.id)) {
+          collectNodes(node.children, depth + 1);
+        }
+      });
+    };
+    collectNodes(activeTree);
+    return result;
+  }, [activeTree, expandedNodes]);
 
   const hasFirm = Boolean(activeFirmId && firms.length > 0);
 
@@ -837,15 +1228,47 @@ export function OrgChartClient() {
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <FirmSwitcher />
-          <Button variant="outline" onClick={() => setAddDeptDialogOpen(true)}>
-            <FolderOpen className="h-4 w-4 mr-2" />
-            Add Department
-          </Button>
-          <Button onClick={() => setAddPersonDialogOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Person
-          </Button>
+          {viewMode === "people" && (
+            <>
+              <Button variant="outline" onClick={() => setAddDeptDialogOpen(true)}>
+                <FolderOpen className="h-4 w-4 mr-2" />
+                Add Department
+              </Button>
+              <Button onClick={() => setAddPersonDialogOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Person
+              </Button>
+            </>
+          )}
+          {viewMode === "corporate" && (
+            <Button onClick={() => setAddEntityDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Entity
+            </Button>
+          )}
         </div>
+      </div>
+
+      {/* View Toggle */}
+      <div className="flex items-center gap-2">
+        <Button
+          variant={viewMode === "people" ? "default" : "outline"}
+          size="sm"
+          onClick={() => { setViewMode("people"); setSelectedNode(null); setHighlightedChain(new Set()); }}
+          className="gap-1.5"
+        >
+          <Users className="h-4 w-4" />
+          People
+        </Button>
+        <Button
+          variant={viewMode === "corporate" ? "default" : "outline"}
+          size="sm"
+          onClick={() => { setViewMode("corporate"); setSelectedNode(null); setHighlightedChain(new Set()); }}
+          className="gap-1.5"
+        >
+          <Building2 className="h-4 w-4" />
+          Corporate Structure
+        </Button>
       </div>
 
       {/* Controls */}
@@ -934,30 +1357,68 @@ export function OrgChartClient() {
               <RotateCcw className="h-4 w-4 mr-2" />
               Reset
             </Button>
-            <Button variant="outline" size="sm" onClick={handleExportPNG}>
-              <Download className="h-4 w-4 mr-2" />
-              Export
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Download className="h-4 w-4 mr-2" />
+                  Export
+                  <ChevronDown className="h-3 w-3 ml-1" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleExportPPTX}>
+                  <FileSpreadsheet className="h-4 w-4 mr-2" />
+                  Export PPTX
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExportPNG}>
+                  <Image className="h-4 w-4 mr-2" />
+                  Export PNG
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           {/* Legend */}
           <div className="flex items-center gap-4 ml-auto flex-wrap">
-            <div className="flex items-center gap-2">
-              <div className="h-3 w-3 rounded-full bg-blue-500" />
-              <span className="text-xs text-slate-600">Company</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="h-3 w-3 rounded-full bg-slate-400" />
-              <span className="text-xs text-slate-600">Dept</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="h-3 w-3 rounded-full bg-amber-400" />
-              <span className="text-xs text-slate-600">SMF</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="h-3 w-3 rounded-full bg-sky-400" />
-              <span className="text-xs text-slate-600">CF</span>
-            </div>
+            {viewMode === "people" ? (
+              <>
+                <div className="flex items-center gap-2">
+                  <div className="h-3 w-3 rounded-full bg-blue-500" />
+                  <span className="text-xs text-slate-600">Company</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-3 w-3 rounded-full bg-slate-400" />
+                  <span className="text-xs text-slate-600">Dept</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-3 w-3 rounded-full bg-amber-400" />
+                  <span className="text-xs text-slate-600">SMF</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-3 w-3 rounded-full bg-sky-400" />
+                  <span className="text-xs text-slate-600">CF</span>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center gap-2">
+                  <div className="h-3 w-3 rounded-full bg-purple-500" />
+                  <span className="text-xs text-slate-600">Holding</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-3 w-3 rounded-full bg-blue-500" />
+                  <span className="text-xs text-slate-600">Subsidiary</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-3 w-3 rounded-full bg-emerald-500" />
+                  <span className="text-xs text-slate-600">Associate</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-3 w-3 rounded-full bg-slate-400" />
+                  <span className="text-xs text-slate-600">Branch</span>
+                </div>
+              </>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -985,13 +1446,25 @@ export function OrgChartClient() {
                   Hold Space + drag to pan
                 </div>
 
-                {orgTree.length === 0 ? (
+                {activeTree.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-[500px] text-center">
-                    <Users className="h-12 w-12 text-slate-300 mb-4" />
-                    <p className="text-slate-600">No people in this firm yet.</p>
-                    <p className="text-sm text-slate-500 mt-1">
-                      Add people to see the organizational chart.
-                    </p>
+                    {viewMode === "people" ? (
+                      <>
+                        <Users className="h-12 w-12 text-slate-300 mb-4" />
+                        <p className="text-slate-600">No people in this firm yet.</p>
+                        <p className="text-sm text-slate-500 mt-1">
+                          Add people to see the organizational chart.
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <Building2 className="h-12 w-12 text-slate-300 mb-4" />
+                        <p className="text-slate-600">No corporate entities yet.</p>
+                        <p className="text-sm text-slate-500 mt-1">
+                          Add entities to see the corporate structure.
+                        </p>
+                      </>
+                    )}
                   </div>
                 ) : (
                   <svg
@@ -1006,7 +1479,10 @@ export function OrgChartClient() {
                     }}
                   >
                     {/* Connector lines */}
-                    <ConnectorLines connectors={treeLayout.connectors} />
+                    <ConnectorLines
+                      connectors={treeLayout.connectors}
+                      highlightedIds={viewMode === "people" ? highlightedChain : undefined}
+                    />
 
                     {/* Nodes */}
                     {allNodes.map(({ node }) => {
@@ -1021,6 +1497,7 @@ export function OrgChartClient() {
                           isSelected={selectedNode?.id === node.id}
                           isExpanded={expandedNodes.has(node.id)}
                           hasChildren={node.children.length > 0}
+                          isHighlighted={highlightedChain.has(node.id)}
                           onSelect={handleSelect}
                           onToggle={handleToggle}
                         />
@@ -1033,12 +1510,18 @@ export function OrgChartClient() {
           </Card>
         </div>
 
-        {/* Selected Person Details */}
+        {/* Selected Details */}
         <div className="lg:col-span-1">
           <Card className="sticky top-6">
             <CardHeader>
-              <CardTitle className="text-base">Person Details</CardTitle>
-              <CardDescription>Select a person to view details</CardDescription>
+              <CardTitle className="text-base">
+                {viewMode === "people" ? "Details" : "Entity Details"}
+              </CardTitle>
+              <CardDescription>
+                {viewMode === "people"
+                  ? "Select a node to view details"
+                  : "Select an entity to view details"}
+              </CardDescription>
             </CardHeader>
             <CardContent>
               {selectedNode ? (
@@ -1086,6 +1569,55 @@ export function OrgChartClient() {
                           <span className="ml-2 text-slate-700">{selectedNode.children.length}</span>
                         </div>
                       </div>
+                      {/* Rename department */}
+                      {selectedNode.id !== "dept-unassigned" && (
+                        <>
+                          {editingDeptName === selectedNode.label ? (
+                            <div className="space-y-2">
+                              <Label className="text-xs">Rename Department</Label>
+                              <Input
+                                value={deptRenameValue}
+                                onChange={(e) => setDeptRenameValue(e.target.value)}
+                                placeholder="New department name"
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") {
+                                    handleRenameDepartment(selectedNode.label, deptRenameValue);
+                                  }
+                                }}
+                              />
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleRenameDepartment(selectedNode.label, deptRenameValue)}
+                                  disabled={!deptRenameValue.trim() || deptRenameValue.trim() === selectedNode.label}
+                                >
+                                  Save
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => { setEditingDeptName(null); setDeptRenameValue(""); }}
+                                >
+                                  Cancel
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="w-full"
+                              onClick={() => {
+                                setEditingDeptName(selectedNode.label);
+                                setDeptRenameValue(selectedNode.label);
+                              }}
+                            >
+                              <Edit className="h-4 w-4 mr-2" />
+                              Rename Department
+                            </Button>
+                          )}
+                        </>
+                      )}
                     </>
                   )}
 
@@ -1162,10 +1694,93 @@ export function OrgChartClient() {
                       </Button>
                     </>
                   )}
+
+                  {selectedNode.type === "entity" && selectedNode.entityData && (
+                    <>
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={cn(
+                            "flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br",
+                            ENTITY_STYLES[selectedNode.entityData.type]?.iconBg ?? "from-slate-400 to-slate-500"
+                          )}
+                        >
+                          <Building2 className="h-6 w-6 text-white" />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-slate-900">{selectedNode.entityData.name}</p>
+                          <p className="text-xs text-slate-500 capitalize">{selectedNode.entityData.type}</p>
+                        </div>
+                      </div>
+                      <div className="space-y-2 text-sm">
+                        {selectedNode.entityData.ownershipPercent !== undefined && (
+                          <div>
+                            <span className="text-slate-500">Ownership:</span>
+                            <span className="ml-2 text-purple-700 font-medium">
+                              {selectedNode.entityData.ownershipPercent}%
+                            </span>
+                          </div>
+                        )}
+                        {selectedNode.entityData.country && (
+                          <div>
+                            <span className="text-slate-500">Country:</span>
+                            <span className="ml-2 text-slate-700">{selectedNode.entityData.country}</span>
+                          </div>
+                        )}
+                        {selectedNode.entityData.regulatoryStatus && (
+                          <div>
+                            <span className="text-slate-500">Regulatory Status:</span>
+                            <span className="ml-2 text-slate-700">{selectedNode.entityData.regulatoryStatus}</span>
+                          </div>
+                        )}
+                        <div>
+                          <span className="text-slate-500">External:</span>
+                          <span className="ml-2 text-slate-700">
+                            {selectedNode.entityData.isExternal ? "Yes" : "No"}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-slate-500">Children:</span>
+                          <span className="ml-2 text-slate-700">{selectedNode.children.length}</span>
+                        </div>
+                        {selectedNode.entityData.linkedFirmId && (
+                          <div>
+                            <span className="text-slate-500">Linked Firm:</span>
+                            <Button
+                              variant="link"
+                              size="sm"
+                              className="ml-1 h-auto p-0 text-teal-600"
+                              onClick={() => {
+                                setViewMode("people");
+                                setSelectedNode(null);
+                                setHighlightedChain(new Set());
+                              }}
+                            >
+                              <Link2 className="h-3 w-3 mr-1" />
+                              View People
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+                        onClick={() => {
+                          removeGroupEntity(selectedNode.entityData!.id);
+                          setSelectedNode(null);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Remove Entity
+                      </Button>
+                    </>
+                  )}
                 </div>
               ) : (
                 <p className="text-sm text-slate-500">
-                  Click on a person in the chart to view their details and edit reporting lines.
+                  {viewMode === "people"
+                    ? "Click on a node in the chart to view details and edit reporting lines."
+                    : "Click on an entity to view details."}
                 </p>
               )}
             </CardContent>
@@ -1212,7 +1827,14 @@ export function OrgChartClient() {
       </Dialog>
 
       {/* Add Person Dialog */}
-      <Dialog open={addPersonDialogOpen} onOpenChange={setAddPersonDialogOpen}>
+      <Dialog open={addPersonDialogOpen} onOpenChange={(open) => {
+        setAddPersonDialogOpen(open);
+        if (!open) {
+          setIrnVerifyLoading(false);
+          setIrnVerifyResult(null);
+          setIrnVerifyError(null);
+        }
+      }}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Add Person to Org Chart</DialogTitle>
@@ -1340,24 +1962,32 @@ export function OrgChartClient() {
               </div>
             </div>
             <div>
-              <Label>SMCR Role (optional)</Label>
+              <Label>SMCR / PSD Role (optional)</Label>
               <Select
                 value=""
                 onValueChange={(v) => {
-                  if (v && !addPersonForm.smcrRoles.includes(v)) {
+                  if (v && v !== "__no_function__" && !addPersonForm.smcrRoles.includes(v)) {
                     setAddPersonForm((prev) => ({ ...prev, smcrRoles: [...prev.smcrRoles, v] }));
                   }
                 }}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select SMCR role..." />
+                  <SelectValue placeholder="Select role..." />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="__no_function__">No regulated function</SelectItem>
                   {allSMFs
                     .filter((s) => !addPersonForm.smcrRoles.includes(s.id))
                     .map((smf) => (
                       <SelectItem key={smf.id} value={smf.id}>
                         {smf.smf_number} — {smf.title}
+                      </SelectItem>
+                    ))}
+                  {psdFunctions
+                    .filter((p) => !addPersonForm.smcrRoles.includes(p.id))
+                    .map((psd) => (
+                      <SelectItem key={psd.id} value={psd.id}>
+                        {psd.psd_number} — {psd.title}
                       </SelectItem>
                     ))}
                 </SelectContent>
@@ -1366,12 +1996,18 @@ export function OrgChartClient() {
                 <div className="flex flex-wrap gap-1.5 mt-2">
                   {addPersonForm.smcrRoles.map((roleId) => {
                     const smf = allSMFs.find((s) => s.id === roleId);
+                    const psd = psdFunctions.find((p) => p.id === roleId);
+                    const label = smf
+                      ? `${smf.smf_number} — ${smf.title}`
+                      : psd
+                        ? `${psd.psd_number} — ${psd.title}`
+                        : roleId;
                     return (
                       <Badge key={roleId} variant="secondary" className="gap-1">
-                        {smf?.smf_number} — {smf?.title}
+                        {label}
                         <button
                           type="button"
-                          aria-label={`Remove ${smf?.smf_number || "role"}`}
+                          aria-label={`Remove ${label}`}
                           className="ml-1 hover:text-destructive"
                           onClick={() =>
                             setAddPersonForm((prev) => ({
@@ -1439,6 +2075,169 @@ export function OrgChartClient() {
               >
                 <FolderOpen className="h-4 w-4 mr-2" />
                 Add Department
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Entity Dialog */}
+      <Dialog open={addEntityDialogOpen} onOpenChange={setAddEntityDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Add Corporate Entity</DialogTitle>
+            <DialogDescription>
+              Add a legal entity to the corporate group structure.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="entity-name">Name *</Label>
+                <Input
+                  id="entity-name"
+                  value={entityForm.name}
+                  onChange={(e) => setEntityForm((prev) => ({ ...prev, name: e.target.value }))}
+                  placeholder="Entity name"
+                />
+              </div>
+              <div>
+                <Label htmlFor="entity-type">Type</Label>
+                <Select
+                  value={entityForm.type}
+                  onValueChange={(v) =>
+                    setEntityForm((prev) => ({
+                      ...prev,
+                      type: v as GroupEntity["type"],
+                    }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="holding">Holding</SelectItem>
+                    <SelectItem value="subsidiary">Subsidiary</SelectItem>
+                    <SelectItem value="parent">Parent</SelectItem>
+                    <SelectItem value="associate">Associate</SelectItem>
+                    <SelectItem value="branch">Branch</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="entity-parent">Parent Entity</Label>
+                <Select
+                  value={entityForm.parentId || "__none__"}
+                  onValueChange={(v) =>
+                    setEntityForm((prev) => ({
+                      ...prev,
+                      parentId: v === "__none__" ? "" : v,
+                    }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="No parent (top level)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">No parent (top level)</SelectItem>
+                    {groupEntities.map((entity) => (
+                      <SelectItem key={entity.id} value={entity.id}>
+                        {entity.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="entity-ownership">Ownership %</Label>
+                <Input
+                  id="entity-ownership"
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={entityForm.ownershipPercent}
+                  onChange={(e) =>
+                    setEntityForm((prev) => ({
+                      ...prev,
+                      ownershipPercent: e.target.value,
+                    }))
+                  }
+                  placeholder="e.g., 25"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="entity-country">Country</Label>
+                <Input
+                  id="entity-country"
+                  value={entityForm.country}
+                  onChange={(e) =>
+                    setEntityForm((prev) => ({
+                      ...prev,
+                      country: e.target.value,
+                    }))
+                  }
+                  placeholder="e.g., UK"
+                />
+              </div>
+              <div>
+                <Label htmlFor="entity-regstatus">Regulatory Status</Label>
+                <Input
+                  id="entity-regstatus"
+                  value={entityForm.regulatoryStatus}
+                  onChange={(e) =>
+                    setEntityForm((prev) => ({
+                      ...prev,
+                      regulatoryStatus: e.target.value,
+                    }))
+                  }
+                  placeholder="e.g., FCA Authorised"
+                />
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Switch
+                checked={entityForm.isExternal}
+                onCheckedChange={(v) =>
+                  setEntityForm((prev) => ({ ...prev, isExternal: v }))
+                }
+              />
+              <Label>External entity (not within group)</Label>
+            </div>
+            <div>
+              <Label htmlFor="entity-firm-link">Link to SMCR Firm (optional)</Label>
+              <Select
+                value={entityForm.linkedFirmId || "__none__"}
+                onValueChange={(v) =>
+                  setEntityForm((prev) => ({
+                    ...prev,
+                    linkedFirmId: v === "__none__" ? "" : v,
+                  }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="No linked firm" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">No linked firm</SelectItem>
+                  {firms.map((firm) => (
+                    <SelectItem key={firm.id} value={firm.id}>
+                      {firm.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex justify-end gap-2 pt-4 border-t">
+              <Button variant="outline" onClick={() => setAddEntityDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleAddEntity} disabled={!entityForm.name.trim()}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Entity
               </Button>
             </div>
           </div>

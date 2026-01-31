@@ -257,17 +257,11 @@ export function FlowOfFundsBuilder({ packId }: FlowOfFundsBuilderProps) {
           if (data.diagram && data.diagram.nodes?.length > 0) {
             setNodes(data.diagram.nodes);
             setConnections(data.diagram.connections || []);
-          } else {
-            // No saved diagram — open wizard so user can pick a template
-            setShowWizard(true);
           }
-        } else {
-          // API error — open wizard
-          setShowWizard(true);
+          // No saved diagram — templates shown inline, no dialog needed
         }
       } catch {
-        // Diagram may not exist yet — open wizard
-        setShowWizard(true);
+        // Diagram may not exist yet — templates shown inline
       } finally {
         setIsLoading(false);
       }
@@ -688,54 +682,55 @@ export function FlowOfFundsBuilder({ packId }: FlowOfFundsBuilderProps) {
                 </CardDescription>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={() => setShowAddNode(true)}>
-                <Plus className="h-4 w-4 mr-1" /> Node
-              </Button>
-              <Button
-                variant={connectMode ? "default" : "outline"}
-                size="sm"
-                onClick={() => {
-                  setConnectMode(!connectMode);
-                  setConnectSource(null);
-                  setShowConnectPrompt(false);
-                  setConnectTargetId(null);
-                }}
-                disabled={nodes.length < 2}
-                className={connectMode ? "bg-teal-600 hover:bg-teal-700 text-white" : ""}
-              >
-                <Link2 className="h-4 w-4 mr-1" /> {connectMode ? "Connecting..." : "Connect"}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowAddConnection(true)}
-                disabled={nodes.length < 2}
-                title="Connect via dialog"
-              >
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleResetToDemo}>
-                <RotateCcw className="h-4 w-4 mr-1" /> Reset to Demo
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => nodes.length > 0 ? setShowClearConfirm(true) : undefined}>
-                <Eraser className="h-4 w-4 mr-1" /> Clear
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => setShowWizard(true)}>
-                <Wand2 className="h-4 w-4 mr-1" /> Wizard
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleExport} disabled={nodes.length === 0}>
-                <Download className="h-4 w-4 mr-1" /> PNG
-              </Button>
-              <Button
-                size="sm"
-                className="bg-teal-600 hover:bg-teal-700"
-                onClick={saveDiagram}
-                disabled={isSaving}
-              >
-                {isSaving ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Save className="h-4 w-4 mr-1" />}
-                Save
-              </Button>
+            <div className="flex flex-wrap items-center gap-2">
+              {nodes.length > 0 && (
+                <>
+                  <Button variant="outline" size="sm" onClick={() => setShowAddNode(true)}>
+                    <Plus className="h-4 w-4 mr-1" /> Node
+                  </Button>
+                  <Button
+                    variant={connectMode ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => {
+                      setConnectMode(!connectMode);
+                      setConnectSource(null);
+                      setShowConnectPrompt(false);
+                      setConnectTargetId(null);
+                    }}
+                    disabled={nodes.length < 2}
+                    className={connectMode ? "bg-teal-600 hover:bg-teal-700 text-white" : ""}
+                  >
+                    <Link2 className="h-4 w-4 mr-1" /> {connectMode ? "Connecting..." : "Connect"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowAddConnection(true)}
+                    disabled={nodes.length < 2}
+                    title="Connect via dialog"
+                  >
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => setShowWizard(true)}>
+                    <Wand2 className="h-4 w-4 mr-1" /> Wizard
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => setShowClearConfirm(true)}>
+                    <Eraser className="h-4 w-4 mr-1" /> Clear
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleExport}>
+                    <Download className="h-4 w-4 mr-1" /> PNG
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="bg-teal-600 hover:bg-teal-700"
+                    onClick={saveDiagram}
+                    disabled={isSaving}
+                  >
+                    {isSaving ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Save className="h-4 w-4 mr-1" />}
+                    Save
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </CardHeader>
@@ -754,15 +749,48 @@ export function FlowOfFundsBuilder({ packId }: FlowOfFundsBuilderProps) {
       <Card className="border border-slate-200 overflow-hidden">
         <CardContent className="p-0">
           {nodes.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <ArrowLeftRight className="h-10 w-10 text-slate-300 mb-3" />
-              <p className="text-sm font-medium text-slate-600">No nodes yet</p>
-              <p className="text-xs text-slate-400 mt-1 mb-4">
-                Add source, process, destination, or account nodes to build your flow diagram
-              </p>
-              <Button variant="outline" size="sm" onClick={() => setShowAddNode(true)}>
-                <Plus className="h-4 w-4 mr-1" /> Add First Node
-              </Button>
+            <div className="py-8 px-6 space-y-6">
+              <div className="text-center">
+                <ArrowLeftRight className="h-10 w-10 text-slate-300 mx-auto mb-3" />
+                <p className="text-sm font-medium text-slate-700">Build your Flow of Funds</p>
+                <p className="text-xs text-slate-400 mt-1">
+                  Choose a template below, or start from scratch
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {FLOW_TEMPLATES.map((template) => (
+                  <Card
+                    key={template.id}
+                    className="border border-slate-200 hover:border-teal-300 hover:shadow-md transition-all cursor-pointer"
+                    onClick={() => handleSelectTemplate(template.diagram)}
+                  >
+                    <CardContent className="p-4 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-50 shrink-0">
+                          <Building2 className="h-4 w-4 text-teal-600" />
+                        </div>
+                        <h4 className="text-sm font-semibold text-slate-800">{template.title}</h4>
+                      </div>
+                      <p className="text-xs text-slate-500 leading-relaxed">{template.description}</p>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="w-full mt-1 text-teal-700 border-teal-200 hover:bg-teal-50"
+                        onClick={(e) => { e.stopPropagation(); handleSelectTemplate(template.diagram); }}
+                      >
+                        Use this template
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              <div className="flex justify-center">
+                <Button variant="outline" size="sm" onClick={() => setShowAddNode(true)}>
+                  <Plus className="h-4 w-4 mr-1" /> Start from scratch
+                </Button>
+              </div>
             </div>
           ) : (
             <div className="overflow-auto bg-slate-50" style={{ maxHeight: "500px" }}>

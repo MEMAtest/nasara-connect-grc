@@ -351,6 +351,20 @@ export interface FitnessAssessmentRecord {
   responses: FitnessAssessmentResponse[];
 }
 
+export interface GroupEntity {
+  id: string;
+  name: string;
+  type: "holding" | "subsidiary" | "parent" | "associate" | "branch";
+  linkedFirmId?: string;
+  linkedProjectId?: string;
+  linkedProjectName?: string;
+  parentId?: string;
+  ownershipPercent?: number;
+  country?: string;
+  regulatoryStatus?: string;
+  isExternal?: boolean;
+}
+
 export interface SmcrSettings {
   verificationStaleThresholdDays: number;
 }
@@ -363,6 +377,7 @@ interface SmcrDataState {
   workflowDocuments: WorkflowDocument[];
   assessments: FitnessAssessmentRecord[];
   breaches: ConductBreach[];
+  groupEntities: GroupEntity[];
   settings: SmcrSettings;
 }
 
@@ -380,6 +395,7 @@ const emptyState: SmcrDataState = {
   workflowDocuments: [],
   assessments: [],
   breaches: [],
+  groupEntities: [],
   settings: defaultSettings,
 };
 
@@ -422,6 +438,11 @@ interface SmcrContextValue {
   updateBreach: (id: string, updates: Partial<ConductBreach>) => void;
   addBreachTimelineEntry: (breachId: string, entry: Omit<BreachTimelineEntry, "id">) => void;
   removeBreach: (id: string) => void;
+  // Group entities
+  groupEntities: GroupEntity[];
+  addGroupEntity: (input: Omit<GroupEntity, "id">) => GroupEntity;
+  updateGroupEntity: (id: string, updates: Partial<GroupEntity>) => void;
+  removeGroupEntity: (id: string) => void;
   // Settings
   updateSettings: (updates: Partial<SmcrSettings>) => void;
 }
@@ -708,6 +729,7 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
               workflowDocuments: snapshot.data.workflowDocuments ?? [],
               assessments: snapshot.data.assessments ?? [],
               breaches: snapshot.data.breaches ?? [],
+              groupEntities: (snapshot.data as Partial<SmcrDataState>).groupEntities ?? [],
               settings: { ...defaultSettings, ...snapshot.data.settings },
             });
             setFirms(snapshot.firms ?? []);
@@ -748,6 +770,7 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
                 ...breach,
                 firmId: breach.firmId ?? defaultFirmId,
               })),
+              groupEntities: [],
               settings: defaultSettings,
             });
             setFirms([defaultFirm]);
@@ -1665,6 +1688,31 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  const addGroupEntity = useCallback((input: Omit<GroupEntity, "id">): GroupEntity => {
+    const entity: GroupEntity = { ...input, id: createId("entity") };
+    setState((prev) => ({
+      ...prev,
+      groupEntities: [...prev.groupEntities, entity],
+    }));
+    return entity;
+  }, []);
+
+  const updateGroupEntity = useCallback((id: string, updates: Partial<GroupEntity>) => {
+    setState((prev) => ({
+      ...prev,
+      groupEntities: prev.groupEntities.map((e) =>
+        e.id === id ? { ...e, ...updates } : e
+      ),
+    }));
+  }, []);
+
+  const removeGroupEntity = useCallback((id: string) => {
+    setState((prev) => ({
+      ...prev,
+      groupEntities: prev.groupEntities.filter((e) => e.id !== id),
+    }));
+  }, []);
+
   const updateSettings = useCallback((updates: Partial<SmcrSettings>) => {
     setState((prev) => ({
       ...prev,
@@ -1711,6 +1759,10 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
       updateBreach,
       addBreachTimelineEntry,
       removeBreach,
+      groupEntities: state.groupEntities,
+      addGroupEntity,
+      updateGroupEntity,
+      removeGroupEntity,
       updateSettings,
     }),
     [
@@ -1751,6 +1803,9 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
       updateBreach,
       addBreachTimelineEntry,
       removeBreach,
+      addGroupEntity,
+      updateGroupEntity,
+      removeGroupEntity,
       updateSettings,
     ],
   );
