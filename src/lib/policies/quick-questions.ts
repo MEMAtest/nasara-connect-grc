@@ -839,4 +839,4 @@ export const QUICK_QUESTIONS: Record<string, QuickQuestion[]> = {
   ],
 };
 
-export { DEFAULT_QUESTIONS, QUICK_QUESTIONS };
+export { DEFAULT_QUESTIONS };
