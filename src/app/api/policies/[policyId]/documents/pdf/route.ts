@@ -6,6 +6,7 @@ import { renderClause, renderLiquidTemplate } from "@/lib/policies/liquid-render
 import { sanitizeClauseContent, DEFAULT_SANITIZE_OPTIONS } from "@/lib/policies/content-sanitizer";
 import { applyTiering, type DetailLevel, type TieredSection } from "@/lib/policies/clause-tiers";
 import { applyOptionSelections } from "@/lib/policies/section-options";
+import { resolveNotePlaceholders } from "@/lib/policies/section-notes";
 
 function sanitizeFilename(value: string) {
   return value.replace(/[^a-z0-9]/gi, "_").toLowerCase();
@@ -187,6 +188,7 @@ const POLICY_SANITIZE_OPTIONS = {
 
 const NOTE_SANITIZE_OPTIONS = {
   ...DEFAULT_SANITIZE_OPTIONS,
+  convertBulletsToProseText: false,
   preserveProceduralLists: false,
 };
 
@@ -313,6 +315,7 @@ function drawNoteBlock(ctx: DrawContext, text: string): void {
   if (!cleaned) return;
   drawText(ctx, "Firm-specific detail", ctx.fontBold, 11, { r: 0.12, g: 0.16, b: 0.22 }, 4);
   drawParagraph(ctx, cleaned);
+  ctx.y -= 6;
 }
 
 export async function GET(
@@ -420,13 +423,17 @@ export async function GET(
           typeof rawNotes === "string" && rawNotes.trim().length > 0
             ? renderLiquidTemplate(rawNotes, renderContext)
             : rawNotes;
+        const resolvedNotes =
+          typeof renderedNotes === "string" && renderedNotes.trim().length > 0
+            ? resolveNotePlaceholders(renderedNotes, firmName)
+            : renderedNotes;
 
         return {
           id: tieredSection.id,
           title: tieredSection.title,
           sectionType: tieredSection.sectionType,
           clauses: renderedClauses,
-          customNotes: renderedNotes,
+          customNotes: resolvedNotes,
         };
       })
       .filter((section): section is RenderedSection => section !== null);

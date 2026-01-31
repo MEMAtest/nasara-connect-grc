@@ -28,6 +28,7 @@ import {
 import { cn } from "@/lib/utils";
 import { allSMFs } from "../data/core-functions";
 import { useSmcrData, RoleAssignment, RoleApprovalStatus, PersonRecord, FCAVerificationData } from "../context/SmcrDataContext";
+import { useAllMismatches } from "@/hooks/useRoleMismatchDetection";
 import { SmfIcon } from "../components/SmcrIcons";
 import { formATips, sorTips, formCTips } from "../forms/form-data";
 
@@ -67,6 +68,7 @@ function toISO(date?: Date) {
 export function SMFsClient() {
   const { state, isReady, assignRole, removeRole, updatePerson } = useSmcrData();
   const { people, roles } = state;
+  const { byPerson: mismatchesByPerson } = useAllMismatches(people, roles);
 
   const smfAssignments: AssignmentRow[] = useMemo(() => {
     return roles
@@ -298,7 +300,12 @@ export function SMFsClient() {
             </CardContent>
           </Card>
         ) : (
-          filteredAssignments.map(({ role, functionTitle, functionNumber, category, personName, personId, employeeId, email, irn, fcaVerification, entity }) => (
+          filteredAssignments.map(({ role, functionTitle, functionNumber, category, personName, personId, employeeId, email, irn, fcaVerification, entity }) => {
+            const personMismatches = mismatchesByPerson.get(personId);
+            const roleMismatch = personMismatches?.mismatches.find(
+              (m) => m.smfNumber === functionNumber || m.localRole?.id === role.id
+            );
+            return (
             <Card key={role.id}>
               <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div>
@@ -306,6 +313,22 @@ export function SMFsClient() {
                   <CardDescription>{category.replace("_", " ")}</CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
+                  {roleMismatch && (
+                    <Badge
+                      variant="outline"
+                      className={cn("text-xs",
+                        roleMismatch.type === "status_conflict"
+                          ? "bg-rose-50 text-rose-700 border-rose-200"
+                          : "bg-amber-50 text-amber-700 border-amber-200"
+                      )}
+                    >
+                      {roleMismatch.type === "missing_from_fca"
+                        ? "Not on FCA Register"
+                        : roleMismatch.type === "missing_locally"
+                        ? "Not assigned locally"
+                        : `FCA: ${roleMismatch.fcaFunction ? "Ceased" : "Conflict"}`}
+                    </Badge>
+                  )}
                   {irn && (
                     fcaVerification ? (
                       <Badge
@@ -376,7 +399,8 @@ export function SMFsClient() {
                 </div>
               </CardContent>
             </Card>
-          ))
+            );
+          })
         )}
       </div>
 
@@ -407,6 +431,11 @@ export function SMFsClient() {
               updatePerson(verificationPersonId, {
                 fcaVerification: verificationData,
               } as Partial<PersonRecord>);
+              fetch(`/api/smcr/people/${verificationPersonId}/fca-verification`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(verificationData),
+              }).catch((err) => console.error('Failed to persist verification:', err));
             }}
           />
         );

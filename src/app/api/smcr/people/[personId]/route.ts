@@ -68,6 +68,8 @@ export async function PATCH(
     if (body.lastAssessment !== undefined) updates.last_assessment = body.lastAssessment;
     if (body.nextAssessment !== undefined) updates.next_assessment = body.nextAssessment;
     if (body.trainingCompletion !== undefined) updates.training_completion = body.trainingCompletion;
+    if (body.irn !== undefined) updates.irn = body.irn;
+    if (body.fcaVerification !== undefined) updates.fca_verification = body.fcaVerification;
 
     const person = await updatePerson(personId, updates);
 

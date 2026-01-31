@@ -95,6 +95,7 @@ export function SectionNotesPicker({
                     onChange={(event) => onCustomChange(section.id, event.target.value)}
                     placeholder="Add any firm-specific detail that should appear in the policy."
                     className="mt-2 min-h-[96px]"
+                    spellCheck
                   />
                 </div>
               ) : null}

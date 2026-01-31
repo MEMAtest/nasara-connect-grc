@@ -11,6 +11,7 @@ import { User, ChevronRight, Plus, Trash2 } from "lucide-react";
 import type { PSDFormSectionProps, PSDAddressEntry } from '../types/form-types';
 import { FieldHelp } from './FieldHelp';
 import { SectionInfo } from './SectionInfo';
+import { FormDatePicker } from './FormDatePicker';
 import { createEmptyPSDAddress } from '../utils/form-constants';
 
 interface PSDSection1Props extends PSDFormSectionProps {
@@ -57,7 +58,7 @@ export function PSDSection1PersonalDetails({
                 onChange={(e) => updateField("fcaIRN", e.target.value)}
                 placeholder="If already registered with FCA"
               />
-              <FieldHelp>Leave blank if not previously registered</FieldHelp>
+              <FieldHelp>Leave blank if not previously registered. You can look up IRNs on the FCA Register at register.fca.org.uk</FieldHelp>
             </div>
             <div>
               <Label htmlFor="previousRegulatoryBody">1.1b Previous Regulatory Body</Label>
@@ -142,12 +143,12 @@ export function PSDSection1PersonalDetails({
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <Label htmlFor="dateOfNameChange">1.7 Date of Name Change</Label>
-            <Input
+            <FormDatePicker
               id="dateOfNameChange"
-              type="date"
+              label="1.7 Date of Name Change"
               value={formData.dateOfNameChange}
-              onChange={(e) => updateField("dateOfNameChange", e.target.value)}
+              onChange={(value) => updateField("dateOfNameChange", value)}
+              placeholder="Select date"
             />
           </div>
           <div>
@@ -163,12 +164,13 @@ export function PSDSection1PersonalDetails({
             </Select>
           </div>
           <div>
-            <Label htmlFor="dateOfBirth">1.9 Date of Birth *</Label>
-            <Input
+            <FormDatePicker
               id="dateOfBirth"
-              type="date"
+              label="1.9 Date of Birth"
               value={formData.dateOfBirth}
-              onChange={(e) => updateField("dateOfBirth", e.target.value)}
+              onChange={(value) => updateField("dateOfBirth", value)}
+              placeholder="Select date of birth"
+              required
             />
           </div>
         </div>
@@ -218,7 +220,7 @@ export function PSDSection1PersonalDetails({
               onChange={(e) => updateField("passportNumber", e.target.value)}
               placeholder="If available"
             />
-            <FieldHelp>Copy not required but should be available upon request</FieldHelp>
+            <FieldHelp>A copy is not required to be attached but should be available for production on request by the FCA</FieldHelp>
           </div>
         </div>
 
@@ -246,12 +248,14 @@ export function PSDSection1PersonalDetails({
               />
             </div>
             <div>
-              <Label htmlFor="currentAddressFromDate">Resident From (mm/yyyy) *</Label>
-              <Input
+              <FormDatePicker
                 id="currentAddressFromDate"
-                type="month"
+                label="Resident From (mm/yyyy)"
                 value={formData.currentAddressFromDate}
-                onChange={(e) => updateField("currentAddressFromDate", e.target.value)}
+                onChange={(value) => updateField("currentAddressFromDate", value)}
+                placeholder="Select month"
+                type="month"
+                required
               />
             </div>
           </div>
@@ -271,7 +275,7 @@ export function PSDSection1PersonalDetails({
               Add Address
             </Button>
           </div>
-          <FieldHelp>If address changed in the last 3 years, provide previous addresses</FieldHelp>
+          <FieldHelp>A full 3-year address history is required. If the individual has lived at their current address for less than 3 years, provide all previous addresses covering the full 3-year period.</FieldHelp>
 
           {formData.previousAddresses.map((addr, index) => (
             <div key={addr.id} className="border rounded p-3 space-y-3 bg-slate-50">
@@ -305,19 +309,23 @@ export function PSDSection1PersonalDetails({
                   />
                 </div>
                 <div>
-                  <Label>From (mm/yyyy)</Label>
-                  <Input
-                    type="month"
+                  <FormDatePicker
+                    id={`addr-from-${addr.id}`}
+                    label="From (mm/yyyy)"
                     value={addr.fromDate}
-                    onChange={(e) => updatePreviousAddress(addr.id, "fromDate", e.target.value)}
+                    onChange={(value) => updatePreviousAddress(addr.id, "fromDate", value)}
+                    placeholder="Select month"
+                    type="month"
                   />
                 </div>
                 <div>
-                  <Label>To (mm/yyyy)</Label>
-                  <Input
-                    type="month"
+                  <FormDatePicker
+                    id={`addr-to-${addr.id}`}
+                    label="To (mm/yyyy)"
                     value={addr.toDate}
-                    onChange={(e) => updatePreviousAddress(addr.id, "toDate", e.target.value)}
+                    onChange={(value) => updatePreviousAddress(addr.id, "toDate", value)}
+                    placeholder="Select month"
+                    type="month"
                   />
                 </div>
               </div>

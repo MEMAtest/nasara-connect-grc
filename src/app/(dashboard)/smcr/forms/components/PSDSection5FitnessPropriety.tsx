@@ -66,14 +66,16 @@ export function PSDSection5FitnessPropriety({
       </CardHeader>
       <CardContent className="space-y-6">
         <SectionInfo title="Disclosure Requirements" variant="warning">
-          <p>Give the widest possible interpretation to all questions. The FCA treats non-disclosure very seriously.</p>
-          <p className="mt-1"><strong>If in doubt, disclose.</strong> Include matters in the UK and overseas.</p>
+          <p>Give the <strong>widest possible interpretation</strong> to all questions. The FCA treats non-disclosure very seriously.</p>
+          <p className="mt-1"><strong>If in doubt, disclose.</strong> It is better to disclose something that turns out to be irrelevant than to fail to disclose something material.</p>
+          <p className="mt-1">Include matters both in the UK and overseas. Any "Yes" answers require full details in Section 6.</p>
+          <p className="mt-1 text-xs">A standard DBS (Disclosure and Barring Service) check should be carried out for individuals not currently approved as an SMF manager. Evidence should be available on request.</p>
         </SectionInfo>
 
         {/* Part A - Criminal Proceedings */}
-        <div className="border rounded-lg p-4 space-y-4">
+        <div className="border rounded-lg p-4 space-y-4" role="group" aria-label="Part A – Criminal Proceedings">
           <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4 text-amber-600" />
+            <AlertTriangle className="h-4 w-4 text-amber-600" aria-hidden="true" />
             Part A – Criminal Proceedings
           </h3>
           <p className="text-xs text-slate-600">
@@ -161,9 +163,9 @@ export function PSDSection5FitnessPropriety({
         </div>
 
         {/* Part B - Civil and Administrative Proceedings */}
-        <div className="border rounded-lg p-4 space-y-4">
+        <div className="border rounded-lg p-4 space-y-4" role="group" aria-label="Part B – Civil and Administrative Proceedings">
           <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4 text-amber-600" />
+            <AlertTriangle className="h-4 w-4 text-amber-600" aria-hidden="true" />
             Part B – Civil and Administrative Proceedings
           </h3>
           <p className="text-xs text-slate-600">Include matters in the UK or overseas.</p>
@@ -288,9 +290,9 @@ export function PSDSection5FitnessPropriety({
         </div>
 
         {/* Part C - Business and Employment Matters */}
-        <div className="border rounded-lg p-4 space-y-4">
+        <div className="border rounded-lg p-4 space-y-4" role="group" aria-label="Part C – Business and Employment Matters">
           <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4 text-amber-600" />
+            <AlertTriangle className="h-4 w-4 text-amber-600" aria-hidden="true" />
             Part C – Business and Employment Matters
           </h3>
           <p className="text-xs text-slate-600">Include matters in the UK or overseas. Not limited to roles in Section 4.</p>
@@ -377,9 +379,9 @@ export function PSDSection5FitnessPropriety({
         </div>
 
         {/* Part D - Regulatory Matters */}
-        <div className="border rounded-lg p-4 space-y-4">
+        <div className="border rounded-lg p-4 space-y-4" role="group" aria-label="Part D – Regulatory Matters">
           <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4 text-amber-600" />
+            <AlertTriangle className="h-4 w-4 text-amber-600" aria-hidden="true" />
             Part D – Regulatory Matters
           </h3>
           <p className="text-xs text-slate-600">Include matters in the UK or overseas.</p>
@@ -464,7 +466,7 @@ export function PSDSection5FitnessPropriety({
   );
 }
 
-// Helper component for yes/no question checkboxes
+// Helper component for yes/no question radio buttons
 function QuestionCheckbox({
   id,
   checked,
@@ -479,28 +481,24 @@ function QuestionCheckbox({
   helpText?: string;
 }) {
   return (
-    <div className="flex items-start gap-3 py-2">
-      <div className="flex gap-3 items-center min-w-[80px]">
+    <div className="flex items-start gap-3 py-2" role="group" aria-labelledby={`${id}-label`}>
+      <RadioGroup
+        value={checked ? "yes" : "no"}
+        onValueChange={(v) => onChange(v === "yes")}
+        className="flex gap-3 items-center min-w-[80px]"
+      >
         <div className="flex items-center gap-1">
-          <Checkbox
-            id={`${id}-no`}
-            checked={!checked}
-            onCheckedChange={() => onChange(false)}
-          />
+          <RadioGroupItem value="no" id={`${id}-no`} />
           <Label htmlFor={`${id}-no`} className="text-xs font-normal">No</Label>
         </div>
         <div className="flex items-center gap-1">
-          <Checkbox
-            id={`${id}-yes`}
-            checked={checked}
-            onCheckedChange={() => onChange(true)}
-          />
+          <RadioGroupItem value="yes" id={`${id}-yes`} />
           <Label htmlFor={`${id}-yes`} className="text-xs font-normal">Yes</Label>
         </div>
-      </div>
+      </RadioGroup>
       <div className="flex-1">
-        <Label className="font-normal text-sm">{question}</Label>
-        {helpText && <p className="text-xs text-slate-500 mt-0.5">{helpText}</p>}
+        <Label id={`${id}-label`} className="font-normal text-sm">{question}</Label>
+        {helpText && <p id={`${id}-help`} className="text-xs text-slate-500 mt-0.5">{helpText}</p>}
       </div>
     </div>
   );

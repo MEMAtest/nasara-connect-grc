@@ -12,6 +12,7 @@ import { Briefcase, ChevronRight } from "lucide-react";
 import type { PSDFormSectionProps } from '../types/form-types';
 import { FieldHelp } from './FieldHelp';
 import { SectionInfo } from './SectionInfo';
+import { FormDatePicker } from './FormDatePicker';
 import { psdPositionTypes } from '../utils/form-constants';
 
 export function PSDSection3Arrangements({
@@ -80,7 +81,8 @@ export function PSDSection3Arrangements({
             3.2 You must attach the following (as applicable) *
           </Label>
           <SectionInfo title="Note" variant="info">
-            <p>In most cases we expect to receive the individual's employment contract. Where not available, supply another form of confirmation.</p>
+            <p>In most cases we expect to receive the individual's employment contract. Where not available, supply a letter of appointment or offer letter as confirmation.</p>
+            <p className="mt-1">Ensure the document clearly identifies the role, responsibilities, and start date.</p>
           </SectionInfo>
 
           <div className="space-y-2">
@@ -120,12 +122,13 @@ export function PSDSection3Arrangements({
         {/* 3.3-3.4 Start/End Dates */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="plannedStartDate">3.3 Planned Start Date *</Label>
-            <Input
+            <FormDatePicker
               id="plannedStartDate"
-              type="date"
+              label="3.3 Planned Start Date"
               value={formData.plannedStartDate}
-              onChange={(e) => updateField("plannedStartDate", e.target.value)}
+              onChange={(value) => updateField("plannedStartDate", value)}
+              placeholder="Select start date"
+              required
             />
           </div>
           <div className="space-y-3">
@@ -147,12 +150,12 @@ export function PSDSection3Arrangements({
 
             {formData.hasExpectedEndDate && (
               <div>
-                <Label htmlFor="expectedEndDate">Expected End Date</Label>
-                <Input
+                <FormDatePicker
                   id="expectedEndDate"
-                  type="date"
+                  label="Expected End Date"
                   value={formData.expectedEndDate}
-                  onChange={(e) => updateField("expectedEndDate", e.target.value)}
+                  onChange={(value) => updateField("expectedEndDate", value)}
+                  placeholder="Select end date"
                 />
               </div>
             )}

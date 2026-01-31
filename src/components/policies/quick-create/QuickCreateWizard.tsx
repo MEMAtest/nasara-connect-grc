@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, CheckCircle2, Sparkles } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/components/ui/use-toast";
@@ -403,7 +404,12 @@ export function QuickCreateWizard() {
 
   const totalGaps = gapSummary.firm + gapSummary.governance + gapSummary.notes + gapSummary.placeholders;
   const isSetupLoading = isProfileLoading || isPermissionsLoading;
-  const progressValue = Math.round(((step + 1) / STEP_LABELS.length) * 100);
+  const isSkippingSetup = hasStoredFirmProfile && !forceSetup;
+  const resolvedStep = isSkippingSetup && step === 0 ? 1 : step;
+  const activeSteps = isSkippingSetup ? STEP_LABELS.slice(1) : STEP_LABELS;
+  const displayStepIndex = isSkippingSetup ? Math.max(resolvedStep - 1, 0) : resolvedStep;
+  const progressValue = Math.round(((displayStepIndex + 1) / activeSteps.length) * 100);
+  const isEditingSetup = resolvedStep === 0;
 
   const requiredPolicyCodes = useMemo(() => requiredPolicies.map((policy) => policy.code), [requiredPolicies]);
   const goldStandardSet = useMemo(() => new Set(GOLD_STANDARD_POLICY_CODES), []);
@@ -784,6 +790,22 @@ export function QuickCreateWizard() {
     setShowGovernanceEditor(false);
   };
 
+  const handleEditSetup = () => {
+    setForceSetup(true);
+    setStep(0);
+  };
+
+  const headerTitle = isEditingSetup
+    ? "Update firm setup"
+    : hasStoredFirmProfile
+      ? "Generate clean policies"
+      : "Set up once, then generate clean policies";
+  const headerDescription = isEditingSetup
+    ? "Adjust your saved firm profile, permissions, and governance defaults."
+    : hasStoredFirmProfile
+      ? "Your firm setup is saved. Pick a policy and answer only what is missing for this draft."
+      : "Capture your firm profile once, link authorization projects, and generate policies without re-entering firm details each time.";
+
   return (
     <div className="space-y-6">
       <Button variant="ghost" asChild className="gap-2 px-0 text-slate-500 hover:text-slate-700">
@@ -797,15 +819,26 @@ export function QuickCreateWizard() {
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.32em] text-indigo-500">Policy creator</p>
-            <h1 className="mt-2 text-2xl font-semibold text-slate-900">Set up once, then generate clean policies</h1>
-            <p className="mt-3 max-w-2xl text-sm text-slate-500">
-              Capture your firm profile once, link authorization projects, and generate policies without re-entering
-              firm details each time.
-            </p>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <h1 className="text-2xl font-semibold text-slate-900">{headerTitle}</h1>
+              {hasStoredFirmProfile && !isEditingSetup ? (
+                <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-xs text-emerald-700">
+                  Firm setup saved
+                </Badge>
+              ) : null}
+            </div>
+            <p className="mt-3 max-w-2xl text-sm text-slate-500">{headerDescription}</p>
           </div>
-          <div className="flex items-center gap-2 rounded-full bg-indigo-50 px-4 py-2 text-xs font-semibold text-indigo-600">
-            <Sparkles className="h-4 w-4" />
-            Auto-selects recommended clauses
+          <div className="flex flex-wrap items-center gap-2">
+            {hasStoredFirmProfile && !isEditingSetup ? (
+              <Button type="button" variant="outline" size="sm" onClick={handleEditSetup}>
+                Quick edit firm setup
+              </Button>
+            ) : null}
+            <div className="flex items-center gap-2 rounded-full bg-indigo-50 px-4 py-2 text-xs font-semibold text-indigo-600">
+              <Sparkles className="h-4 w-4" />
+              Auto-selects recommended clauses
+            </div>
           </div>
         </div>
       </header>
@@ -814,8 +847,12 @@ export function QuickCreateWizard() {
         <div className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">Step {step + 1} of 4</p>
-              <h2 className="text-lg font-semibold text-slate-900">{STEP_LABELS[step]}</h2>
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
+                Step {displayStepIndex + 1} of {activeSteps.length}
+              </p>
+              <h2 className="text-lg font-semibold text-slate-900">
+                {activeSteps[displayStepIndex] ?? STEP_LABELS[resolvedStep]}
+              </h2>
             </div>
             <div className="text-xs text-slate-400">Drafts save to the policy register automatically.</div>
           </div>
@@ -823,7 +860,7 @@ export function QuickCreateWizard() {
         </div>
 
         <div className="mt-6">
-          {step === 0 && (
+          {resolvedStep === 0 && (
             <FirmSetupStep
               firmProfile={firmProfile}
               extraFirmFields={extraFirmFields}
@@ -864,7 +901,7 @@ export function QuickCreateWizard() {
             />
           )}
 
-          {step === 1 && (
+          {resolvedStep === 1 && (
             <div className="space-y-6">
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
                 <div className="flex flex-wrap items-center justify-between gap-3">
@@ -877,10 +914,7 @@ export function QuickCreateWizard() {
                     variant="ghost"
                     size="sm"
                     className="text-slate-500"
-                    onClick={() => {
-                      setForceSetup(true);
-                      setStep(0);
-                    }}
+                    onClick={handleEditSetup}
                   >
                     Edit firm setup
                   </Button>
@@ -896,7 +930,7 @@ export function QuickCreateWizard() {
             </div>
           )}
 
-          {step === 2 && selectedTemplate && (
+          {resolvedStep === 2 && selectedTemplate && (
             <PolicyGapsStep
               selectedTemplate={selectedTemplate}
               firmProfile={firmProfile}
@@ -946,7 +980,7 @@ export function QuickCreateWizard() {
             />
           )}
 
-          {step === 3 && createdPolicy && (
+          {resolvedStep === 3 && createdPolicy && (
             <div className="space-y-6">
               <div className="flex items-start gap-4 rounded-2xl border border-emerald-100 bg-emerald-50 p-5">
                 <CheckCircle2 className="mt-1 h-6 w-6 text-emerald-500" />
@@ -968,7 +1002,7 @@ export function QuickCreateWizard() {
                   Create another
                 </Button>
                 <Button variant="ghost" asChild className="text-slate-500">
-                  <Link href="/policies/register">Go to register</Link>
+                  <Link href={`/policies/register?highlight=${createdPolicy.id}`}>Go to register</Link>
                 </Button>
               </div>
               <p className="text-xs text-slate-400">

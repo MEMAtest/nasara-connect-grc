@@ -18,6 +18,7 @@ interface UserSettings {
   email_notifications: boolean;
   push_notifications: boolean;
   weekly_reports: boolean;
+  in_app_notifications: boolean;
   two_factor_enabled: boolean;
   session_timeout: boolean;
   dark_mode: boolean;
@@ -35,6 +36,7 @@ const defaultSettings: UserSettings = {
   email_notifications: true,
   push_notifications: true,
   weekly_reports: true,
+  in_app_notifications: true,
   two_factor_enabled: false,
   session_timeout: true,
   dark_mode: false,
@@ -66,6 +68,7 @@ export function SettingsClient() {
             email_notifications: data.email_notifications ?? true,
             push_notifications: data.push_notifications ?? true,
             weekly_reports: data.weekly_reports ?? true,
+            in_app_notifications: data.in_app_notifications ?? true,
             two_factor_enabled: data.two_factor_enabled ?? false,
             session_timeout: data.session_timeout ?? true,
             dark_mode: data.dark_mode ?? false,
@@ -107,6 +110,7 @@ export function SettingsClient() {
           emailNotifications: settings.email_notifications,
           pushNotifications: settings.push_notifications,
           weeklyReports: settings.weekly_reports,
+          inAppNotifications: settings.in_app_notifications,
           twoFactorEnabled: settings.two_factor_enabled,
           sessionTimeout: settings.session_timeout,
           darkMode: settings.dark_mode,
@@ -261,6 +265,18 @@ export function SettingsClient() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>In-app Notifications</Label>
+                <p className="text-sm text-muted-foreground">
+                  Show alerts in the notification bell
+                </p>
+              </div>
+              <Switch
+                checked={settings.in_app_notifications}
+                onCheckedChange={(checked) => updateSetting("in_app_notifications", checked)}
+              />
+            </div>
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label>Email Notifications</Label>

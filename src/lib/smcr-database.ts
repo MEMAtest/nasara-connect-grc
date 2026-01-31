@@ -180,6 +180,11 @@ export async function initSmcrDatabase() {
     await client.query(`CREATE INDEX IF NOT EXISTS idx_smcr_assessments_person ON smcr_fitness_assessments(person_id)`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_smcr_workflows_firm ON smcr_workflows(firm_id)`);
 
+    // FCA verification columns
+    await client.query(`ALTER TABLE smcr_people ADD COLUMN IF NOT EXISTS irn VARCHAR(20)`);
+    await client.query(`ALTER TABLE smcr_people ADD COLUMN IF NOT EXISTS fca_verification JSONB`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_smcr_people_irn ON smcr_people(irn)`);
+
     logger.info('SMCR database tables initialized successfully');
   } catch (error) {
     logError(error, 'Failed to initialize SMCR database');
@@ -250,6 +255,8 @@ export interface SmcrPerson {
   last_assessment: Date | null;
   next_assessment: Date | null;
   training_completion: number;
+  irn: string | null;
+  fca_verification: object | null;
   created_at: Date;
   updated_at: Date;
 }
@@ -266,6 +273,7 @@ export interface CreatePersonInput {
   start_date?: string;
   hire_date?: string;
   end_date?: string;
+  irn?: string;
 }
 
 export async function createPerson(input: CreatePersonInput): Promise<SmcrPerson> {
@@ -280,12 +288,13 @@ export async function createPerson(input: CreatePersonInput): Promise<SmcrPerson
   const result = await pool.query<SmcrPerson>(
     `INSERT INTO smcr_people (
       id, firm_id, employee_id, name, email, department, title, phone, address,
-      line_manager, start_date, hire_date, end_date
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *`,
+      line_manager, start_date, hire_date, end_date, irn
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *`,
     [
       id, input.firm_id, employeeId, input.name, input.email, input.department,
       input.title, input.phone, input.address, input.line_manager,
-      input.start_date, input.hire_date || input.start_date, input.end_date
+      input.start_date, input.hire_date || input.start_date, input.end_date,
+      input.irn
     ]
   );
   logDbOperation('insert', 'smcr_people', Date.now() - startTime);
@@ -318,13 +327,14 @@ export async function updatePerson(id: string, updates: Partial<SmcrPerson>): Pr
   const allowedFields = [
     'name', 'email', 'department', 'title', 'phone', 'address', 'line_manager',
     'start_date', 'hire_date', 'end_date', 'assessment_status', 'last_assessment',
-    'next_assessment', 'training_completion'
+    'next_assessment', 'training_completion', 'irn', 'fca_verification'
   ];
 
   for (const field of allowedFields) {
     if (field in updates) {
       fields.push(`${field} = $${paramIndex}`);
-      values.push(updates[field as keyof typeof updates]);
+      const value = updates[field as keyof typeof updates];
+      values.push(field === 'fca_verification' ? JSON.stringify(value) : value);
       paramIndex++;
     }
   }

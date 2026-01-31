@@ -1,17 +1,30 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import Link from "next/link";
-import { Eye, Sparkles } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { Eye, Sparkles, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/components/ui/use-toast";
 import { usePolicyProfile } from "@/lib/policies";
 import type { StoredPolicy } from "@/lib/server/policy-store";
+import { cn } from "@/lib/utils";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -52,11 +65,16 @@ const STATUS_TONES: Record<string, string> = {
 };
 
 export function RegisterClient() {
-  const { data, error, isLoading } = useSWR<StoredPolicy[]>("/api/policies", fetcher);
+  const { data, error, isLoading, mutate } = useSWR<StoredPolicy[]>("/api/policies", fetcher);
   const { profile, isLoading: isProfileLoading } = usePolicyProfile();
+  const searchParams = useSearchParams();
+  const { toast } = useToast();
+  const highlightId = searchParams.get("highlight");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [previewPolicy, setPreviewPolicy] = useState<StoredPolicy | null>(null);
+  const [deletePolicy, setDeletePolicy] = useState<StoredPolicy | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const policies = data ?? [];
 
@@ -79,9 +97,44 @@ export function RegisterClient() {
     });
   }, [policies, searchQuery, statusFilter]);
 
+  useEffect(() => {
+    if (!highlightId) return;
+    const node = document.getElementById(`policy-${highlightId}`);
+    if (node) {
+      node.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [highlightId, filteredPolicies.length]);
+
   const clearFilters = () => {
     setSearchQuery("");
     setStatusFilter("all");
+  };
+
+  const handleDelete = async () => {
+    if (!deletePolicy) return;
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`/api/policies/${deletePolicy.id}`, { method: "DELETE" });
+      if (!response.ok) {
+        throw new Error("Unable to delete policy");
+      }
+      await mutate((current) => current?.filter((policy) => policy.id !== deletePolicy.id), false);
+      await mutate();
+      toast({
+        title: "Policy deleted",
+        description: `${deletePolicy.name} has been removed.`,
+        variant: "success",
+      });
+      setDeletePolicy(null);
+    } catch (err) {
+      toast({
+        title: "Unable to delete policy",
+        description: err instanceof Error ? err.message : "Please try again in a moment.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const firmName =
@@ -164,10 +217,19 @@ export function RegisterClient() {
               const tagList = badgeTags.length
                 ? badgeTags
                 : [policy.template.category, policy.code].filter(Boolean);
+              const updatedLabel = formatDate(policy.updatedAt);
 
+              const isHighlighted = highlightId === policy.id;
               return (
-                <li key={policy.id} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                  <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+                <li
+                  key={policy.id}
+                  id={`policy-${policy.id}`}
+                  className={cn(
+                    "rounded-3xl border bg-white p-6 shadow-sm transition",
+                    isHighlighted ? "border-emerald-200 bg-emerald-50/40 ring-2 ring-emerald-100" : "border-slate-200",
+                  )}
+                >
+                  <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
                     <div className="space-y-4">
                       <div className="space-y-2">
                         <div className="flex flex-wrap items-center gap-2">
@@ -175,10 +237,20 @@ export function RegisterClient() {
                           <Badge variant="outline" className={`text-[11px] ${statusTone}`}>
                             {STATUS_LABELS[policy.status] ?? policy.status.replace("_", " ")}
                           </Badge>
+                          {updatedLabel !== "n/a" ? (
+                            <Badge variant="secondary" className="text-[11px]">
+                              Updated {updatedLabel}
+                            </Badge>
+                          ) : null}
+                          {isHighlighted ? (
+                            <Badge variant="secondary" className="text-[11px]">
+                              Added
+                            </Badge>
+                          ) : null}
                         </div>
                         <p className="text-sm text-slate-500">{policy.description}</p>
                         <p className="text-xs text-slate-400">
-                          Code {policy.code} · Updated {formatDate(policy.updatedAt)}
+                          Code {policy.code}
                         </p>
                       </div>
 
@@ -196,7 +268,7 @@ export function RegisterClient() {
                       ) : null}
                     </div>
 
-                    <div className="flex flex-col gap-2">
+                    <div className="flex min-w-[260px] flex-col gap-3">
                       <div className="flex flex-wrap items-center gap-2">
                         <Button variant="outline" size="sm" asChild>
                           <button type="button" onClick={() => setPreviewPolicy(policy)}>
@@ -210,16 +282,25 @@ export function RegisterClient() {
                         <Button variant="outline" size="sm" asChild>
                           <Link href={`/policies/${policy.id}/edit`}>Edit</Link>
                         </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-rose-600 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700"
+                          onClick={() => setDeletePolicy(policy)}
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete
+                        </Button>
                       </div>
 
                       <div className="grid gap-3 text-xs text-slate-500 sm:grid-cols-2 lg:grid-cols-1">
-                        <div className="flex items-center justify-between rounded-2xl border border-slate-100 bg-slate-50/80 px-3 py-2">
+                        <div className="rounded-2xl border border-slate-100 bg-slate-50/80 px-4 py-3">
                           <span className="text-[11px] uppercase tracking-[0.2em] text-slate-400">Owner</span>
-                          <span className="text-sm font-semibold text-slate-700">{ownerLabel}</span>
+                          <p className="mt-1 text-sm font-semibold text-slate-700">{ownerLabel}</p>
                         </div>
-                        <div className="flex items-center justify-between rounded-2xl border border-slate-100 bg-slate-50/80 px-3 py-2">
+                        <div className="rounded-2xl border border-slate-100 bg-slate-50/80 px-4 py-3">
                           <span className="text-[11px] uppercase tracking-[0.2em] text-slate-400">Next review</span>
-                          <span className="text-sm font-semibold text-slate-700">{reviewLabel}</span>
+                          <p className="mt-1 text-sm font-semibold text-slate-700">{reviewLabel}</p>
                         </div>
                       </div>
                     </div>
@@ -271,6 +352,32 @@ export function RegisterClient() {
           ) : null}
         </DialogContent>
       </Dialog>
+
+      <AlertDialog
+        open={Boolean(deletePolicy)}
+        onOpenChange={(open) => (!open ? setDeletePolicy(null) : null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete policy</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deletePolicy
+                ? `This will permanently remove "${deletePolicy.name}" from the register. This cannot be undone.`
+                : "This will permanently remove the selected policy. This cannot be undone."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-rose-600 text-white hover:bg-rose-700"
+            >
+              {isDeleting ? "Deleting..." : "Delete policy"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

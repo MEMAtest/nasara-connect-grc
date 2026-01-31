@@ -11,7 +11,7 @@ import { DEFAULT_ORGANIZATION_ID } from "@/lib/constants";
 import { findMissingTemplateVariables, renderClause, renderLiquidTemplate } from "@/lib/policies/liquid-renderer";
 import { normalizePolicyMarkdown, renderPolicyMarkdown } from "@/lib/policies/markdown";
 import { sanitizeClauseContent, DEFAULT_SANITIZE_OPTIONS } from "@/lib/policies/content-sanitizer";
-import { getRequiredNoteSectionIds } from "@/lib/policies/section-notes";
+import { getNoteSections, getRequiredNoteSectionIds, resolveNotePlaceholders } from "@/lib/policies/section-notes";
 import { listEntityLinks, upsertEntityLink } from "@/lib/server/entity-link-store";
 import { getPolicyById } from "@/lib/server/policy-store";
 
@@ -75,6 +75,7 @@ const POLICY_SANITIZE_OPTIONS = {
 
 const NOTE_SANITIZE_OPTIONS = {
   ...DEFAULT_SANITIZE_OPTIONS,
+  convertBulletsToProseText: false,
   preserveProceduralLists: false,
 };
 
@@ -140,6 +141,7 @@ export default async function PolicyDetailPage({
   const sectionNotes = customContent.sectionNotes ?? {};
   const clauseVariables = customContent.clauseVariables ?? {};
   const governance = customContent.governance ?? {};
+  const noteSections = getNoteSections(policy.template);
 
   const firmName = typeof firmProfile.name === "string" && firmProfile.name.trim().length > 0 ? firmProfile.name.trim() : null;
   const renderContext = {
@@ -322,13 +324,15 @@ export default async function PolicyDetailPage({
         summary: clause.summary,
         isMandatory: clause.isMandatory,
         contentHtml: renderMarkdown(sanitized, glossary),
+        contentMd: clause.content,
       };
     });
     const renderedNotes = section.customText
       ? renderLiquidTemplate(section.customText, renderContext)
       : "";
+    const resolvedNotes = renderedNotes ? resolveNotePlaceholders(renderedNotes, firmName ?? undefined) : "";
     const sanitizedNotes = renderedNotes
-      ? sanitizeClauseContent(renderedNotes, NOTE_SANITIZE_OPTIONS)
+      ? sanitizeClauseContent(resolvedNotes, NOTE_SANITIZE_OPTIONS)
       : "";
     const customTextHtml = sanitizedNotes ? renderMarkdown(sanitizedNotes, glossary) : "";
     return {
@@ -425,7 +429,7 @@ export default async function PolicyDetailPage({
         </div>
       </header>
 
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
         <div className="space-y-6">
           <div className="policy-screen">
             <section className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
@@ -464,10 +468,16 @@ export default async function PolicyDetailPage({
               nextReview: formatDate(governance.nextReviewAt as string | undefined),
               updatedAt: lastUpdatedLabel,
             }}
+            policyId={policy.id}
+            showActions={false}
+            noteSections={noteSections}
+            sectionNotes={sectionNotes}
+            customContent={customContent as Record<string, unknown>}
+            policyClauses={policy.clauses}
           />
         </div>
 
-        <aside className="policy-screen space-y-6 lg:sticky lg:top-6">
+        <aside className="policy-screen space-y-6 lg:sticky lg:top-6 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto lg:pr-2 lg:self-start">
           {missingMetadata.length || missingFirmNotes.length || missingVariables.size ? (
             <section className="rounded-3xl border border-amber-200 bg-amber-50 p-5 shadow-sm">
               <div className="flex items-start gap-3">

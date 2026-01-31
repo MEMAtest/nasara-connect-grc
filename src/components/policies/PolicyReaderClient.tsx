@@ -1,16 +1,29 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { BookOpen, ChevronLeft, ChevronRight, ClipboardList, Download, Eye, FileText, Printer } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { BookOpen, ChevronLeft, ChevronRight, ClipboardList, Download, Eye, FileText, Loader2, Pencil, Printer } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { SectionNotesPicker } from "@/components/policies/SectionNotesPicker";
+import type { NoteSectionConfig } from "@/lib/policies/section-notes";
+import { formatNoteValue, parseNoteCustomText, parseNoteSelections } from "@/lib/policies/section-notes";
+import type { PolicyClause } from "@/lib/policies/templates";
 
 const proseClass =
   "policy-blocks prose prose-slate max-w-none prose-sm text-slate-700 prose-headings:text-slate-900 " +
   "prose-li:marker:text-slate-400 prose-table:w-full prose-table:border-collapse prose-th:bg-slate-50 " +
   "prose-th:text-slate-700 prose-td:border prose-th:border prose-td:border-slate-200 prose-th:border-slate-200";
+
+const notesProseClass =
+  "prose prose-slate max-w-none prose-sm text-slate-700 prose-headings:text-slate-900 " +
+  "prose-ul:list-disc prose-ul:pl-5 prose-li:marker:text-slate-400 prose-table:w-full " +
+  "prose-table:border-collapse prose-th:bg-slate-50 prose-th:text-slate-700 " +
+  "prose-td:border prose-th:border prose-td:border-slate-200 prose-th:border-slate-200";
 
 export type PolicyReaderClause = {
   id: string;
@@ -18,6 +31,7 @@ export type PolicyReaderClause = {
   summary: string;
   isMandatory?: boolean;
   contentHtml: string;
+  contentMd?: string;
 };
 
 export type PolicyReaderSection = {
@@ -75,17 +89,55 @@ export function PolicyReaderClient({
   overview,
   reportMeta,
   policyId,
+  showActions = true,
+  noteSections,
+  sectionNotes,
+  customContent,
+  policyClauses,
 }: {
   sections: PolicyReaderSection[];
   defaultSectionId?: string;
   overview?: PolicyReaderOverview | null;
   reportMeta?: PolicyReportMeta;
   policyId?: string;
+  showActions?: boolean;
+  noteSections?: NoteSectionConfig[];
+  sectionNotes?: Record<string, string>;
+  customContent?: Record<string, unknown>;
+  policyClauses?: PolicyClause[];
 }) {
+  const router = useRouter();
   const initialSectionId =
     sections.find((section) => section.id === defaultSectionId)?.id ?? sections[0]?.id ?? "";
   const [activeSectionId, setActiveSectionId] = useState(initialSectionId);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isEditingNotes, setIsEditingNotes] = useState(false);
+  const [isSavingNotes, setIsSavingNotes] = useState(false);
+  const [noteError, setNoteError] = useState<string | null>(null);
+  const [noteDrafts, setNoteDrafts] = useState<Record<string, string>>(sectionNotes ?? {});
+  const [editingClauseId, setEditingClauseId] = useState<string | null>(null);
+  const [savingClauseId, setSavingClauseId] = useState<string | null>(null);
+  const [clauseError, setClauseError] = useState<string | null>(null);
+  const [clauseDrafts, setClauseDrafts] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (sectionNotes) {
+      setNoteDrafts(sectionNotes);
+    }
+  }, [sectionNotes]);
+
+  useEffect(() => {
+    if (!activeSection) return;
+    setClauseDrafts((prev) => {
+      const next = { ...prev };
+      activeSection.clauses.forEach((clause) => {
+        if (typeof clause.contentMd === "string") {
+          next[clause.id] = clause.contentMd;
+        }
+      });
+      return next;
+    });
+  }, [activeSection]);
 
   const groupedSections = useMemo(() => {
     return sections.reduce(
@@ -99,6 +151,14 @@ export function PolicyReaderClient({
 
   const activeIndex = sections.findIndex((section) => section.id === activeSectionId);
   const activeSection = sections[activeIndex] ?? sections[0];
+  const noteSectionMap = useMemo(
+    () => new Map((noteSections ?? []).map((section) => [section.id, section])),
+    [noteSections],
+  );
+  const activeNoteSection = noteSections?.find((section) => section.id === activeSection?.id);
+  const canEditNotes = Boolean(policyId && customContent && activeNoteSection && sectionNotes);
+  const canEditClauses = Boolean(policyId && customContent && policyClauses?.length);
+  const firmName = reportMeta?.firmName;
 
   const goToSection = (sectionId: string) => {
     setActiveSectionId(sectionId);
@@ -114,6 +174,127 @@ export function PolicyReaderClient({
     if (!sections.length) return;
     const prevIndex = Math.max(activeIndex - 1, 0);
     setActiveSectionId(sections[prevIndex].id);
+  };
+
+  const handleNoteToggle = (sectionId: string, option: string, checked: boolean) => {
+    setNoteDrafts((prev) => {
+      const options = noteSectionMap.get(sectionId)?.options ?? [];
+      const current = parseNoteSelections(prev[sectionId], options, firmName);
+      const customText = parseNoteCustomText(prev[sectionId], options, firmName);
+      const next = checked
+        ? Array.from(new Set([...current, option]))
+        : current.filter((value) => value !== option);
+      return { ...prev, [sectionId]: formatNoteValue(next, customText) };
+    });
+  };
+
+  const handleNoteCustomChange = (sectionId: string, value: string) => {
+    setNoteDrafts((prev) => {
+      const options = noteSectionMap.get(sectionId)?.options ?? [];
+      const current = parseNoteSelections(prev[sectionId], options, firmName);
+      return { ...prev, [sectionId]: formatNoteValue(current, value) };
+    });
+  };
+
+  const handleCancelNotes = () => {
+    if (!activeSection) return;
+    setNoteDrafts((prev) => ({
+      ...prev,
+      [activeSection.id]: sectionNotes?.[activeSection.id] ?? "",
+    }));
+    setIsEditingNotes(false);
+    setNoteError(null);
+  };
+
+  const handleSaveNotes = async () => {
+    if (!policyId || !customContent || !activeSection) return;
+    setIsSavingNotes(true);
+    setNoteError(null);
+    try {
+      const nextSectionNotes = {
+        ...(sectionNotes ?? {}),
+        [activeSection.id]: noteDrafts[activeSection.id] ?? "",
+      };
+
+      const response = await fetch(`/api/policies/${policyId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customContent: {
+            ...customContent,
+            sectionNotes: nextSectionNotes,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to save firm notes");
+      }
+
+      const updated = (await response.json()) as { customContent?: Record<string, unknown> };
+      const updatedNotes =
+        (updated.customContent as { sectionNotes?: Record<string, string> } | undefined)?.sectionNotes ??
+        nextSectionNotes;
+      setNoteDrafts(updatedNotes);
+      setIsEditingNotes(false);
+      router.refresh();
+    } catch (err) {
+      setNoteError(err instanceof Error ? err.message : "Unable to save firm notes");
+    } finally {
+      setIsSavingNotes(false);
+    }
+  };
+
+  const handleClauseEdit = (clauseId: string) => {
+    setEditingClauseId(clauseId);
+    setClauseError(null);
+  };
+
+  const handleClauseCancel = (clauseId: string) => {
+    setEditingClauseId(null);
+    setClauseError(null);
+    const original = activeSection?.clauses.find((clause) => clause.id === clauseId)?.contentMd;
+    if (typeof original === "string") {
+      setClauseDrafts((prev) => ({ ...prev, [clauseId]: original }));
+    }
+  };
+
+  const handleClauseSave = async (clauseId: string) => {
+    if (!policyId || !customContent || !policyClauses) return;
+    const draft = clauseDrafts[clauseId]?.trim() ?? "";
+    if (!draft) {
+      setClauseError("Clause content cannot be empty.");
+      return;
+    }
+
+    setSavingClauseId(clauseId);
+    setClauseError(null);
+
+    try {
+      const nextClauses = policyClauses.map((clause) =>
+        clause.id === clauseId ? { ...clause, content: draft } : clause,
+      );
+
+      const response = await fetch(`/api/policies/${policyId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          clauses: nextClauses,
+          customContent,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to save clause");
+      }
+
+      setEditingClauseId(null);
+      router.refresh();
+    } catch (err) {
+      setClauseError(err instanceof Error ? err.message : "Unable to save clause");
+    } finally {
+      setSavingClauseId(null);
+    }
   };
 
   if (!activeSection) {
@@ -196,7 +377,7 @@ export function PolicyReaderClient({
             <p className="policy-report-summary">{section.summary}</p>
             {section.customTextHtml ? (
               <div
-                className={proseClass}
+                className={notesProseClass}
                 dangerouslySetInnerHTML={{ __html: section.customTextHtml }}
               />
             ) : null}
@@ -248,44 +429,45 @@ export function PolicyReaderClient({
       </div>
 
       <div className="policy-screen">
-        {/* Action buttons */}
-        <div className="mb-4 flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div>
-            <h2 className="text-lg font-semibold text-slate-900">{reportTitle}</h2>
-            <p className="text-sm text-slate-500">{reportFirm || 'Policy Document'}</p>
-          </div>
-          <div className="flex gap-2">
-            {policyId && (
-              <Button variant="outline" size="sm" asChild className="gap-2">
-                <a href={`/api/policies/${policyId}/documents/pdf?inline=1`} target="_blank" rel="noreferrer">
-                  <Eye className="h-4 w-4" />
-                  Preview PDF
-                </a>
-              </Button>
-            )}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => window.print()}
-              className="gap-2"
-            >
-              <Printer className="h-4 w-4" />
-              Print
-            </Button>
-            {policyId && (
+        {showActions ? (
+          <div className="mb-4 flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-900">{reportTitle}</h2>
+              <p className="text-sm text-slate-500">{reportFirm || "Policy Document"}</p>
+            </div>
+            <div className="flex gap-2">
+              {policyId && (
+                <Button variant="outline" size="sm" asChild className="gap-2">
+                  <a href={`/api/policies/${policyId}/documents/pdf?inline=1`} target="_blank" rel="noreferrer">
+                    <Eye className="h-4 w-4" />
+                    Preview PDF
+                  </a>
+                </Button>
+              )}
               <Button
+                variant="outline"
                 size="sm"
-                className="gap-2 bg-indigo-600 hover:bg-indigo-700"
-                onClick={() => {
-                  window.location.href = `/api/policies/${policyId}/documents/docx`;
-                }}
+                onClick={() => window.print()}
+                className="gap-2"
               >
-                <Download className="h-4 w-4" />
-                Download DOCX
+                <Printer className="h-4 w-4" />
+                Print
               </Button>
-            )}
+              {policyId && (
+                <Button
+                  size="sm"
+                  className="gap-2 bg-indigo-600 hover:bg-indigo-700"
+                  onClick={() => {
+                    window.location.href = `/api/policies/${policyId}/documents/docx`;
+                  }}
+                >
+                  <Download className="h-4 w-4" />
+                  Download DOCX
+                </Button>
+              )}
+            </div>
           </div>
-        </div>
+        ) : null}
 
         <div className="flex gap-2 overflow-x-auto pb-2 lg:hidden">
           {sections.map((section) => (
@@ -305,8 +487,8 @@ export function PolicyReaderClient({
           ))}
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
-          <aside className="hidden space-y-4 lg:block">
+        <div className="grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:items-start">
+          <aside className="hidden space-y-4 rounded-3xl border border-slate-100 bg-white p-3 shadow-sm lg:sticky lg:top-6 lg:block lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto">
             {(Object.keys(groupedSections) as Array<PolicyReaderSection["sectionType"]>).map((key) => {
               const group = groupedSections[key];
               if (!group.length) return null;
@@ -421,12 +603,12 @@ export function PolicyReaderClient({
               <div className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1fr)_240px]">
               <div className="space-y-3">
                 <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-400">Firm notes</p>
-                {activeSection.customTextHtml ? (
-                  <p className="text-sm text-slate-600">{activeSection.customTextExcerpt}</p>
-                ) : activeMissingNotes ? (
-                  <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-                    <p className="text-sm text-amber-800">
-                      Add firm-specific SLAs, contact points, and escalation detail for this section.
+            {activeSection.customTextHtml ? (
+              <p className="text-sm text-slate-600">{activeSection.customTextExcerpt}</p>
+            ) : activeMissingNotes ? (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+                <p className="text-sm text-amber-800">
+                  Add firm-specific SLAs, contact points, and escalation detail for this section.
                     </p>
                   </div>
                 ) : (
@@ -476,16 +658,40 @@ export function PolicyReaderClient({
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>{activeSection.title}</DialogTitle>
-            <p className="text-sm text-slate-500">{activeSection.summary}</p>
+          <DialogHeader className="space-y-3">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="space-y-1">
+                <DialogTitle>{activeSection.title}</DialogTitle>
+                <p className="text-sm text-slate-500">{activeSection.summary}</p>
+              </div>
+              {policyId ? (
+                <Button variant="outline" size="sm" asChild className="gap-2">
+                  <Link href={`/policies/${policyId}/edit`}>
+                    <Pencil className="h-4 w-4" />
+                    Edit policy
+                  </Link>
+                </Button>
+              ) : null}
+            </div>
           </DialogHeader>
           <div className="max-h-[70vh] space-y-6 overflow-y-auto pr-2">
             <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-400">Firm notes</p>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-400">Firm notes</p>
+                {canEditNotes ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-slate-500"
+                    onClick={() => setIsEditingNotes((value) => !value)}
+                  >
+                    {isEditingNotes ? "Hide editor" : "Edit notes"}
+                  </Button>
+                ) : null}
+              </div>
               {activeSection.customTextHtml ? (
                 <div
-                  className={proseClass}
+                  className={notesProseClass}
                   dangerouslySetInnerHTML={{ __html: activeSection.customTextHtml }}
                 />
               ) : activeMissingNotes ? (
@@ -499,6 +705,39 @@ export function PolicyReaderClient({
               )}
             </div>
 
+            {canEditNotes && activeNoteSection && isEditingNotes ? (
+              <div className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
+                <SectionNotesPicker
+                  sections={[activeNoteSection]}
+                  sectionNotes={noteDrafts}
+                  onToggle={handleNoteToggle}
+                  onCustomChange={handleNoteCustomChange}
+                  firmName={firmName}
+                />
+                {noteError ? <p className="text-xs text-rose-600">{noteError}</p> : null}
+                <div className="flex items-center justify-end gap-2">
+                  <Button variant="outline" size="sm" onClick={handleCancelNotes} disabled={isSavingNotes}>
+                    Cancel
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="gap-2 bg-indigo-600 hover:bg-indigo-700"
+                    onClick={handleSaveNotes}
+                    disabled={isSavingNotes}
+                  >
+                    {isSavingNotes ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Saving
+                      </>
+                    ) : (
+                      "Save notes"
+                    )}
+                  </Button>
+                </div>
+              </div>
+            ) : null}
+
             <div className="space-y-3">
               <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-400">Clauses</p>
               {activeSection.clauses.length ? (
@@ -510,14 +749,75 @@ export function PolicyReaderClient({
                           <p className="text-sm font-semibold text-slate-800">{clause.title}</p>
                           <p className="text-xs text-slate-500">{clause.summary}</p>
                         </div>
-                        {clause.isMandatory ? (
-                          <Badge variant="secondary" className="text-[11px]">Mandatory</Badge>
-                        ) : null}
+                        <div className="flex items-center gap-2">
+                          {clause.isMandatory ? (
+                            <Badge variant="secondary" className="text-[11px]">Mandatory</Badge>
+                          ) : null}
+                          {canEditClauses && clause.contentMd ? (
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              className="h-7 px-2 text-[11px]"
+                              onClick={(event) => {
+                                event.preventDefault();
+                                event.stopPropagation();
+                                handleClauseEdit(clause.id);
+                              }}
+                            >
+                              Edit
+                            </Button>
+                          ) : null}
+                        </div>
                       </summary>
-                      <div
-                        className={`${proseClass} mt-3`}
-                        dangerouslySetInnerHTML={{ __html: clause.contentHtml }}
-                      />
+                      {editingClauseId === clause.id ? (
+                        <div className="mt-3 space-y-3">
+                          <Textarea
+                            value={clauseDrafts[clause.id] ?? clause.contentMd ?? ""}
+                            onChange={(event) =>
+                              setClauseDrafts((prev) => ({ ...prev, [clause.id]: event.target.value }))
+                            }
+                            className="min-h-[180px]"
+                            spellCheck
+                          />
+                          <p className="text-xs text-slate-400">
+                            Use Markdown. Liquid variables like {"{{firm.name}}"} are allowed.
+                          </p>
+                          {clauseError ? <p className="text-xs text-rose-600">{clauseError}</p> : null}
+                          <div className="flex items-center justify-end gap-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleClauseCancel(clause.id)}
+                              disabled={savingClauseId === clause.id}
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              className="gap-2 bg-indigo-600 hover:bg-indigo-700"
+                              onClick={() => handleClauseSave(clause.id)}
+                              disabled={savingClauseId === clause.id}
+                            >
+                              {savingClauseId === clause.id ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                  Saving
+                                </>
+                              ) : (
+                                "Save clause"
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div
+                          className={`${proseClass} mt-3`}
+                          dangerouslySetInnerHTML={{ __html: clause.contentHtml }}
+                        />
+                      )}
                     </details>
                   ))}
                 </div>

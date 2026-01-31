@@ -37,7 +37,7 @@ function formatSourceLabel(source: string | null): string {
 
 export function NotificationsBell() {
   const [isOpen, setIsOpen] = useState(false);
-  const { notifications, unreadCount, isLoading, error, refresh, markAsRead, markAllRead } = useNotifications({
+  const { notifications, unreadCount, isLoading, error, isEnabled, refresh, markAsRead, markAllRead } = useNotifications({
     limit: 8,
   });
 
@@ -81,13 +81,27 @@ export function NotificationsBell() {
         <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
           <div>
             <p className="text-sm font-semibold text-slate-900">Notifications</p>
-            <p className="text-xs text-slate-500">{hasUnread ? `${unreadCount} unread` : "All caught up"}</p>
+            <p className="text-xs text-slate-500">
+              {!isEnabled ? "Disabled in settings" : hasUnread ? `${unreadCount} unread` : "All caught up"}
+            </p>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" className="text-xs" onClick={markAllRead} disabled={!hasUnread}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs"
+              onClick={markAllRead}
+              disabled={!hasUnread || !isEnabled}
+            >
               Mark all read
             </Button>
-            <Button variant="ghost" size="sm" className="text-xs" onClick={refresh} disabled={isLoading}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs"
+              onClick={refresh}
+              disabled={isLoading || !isEnabled}
+            >
               Refresh
             </Button>
           </div>
@@ -101,6 +115,16 @@ export function NotificationsBell() {
                 <AlertDescription>{error}</AlertDescription>
               </div>
             </Alert>
+          ) : !isEnabled ? (
+            <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-600">
+              <p className="font-medium text-slate-900">Notifications are turned off.</p>
+              <p className="mt-1 text-xs text-slate-500">
+                Enable in-app notifications to see alerts here.
+              </p>
+              <Link href="/settings" className="mt-2 inline-flex text-xs text-teal-700 hover:text-teal-600 hover:underline">
+                Manage preferences
+              </Link>
+            </div>
           ) : isLoading ? (
             Array.from({ length: 3 }).map((_, index) => <Skeleton key={index} className="h-20 w-full rounded-2xl" />)
           ) : items.length === 0 ? (

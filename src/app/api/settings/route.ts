@@ -33,6 +33,7 @@ async function initSettingsTable() {
       email_notifications BOOLEAN DEFAULT true,
       push_notifications BOOLEAN DEFAULT true,
       weekly_reports BOOLEAN DEFAULT true,
+      in_app_notifications BOOLEAN DEFAULT true,
       two_factor_enabled BOOLEAN DEFAULT false,
       session_timeout BOOLEAN DEFAULT true,
       dark_mode BOOLEAN DEFAULT false,
@@ -41,6 +42,11 @@ async function initSettingsTable() {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
+  `);
+
+  await pool.query(`
+    ALTER TABLE user_settings
+    ADD COLUMN IF NOT EXISTS in_app_notifications BOOLEAN DEFAULT true
   `);
 }
 
@@ -56,6 +62,7 @@ export interface UserSettings {
   email_notifications: boolean;
   push_notifications: boolean;
   weekly_reports: boolean;
+  in_app_notifications: boolean;
   two_factor_enabled: boolean;
   session_timeout: boolean;
   dark_mode: boolean;
@@ -74,6 +81,7 @@ const defaultSettings = {
   email_notifications: true,
   push_notifications: true,
   weekly_reports: true,
+  in_app_notifications: true,
   two_factor_enabled: false,
   session_timeout: true,
   dark_mode: false,
@@ -142,6 +150,7 @@ export async function PUT(request: NextRequest) {
       emailNotifications,
       pushNotifications,
       weeklyReports,
+      inAppNotifications,
       twoFactorEnabled,
       sessionTimeout,
       darkMode,
@@ -162,9 +171,9 @@ export async function PUT(request: NextRequest) {
       result = await pool.query<UserSettings>(
         `INSERT INTO user_settings (
           id, user_id, user_email, first_name, last_name, role, phone, organization,
-          email_notifications, push_notifications, weekly_reports, two_factor_enabled,
+          email_notifications, push_notifications, weekly_reports, in_app_notifications, two_factor_enabled,
           session_timeout, dark_mode, compact_view, language
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
         RETURNING *`,
         [
           id,
@@ -178,6 +187,7 @@ export async function PUT(request: NextRequest) {
           emailNotifications ?? defaultSettings.email_notifications,
           pushNotifications ?? defaultSettings.push_notifications,
           weeklyReports ?? defaultSettings.weekly_reports,
+          inAppNotifications ?? defaultSettings.in_app_notifications,
           twoFactorEnabled ?? defaultSettings.two_factor_enabled,
           sessionTimeout ?? defaultSettings.session_timeout,
           darkMode ?? defaultSettings.dark_mode,
@@ -197,13 +207,14 @@ export async function PUT(request: NextRequest) {
           email_notifications = COALESCE($6, email_notifications),
           push_notifications = COALESCE($7, push_notifications),
           weekly_reports = COALESCE($8, weekly_reports),
-          two_factor_enabled = COALESCE($9, two_factor_enabled),
-          session_timeout = COALESCE($10, session_timeout),
-          dark_mode = COALESCE($11, dark_mode),
-          compact_view = COALESCE($12, compact_view),
-          language = COALESCE($13, language),
+          in_app_notifications = COALESCE($9, in_app_notifications),
+          two_factor_enabled = COALESCE($10, two_factor_enabled),
+          session_timeout = COALESCE($11, session_timeout),
+          dark_mode = COALESCE($12, dark_mode),
+          compact_view = COALESCE($13, compact_view),
+          language = COALESCE($14, language),
           updated_at = CURRENT_TIMESTAMP
-        WHERE user_email = $14
+        WHERE user_email = $15
         RETURNING *`,
         [
           firstName,
@@ -214,6 +225,7 @@ export async function PUT(request: NextRequest) {
           emailNotifications,
           pushNotifications,
           weeklyReports,
+          inAppNotifications,
           twoFactorEnabled,
           sessionTimeout,
           darkMode,

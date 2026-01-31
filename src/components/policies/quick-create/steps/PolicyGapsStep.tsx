@@ -1,12 +1,14 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { SectionNotesPicker } from "@/components/policies/SectionNotesPicker";
-import { Loader2 } from "lucide-react";
+import { CheckCircle2, Loader2 } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 import type { FirmProfile } from "@/components/policies/policy-wizard/types";
 import type { PolicyTemplate } from "@/lib/policies/templates";
 import type { QuickAnswer, QuickAnswers, QuickQuestion } from "@/lib/policies/quick-defaults";
@@ -102,6 +104,62 @@ export function PolicyGapsStep({
   onRemoveDistribution,
   error,
 }: PolicyGapsStepProps) {
+  const [elapsedMs, setElapsedMs] = useState(0);
+
+  useEffect(() => {
+    if (!isSubmitting) {
+      setElapsedMs(0);
+      return;
+    }
+    const start = Date.now();
+    const timer = setInterval(() => {
+      setElapsedMs(Date.now() - start);
+    }, 250);
+    return () => clearInterval(timer);
+  }, [isSubmitting]);
+
+  const progressSteps = useMemo(
+    () => [
+      {
+        id: "assemble",
+        label: "Assembling policy",
+        description: "Building clauses and firm context.",
+        threshold: 1800,
+      },
+      {
+        id: "enhance",
+        label: "Enhancing content",
+        description: "Applying detail and formatting.",
+        threshold: 5200,
+      },
+      {
+        id: "save",
+        label: "Saving draft",
+        description: "Finalizing and storing the policy.",
+        threshold: 9000,
+      },
+    ],
+    [],
+  );
+
+  const activeStepIndex = useMemo(() => {
+    const index = progressSteps.findIndex((step) => elapsedMs < step.threshold);
+    return index === -1 ? progressSteps.length - 1 : index;
+  }, [elapsedMs, progressSteps]);
+
+  const progressValue = useMemo(() => {
+    const total = progressSteps[progressSteps.length - 1].threshold;
+    const clamped = Math.min(elapsedMs, total);
+    return Math.min(95, Math.round((clamped / total) * 80 + 15));
+  }, [elapsedMs, progressSteps]);
+
+  const elapsedLabel = useMemo(() => {
+    const totalSeconds = Math.floor(elapsedMs / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  }, [elapsedMs]);
+
   return (
     <form
       className="space-y-8"
@@ -438,6 +496,43 @@ export function PolicyGapsStep({
                 "Generate policy"
               )}
             </Button>
+            {isSubmitting ? (
+              <div className="mt-4 space-y-4 rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
+                <div className="flex items-center justify-between text-xs text-slate-500">
+                  <span className="uppercase tracking-[0.2em]">Generating</span>
+                  <span>Elapsed {elapsedLabel}</span>
+                </div>
+                <Progress value={progressValue} className="bg-slate-100" />
+                <div className="space-y-3">
+                  {progressSteps.map((step, index) => {
+                    const isComplete = index < activeStepIndex;
+                    const isActive = index === activeStepIndex;
+                    return (
+                      <div key={step.id} className="flex items-start gap-3">
+                        <div className="mt-0.5">
+                          {isComplete ? (
+                            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                          ) : isActive ? (
+                            <Loader2 className="h-4 w-4 animate-spin text-indigo-500" />
+                          ) : (
+                            <span className="block h-4 w-4 rounded-full border border-slate-200" />
+                          )}
+                        </div>
+                        <div>
+                          <p className={`text-sm font-semibold ${isActive ? "text-slate-900" : "text-slate-600"}`}>
+                            {step.label}
+                          </p>
+                          <p className="text-xs text-slate-500">{step.description}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <p className="text-xs text-slate-400">
+                  This can take a minute for longer policies.
+                </p>
+              </div>
+            ) : null}
             {totalGaps > 0 ? (
               <p className="mt-2 text-xs text-slate-400">Fill the remaining gaps to create the draft.</p>
             ) : null}

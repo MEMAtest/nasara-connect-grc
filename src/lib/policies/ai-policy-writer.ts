@@ -7,7 +7,7 @@ export const DEFAULT_POLICY_MODEL =
 
 const AI_MAX_TOKENS = 650;
 const AI_TEMPERATURE = 0.2;
-const AI_CONCURRENCY = 2;
+const AI_CONCURRENCY = 6;
 
 export type PolicyAiDetailLevel = "detailed" | "standard";
 

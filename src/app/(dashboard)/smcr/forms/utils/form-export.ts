@@ -679,7 +679,12 @@ export const generatePSDIndividualHTML = (data: PSDIndividualFormState): string 
   <h3>3.2 Attached Documents</h3>
   ${data.attachedDocuments.length > 0 ? `
     <ul style="margin: 5px 0 0 20px;">
-      ${data.attachedDocuments.map(doc => `<li>${e(doc === "letter" ? "Letter of appointment" : doc === "contract" ? "Contract of employment" : "Offer letter")}</li>`).join("")}
+      ${data.attachedDocuments.map(doc => {
+        const label = doc === "letter" ? "Letter of appointment" :
+                      doc === "contract" ? "Contract of employment" :
+                      doc === "offer" ? "Offer letter" : doc;
+        return `<li>${e(label)}</li>`;
+      }).join("")}
     </ul>
   ` : "<p style='font-style: italic;'>No documents attached</p>"}
 

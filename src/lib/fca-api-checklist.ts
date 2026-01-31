@@ -19,6 +19,7 @@ export interface ChecklistItem {
   description: string;
   fcaReference?: string;
   applicability?: string;
+  smcrLink?: string;
 }
 
 export interface ChecklistCategory {
@@ -112,18 +113,21 @@ export const FCA_API_CHECKLIST: ChecklistCategory[] = [
         label: 'API Application Form',
         description: 'Authorisation as a Payment Institution - primary application form with answers to all sections.',
         fcaReference: 'FCA Connect API application form',
+        smcrLink: '/smcr/forms',
       },
       {
         id: 'psd-individuals',
         label: 'Individuals Form for PIs (PSD Individual)',
         description: 'Registers individuals responsible for managing the PI - one form per director and manager.',
         fcaReference: 'FCA PI applicants page',
+        smcrLink: '/smcr/forms',
       },
       {
         id: 'qualifying-holdings',
         label: 'Qualifying holding (controller) forms',
         description: 'Registers each person/firm with 10%+ holding - forms vary by controller type.',
         fcaReference: 'FCA Controllers forms',
+        smcrLink: '/smcr/forms',
       },
       {
         id: 'main-contact',

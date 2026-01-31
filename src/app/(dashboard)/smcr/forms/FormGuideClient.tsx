@@ -4,7 +4,7 @@ import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, User, Briefcase, AlertTriangle, Edit3, ArrowRightLeft, CreditCard } from "lucide-react";
+import { FileText, User, Briefcase, AlertTriangle, Edit3, ArrowRightLeft, CreditCard, ClipboardList } from "lucide-react";
 import { format } from "date-fns";
 import { useSmcrData } from "../context/SmcrDataContext";
 
@@ -81,6 +81,8 @@ import { PSDSection4Employment } from './components/PSDSection4Employment';
 import { PSDSection5FitnessPropriety } from './components/PSDSection5FitnessPropriety';
 import { PSDSection6SupplementaryInfo } from './components/PSDSection6SupplementaryInfo';
 import { PSDSection7Declarations } from './components/PSDSection7Declarations';
+import { FormSelector } from './components/FormSelector';
+import { FormNotesPanel } from './components/FormNotesPanel';
 
 type SaveStatus = 'saved' | 'saving' | 'error' | 'quota-exceeded' | null;
 
@@ -88,7 +90,7 @@ export function FormGuideClient() {
   const { firms, activeFirmId } = useSmcrData();
   const activeFirm = firms.find((f) => f.id === activeFirmId);
 
-  const [activeTab, setActiveTab] = useState("form-a");
+  const [activeTab, setActiveTab] = useState("select");
   const [activeSection, setActiveSection] = useState("1");
   const [formCSectionActive, setFormCSectionActive] = useState("1");
   const [formDSectionActive, setFormDSectionActive] = useState("1");
@@ -121,6 +123,7 @@ export function FormGuideClient() {
   const [formPSDValidationErrors, setFormPSDValidationErrors] = useState<Record<string, string>>({});
   const [saveStatus, setSaveStatus] = useState<SaveStatus>(null);
   const [exportError, setExportError] = useState<string | null>(null);
+  const [notesPanelOpen, setNotesPanelOpen] = useState(false);
 
   // Load saved form data from localStorage on mount
   useEffect(() => {
@@ -522,9 +525,9 @@ export function FormGuideClient() {
   };
 
   // PSD Individual Form update function
-  const updateFormPSD = <K extends keyof PSDIndividualFormState>(field: K, value: PSDIndividualFormState[K]) => {
+  const updateFormPSD = useCallback(<K extends keyof PSDIndividualFormState>(field: K, value: PSDIndividualFormState[K]) => {
     setFormPSD((prev) => ({ ...prev, [field]: value }));
-  };
+  }, []);
 
   // PSD Employment management
   const addPSDEmployment = () => {
@@ -712,24 +715,52 @@ export function FormGuideClient() {
     total++;
     if (formPSD.employmentHistory.length > 0 && formPSD.employmentHistory[0].employerName) filled++;
 
+    // Section 5 confirmation fields (only count if disclosures exist)
+    const hasAnyPartADisclosure = formPSD.hasCriminalConviction || formPSD.hasPendingInvestigation ||
+      formPSD.hasCurrentCriminalProceedings || formPSD.hasPastCriminalProceedings || formPSD.hasOrganisationInsolvency;
+    const hasAnyPartBDisclosure = formPSD.hasCivilInvestigations || formPSD.hasCivilDecisionsAgainst ||
+      formPSD.hasCivilEnforcement || formPSD.hasSupervisoryInvolvement || formPSD.hasBankruptcyFiled ||
+      formPSD.hasBeenBankrupt || formPSD.hasBankruptcyRestrictions || formPSD.hasCreditorArrangements ||
+      formPSD.hasAssetsSequestrated || formPSD.hasBankruptcyProceedings || formPSD.hasCurrentBankruptcyProceedings ||
+      formPSD.hasOutstandingFinancialObligations;
+    const hasAnyPartCDisclosure = formPSD.hasBeenDismissed || formPSD.hasBeenAskedToResign ||
+      formPSD.hasBeenSuspended || formPSD.hasBeenDisqualifiedDirector || formPSD.hasDisciplinaryProceedings ||
+      formPSD.hasDisciplinaryInvestigation || formPSD.hasNotifiedDisciplinary || formPSD.hasMalpracticeAllegations;
+    const hasAnyPartDDisclosure = formPSD.hasRefusedAuthorisation || formPSD.hasBeenExcluded ||
+      formPSD.hasPreviousReputationAssessment;
+
+    total += 4;
+    if (formPSD.partADetailsProvided || !hasAnyPartADisclosure) filled++;
+    if (formPSD.partBDetailsProvided || !hasAnyPartBDisclosure) filled++;
+    if (formPSD.partCDetailsProvided || !hasAnyPartCDisclosure) filled++;
+    if (formPSD.partDDetailsProvided || !hasAnyPartDDisclosure) filled++;
+
     return Math.round((filled / total) * 100);
   }, [formPSD]);
 
   const handlePrint = () => window.print();
 
+  const downloadHtmlBlob = useCallback((html: string, filename: string) => {
+    const blob = new Blob([html], { type: "text/html" });
+    if (blob.size > 50 * 1024 * 1024) {
+      setExportError('Form data too large to export. Try reducing supplementary information.');
+      return;
+    }
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
+  }, []);
+
   const handleExport = () => {
     try {
       setExportError(null);
       const html = generateFormHTML(formA);
-      const blob = new Blob([html], { type: "text/html" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `Form-A-${sanitizeFilename(formA.surname)}-${format(new Date(), "yyyy-MM-dd")}.html`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      setTimeout(() => URL.revokeObjectURL(url), 100);
+      downloadHtmlBlob(html, `Form-A-${sanitizeFilename(formA.surname)}-${format(new Date(), "yyyy-MM-dd")}.html`);
     } catch (error) {
       console.error('Export failed:', error);
       setExportError('Failed to export form. Please try again.');
@@ -740,15 +771,7 @@ export function FormGuideClient() {
     try {
       setExportError(null);
       const html = generateFormCHTML(formC);
-      const blob = new Blob([html], { type: "text/html" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `Form-C-${sanitizeFilename(formC.surname)}-${format(new Date(), "yyyy-MM-dd")}.html`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      setTimeout(() => URL.revokeObjectURL(url), 100);
+      downloadHtmlBlob(html, `Form-C-${sanitizeFilename(formC.surname)}-${format(new Date(), "yyyy-MM-dd")}.html`);
     } catch (error) {
       console.error('Export failed:', error);
       setExportError('Failed to export form. Please try again.');
@@ -759,15 +782,7 @@ export function FormGuideClient() {
     try {
       setExportError(null);
       const html = generateFormDHTML(formD);
-      const blob = new Blob([html], { type: "text/html" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `Form-D-${sanitizeFilename(formD.surname)}-${format(new Date(), "yyyy-MM-dd")}.html`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      setTimeout(() => URL.revokeObjectURL(url), 100);
+      downloadHtmlBlob(html, `Form-D-${sanitizeFilename(formD.surname)}-${format(new Date(), "yyyy-MM-dd")}.html`);
     } catch (error) {
       console.error('Export failed:', error);
       setExportError('Failed to export form. Please try again.');
@@ -778,15 +793,7 @@ export function FormGuideClient() {
     try {
       setExportError(null);
       const html = generateFormEHTML(formE);
-      const blob = new Blob([html], { type: "text/html" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `Form-E-${sanitizeFilename(formE.surname)}-${format(new Date(), "yyyy-MM-dd")}.html`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      setTimeout(() => URL.revokeObjectURL(url), 100);
+      downloadHtmlBlob(html, `Form-E-${sanitizeFilename(formE.surname)}-${format(new Date(), "yyyy-MM-dd")}.html`);
     } catch (error) {
       console.error('Export failed:', error);
       setExportError('Failed to export form. Please try again.');
@@ -797,15 +804,7 @@ export function FormGuideClient() {
     try {
       setExportError(null);
       const html = generatePSDIndividualHTML(formPSD);
-      const blob = new Blob([html], { type: "text/html" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `PSD-Individual-${sanitizeFilename(formPSD.surname)}-${format(new Date(), "yyyy-MM-dd")}.html`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      setTimeout(() => URL.revokeObjectURL(url), 100);
+      downloadHtmlBlob(html, `PSD-Individual-${sanitizeFilename(formPSD.surname)}-${format(new Date(), "yyyy-MM-dd")}.html`);
     } catch (error) {
       console.error('Export failed:', error);
       setExportError('Failed to export form. Please try again.');
@@ -856,12 +855,12 @@ export function FormGuideClient() {
   };
 
   // Common props for PSD Individual Form section components
-  const formPSDSectionProps = {
+  const formPSDSectionProps = useMemo(() => ({
     formData: formPSD,
     updateField: updateFormPSD,
     validationErrors: formPSDValidationErrors,
     validateField: validateFormPSDField,
-  };
+  }), [formPSD, formPSDValidationErrors, updateFormPSD, validateFormPSDField]);
 
   // Form C navigation helpers
   const nextFormCSection = (current: string) => {
@@ -908,12 +907,14 @@ export function FormGuideClient() {
       <FormHeader
         saveStatus={saveStatus}
         onPrint={handlePrint}
+        onToggleNotes={activeTab === "psd-individual" ? () => setNotesPanelOpen(true) : undefined}
         onExport={
           activeTab === "form-a" ? handleExport :
           activeTab === "form-c" ? handleExportFormC :
           activeTab === "form-d" ? handleExportFormD :
           activeTab === "form-e" ? handleExportFormE :
-          handleExportFormPSD
+          activeTab === "psd-individual" ? handleExportFormPSD :
+          handleExport
         }
         onClear={clearSavedForm}
       />
@@ -938,7 +939,11 @@ export function FormGuideClient() {
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="select" className="gap-1 text-xs">
+            <ClipboardList className="h-3 w-3" />
+            Select
+          </TabsTrigger>
           <TabsTrigger value="form-a" className="gap-1 text-xs">
             <User className="h-3 w-3" />
             Form A
@@ -960,6 +965,10 @@ export function FormGuideClient() {
             PSD
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="select" className="space-y-4 mt-4">
+          <FormSelector onSelectForm={setActiveTab} />
+        </TabsContent>
 
         <TabsContent value="form-a" className="space-y-4 mt-4">
           <SectionNavigation
@@ -1331,9 +1340,9 @@ export function FormGuideClient() {
           {psdSectionActive === "1" && (
             <PSDSection1PersonalDetails
               {...formPSDSectionProps}
-              addAddress={addPSDAddress}
-              updateAddress={updatePSDAddress}
-              removeAddress={removePSDAddress}
+              addPreviousAddress={addPSDAddress}
+              updatePreviousAddress={updatePSDAddress}
+              removePreviousAddress={removePSDAddress}
               onNext={() => nextPSDSection("1")}
             />
           )}
@@ -1393,6 +1402,12 @@ export function FormGuideClient() {
           )}
         </TabsContent>
       </Tabs>
+
+      <FormNotesPanel
+        open={notesPanelOpen}
+        onOpenChange={setNotesPanelOpen}
+        activeSection={activeTab === "psd-individual" ? psdSectionActive : undefined}
+      />
     </div>
   );
 }

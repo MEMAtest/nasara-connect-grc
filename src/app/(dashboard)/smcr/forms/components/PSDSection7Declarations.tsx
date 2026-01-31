@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { CheckCircle2, Download } from "lucide-react";
 import type { PSDFormSectionProps } from '../types/form-types';
 import { SectionInfo } from './SectionInfo';
+import { FormDatePicker } from './FormDatePicker';
 
 interface PSDSection7Props extends PSDFormSectionProps {
   onExport: () => void;
@@ -42,6 +43,7 @@ export function PSDSection7Declarations({
       <CardContent className="space-y-6">
         <SectionInfo title="Legal Notice" variant="warning">
           <p><strong>Knowingly or recklessly giving the FCA information which is false or misleading in a material particular is a criminal offence</strong> under the Payment Services Regulations 2017 and may lead to disciplinary sanctions or other enforcement action.</p>
+          <p className="mt-1 text-xs">Signature dates must not be more than 3 months before the date the form is submitted to the FCA. The firm&apos;s signatory must have authority to make the application on behalf of the applicant firm.</p>
         </SectionInfo>
 
         {/* Individual Declaration */}
@@ -80,14 +82,15 @@ export function PSDSection7Declarations({
               />
             </div>
             <div>
-              <Label htmlFor="individualSignatureDate">Date *</Label>
-              <Input
+              <FormDatePicker
                 id="individualSignatureDate"
-                type="date"
+                label="Date"
                 value={formData.individualSignatureDate}
-                onChange={(e) => updateField("individualSignatureDate", e.target.value)}
+                onChange={(value) => updateField("individualSignatureDate", value)}
+                placeholder="Select date"
+                required
+                helpText="Must not be more than 3 months before submission"
               />
-              <p className="text-xs text-slate-500 mt-1">Must not be more than 3 months before submission</p>
             </div>
           </div>
         </div>
@@ -152,14 +155,15 @@ export function PSDSection7Declarations({
               />
             </div>
             <div>
-              <Label htmlFor="firmSignatureDate">Date *</Label>
-              <Input
+              <FormDatePicker
                 id="firmSignatureDate"
-                type="date"
+                label="Date"
                 value={formData.firmSignatureDate}
-                onChange={(e) => updateField("firmSignatureDate", e.target.value)}
+                onChange={(value) => updateField("firmSignatureDate", value)}
+                placeholder="Select date"
+                required
+                helpText="Must not be more than 3 months before submission"
               />
-              <p className="text-xs text-slate-500 mt-1">Must not be more than 3 months before submission</p>
             </div>
           </div>
         </div>

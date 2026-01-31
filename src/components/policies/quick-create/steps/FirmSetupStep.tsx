@@ -84,6 +84,14 @@ export function FirmSetupStep({
   onAddDistribution,
   onRemoveDistribution,
 }: FirmSetupStepProps) {
+  const navItems = [
+    { id: "firm-setup-authorization", label: "Authorization projects" },
+    { id: "firm-setup-essentials", label: "Firm essentials" },
+    { id: "firm-setup-business", label: "Business profile" },
+    { id: "firm-setup-permissions", label: "Permissions" },
+    { id: "firm-setup-governance", label: "Governance defaults" },
+  ];
+
   return (
     <form
       className="space-y-8"
@@ -97,9 +105,38 @@ export function FirmSetupStep({
         <p className="mt-1">This is your one-time onboarding for policy generation.</p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="flex gap-2 overflow-x-auto pb-2 lg:hidden">
+        {navItems.map((item) => (
+          <a
+            key={item.id}
+            href={`#${item.id}`}
+            className="whitespace-nowrap rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 shadow-sm"
+          >
+            {item.label}
+          </a>
+        ))}
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-[200px_minmax(0,1fr)_320px]">
+        <nav className="hidden lg:block">
+          <div className="sticky top-24 rounded-2xl border border-slate-200 bg-white p-4 text-sm shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">Sections</p>
+            <div className="mt-3 space-y-2">
+              {navItems.map((item) => (
+                <a
+                  key={item.id}
+                  href={`#${item.id}`}
+                  className="block rounded-xl border border-transparent px-3 py-2 text-sm text-slate-600 hover:border-slate-200 hover:bg-slate-50"
+                >
+                  {item.label}
+                </a>
+              ))}
+            </div>
+          </div>
+        </nav>
+
         <div className="space-y-6">
-          <section className="rounded-2xl border border-slate-200 bg-white p-5">
+          <section id="firm-setup-authorization" className="scroll-mt-24 rounded-2xl border border-slate-200 bg-white p-5">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
@@ -159,7 +196,7 @@ export function FirmSetupStep({
             )}
           </section>
 
-          <section className="rounded-2xl border border-slate-200 bg-white p-5">
+          <section id="firm-setup-essentials" className="scroll-mt-24 rounded-2xl border border-slate-200 bg-white p-5">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">Firm essentials</p>
@@ -294,7 +331,7 @@ export function FirmSetupStep({
             ) : null}
           </section>
 
-          <section className="rounded-2xl border border-slate-200 bg-white p-5">
+          <section id="firm-setup-business" className="scroll-mt-24 rounded-2xl border border-slate-200 bg-white p-5">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">Business profile</p>
@@ -384,7 +421,7 @@ export function FirmSetupStep({
             </div>
           </section>
 
-          <section className="rounded-2xl border border-slate-200 bg-white p-5">
+          <section id="firm-setup-permissions" className="scroll-mt-24 rounded-2xl border border-slate-200 bg-white p-5">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">Permissions</p>
@@ -425,7 +462,7 @@ export function FirmSetupStep({
             </div>
           </section>
 
-          <section className="rounded-2xl border border-slate-200 bg-white p-5">
+          <section id="firm-setup-governance" className="scroll-mt-24 rounded-2xl border border-slate-200 bg-white p-5">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">

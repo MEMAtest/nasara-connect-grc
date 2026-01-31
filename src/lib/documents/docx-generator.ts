@@ -124,6 +124,7 @@ const COLORS = {
 
 const NOTE_SANITIZE_OPTIONS = {
   ...DEFAULT_SANITIZE_OPTIONS,
+  convertBulletsToProseText: false,
   preserveProceduralLists: false,
 };
 

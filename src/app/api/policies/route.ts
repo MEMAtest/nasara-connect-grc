@@ -6,6 +6,7 @@ import { getApplicableClauses, getTemplateByCode } from "@/lib/policies/template
 import {
   createPolicy,
   getPoliciesForOrganization,
+  updatePolicy,
   type StoredPolicy,
 } from "@/lib/server/policy-store";
 import { upsertEntityLink } from "@/lib/server/entity-link-store";
@@ -104,7 +105,7 @@ export async function POST(request: Request) {
     body.aiDetail === "standard" ? "standard" : "detailed";
 
   const governance = typeof body.governance === "object" && body.governance !== null ? body.governance : undefined;
-  let customContent = {
+  const customContent: Record<string, unknown> = {
     firmProfile: body.firmProfile ?? {},
     policyInputs: body.policyInputs ?? {},
     sectionClauses,
@@ -116,27 +117,16 @@ export async function POST(request: Request) {
     ...(governance ? { governance } : {}),
   };
 
-  let finalClauses = selectedClauses;
+  // If AI enhancement is requested, mark the policy as pending enhancement.
+  // The actual LLM calls run in the background after the 201 is returned.
   if (aiEnhanceRequested) {
-    const aiResult = await enhanceClausesWithAi({
-      clauses: selectedClauses,
-      template,
-      sectionClauses,
-      firmProfile: body.firmProfile ?? {},
-      policyInputs: body.policyInputs ?? {},
-      sectionNotes: body.sectionNotes ?? {},
+    customContent.aiEnhanced = {
+      enabled: true,
+      model: DEFAULT_POLICY_MODEL,
       detailLevel: aiDetailLevel,
-    });
-    finalClauses = aiResult.clauses;
-    customContent = {
-      ...customContent,
-      aiEnhanced: {
-        enabled: aiResult.used,
-        model: aiResult.used ? DEFAULT_POLICY_MODEL : null,
-        detailLevel: aiDetailLevel,
-        generatedAt: aiResult.used ? nowIso() : null,
-        failures: aiResult.failures,
-      },
+      generatedAt: null,
+      failures: [],
+      status: "pending",
     };
   }
 
@@ -164,6 +154,54 @@ export async function POST(request: Request) {
     );
   };
 
+  // Background job: enhance clauses with AI and update the persisted policy.
+  const runAiEnhancement = (policyId: string, orgId: string) => {
+    if (!aiEnhanceRequested) return;
+
+    enhanceClausesWithAi({
+      clauses: selectedClauses,
+      template,
+      sectionClauses,
+      firmProfile: body.firmProfile ?? {},
+      policyInputs: body.policyInputs ?? {},
+      sectionNotes: body.sectionNotes ?? {},
+      detailLevel: aiDetailLevel,
+    })
+      .then(async (aiResult) => {
+        const aiMeta = {
+          enabled: aiResult.used,
+          model: aiResult.used ? DEFAULT_POLICY_MODEL : null,
+          detailLevel: aiDetailLevel,
+          generatedAt: aiResult.used ? nowIso() : null,
+          failures: aiResult.failures,
+          status: "complete" as const,
+        };
+        await updatePolicy(orgId, policyId, {
+          clauses: aiResult.clauses,
+          customContent: { ...customContent, aiEnhanced: aiMeta },
+        });
+      })
+      .catch((err) => {
+        console.error(`Background AI enhancement failed for policy ${policyId}:`, err);
+        // Mark enhancement as failed so the UI can show the state.
+        updatePolicy(orgId, policyId, {
+          customContent: {
+            ...customContent,
+            aiEnhanced: {
+              enabled: false,
+              model: null,
+              detailLevel: aiDetailLevel,
+              generatedAt: null,
+              failures: ["background enhancement failed"],
+              status: "failed",
+            },
+          },
+        }).catch((updateErr) => {
+          console.error(`Failed to record AI enhancement failure for policy ${policyId}:`, updateErr);
+        });
+      });
+  };
+
   try {
     const created = await createPolicy(DEFAULT_ORGANIZATION_ID, {
       id: body.id,
@@ -172,11 +210,14 @@ export async function POST(request: Request) {
       description: template.description,
       permissions,
       template,
-      clauses: finalClauses,
+      clauses: selectedClauses,
       customContent,
       approvals,
       status: "draft",
     });
+
+    // Fire-and-forget: AI enhancement runs in the background
+    runAiEnhancement(created.id, DEFAULT_ORGANIZATION_ID);
 
     // Create initial activity record for policy creation
     try {
@@ -218,11 +259,15 @@ export async function POST(request: Request) {
       id: body.id,
       template,
       permissions,
-      clauses: finalClauses,
+      clauses: selectedClauses,
       customContent,
       approvals,
     });
     fallbackPolicies.unshift(fallback);
+
+    // Fire-and-forget: AI enhancement for fallback path
+    runAiEnhancement(fallback.id, DEFAULT_ORGANIZATION_ID);
+
     try {
       await persistSuggestedMappings(fallback.id);
     } catch (linkError) {

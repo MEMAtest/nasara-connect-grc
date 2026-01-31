@@ -99,6 +99,26 @@ node scripts/fos/fos-decisions-pipeline.mjs --stage=ingest --limit=50
 
 Before ingesting, ensure the database schema is initialized (the app calls `initDatabase()` on startup, or use `/api/init-db`).
 
+## Mini app (queue runner)
+
+For long runs, use the queue-based runner so it resumes cleanly and persists progress:
+
+```bash
+node scripts/fos/app/queue-runner.mjs \
+  --start-date 2017-01-01 \
+  --end-date 2017-12-31 \
+  --window-days 7 \
+  --index data/fos/indexes/2017.jsonl \
+  --pdf-dir "/Users/omosanya_main/Google Drive/My Drive/Nasara/FOS/pdfs" \
+  --state data/fos/state/2017.json
+```
+
+Check status at any time:
+
+```bash
+node scripts/fos/app/status.mjs --state data/fos/state/2017.json --year 2017
+```
+
 ## Useful flags
 
 - `--headless=false` to watch the browser
@@ -111,6 +131,7 @@ Before ingesting, ensure the database schema is initialized (the app calls `init
 - `--enrich-model gpt-4o-mini`
 - `--embedding-provider=openai|openrouter`
 - `--embedding-model=text-embedding-3-large`
+- `--window-days 7` to chunk discovery into smaller date windows (avoid portal caps)
 
 ## Notes
 

@@ -640,4 +640,11 @@ export const TOOLS = [
     seoDescription:
       "Build an SM&CR responsibilities map faster with a guided, audit-ready workflow.",
   },
+  {
+    slug: "fos-scraper",
+    title: "FOS Scraper Monitor",
+    seoTitle: "FOS Scraper Monitor",
+    seoDescription:
+      "Track FOS scraping progress, windows, and parsed coverage in real time.",
+  },
 ];

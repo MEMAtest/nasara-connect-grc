@@ -12,6 +12,7 @@ interface UseNotificationsResult {
   unreadCount: number;
   isLoading: boolean;
   error: string | null;
+  isEnabled: boolean;
   refresh: () => Promise<void>;
   markAsRead: (notificationId: string, read?: boolean) => Promise<void>;
   markAllRead: () => Promise<void>;
@@ -22,6 +23,7 @@ export function useNotifications(options: UseNotificationsOptions = {}): UseNoti
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isEnabled, setIsEnabled] = useState(true);
 
   const limit = options.limit ?? 8;
   const queryString = useMemo(() => {
@@ -30,7 +32,32 @@ export function useNotifications(options: UseNotificationsOptions = {}): UseNoti
     return params.toString();
   }, [limit]);
 
+  useEffect(() => {
+    let isActive = true;
+    const loadPreferences = async () => {
+      try {
+        const response = await fetch("/api/settings");
+        if (!response.ok) return;
+        const data = (await response.json()) as { in_app_notifications?: boolean };
+        if (!isActive) return;
+        setIsEnabled(data.in_app_notifications ?? true);
+      } catch {
+        // Ignore settings failures; keep notifications enabled.
+      }
+    };
+    void loadPreferences();
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
   const refresh = useCallback(async () => {
+    if (!isEnabled) {
+      setNotifications([]);
+      setUnreadCount(0);
+      setIsLoading(false);
+      return;
+    }
     setIsLoading(true);
     setError(null);
     try {
@@ -46,7 +73,7 @@ export function useNotifications(options: UseNotificationsOptions = {}): UseNoti
     } finally {
       setIsLoading(false);
     }
-  }, [queryString]);
+  }, [queryString, isEnabled]);
 
   useEffect(() => {
     void refresh();
@@ -54,6 +81,7 @@ export function useNotifications(options: UseNotificationsOptions = {}): UseNoti
 
   const markAsRead = useCallback(async (notificationId: string, read: boolean = true) => {
     try {
+      if (!isEnabled) return;
       const response = await fetch(`/api/notifications/${notificationId}/read`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -73,29 +101,29 @@ export function useNotifications(options: UseNotificationsOptions = {}): UseNoti
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unexpected error");
     }
-  }, []);
+  }, [isEnabled]);
 
   const markAllRead = useCallback(async () => {
     try {
+      if (!isEnabled) return;
       const response = await fetch("/api/notifications/mark-all-read", {
         method: "POST",
       });
       if (!response.ok) {
         throw new Error("Unable to mark all as read");
       }
-      const now = new Date().toISOString();
-      setNotifications((prev) => prev.map((notification) => ({ ...notification, readAt: notification.readAt ?? now })));
-      setUnreadCount(0);
+      await refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unexpected error");
     }
-  }, []);
+  }, [isEnabled, refresh]);
 
   return {
     notifications,
     unreadCount,
     isLoading,
     error,
+    isEnabled,
     refresh,
     markAsRead,
     markAllRead,

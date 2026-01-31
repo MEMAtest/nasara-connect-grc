@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Loader2 } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 import type { PolicyTemplate } from "@/lib/policies/templates";
 import type { QuickAnswers, QuickQuestion } from "@/lib/policies/quick-defaults";
 
@@ -105,6 +106,12 @@ export function QuickQuestionsForm({
           )}
         </Button>
       </div>
+      {isSubmitting ? (
+        <div className="space-y-2">
+          <Progress value={60} className="bg-slate-100" />
+          <p className="text-xs text-slate-500">Generating policy draft...</p>
+        </div>
+      ) : null}
     </form>
   );
 }

@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { FileText, Download, Printer, CheckCircle2, AlertTriangle } from "lucide-react";
+import { FileText, Download, Printer, CheckCircle2, AlertTriangle, BookOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type SaveStatus = 'saved' | 'saving' | 'error' | 'quota-exceeded' | null;
@@ -12,9 +12,10 @@ interface FormHeaderProps {
   onPrint: () => void;
   onExport: () => void;
   onClear: () => void;
+  onToggleNotes?: () => void;
 }
 
-export function FormHeader({ saveStatus, onPrint, onExport, onClear }: FormHeaderProps) {
+export function FormHeader({ saveStatus, onPrint, onExport, onClear, onToggleNotes }: FormHeaderProps) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div className="flex items-center gap-4">
@@ -51,6 +52,12 @@ export function FormHeader({ saveStatus, onPrint, onExport, onClear }: FormHeade
         >
           Clear Form
         </Button>
+        {onToggleNotes && (
+          <Button variant="outline" size="sm" onClick={onToggleNotes} aria-label="Open form notes">
+            <BookOpen className="h-4 w-4 mr-2" aria-hidden="true" />
+            Form Notes
+          </Button>
+        )}
         <Button variant="outline" size="sm" onClick={onPrint} aria-label="Print form">
           <Printer className="h-4 w-4 mr-2" aria-hidden="true" />
           Print

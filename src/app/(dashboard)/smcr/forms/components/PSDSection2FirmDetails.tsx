@@ -51,12 +51,13 @@ export function PSDSection2FirmDetails({
             {validationErrors.firmFRN && (
               <p className="text-xs text-red-600 mt-1">{validationErrors.firmFRN}</p>
             )}
+            <FieldHelp>Look up your FRN on the FCA Register at register.fca.org.uk</FieldHelp>
           </div>
         </div>
 
         <div className="border rounded-lg p-4 space-y-4">
           <h3 className="text-sm font-semibold text-slate-700">2.3 FCA Contact at Applicant Firm *</h3>
-          <FieldHelp>Person the FCA should contact regarding this application</FieldHelp>
+          <FieldHelp>Person the FCA should contact regarding this application. They must be authorised to discuss the application with the FCA and available to respond to queries.</FieldHelp>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>

@@ -168,12 +168,17 @@ export function WizardClient() {
       if (!response.ok) {
         throw new Error("Failed to generate policy draft");
       }
+      const created = (await response.json()) as { id?: string };
       toast({
         title: "Policy draft created",
         description: "Redirecting to the policy register…",
         variant: "success",
       });
-      router.push("/policies/register");
+      if (created?.id) {
+        router.push(`/policies/register?highlight=${created.id}`);
+      } else {
+        router.push("/policies/register");
+      }
     } catch (error) {
       console.error(error);
       toast({

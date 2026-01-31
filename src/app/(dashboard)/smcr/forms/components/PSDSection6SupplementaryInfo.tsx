@@ -83,7 +83,7 @@ Supporting documents: Court certificate attached."
             type="number"
             min="0"
             value={formData.additionalSheets || ""}
-            onChange={(e) => updateField("additionalSheets", parseInt(e.target.value) || 0)}
+            onChange={(e) => updateField("additionalSheets", Math.max(0, Math.min(99, parseInt(e.target.value) || 0)))}
             placeholder="0"
             className="w-32"
           />

@@ -3,6 +3,7 @@ import { Packer } from "docx";
 import { DEFAULT_ORGANIZATION_ID } from "@/lib/constants";
 import { getPolicyById } from "@/lib/server/policy-store";
 import { renderClause, renderLiquidTemplate } from "@/lib/policies/liquid-renderer";
+import { resolveNotePlaceholders } from "@/lib/policies/section-notes";
 import { generateDocx, type PolicySection } from "@/lib/documents/docx-generator";
 import { applyTiering, type DetailLevel, type TieredSection } from "@/lib/policies/clause-tiers";
 import { applyOptionSelections } from "@/lib/policies/section-options";
@@ -140,13 +141,17 @@ export async function GET(
           typeof rawNotes === "string" && rawNotes.trim().length > 0
             ? renderLiquidTemplate(rawNotes, renderContext)
             : rawNotes;
+        const resolvedNotes =
+          typeof renderedNotes === "string" && renderedNotes.trim().length > 0
+            ? resolveNotePlaceholders(renderedNotes, firmName)
+            : renderedNotes;
 
         return {
           id: tieredSection.id,
           title: tieredSection.title,
           sectionType: tieredSection.sectionType,
           clauses: renderedClauses,
-          customNotes: renderedNotes,
+          customNotes: resolvedNotes,
         };
       })
       .filter((section): section is PolicySection => section !== null);

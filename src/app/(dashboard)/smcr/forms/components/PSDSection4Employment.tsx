@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { History, ChevronRight, Plus, Trash2 } from "lucide-react";
 import type { PSDFormSectionProps, PSDEmploymentEntry, PSDQualificationEntry } from '../types/form-types';
 import { FieldHelp } from './FieldHelp';
 import { SectionInfo } from './SectionInfo';
+import { FormDatePicker } from './FormDatePicker';
 import { psdNatureOfEmployment, psdReasonsForLeaving } from '../utils/form-constants';
 
 interface PSDSection4Props extends PSDFormSectionProps {
@@ -35,6 +36,19 @@ export function PSDSection4Employment({
   updateQualification,
   removeQualification,
 }: PSDSection4Props) {
+  const [dateErrors, setDateErrors] = useState<Record<string, string>>({});
+
+  const validateDateRange = (empId: string, fromDate: string, toDate: string) => {
+    if (fromDate && toDate && fromDate > toDate) {
+      setDateErrors(prev => ({ ...prev, [empId]: "End date must be after start date" }));
+    } else {
+      setDateErrors(prev => {
+        const { [empId]: _, ...rest } = prev;
+        return rest;
+      });
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -49,6 +63,12 @@ export function PSDSection4Employment({
       <CardContent className="space-y-6">
         <SectionInfo title="Important" variant="warning">
           <p><strong>A full ten-year employment history must be provided</strong> and ALL gaps must be accounted for. Failing to provide this may delay the processing of the application.</p>
+          <ul className="list-disc pl-5 mt-2 space-y-1 text-xs">
+            <li>Include all employment whether in financial services or not</li>
+            <li>Part-time work, voluntary work, and self-employment all count</li>
+            <li>For gaps (unemployment, education, travel), select the appropriate nature and explain</li>
+            <li>Employer address should be the actual place of employment, not head office if different</li>
+          </ul>
         </SectionInfo>
 
         {/* 4.1 Employment History */}
@@ -86,21 +106,35 @@ export function PSDSection4Employment({
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <Label>From (mm/yy) *</Label>
-                  <Input
-                    type="month"
+                  <FormDatePicker
+                    id={`emp-from-${emp.id}`}
+                    label="From (mm/yy)"
                     value={emp.fromDate}
-                    onChange={(e) => updateEmployment(emp.id, "fromDate", e.target.value)}
+                    onChange={(value) => {
+                      updateEmployment(emp.id, "fromDate", value);
+                      validateDateRange(emp.id, value, emp.toDate);
+                    }}
+                    placeholder="Select month"
+                    type="month"
+                    required
                   />
                 </div>
                 <div>
-                  <Label>To (mm/yy)</Label>
-                  <Input
-                    type="month"
+                  <FormDatePicker
+                    id={`emp-to-${emp.id}`}
+                    label="To (mm/yy)"
                     value={emp.toDate}
-                    onChange={(e) => updateEmployment(emp.id, "toDate", e.target.value)}
+                    onChange={(value) => {
+                      updateEmployment(emp.id, "toDate", value);
+                      validateDateRange(emp.id, emp.fromDate, value);
+                    }}
                     placeholder="Leave blank if current"
+                    type="month"
+                    helpText={dateErrors[emp.id]}
                   />
+                  {dateErrors[emp.id] && (
+                    <p className="text-xs text-red-600 mt-1">{dateErrors[emp.id]}</p>
+                  )}
                 </div>
                 <div>
                   <Label>Nature of Employment *</Label>
@@ -286,19 +320,23 @@ export function PSDSection4Employment({
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label>From (mm/yy)</Label>
-                  <Input
-                    type="month"
+                  <FormDatePicker
+                    id={`qual-from-${qual.id}`}
+                    label="From (mm/yy)"
                     value={qual.fromDate}
-                    onChange={(e) => updateQualification(qual.id, "fromDate", e.target.value)}
+                    onChange={(value) => updateQualification(qual.id, "fromDate", value)}
+                    placeholder="Select month"
+                    type="month"
                   />
                 </div>
                 <div>
-                  <Label>To (mm/yy)</Label>
-                  <Input
-                    type="month"
+                  <FormDatePicker
+                    id={`qual-to-${qual.id}`}
+                    label="To (mm/yy)"
                     value={qual.toDate}
-                    onChange={(e) => updateQualification(qual.id, "toDate", e.target.value)}
+                    onChange={(value) => updateQualification(qual.id, "toDate", value)}
+                    placeholder="Select month"
+                    type="month"
                   />
                 </div>
               </div>

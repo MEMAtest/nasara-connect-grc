@@ -23,7 +23,9 @@ import {
   ChevronDown,
   ChevronUp,
   FileCheck2,
+  ExternalLink,
 } from "lucide-react";
+import Link from "next/link";
 import {
   FCA_API_CHECKLIST,
   CHECKLIST_STATUS_OPTIONS,
@@ -97,6 +99,17 @@ const ChecklistItemRow = memo(function ChecklistItemRow({
       <div className="flex items-center gap-2 min-w-0 flex-1">
         <StatusIcon status={status} />
         <span className="text-xs text-slate-700 truncate">{item.label}</span>
+        {item.smcrLink && (
+          <Link
+            href={item.smcrLink}
+            target="_blank"
+            className="shrink-0 text-teal-500 hover:text-teal-700 transition"
+            title="Open in SMCR Forms"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <ExternalLink className="h-3 w-3" />
+          </Link>
+        )}
       </div>
       <Select
         value={status}

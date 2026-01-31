@@ -42,6 +42,32 @@ function fmtDate(date) {
   return date.toISOString().slice(0, 10);
 }
 
+function dayRanges(startDate, endDate, windowDays) {
+  const ranges = [];
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || start > end) {
+    throw new Error("Invalid date range");
+  }
+  const days = Number.parseInt(windowDays, 10);
+  if (!Number.isFinite(days) || days <= 0) {
+    throw new Error("Invalid window days");
+  }
+
+  let cursor = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate()));
+  while (cursor <= end) {
+    const rangeStart = cursor;
+    const rangeEnd = new Date(rangeStart);
+    rangeEnd.setUTCDate(rangeEnd.getUTCDate() + days - 1);
+    if (rangeEnd > end) rangeEnd.setTime(end.getTime());
+    ranges.push({ start: fmtDate(rangeStart), end: fmtDate(rangeEnd) });
+    const next = new Date(rangeEnd);
+    next.setUTCDate(next.getUTCDate() + 1);
+    cursor = next;
+  }
+  return ranges;
+}
+
 function monthRanges(startDate, endDate) {
   const ranges = [];
   const start = new Date(startDate);
@@ -71,6 +97,28 @@ function run(cmd, args) {
   }
 }
 
+function runWithRetry(cmd, args, label, { retries = 2, delayMs = 5000 } = {}) {
+  let attempt = 0;
+  while (attempt <= retries) {
+    try {
+      run(cmd, args);
+      return true;
+    } catch (error) {
+      attempt += 1;
+      if (attempt > retries) {
+        console.warn(`${label} failed after ${retries + 1} attempts: ${error.message}`);
+        return false;
+      }
+      console.warn(`${label} failed (attempt ${attempt}/${retries + 1}); retrying in ${delayMs}ms.`);
+      const end = Date.now() + delayMs;
+      while (Date.now() < end) {
+        // busy-wait to avoid async in sync script
+      }
+    }
+  }
+  return false;
+}
+
 function dedupeIndex(filePath) {
   const raw = readFileSync(filePath, "utf8");
   const lines = raw.split("\n").map((line) => line.trim()).filter(Boolean);
@@ -98,9 +146,13 @@ function main() {
   const pdfDir = args["pdf-dir"] || DEFAULT_PDF_DIR;
   const downloadDelay = args["download-delay"] || "800";
   const indexPath = args.index || null;
+  const retries = Number.parseInt(args.retries || "2", 10);
+  const retryDelay = Number.parseInt(args["retry-delay"] || "5000", 10);
+  const windowDays = args["window-days"] ? Number.parseInt(args["window-days"], 10) : null;
 
-  const ranges = monthRanges(startDate, endDate);
-  console.log(`Running monthly chunks from ${startDate} to ${endDate} (${ranges.length} windows)`);
+  const ranges = windowDays ? dayRanges(startDate, endDate, windowDays) : monthRanges(startDate, endDate);
+  const label = windowDays ? `${windowDays}-day` : "monthly";
+  console.log(`Running ${label} chunks from ${startDate} to ${endDate} (${ranges.length} windows)`);
 
   for (const range of ranges) {
     console.log(`\n=== ${range.start} → ${range.end} ===`);
@@ -117,7 +169,12 @@ function main() {
     if (indexPath) {
       discoverArgs.push("--index", indexPath);
     }
-    run("node", discoverArgs);
+    const discovered = runWithRetry(
+      "node",
+      discoverArgs,
+      `Discover ${range.start} → ${range.end}`,
+      { retries, delayMs: retryDelay },
+    );
 
     const parseArgs = [
       PIPELINE,
@@ -135,7 +192,16 @@ function main() {
     if (indexPath) {
       parseArgs.push("--index", indexPath);
     }
-    run("node", parseArgs);
+    if (!discovered) {
+      console.warn(`Skipping parse for ${range.start} → ${range.end} because discovery failed.`);
+    } else {
+      runWithRetry(
+        "node",
+        parseArgs,
+        `Parse ${range.start} → ${range.end}`,
+        { retries, delayMs: retryDelay },
+      );
+    }
 
     if (indexPath) {
       const total = dedupeIndex(indexPath);

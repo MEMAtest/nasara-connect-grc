@@ -1,6 +1,6 @@
 // FCA Forms data and recommendation logic
 
-export type ActionType = "appoint" | "remove" | "update" | "transfer" | "not-sure";
+export type ActionType = "appoint" | "remove" | "update" | "transfer" | "payment-services" | "not-sure";
 export type RoleType = "smf" | "cf" | "conduct" | "not-sure";
 
 // Inline tips for forms within the platform
@@ -104,6 +104,11 @@ export const questions: Question[] = [
         value: "transfer",
         label: "Transfer someone internally",
         description: "Moving an approved person between functions",
+      },
+      {
+        value: "payment-services",
+        label: "Register a payment services individual",
+        description: "Submit a PSD Individual Form for a Payment Institution",
       },
       {
         value: "not-sure",
@@ -226,6 +231,22 @@ export const fcaForms: FCAForm[] = [
       "Submit via Connect when responsibilities significantly change",
       "Attach the updated Statement of Responsibilities",
       "Not required for minor administrative changes",
+    ],
+    category: "individual",
+  },
+  {
+    id: "psd-individual",
+    name: "PSD Individual Form",
+    fullName: "Application for PSD Individual responsible for management of a Payment Institution",
+    purpose: "Payment Services individual application",
+    whenNeeded: "When appointing a person responsible for the management of a Payment Institution under PSR 2017",
+    fcaLink: "https://connect.fca.org.uk/firms/aupo_sitelogin",
+    tips: [
+      "A full 10-year employment history is required with no gaps",
+      "Include fitness and propriety disclosures - non-disclosure is treated very seriously",
+      "Attach the individual's employment contract or letter of appointment",
+      "Both the individual and the firm must sign the declarations",
+      "Submit via FCA Connect as part of the Payment Institution application",
     ],
     category: "individual",
   },
@@ -353,6 +374,16 @@ export function getRecommendedForms(
       }
       additionalNotes.push(
         "Ensure competency requirements are met for the new function."
+      );
+      break;
+
+    case "payment-services":
+      addForm("psd-individual");
+      additionalNotes.push(
+        "The PSD Individual Form is used for appointing persons responsible for management of a Payment Institution."
+      );
+      additionalNotes.push(
+        "A full 10-year employment history with no gaps is mandatory."
       );
       break;
 

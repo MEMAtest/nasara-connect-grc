@@ -48,8 +48,21 @@ if (connectionString) {
 
 export { pool };
 
-// Database initialization
-export async function initDatabase() {
+// Database initialization — memoised so the 116 CREATE TABLE IF NOT EXISTS
+// statements only run once per process lifetime instead of on every request.
+let _initPromise: Promise<void> | null = null;
+
+export function initDatabase(): Promise<void> {
+  if (_initPromise) return _initPromise;
+  _initPromise = _performInitDatabase().catch((err) => {
+    // Allow retry on next call if initialisation fails
+    _initPromise = null;
+    throw err;
+  });
+  return _initPromise;
+}
+
+async function _performInitDatabase() {
   const client = await pool.connect();
 
   try {

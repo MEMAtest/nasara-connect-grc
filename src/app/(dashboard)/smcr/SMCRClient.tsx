@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
@@ -8,13 +8,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { AlertTriangle, Award, Check, ChevronRight, ClipboardCheck, FileText, Plus, Shield, Target, Users, UserPlus, Play, Flag } from "lucide-react";
+import { AlertTriangle, Award, Check, CheckCircle2, ChevronRight, ClipboardCheck, FileText, Loader2, Plus, RefreshCw, Shield, Target, Users, UserPlus, Play, Flag } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useSmcrData } from "./context/SmcrDataContext";
+import { useSmcrData, type FCAVerificationData, type PersonRecord } from "./context/SmcrDataContext";
 import { allSMFs, certificationFunctions } from "./data/core-functions";
 import { workflowTemplates } from "./data/workflow-templates";
 import { ResponsiveContainer, BarChart, Bar, XAxis, Tooltip } from "recharts";
 import { FirmSwitcher } from "./components/FirmSwitcher";
+import { useVerificationStatus } from "@/hooks/useVerificationStatus";
+import { useAllMismatches } from "@/hooks/useRoleMismatchDetection";
 import {
   DashboardIcon,
   PeopleIcon,
@@ -65,9 +67,11 @@ function getOnboardingStep(hasFirm: boolean, hasPeople: boolean, hasRoles: boole
 }
 
 export function SMCRClient() {
-  const { state, firms, activeFirmId } = useSmcrData();
+  const { state, firms, activeFirmId, updatePerson } = useSmcrData();
   const router = useRouter();
   const [showOnboarding, setShowOnboarding] = useState(true);
+  const [reVerifying, setReVerifying] = useState(false);
+  const [reVerifyProgress, setReVerifyProgress] = useState("");
   const scopedPeople = useMemo(
     () => state.people.filter((person) => !activeFirmId || person.firmId === activeFirmId),
     [state.people, activeFirmId],
@@ -87,6 +91,90 @@ export function SMCRClient() {
 
   const smfRoles = useMemo(() => scopedRoles.filter((role) => role.functionType === "SMF"), [scopedRoles]);
   const cfRoles = useMemo(() => scopedRoles.filter((role) => role.functionType === "CF"), [scopedRoles]);
+
+  const verificationThreshold = state.settings?.verificationStaleThresholdDays ?? 30;
+  const verificationSummary = useVerificationStatus(scopedPeople, verificationThreshold);
+  const mismatchResults = useAllMismatches(scopedPeople, scopedRoles);
+
+  const abortRef = React.useRef<AbortController | null>(null);
+
+  const handleReVerifyAllStale = useCallback(async () => {
+    if (reVerifying) return;
+    setReVerifying(true);
+
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    const stalePeopleWithIrn = verificationSummary.stalePeople.filter((p) => p.irn);
+    let completed = 0;
+    let failed = 0;
+
+    for (const staleEntry of stalePeopleWithIrn) {
+      if (controller.signal.aborted) break;
+
+      const person = scopedPeople.find((p) => p.id === staleEntry.personId);
+      if (!person || !person.irn) continue;
+
+      setReVerifyProgress(`Verifying ${person.name} (${completed + 1}/${stalePeopleWithIrn.length})`);
+
+      try {
+        const response = await fetch(
+          `/api/fca-register/firm/${encodeURIComponent(person.irn)}`,
+          { signal: controller.signal },
+        );
+        if (response.ok) {
+          const data = await response.json();
+          const verificationData: FCAVerificationData = {
+            status: data.status ?? "Unknown",
+            lastChecked: new Date().toISOString(),
+            controlFunctions: (data.controlFunctions ?? []).map((cf: { function?: string; firmName?: string; frn?: string; status?: string; effectiveFrom?: string; effectiveTo?: string }) => ({
+              function: cf.function ?? "",
+              firmName: cf.firmName ?? "",
+              frn: cf.frn ?? "",
+              status: cf.status ?? "",
+              effectiveFrom: cf.effectiveFrom ?? "",
+              effectiveTo: cf.effectiveTo,
+            })),
+            hasEnforcementHistory: data.hasEnforcementHistory ?? false,
+          };
+          updatePerson(person.id, { fcaVerification: verificationData } as Partial<PersonRecord>);
+          fetch(`/api/smcr/people/${person.id}/fca-verification`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(verificationData),
+          }).catch(() => {});
+        } else {
+          failed++;
+        }
+      } catch (err) {
+        if ((err as Error)?.name === "AbortError") break;
+        failed++;
+      }
+      completed++;
+
+      // Rate-limit: 500ms delay between requests to avoid hammering the FCA API
+      if (completed < stalePeopleWithIrn.length) {
+        await new Promise((r) => setTimeout(r, 500));
+      }
+    }
+
+    const summary = controller.signal.aborted
+      ? "Re-verification cancelled"
+      : failed > 0
+        ? `Re-verified ${completed - failed}/${stalePeopleWithIrn.length}. ${failed} failed.`
+        : `Re-verified ${completed} people successfully.`;
+
+    setReVerifyProgress(summary);
+    setReVerifying(false);
+    abortRef.current = null;
+
+    // Clear summary message after a few seconds
+    setTimeout(() => setReVerifyProgress(""), 4000);
+  }, [reVerifying, verificationSummary.stalePeople, scopedPeople, updatePerson]);
+
+  const handleCancelReVerify = useCallback(() => {
+    abortRef.current?.abort();
+  }, []);
 
   const totalPeople = scopedPeople.length;
   const current = scopedPeople.filter((person) => person.assessment.status === "current").length;
@@ -376,6 +464,116 @@ export function SMCRClient() {
               onClick={() => router.push("/smcr/fitness-propriety?status=overdue")}
             />
           </div>
+
+          {/* FCA Verification Status Card */}
+          {scopedPeople.length > 0 && (
+            <Card className="border-slate-200">
+              <CardHeader className="flex flex-row items-center justify-between pb-3">
+                <div>
+                  <CardTitle className="text-base">FCA Verification Status</CardTitle>
+                  <CardDescription className="text-xs">
+                    Freshness of FCA Register verification checks (threshold: {verificationThreshold} days)
+                  </CardDescription>
+                </div>
+                {verificationSummary.stale > 0 && (
+                  <div className="flex items-center gap-2">
+                    {reVerifying && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-slate-500"
+                        onClick={handleCancelReVerify}
+                      >
+                        Cancel
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="gap-2"
+                      disabled={reVerifying}
+                      onClick={handleReVerifyAllStale}
+                    >
+                      {reVerifying ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <RefreshCw className="h-4 w-4" />
+                      )}
+                      Re-verify All Stale
+                    </Button>
+                  </div>
+                )}
+              </CardHeader>
+              <CardContent>
+                {reVerifying && reVerifyProgress && (
+                  <p className="text-xs text-slate-500 mb-3">{reVerifyProgress}</p>
+                )}
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3">
+                    <p className="text-2xl font-bold text-emerald-700">{verificationSummary.fresh}</p>
+                    <p className="text-xs text-emerald-600">Fresh</p>
+                  </div>
+                  <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
+                    <p className="text-2xl font-bold text-amber-700">{verificationSummary.stale}</p>
+                    <p className="text-xs text-amber-600">Stale</p>
+                  </div>
+                  <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                    <p className="text-2xl font-bold text-slate-600">{verificationSummary.unverified}</p>
+                    <p className="text-xs text-slate-500">Unverified</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Role Mismatch Alert */}
+          {mismatchResults.totalMismatches > 0 && (
+            <Card className="border-rose-200 bg-rose-50/50">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5 text-rose-500" />
+                  <CardTitle className="text-base text-rose-800">
+                    {mismatchResults.totalMismatches} Role Mismatch{mismatchResults.totalMismatches !== 1 ? "es" : ""} Detected
+                  </CardTitle>
+                </div>
+                <CardDescription className="text-rose-600">
+                  Discrepancies between local SMF assignments and FCA Register data across {mismatchResults.peopleWithMismatches} {mismatchResults.peopleWithMismatches === 1 ? "person" : "people"}.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {mismatchResults.results.slice(0, 5).map((result) => (
+                  <div
+                    key={result.personId}
+                    className="flex items-center justify-between rounded-lg border border-rose-200 bg-white px-3 py-2 text-sm"
+                  >
+                    <span className="font-medium text-slate-800">{result.personName}</span>
+                    <div className="flex items-center gap-2">
+                      {result.missingFromFca.length > 0 && (
+                        <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-200">
+                          {result.missingFromFca.length} not on FCA
+                        </Badge>
+                      )}
+                      {result.missingLocally.length > 0 && (
+                        <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-200">
+                          {result.missingLocally.length} not local
+                        </Badge>
+                      )}
+                      {result.statusConflicts.length > 0 && (
+                        <Badge variant="outline" className="text-xs bg-rose-50 text-rose-700 border-rose-200">
+                          {result.statusConflicts.length} conflicts
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                {mismatchResults.results.length > 5 && (
+                  <Link href="/smcr/people" className="block text-xs text-rose-600 hover:underline pt-1">
+                    View all {mismatchResults.results.length} people with mismatches →
+                  </Link>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Launch Workflows Section */}
           <Card className="border-slate-200">

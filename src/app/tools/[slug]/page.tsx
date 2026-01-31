@@ -8,6 +8,7 @@ import { Navigation } from "@/components/landing/Navigation";
 import { Footer } from "@/components/landing/Footer";
 import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
 import { TOOLS } from "@/lib/seo/marketing-data";
+import { FosScraperClient } from "@/app/fos-scraper/FosScraperClient";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
@@ -35,6 +36,20 @@ const TOOL_DETAILS: Record<
     ],
     outcomes: ["Clear accountability", "SM&CR-ready evidence", "Faster governance approvals"],
   },
+  "fos-scraper": {
+    summary: "Monitor and manage the FOS decisions scraping pipeline in real time.",
+    highlights: [
+      "Track weekly window progress and retries.",
+      "See index coverage and parsed ranges instantly.",
+      "Keep PDF ingestion aligned to target years.",
+    ],
+    steps: [
+      "Run the queue-based scraper.",
+      "Monitor progress and retry failed windows.",
+      "Continue to the next year when complete.",
+    ],
+    outcomes: ["Reliable long-running scraping", "Clear progress visibility", "Fewer stalled runs"],
+  },
 };
 
 const TOOL_LINKS: Record<
@@ -49,6 +64,11 @@ const TOOL_LINKS: Record<
     feature: { label: "SM&CR Management", href: "/features/smcr-management" },
     solution: { label: "SM&CR", href: "/solutions/smcr" },
     audience: { label: "Banks & Credit", href: "/audience/banks" },
+  },
+  "fos-scraper": {
+    feature: { label: "Compliance Monitoring", href: "/features/compliance-monitoring" },
+    solution: { label: "Monitoring", href: "/solutions/monitoring" },
+    audience: { label: "Compliance Teams", href: "/audience/compliance" },
   },
 };
 
@@ -80,6 +100,29 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ToolDetailPage({ params }: PageProps) {
   const { slug } = await params;
+  if (slug === "fos-scraper") {
+    return (
+      <div className="min-h-screen bg-slate-950">
+        <Navigation variant="solid" />
+        <section className="px-4 pb-12 pt-28">
+          <div className="mx-auto max-w-5xl text-center">
+            <Badge className="mb-4 bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
+              Tool
+            </Badge>
+            <h1 className="text-4xl font-bold text-white sm:text-5xl">FOS Scraper Monitor</h1>
+            <p className="mt-4 text-lg text-slate-300">
+              Track FOS decision scraping progress, index coverage, and parsed ranges.
+            </p>
+          </div>
+        </section>
+        <div className="bg-gray-50">
+          <FosScraperClient />
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
   const tool = TOOLS.find((item) => item.slug === slug);
   if (!tool) {
     notFound();
