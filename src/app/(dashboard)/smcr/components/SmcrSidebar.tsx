@@ -26,6 +26,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { label: "Dashboard", href: "/smcr", Icon: DashboardIcon },
   { label: "People", href: "/smcr/people", Icon: PeopleIcon },
+  { label: "PSD Individuals", href: "/smcr/psd", Icon: PeopleIcon },
   { label: "SMFs", href: "/smcr/smfs", Icon: SmfIcon },
   { label: "Certifications", href: "/smcr/certifications", Icon: CertificationIcon },
   { label: "F&P", href: "/smcr/fitness-propriety", Icon: FitnessProprietyIcon },

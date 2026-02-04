@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -86,6 +88,7 @@ function formatFileSize(bytes: number | null): string {
 }
 
 export function DocumentUploadSection({ packId }: DocumentUploadSectionProps) {
+  const searchParams = useSearchParams();
   const [documents, setDocuments] = useState<PackDocument[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
@@ -99,6 +102,15 @@ export function DocumentUploadSection({ packId }: DocumentUploadSectionProps) {
   const [editForm, setEditForm] = useState({ name: "", description: "", sectionCode: "" });
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const categoryParam = searchParams.get("category");
+    if (!categoryParam) return;
+    const isValid = CATEGORY_OPTIONS.some((option) => option.value === categoryParam);
+    if (isValid) {
+      setFilterCategory(categoryParam);
+    }
+  }, [searchParams]);
 
   const loadDocuments = useCallback(async () => {
     try {
@@ -268,6 +280,8 @@ export function DocumentUploadSection({ packId }: DocumentUploadSectionProps) {
     signed: "bg-teal-100 text-teal-700",
   };
 
+  const workspaceHref = `/authorization-pack/workspace?packId=${packId}`;
+
   if (isLoading) {
     return (
       <Card className="border border-slate-200">
@@ -283,6 +297,14 @@ export function DocumentUploadSection({ packId }: DocumentUploadSectionProps) {
 
   return (
     <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Breadcrumbs
+          items={[
+            { label: "Workspace", href: workspaceHref },
+            { label: "Documents" },
+          ]}
+        />
+      </div>
       {/* Header */}
       <Card className="border border-slate-200">
         <CardHeader className="pb-4">

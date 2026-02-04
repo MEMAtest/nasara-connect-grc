@@ -1,11 +1,14 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useCallback } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileText, User, Briefcase, AlertTriangle, Edit3, ArrowRightLeft, CreditCard, ClipboardList } from "lucide-react";
 import { format } from "date-fns";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { useSmcrData } from "../context/SmcrDataContext";
 
 // Types
@@ -87,6 +90,7 @@ import { FormNotesPanel } from './components/FormNotesPanel';
 type SaveStatus = 'saved' | 'saving' | 'error' | 'quota-exceeded' | null;
 
 export function FormGuideClient() {
+  const searchParams = useSearchParams();
   const { firms, activeFirmId } = useSmcrData();
   const activeFirm = firms.find((f) => f.id === activeFirmId);
 
@@ -124,6 +128,18 @@ export function FormGuideClient() {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>(null);
   const [exportError, setExportError] = useState<string | null>(null);
   const [notesPanelOpen, setNotesPanelOpen] = useState(false);
+
+  useEffect(() => {
+    const tabParam = searchParams.get("tab");
+    const allowedTabs = ["select", "form-a", "form-c", "form-d", "form-e", "psd-individual"];
+    if (tabParam && allowedTabs.includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+    const psdSectionParam = searchParams.get("psdSection");
+    if (tabParam === "psd-individual" && psdSectionParam) {
+      setPSDSectionActive(psdSectionParam);
+    }
+  }, [searchParams]);
 
   // Load saved form data from localStorage on mount
   useEffect(() => {
@@ -902,8 +918,24 @@ export function FormGuideClient() {
     setPSDSectionActive(prev);
   };
 
+  const packId = searchParams.get("packId");
+  const workspaceHref = packId ? `/authorization-pack/workspace?packId=${packId}` : "/authorization-pack/workspace";
+  const breadcrumbLabel = activeTab === "psd-individual" ? "PSD Individual" : "SMCR Forms";
+
   return (
     <div className="p-6 space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Breadcrumbs
+          items={[
+            { label: "Workspace", href: workspaceHref },
+            { label: "SMCR", href: "/smcr" },
+            { label: breadcrumbLabel },
+          ]}
+        />
+        <Button variant="ghost" asChild className="text-slate-500 hover:text-slate-700">
+          <Link href={workspaceHref}>Back to Workspace</Link>
+        </Button>
+      </div>
       <FormHeader
         saveStatus={saveStatus}
         onPrint={handlePrint}

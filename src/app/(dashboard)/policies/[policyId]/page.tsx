@@ -7,7 +7,9 @@ import { PolicyReaderClient, type PolicyReaderOverview, type PolicyReaderSection
 import { PolicyStatusControl } from "@/components/policies/PolicyStatusControl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { auth } from "@/auth";
 import { DEFAULT_ORGANIZATION_ID } from "@/lib/constants";
+import { deriveOrganizationIdFromEmail } from "@/lib/auth-utils";
 import { findMissingTemplateVariables, renderClause, renderLiquidTemplate } from "@/lib/policies/liquid-renderer";
 import { normalizePolicyMarkdown, renderPolicyMarkdown } from "@/lib/policies/markdown";
 import { sanitizeClauseContent, DEFAULT_SANITIZE_OPTIONS } from "@/lib/policies/content-sanitizer";
@@ -113,11 +115,18 @@ function isTocClause(content: string) {
 
 export default async function PolicyDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<PageParams>;
+  searchParams?: Record<string, string | string[] | undefined>;
 }) {
   const { policyId } = await params;
-  const policy = await getPolicyById(DEFAULT_ORGANIZATION_ID, policyId);
+  const packId = typeof searchParams?.packId === "string" ? searchParams.packId : undefined;
+  const session = await auth();
+  const organizationId = session?.user?.email
+    ? await deriveOrganizationIdFromEmail(session.user.email)
+    : DEFAULT_ORGANIZATION_ID;
+  const policy = await getPolicyById(organizationId, policyId);
 
   if (!policy) {
     notFound();
@@ -164,6 +173,30 @@ export default async function PolicyDetailPage({
       : [];
   const governanceProcedures = typeof governance.linkedProcedures === "string" ? governance.linkedProcedures.trim() : "";
   const metrics = (customContent.metrics ?? {}) as Record<string, number>;
+
+  const workspaceBaseHref = packId ? `/authorization-pack/workspace?packId=${packId}` : "/authorization-pack/workspace";
+  const buildWorkspaceHref = (category?: string) => {
+    if (!packId) return "/authorization-pack/workspace";
+    if (!category) return workspaceBaseHref;
+    const params = new URLSearchParams({ packId, tab: "documents", category });
+    return `/authorization-pack/workspace?${params.toString()}`;
+  };
+
+  const policyFeedsMap: Record<string, Array<{ label: string; category?: string }>> = {
+    AML_CTF: [{ label: "AML/CTF policies and procedures", category: "aml-ctf" }],
+    INFO_SECURITY: [{ label: "IT & Security documentation", category: "it-security" }],
+    OUTSOURCING: [{ label: "Outsourcing & structure documentation", category: "outsourcing-structure" }],
+    COMPLAINTS: [{ label: "Complaints handling policy", category: "policies-procedures" }],
+    SAFEGUARDING: [{ label: "Safeguarding policy & methodology", category: "safeguarding" }],
+    BCP_RESILIENCE: [{ label: "Operational resilience / BCP policy", category: "policies-procedures" }],
+    FIN_PROMOTIONS: [{ label: "Policies & procedures checklist", category: "policies-procedures" }],
+    CONSUMER_DUTY: [{ label: "Policies & procedures checklist", category: "policies-procedures" }],
+    RISK_MGMT: [{ label: "Governance & controls evidence", category: "governance-controls" }],
+    COMPLIANCE_MON: [{ label: "Compliance monitoring programme", category: "governance-controls" }],
+  };
+  const feedsInto = policyFeedsMap[policy.template.code] ?? [
+    { label: "Policies & procedures checklist", category: "policies-procedures" },
+  ];
 
   const glossary =
     policy.code === "COMPLAINTS"
@@ -220,7 +253,7 @@ export default async function PolicyDetailPage({
     : templateSections;
 
   let links = await listEntityLinks({
-    organizationId: DEFAULT_ORGANIZATION_ID,
+    organizationId,
     fromType: "policy",
     fromId: policyId,
   });
@@ -234,7 +267,7 @@ export default async function PolicyDetailPage({
       await Promise.all(
         missing.map((mapping) =>
           upsertEntityLink({
-            organizationId: DEFAULT_ORGANIZATION_ID,
+            organizationId,
             fromType: "policy",
             fromId: policyId,
             toType: mapping.toType,
@@ -244,7 +277,7 @@ export default async function PolicyDetailPage({
         ),
       );
       links = await listEntityLinks({
-        organizationId: DEFAULT_ORGANIZATION_ID,
+        organizationId,
         fromType: "policy",
         fromId: policyId,
       });
@@ -505,6 +538,57 @@ export default async function PolicyDetailPage({
               </Button>
             </section>
           ) : null}
+
+          <section className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <h3 className="text-lg font-semibold text-slate-900">Feeds into</h3>
+                <p className="text-xs text-slate-500">
+                  Linked authorisation checklist items for this policy.
+                </p>
+              </div>
+              <Badge variant="outline" className="text-xs">
+                Authorisation
+              </Badge>
+            </div>
+            <div className="mt-4 space-y-2">
+              {feedsInto.map((item) => {
+                const itemHref = buildWorkspaceHref(item.category);
+                const content = (
+                  <>
+                    <span className="font-semibold text-slate-700">{item.label}</span>
+                    <Badge variant="secondary" className="text-[10px]">
+                      Linked
+                    </Badge>
+                  </>
+                );
+                return packId ? (
+                  <Link
+                    key={item.label}
+                    href={itemHref}
+                    className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50/80 px-3 py-2 text-xs text-slate-600 hover:border-indigo-200 hover:text-indigo-700"
+                  >
+                    {content}
+                  </Link>
+                ) : (
+                  <div
+                    key={item.label}
+                    className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50/80 px-3 py-2 text-xs text-slate-600"
+                  >
+                    {content}
+                  </div>
+                );
+              })}
+            </div>
+            <Button asChild size="sm" className="mt-4 w-full bg-indigo-600 hover:bg-indigo-700">
+              <Link href={workspaceBaseHref}>View in Authorisation</Link>
+            </Button>
+            {!packId ? (
+              <p className="mt-2 text-[11px] text-slate-400">
+                Select a project pack to enable deep links from this policy.
+              </p>
+            ) : null}
+          </section>
 
           <PolicyInlineEditor
             policyId={policy.id}

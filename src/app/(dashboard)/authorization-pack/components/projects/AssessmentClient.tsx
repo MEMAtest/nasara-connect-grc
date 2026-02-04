@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState, useCallback, useRef } from "react";
-import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -10,6 +11,8 @@ import { Label } from "@/components/ui/label";
 import { NasaraLoader } from "@/components/ui/nasara-loader";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 import { ProjectHeader } from "./ProjectHeader";
 import { AddressAutocomplete } from "./AddressAutocomplete";
@@ -399,6 +402,7 @@ const calculateCompletion = (assessment: AssessmentData, permissionCode?: string
 export function AssessmentClient() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const projectId = params?.projectId as string | undefined;
   const [project, setProject] = useState<ProjectDetail | null>(null);
   const [assessment, setAssessment] = useState<AssessmentData>({});
@@ -446,6 +450,15 @@ export function AssessmentClient() {
   useEffect(() => {
     loadProject();
   }, [loadProject]);
+
+  useEffect(() => {
+    const sectionParam = searchParams.get("section");
+    if (!sectionParam) return;
+    const isValid = ASSESSMENT_SECTIONS.some((section) => section.id === sectionParam);
+    if (isValid) {
+      setActiveSection(sectionParam);
+    }
+  }, [searchParams]);
 
   // Track unsaved changes
   useEffect(() => {
@@ -563,8 +576,19 @@ export function AssessmentClient() {
 
     // Documents to Attach
     const docKeys = ["certificateOfIncorporation", "articlesOfAssociation", "partnershipDeed", "llpAgreement"];
+    const docsCompleted = docKeys.filter((key) => {
+      const status = basics[key];
+      if (status === undefined || status === null || String(status).trim().length === 0) {
+        return false;
+      }
+      if (status === "not-applicable") {
+        const reason = basics[`${key}Reason`];
+        return reason !== undefined && reason !== null && String(reason).trim().length > 0;
+      }
+      return true;
+    }).length;
     result["documents-attach"] = {
-      filled: docKeys.filter((k) => { const v = basics[k]; return v !== undefined && v !== null && String(v).trim().length > 0; }).length,
+      filled: docsCompleted,
       total: docKeys.length,
     };
 
@@ -880,8 +904,28 @@ export function AssessmentClient() {
     );
   }
 
+  const activeSectionLabel =
+    ASSESSMENT_SECTIONS.find((section) => section.id === activeSection)?.label ?? "Assessment";
+  const workspaceHref = project.packId
+    ? `/authorization-pack/workspace?packId=${project.packId}`
+    : projectId
+      ? `/authorization-pack/${projectId}`
+      : "/authorization-pack/workspace";
+
   return (
     <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Breadcrumbs
+          items={[
+            { label: "Workspace", href: workspaceHref },
+            { label: "Assessment", href: projectId ? `/authorization-pack/${projectId}/assessment` : undefined },
+            { label: activeSectionLabel },
+          ]}
+        />
+        <Button variant="ghost" asChild className="text-slate-500 hover:text-slate-700">
+          <Link href={workspaceHref}>Back to Workspace</Link>
+        </Button>
+      </div>
       <ProjectHeader project={project} active="assessment" />
 
       <Card className="border border-slate-200">
@@ -1662,26 +1706,44 @@ export function AssessmentClient() {
             { key: "articlesOfAssociation", label: "Articles of Association" },
             { key: "partnershipDeed", label: "Partnership agreement deeds (if applicable)" },
             { key: "llpAgreement", label: "LLP agreement deeds (if applicable)" },
-          ].map((doc) => (
-            <div key={doc.key} className="space-y-2">
-              <Label>{doc.label}</Label>
-              <Select
-                value={String(assessment.basics?.[doc.key] ?? "")}
-                onValueChange={(value) => updateBasics(doc.key, value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  {DOCUMENT_STATUS_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          ))}
+          ].map((doc) => {
+            const statusValue = String(assessment.basics?.[doc.key] ?? "");
+            const reasonKey = `${doc.key}Reason`;
+            const reasonValue = String(assessment.basics?.[reasonKey] ?? "");
+            return (
+              <div key={doc.key} className="space-y-2">
+                <Label>{doc.label}</Label>
+                <Select
+                  value={statusValue}
+                  onValueChange={(value) => updateBasics(doc.key, value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {DOCUMENT_STATUS_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {statusValue === "not-applicable" ? (
+                  <div className="space-y-2 rounded-lg border border-amber-200 bg-amber-50/60 p-3">
+                    <Label className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-700">
+                      Reason required
+                    </Label>
+                    <Textarea
+                      value={reasonValue}
+                      onChange={(event) => updateBasics(reasonKey, event.target.value)}
+                      placeholder="Explain why this document is not applicable."
+                      rows={3}
+                    />
+                  </div>
+                ) : null}
+              </div>
+            );
+          })}
         </CardContent>
       </Card>
       )}

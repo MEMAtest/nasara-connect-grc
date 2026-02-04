@@ -53,6 +53,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
 
 interface ChecklistCardsProps {
   packId: string;
+  projectId?: string | null;
   selectedPhase?: string | null;
   initialStatuses?: Record<string, ChecklistItemStatus>;
   onStatusChange?: (itemId: string, status: ChecklistItemStatus) => void;
@@ -84,12 +85,14 @@ const ChecklistItemRow = memo(function ChecklistItemRow({
   onStatusChange,
   accentColor,
   isSaving,
+  linkHref,
 }: {
   item: ChecklistItem;
   status: ChecklistItemStatus;
   onStatusChange: (itemId: string, status: ChecklistItemStatus) => void;
   accentColor: string;
   isSaving?: boolean;
+  linkHref?: string;
 }) {
   const statusOption = CHECKLIST_STATUS_OPTIONS.find((opt) => opt.value === status);
   const colors = PHASE_COLORS[accentColor] || PHASE_COLORS.teal;
@@ -98,18 +101,27 @@ const ChecklistItemRow = memo(function ChecklistItemRow({
     <div className="flex items-center justify-between gap-2 rounded-md border border-white/50 bg-white px-2.5 py-1.5 transition hover:border-slate-200 hover:bg-white/90">
       <div className="flex items-center gap-2 min-w-0 flex-1">
         <StatusIcon status={status} />
-        <span className="text-xs text-slate-700 truncate">{item.label}</span>
-        {item.smcrLink && (
+        {linkHref ? (
           <Link
-            href={item.smcrLink}
-            target="_blank"
+            href={linkHref}
+            className="text-xs text-slate-700 truncate hover:text-teal-700 transition-colors"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {item.label}
+          </Link>
+        ) : (
+          <span className="text-xs text-slate-700 truncate">{item.label}</span>
+        )}
+        {linkHref ? (
+          <Link
+            href={linkHref}
             className="shrink-0 text-teal-500 hover:text-teal-700 transition"
-            title="Open in SMCR Forms"
+            title="Open task"
             onClick={(e) => e.stopPropagation()}
           >
             <ExternalLink className="h-3 w-3" />
           </Link>
-        )}
+        ) : null}
       </div>
       <Select
         value={status}
@@ -141,12 +153,14 @@ const CategoryCard = memo(function CategoryCard({
   onStatusChange,
   isHighlighted,
   savingItems,
+  resolveHref,
 }: {
   category: ChecklistCategory;
   statuses: Record<string, ChecklistItemStatus>;
   onStatusChange: (itemId: string, status: ChecklistItemStatus) => void;
   isHighlighted: boolean;
   savingItems?: Set<string>;
+  resolveHref: (href?: string) => string | undefined;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const colors = PHASE_COLORS[category.accentColor] || PHASE_COLORS.teal;
@@ -189,7 +203,7 @@ const CategoryCard = memo(function CategoryCard({
             </div>
           </div>
           <Badge variant="outline" className={`${colors.text} text-xs shrink-0`}>
-            {category.items.length}
+            {completed}/{total}
           </Badge>
         </div>
         {/* Progress bar */}
@@ -210,16 +224,20 @@ const CategoryCard = memo(function CategoryCard({
       </CardHeader>
       <CardContent className="pt-1">
         <div className="space-y-1" role="list" aria-label={`${category.title} checklist items`}>
-          {visibleItems.map((item) => (
-            <ChecklistItemRow
-              key={item.id}
-              item={item}
-              status={statuses[item.id] || "not_started"}
-              onStatusChange={onStatusChange}
-              accentColor={category.accentColor}
-              isSaving={savingItems?.has(item.id)}
-            />
-          ))}
+          {visibleItems.map((item) => {
+            const linkHref = resolveHref(item.href) ?? resolveHref(item.smcrLink);
+            return (
+              <ChecklistItemRow
+                key={item.id}
+                item={item}
+                status={statuses[item.id] || "not_started"}
+                onStatusChange={onStatusChange}
+                accentColor={category.accentColor}
+                isSaving={savingItems?.has(item.id)}
+                linkHref={linkHref}
+              />
+            );
+          })}
         </div>
         {hiddenCount > 0 && (
           <button
@@ -256,6 +274,7 @@ const CategoryCard = memo(function CategoryCard({
 
 export function ChecklistCards({
   packId,
+  projectId,
   selectedPhase,
   initialStatuses = {},
   onStatusChange,
@@ -382,6 +401,16 @@ export function ChecklistCards({
     return FCA_API_CHECKLIST.filter((category) => category.phase === selectedPhase);
   }, [selectedPhase]);
 
+  const resolveHref = useCallback(
+    (href?: string) => {
+      if (!href) return undefined;
+      if (href.includes("{packId}") && !packId) return undefined;
+      if (href.includes("{projectId}") && !projectId) return undefined;
+      return href.replace("{packId}", packId).replace("{projectId}", projectId ?? "");
+    },
+    [packId, projectId],
+  );
+
   if (isLoading) {
     return (
       <Card className="border border-slate-200">
@@ -439,6 +468,7 @@ export function ChecklistCards({
             onStatusChange={handleStatusChange}
             isHighlighted={selectedPhase === category.phase}
             savingItems={savingItems}
+            resolveHref={resolveHref}
           />
         ))}
       </div>

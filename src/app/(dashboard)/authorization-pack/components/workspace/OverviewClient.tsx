@@ -570,6 +570,7 @@ export function OverviewClient() {
           {/* Documentation Checklist Cards */}
           <ChecklistCards
             packId={pack.id}
+            projectId={project?.id}
             selectedPhase={selectedPhase}
             initialStatuses={checklistStatuses}
             onStatusChange={handleChecklistStatusChange}

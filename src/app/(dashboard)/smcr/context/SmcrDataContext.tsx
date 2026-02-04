@@ -19,6 +19,7 @@ import { getTrainingModulesForRole, TrainingModuleDefinition, TrainingStatus } f
 export type DocumentCategory = "cv" | "dbs" | "reference" | "qualification" | "id" | "other";
 
 type AssessmentStatus = "current" | "due" | "overdue" | "not_required";
+export type PsdStatus = "not_started" | "in_progress" | "complete";
 
 export interface Firm {
   id: string;
@@ -65,6 +66,9 @@ export interface PersonRecord {
   hireDate?: string;
   endDate?: string;
   irn?: string;
+  notes?: string;
+  isPsd?: boolean;
+  psdStatus?: PsdStatus;
   fcaVerification?: FCAVerificationData;
   assessment: PersonAssessment;
   createdAt: string;
