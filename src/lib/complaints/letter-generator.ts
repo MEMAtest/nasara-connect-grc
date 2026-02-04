@@ -8,16 +8,10 @@ import {
   Paragraph,
   TextRun,
   AlignmentType,
-  BorderStyle,
-  Table,
-  TableRow,
-  TableCell,
-  WidthType,
   convertInchesToTwip,
   Header,
   Footer,
   PageNumber,
-  NumberFormat,
 } from "docx";
 import { Packer } from "docx";
 import {
@@ -63,6 +57,7 @@ const LINE_SPACING = 276; // 1.15 line spacing
 // HELPER FUNCTIONS
 // =====================================================
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function createLetterheadParagraph(text: string, bold = false, size = FONT_SIZE_NORMAL): Paragraph {
   return new Paragraph({
     alignment: AlignmentType.LEFT,
@@ -92,6 +87,7 @@ function createAddressParagraph(text: string): Paragraph {
   });
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function createSubjectParagraph(text: string): Paragraph {
   return new Paragraph({
     alignment: AlignmentType.LEFT,
@@ -184,7 +180,6 @@ function createDivider(): Paragraph {
 function parseLetterContent(content: string): Paragraph[] {
   const paragraphs: Paragraph[] = [];
   const lines = content.split("\n");
-  let isInList = false;
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
@@ -207,7 +202,6 @@ function parseLetterContent(content: string): Paragraph[] {
     if (line.startsWith("- ") || line.startsWith("* ") || line.startsWith("• ")) {
       const bulletText = line.substring(2).trim();
       paragraphs.push(createBulletParagraph(bulletText));
-      isInList = true;
       continue;
     }
 
@@ -235,7 +229,6 @@ function parseLetterContent(content: string): Paragraph[] {
       (line.length < 50 && !line.includes(".") && i > 0)
     ) {
       paragraphs.push(createSectionHeading(line));
-      isInList = false;
       continue;
     }
 
@@ -283,7 +276,6 @@ function parseLetterContent(content: string): Paragraph[] {
 
     // Regular body paragraph
     paragraphs.push(createBodyParagraph(line));
-    isInList = false;
   }
 
   return paragraphs;

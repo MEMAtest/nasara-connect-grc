@@ -1,4 +1,5 @@
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
+import type { NextRequest } from "next/server";
 import type { ProfileQuestion } from "@/lib/business-plan-profile";
 
 const mkdir = vi.fn().mockResolvedValue(undefined);
@@ -26,11 +27,14 @@ vi.mock("fs", () => ({
   },
 }));
 
-vi.mock("@/lib/auth-utils", () => ({
-  requireAuth: vi.fn().mockResolvedValue({
+vi.mock("@/lib/rbac", () => ({
+  requireRole: vi.fn().mockResolvedValue({
     auth: { userId: "test-user", organizationId: "test-org" },
     error: null,
   }),
+}));
+
+vi.mock("@/lib/auth-utils", () => ({
   isValidUUID: vi.fn().mockReturnValue(true),
 }));
 
@@ -199,7 +203,7 @@ describe("Generate opinion pack route", () => {
       { method: "POST", body: JSON.stringify({ action: "start" }) }
     );
 
-    const startRes = await POST(startReq, {
+    const startRes = await POST(startReq as unknown as NextRequest, {
       params: Promise.resolve({ id: "00000000-0000-0000-0000-000000000001" }),
     });
 
@@ -215,7 +219,7 @@ describe("Generate opinion pack route", () => {
         "http://localhost/api/authorization-pack/packs/00000000-0000-0000-0000-000000000001/generate-business-plan",
         { method: "POST", body: JSON.stringify({ action: "run", jobId: job.id, batchSize: 6 }) }
       );
-      const runRes = await POST(runReq, {
+      const runRes = await POST(runReq as unknown as NextRequest, {
         params: Promise.resolve({ id: "00000000-0000-0000-0000-000000000001" }),
       });
       const runPayload = await runRes.json();

@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { generateTrendData, getMonthKey, type TrendPoint } from "@/lib/chart-utils";
 import { useToast } from "@/components/toast-provider";
-import { Plus, Loader2, AlertOctagon, AlertTriangle, CheckCircle, Clock, FileWarning } from "lucide-react";
+import { Plus, Loader2, AlertOctagon, AlertTriangle, Clock, FileWarning } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,6 +19,8 @@ import { PaginationControls, usePagination } from "@/components/ui/pagination-co
 
 interface RegulatoryBreachRecord {
   id: string;
+  created_at?: string;
+  [key: string]: unknown;
   breach_reference: string;
   breach_title: string;
   breach_type: string;
@@ -135,6 +137,7 @@ export function RegulatoryBreachClient() {
 
   useEffect(() => {
     loadRecords();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount / when packId changes
   }, [packId]);
 
   const resetForm = () =>
@@ -341,7 +344,7 @@ export function RegulatoryBreachClient() {
       key: "breach_type",
       header: "Type",
       sortable: true,
-      render: (value) => typeLabels[value as string] || value,
+      render: (value) => typeLabels[value as string] || String(value),
     },
     {
       key: "status",

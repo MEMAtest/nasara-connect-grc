@@ -11,7 +11,7 @@ import {
   type ReportPeriod,
   type ReportTemplate,
 } from "@/lib/reporting/types";
-import { requireAuth } from "@/lib/auth-utils";
+import { requireRole } from "@/lib/rbac";
 
 const templateSet = new Set(REPORT_TEMPLATES);
 const audienceSet = new Set(REPORT_AUDIENCES);
@@ -34,7 +34,7 @@ function sanitizeFilename(input: string) {
 }
 
 export async function GET(request: NextRequest) {
-  const { error } = await requireAuth();
+  const { error } = await requireRole("member");
   if (error) return error;
 
   const { searchParams } = new URL(request.url);

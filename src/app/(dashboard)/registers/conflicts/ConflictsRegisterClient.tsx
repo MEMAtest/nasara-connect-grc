@@ -20,6 +20,8 @@ import { PaginationControls, usePagination } from "@/components/ui/pagination-co
 interface COIRecord {
   id: string;
   declarant_name: string;
+  created_at?: string;
+  [key: string]: unknown;
   declarant_role?: string;
   declaration_date: string;
   conflict_type: string;
@@ -68,6 +70,7 @@ const chartColors = {
   archived: "#64748b",
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const riskChartColors: Record<string, string> = {
   low: "#10b981",
   medium: "#f59e0b",
@@ -126,6 +129,7 @@ export function ConflictsRegisterClient() {
 
   useEffect(() => {
     loadRecords();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount / when packId changes
   }, [packId]);
 
   const resetForm = () =>
@@ -317,7 +321,7 @@ export function ConflictsRegisterClient() {
       key: "conflict_type",
       header: "Type",
       sortable: true,
-      render: (value) => typeLabels[value as string] || value,
+      render: (value) => typeLabels[value as string] || String(value),
     },
     {
       key: "status",

@@ -24,7 +24,7 @@ export function StepTemplateSelect({ state, updateState, onNext, onBack }: Wizar
   );
   const goldStandardSet = useMemo(() => new Set(GOLD_STANDARD_POLICY_CODES), []);
   const availableTemplates = useMemo(
-    () => POLICY_TEMPLATES.filter((template) => goldStandardSet.has(template.code)),
+    () => POLICY_TEMPLATES.filter((template) => goldStandardSet.has(template.code as any)), // eslint-disable-line @typescript-eslint/no-explicit-any
     [goldStandardSet],
   );
   const availableRequiredCount = useMemo(

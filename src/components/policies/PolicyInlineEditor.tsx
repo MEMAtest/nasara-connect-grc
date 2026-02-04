@@ -68,7 +68,7 @@ export function PolicyInlineEditor({
   }, [initialGovernance, initialSectionNotes, isEditing]);
 
   const noteSections = useMemo(
-    () => getNoteSections({ code: templateCode, sections }),
+    () => getNoteSections({ code: templateCode, sections } as any), // eslint-disable-line @typescript-eslint/no-explicit-any
     [templateCode, sections],
   );
   const noteSectionMap = useMemo(() => new Map(noteSections.map((section) => [section.id, section])), [noteSections]);

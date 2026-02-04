@@ -19,7 +19,7 @@ export const amlFundamentalsContent = {
     ],
     prerequisites: [],
     lessons: ["aml_fundamentals_main"]
-  } as TrainingModule,
+  } as unknown as TrainingModule,
 
   lesson: {
     id: "aml_fundamentals_main",
@@ -474,7 +474,7 @@ export const amlFundamentalsContent = {
         }
       }
     }
-  } as MicroLesson,
+  } as unknown as MicroLesson,
 
   assessment: {
     id: "aml_fundamentals_assessment",
@@ -639,11 +639,11 @@ export const amlFundamentalsContent = {
         category: "tipping_off_prevention"
       }
     ]
-  } as Assessment
+  } as unknown as Assessment
 };
 
 // Export compatible with TrainingModule interface
-export const amlFundamentalsModule = {
+export const amlFundamentalsModule: TrainingModule = {
   id: 'aml-fundamentals',
   title: 'Anti-Money Laundering (AML) Fundamentals',
   description: 'Master the foundations of AML compliance, understand the three stages of money laundering, and learn your critical role in protecting the financial system',

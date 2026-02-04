@@ -90,6 +90,7 @@ export function ProjectDashboardClient() {
 
   useEffect(() => {
     loadProject();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount / when projectId changes
   }, [projectId]);
 
   const readiness = project?.readiness
@@ -200,7 +201,7 @@ export function ProjectDashboardClient() {
         disabled: !project.packId,
       },
     ];
-  }, [project]);
+  }, [project, readiness?.narrative]);
 
   if (isLoading) {
     return (

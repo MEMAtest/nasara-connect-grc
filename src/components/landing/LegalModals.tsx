@@ -59,7 +59,7 @@ function TermsContent() {
       <section>
         <h3 className="text-lg font-semibold text-white mb-3">1. Agreement to Terms</h3>
         <p className="text-sm leading-relaxed">
-          By accessing and using the Nasara Connect platform ("Service"), you agree to be bound by these
+          By accessing and using the Nasara Connect platform (&quot;Service&quot;), you agree to be bound by these
           Terms and Conditions. If you disagree with any part of these terms, you may not access the Service.
         </p>
       </section>
@@ -154,7 +154,7 @@ function PrivacyContent() {
       <section>
         <h3 className="text-lg font-semibold text-white mb-3">1. Introduction</h3>
         <p className="text-sm leading-relaxed">
-          Nasara Connect ("we," "our," or "us") is committed to protecting your privacy. This Privacy
+          Nasara Connect (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) is committed to protecting your privacy. This Privacy
           Policy explains how we collect, use, disclose, and safeguard your information when you use
           our compliance platform and related services.
         </p>
@@ -237,7 +237,7 @@ function PrivacyContent() {
         <h3 className="text-lg font-semibold text-white mb-3">9. Changes to This Policy</h3>
         <p className="text-sm leading-relaxed">
           We may update this Privacy Policy from time to time. We will notify you of any changes by
-          posting the new Privacy Policy on this page and updating the "Last updated" date.
+          posting the new Privacy Policy on this page and updating the &quot;Last updated&quot; date.
         </p>
       </section>
 

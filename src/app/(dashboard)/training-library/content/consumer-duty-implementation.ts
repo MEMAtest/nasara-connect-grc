@@ -17,7 +17,7 @@ export const consumerDutyImplementationContent = {
       "Establish effective governance and oversight processes",
       "Handle vulnerable customers according to Consumer Duty requirements"
     ]
-  } as TrainingModule,
+  } as unknown as TrainingModule,
 
   lesson: {
     id: "consumer_duty_fundamentals",
@@ -312,7 +312,7 @@ export const consumerDutyImplementationContent = {
         }
       }
     }
-  } as MicroLesson
+  } as unknown as MicroLesson
 };
 
 export const consumerDutyImplementationModule: TrainingModule = {

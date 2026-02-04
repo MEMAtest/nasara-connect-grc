@@ -8,7 +8,6 @@ import {
   Plus,
   Loader2,
   ShieldAlert,
-  AlertTriangle,
   CheckCircle,
   Clock,
   Zap,
@@ -17,12 +16,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { format } from "date-fns";
 import { RegisterToolbar, ViewMode } from "@/components/registers/RegisterToolbar";
-import { RegisterDataTable, Column, renderBadge, renderDate, renderCurrency } from "@/components/registers/RegisterDataTable";
+import { RegisterDataTable, Column, renderBadge, renderDate } from "@/components/registers/RegisterDataTable";
 import { StatCard, DonutChart, BarChart, TrendChart } from "@/components/registers/RegisterCharts";
 import { exportToCSV, transforms } from "@/lib/export-utils";
 import { PaginationControls, usePagination } from "@/components/ui/pagination-controls";
@@ -30,6 +27,8 @@ import { PaginationControls, usePagination } from "@/components/ui/pagination-co
 interface IncidentRecord {
   id: string;
   incident_reference?: string;
+  created_at?: string;
+  [key: string]: unknown;
   incident_title: string;
   incident_type: string;
   severity: string;
@@ -77,6 +76,7 @@ const statusColors: Record<string, string> = {
   closed: "bg-slate-100 text-slate-700",
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const chartColors = {
   detected: "#f59e0b",
   investigating: "#3b82f6",
@@ -147,6 +147,7 @@ export function IncidentRegisterClient() {
 
   useEffect(() => {
     loadRecords();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount / when packId changes
   }, [packId]);
 
   const resetForm = () =>
@@ -356,7 +357,7 @@ export function IncidentRegisterClient() {
       key: "incident_type",
       header: "Type",
       sortable: true,
-      render: (value) => typeLabels[value as string] || value,
+      render: (value) => typeLabels[value as string] || String(value),
     },
     {
       key: "severity",

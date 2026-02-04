@@ -14,7 +14,7 @@ import {
 } from '@/lib/smcr-database';
 import { createNotification } from "@/lib/server/notifications-store";
 import { logError, logApiRequest } from '@/lib/logger';
-import { requireAuth } from '@/lib/auth-utils';
+import { requireRole } from "@/lib/rbac";
 
 export async function GET(
   request: NextRequest,
@@ -24,7 +24,7 @@ export async function GET(
   logApiRequest('GET', `/api/smcr/firms/${firmId}/assessments`);
 
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
     await initSmcrDatabase();
 
@@ -55,7 +55,7 @@ export async function POST(
   logApiRequest('POST', `/api/smcr/firms/${firmId}/assessments`);
 
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
     await initSmcrDatabase();
 

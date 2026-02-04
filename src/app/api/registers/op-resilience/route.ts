@@ -15,8 +15,6 @@ import {
   authenticateRequest,
   checkRateLimit,
   rateLimitExceededResponse,
-  badRequestResponse,
-  serverErrorResponse,
 } from "@/lib/api-auth";
 import { notifyRegisterCreated } from "@/lib/server/notification-builders";
 import { logError } from "@/lib/logger";

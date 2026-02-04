@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { PDFDocument, StandardFonts, rgb, PDFFont, PDFPage } from "pdf-lib";
-import { requireAuth } from "@/lib/auth-utils";
+import { requireRole } from "@/lib/rbac";
 import { getPolicyById } from "@/lib/server/policy-store";
 import { renderClause, renderLiquidTemplate } from "@/lib/policies/liquid-renderer";
 import { sanitizeClauseContent, DEFAULT_SANITIZE_OPTIONS } from "@/lib/policies/content-sanitizer";
 import { applyTiering, type DetailLevel, type TieredSection } from "@/lib/policies/clause-tiers";
 import { applyOptionSelections } from "@/lib/policies/section-options";
 import { resolveNotePlaceholders } from "@/lib/policies/section-notes";
+import type { JsonValue } from "@/lib/policies/types";
 
 function sanitizeFilename(value: string) {
   return value.replace(/[^a-z0-9]/gi, "_").toLowerCase();
@@ -323,7 +324,7 @@ export async function GET(
   { params }: { params: Promise<{ policyId: string }> }
 ) {
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
     const { policyId } = await params;
     const policy = await getPolicyById(auth.organizationId, policyId);
@@ -373,12 +374,13 @@ export async function GET(
       ...(customContent.approvals ?? {}),
     };
 
+    // Values originate from JSON storage so are inherently JsonValue-shaped
     const renderContext = {
       firm: firmProfile,
       firm_name: firmName,
       permissions: policy.permissions,
       ...policyInputs,
-    };
+    } as unknown as Record<string, JsonValue>;
 
     const tieredSections = applyTiering(
       policy.template,
@@ -387,7 +389,7 @@ export async function GET(
       Object.keys(sectionClauses).length > 0 ? sectionClauses : undefined
     );
 
-    const documentSections: RenderedSection[] = tieredSections
+    const documentSections: RenderedSection[] = (tieredSections
       .map((tieredSection: TieredSection) => {
         const renderedClauses: RenderedClause[] = tieredSection.clauses
           .filter((clause) => !isTocClause(clause.content))
@@ -438,7 +440,7 @@ export async function GET(
           customNotes: resolvedNotes,
         };
       })
-      .filter((section): section is RenderedSection => section !== null);
+      .filter(Boolean)) as RenderedSection[];
 
     const versionHistory = [];
     if (policyVersion) {
@@ -473,7 +475,7 @@ export async function GET(
     const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
     const primaryColor = hexToRgb("#4F46E5");
 
-    let page = pdfDoc.addPage();
+    const page = pdfDoc.addPage();
     const { width, height } = page.getSize();
     const margin = 50;
 

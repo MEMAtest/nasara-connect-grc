@@ -222,6 +222,7 @@ export interface Run {
   created_at: string;
   updated_at: string;
   last_saved_at?: string; // For autosave
+  metadata?: Record<string, unknown>; // Optional metadata
 }
 
 export interface RunCreate extends Omit<Run, 'id' | 'created_at' | 'updated_at' | 'version' | 'last_saved_at'> {

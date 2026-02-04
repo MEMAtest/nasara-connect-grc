@@ -25,6 +25,7 @@ import {
   Upload
 } from "lucide-react";
 import { getTrainingContent } from "../lib/trainingContent";
+import type { LearningPathway } from "../types";
 
 export function TrainingAdminClient() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -32,11 +33,12 @@ export function TrainingAdminClient() {
   const [isCreating, setIsCreating] = useState(false);
 
   const trainingData = getTrainingContent();
-  const filteredPathways = trainingData.pathways.filter(pathway => {
+  const allPathways = Object.values(trainingData.pathways);
+  const filteredPathways = allPathways.filter((pathway: LearningPathway) => {
     const matchesSearch = pathway.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          pathway.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesPersona = selectedPersona === "all" ||
-                          pathway.targetPersonas.includes(selectedPersona);
+                          pathway.targetRoles.includes(selectedPersona);
     return matchesSearch && matchesPersona;
   });
 
@@ -158,7 +160,7 @@ export function TrainingAdminClient() {
                 <BookOpen className="h-6 w-6 text-blue-600" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-slate-900">{trainingData.pathways.length}</div>
+                <div className="text-2xl font-bold text-slate-900">{allPathways.length}</div>
                 <div className="text-sm text-slate-600">Learning Pathways</div>
               </div>
             </div>
@@ -173,7 +175,7 @@ export function TrainingAdminClient() {
               </div>
               <div>
                 <div className="text-2xl font-bold text-slate-900">
-                  {trainingData.pathways.reduce((acc, p) => acc + p.modules.length, 0)}
+                  {allPathways.reduce((acc: number, p: LearningPathway) => acc + p.modules.length, 0)}
                 </div>
                 <div className="text-sm text-slate-600">Training Modules</div>
               </div>
@@ -256,7 +258,7 @@ export function TrainingAdminClient() {
 
           {/* Pathways List */}
           <div className="space-y-4">
-            {filteredPathways.map((pathway) => (
+            {filteredPathways.map((pathway: LearningPathway) => (
               <Card key={pathway.id} className="border border-slate-200">
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
@@ -264,14 +266,10 @@ export function TrainingAdminClient() {
                       <div className="flex items-center gap-3 mb-2">
                         <h3 className="font-semibold text-lg text-slate-900">{pathway.title}</h3>
                         <Badge variant="outline" className="text-xs">
-                          {pathway.estimatedDuration} total
+                          {pathway.estimatedDuration}h total
                         </Badge>
-                        <Badge className={
-                          pathway.difficulty === 'beginner' ? 'bg-green-100 text-green-800' :
-                          pathway.difficulty === 'intermediate' ? 'bg-amber-100 text-amber-800' :
-                          'bg-red-100 text-red-800'
-                        }>
-                          {pathway.difficulty}
+                        <Badge variant="outline" className="text-xs capitalize">
+                          {pathway.category}
                         </Badge>
                       </div>
                       <p className="text-slate-600 mb-4">{pathway.description}</p>
@@ -283,7 +281,7 @@ export function TrainingAdminClient() {
                         </div>
                         <div className="flex items-center gap-1">
                           <Users className="h-4 w-4" />
-                          {pathway.targetPersonas.length} personas
+                          {pathway.targetRoles.length} roles
                         </div>
                         <div className="flex items-center gap-1">
                           <Clock className="h-4 w-4" />
@@ -292,9 +290,9 @@ export function TrainingAdminClient() {
                       </div>
 
                       <div className="flex flex-wrap gap-2 mt-4">
-                        {pathway.targetPersonas.map(persona => (
-                          <Badge key={persona} variant="secondary" className="text-xs">
-                            {trainingData.personas[persona as keyof typeof trainingData.personas]?.title || persona}
+                        {pathway.targetRoles.map((role: string) => (
+                          <Badge key={role} variant="secondary" className="text-xs">
+                            {trainingData.personas[role as keyof typeof trainingData.personas]?.title || role.replace(/_/g, ' ')}
                           </Badge>
                         ))}
                       </div>
@@ -326,17 +324,15 @@ export function TrainingAdminClient() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {trainingData.pathways.map(pathway =>
-                  pathway.modules.map(module => (
-                    <div key={module.id} className="border border-slate-200 rounded-lg p-4">
+                {allPathways.map((pathway: LearningPathway) =>
+                  pathway.modules.map((moduleId: string) => (
+                    <div key={moduleId} className="border border-slate-200 rounded-lg p-4">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <h4 className="font-medium text-slate-900">{module.title}</h4>
-                          <p className="text-sm text-slate-600 mt-1">{module.description}</p>
+                          <h4 className="font-medium text-slate-900 capitalize">{moduleId.replace(/_/g, ' ')}</h4>
                           <div className="flex items-center gap-4 mt-2 text-xs text-slate-500">
-                            <span>Duration: {module.estimatedDuration}</span>
-                            <span>Type: {module.type}</span>
                             <span>Pathway: {pathway.title}</span>
+                            <span>Category: {pathway.category}</span>
                           </div>
                         </div>
                         <div className="flex gap-2">
@@ -364,7 +360,7 @@ export function TrainingAdminClient() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {trainingData.branchingScenarios.map(scenario => (
+                {Object.values(trainingData.scenarios).map((scenario) => (
                   <div key={scenario.id} className="border border-slate-200 rounded-lg p-4">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -372,7 +368,6 @@ export function TrainingAdminClient() {
                         <p className="text-sm text-slate-600 mt-1">{scenario.context.situation}</p>
                         <div className="flex items-center gap-4 mt-2 text-xs text-slate-500">
                           <span>{scenario.decisionPoints.length} decision points</span>
-                          <span>Difficulty: {scenario.difficulty}</span>
                           <span>Role: {scenario.context.role}</span>
                         </div>
                       </div>

@@ -25,6 +25,58 @@ import {
 import { format, subDays } from 'date-fns';
 import { cn } from '@/lib/utils';
 
+// Type definitions
+interface Transaction {
+  id: string;
+  beneficiary: string;
+  beneficiaryId: string;
+  amount: number;
+  currency: string;
+  convertedAmount?: number;
+  originalCurrency?: string;
+  status: string;
+  date: Date;
+  reference: string;
+  purpose: string;
+  fees: number;
+  exchangeRate?: number;
+  processingTime: string;
+  confirmationNumber: string;
+  flagged: boolean;
+  priority: string;
+  reviewReason?: string;
+  notifyBeneficiary: boolean;
+}
+
+interface Alert {
+  id: string;
+  type: string;
+  title: string;
+  description: string;
+  severity: string;
+  created: Date;
+  actionRequired: boolean;
+  transactionId?: string;
+  beneficiaryId?: string;
+}
+
+interface NotificationPayload {
+  title: string;
+  message: string;
+  severity: string;
+  source: string;
+  link: string;
+}
+
+interface AccountBalance {
+  gbp: number;
+  eur: number;
+  usd: number;
+  reserved: number;
+  frozen: number;
+  [key: string]: number;
+}
+
 // Initial account data - transactions will be stored in state
 const initialAccountData = {
   accountBalance: {
@@ -33,7 +85,7 @@ const initialAccountData = {
     usd: 18750.45,
     reserved: 15500.00,
     frozen: 0.00
-  },
+  } as AccountBalance,
   beneficiaries: [
     {
       id: 'ben_001',
@@ -111,11 +163,11 @@ const initialAccountData = {
   ],
   kycStatus: 'approved',
   complianceScore: 94.5,
-  alerts: []
+  alerts: [] as Alert[]
 };
 
 // Enhanced exchange rates with real-time simulation
-const baseExchangeRates = {
+const baseExchangeRates: Record<string, number> = {
   'GBP_EUR': 1.1650,
   'GBP_USD': 1.2680,
   'GBP_JPY': 188.45,
@@ -131,23 +183,23 @@ export function PaymentsClient() {
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [showBeneficiaryDialog, setShowBeneficiaryDialog] = useState(false);
   const [showTransactionDetails, setShowTransactionDetails] = useState(false);
-  const [selectedTransaction, setSelectedTransaction] = useState(null);
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [selectedTab, setSelectedTab] = useState('dashboard');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [dateRange, setDateRange] = useState('7d');
   const [autoRefresh, setAutoRefresh] = useState(true);
-  const [exchangeRates, setExchangeRates] = useState(baseExchangeRates);
+  const [exchangeRates, setExchangeRates] = useState<Record<string, number>>(baseExchangeRates);
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [isClient, setIsClient] = useState(false);
 
   // Persistent state for transactions and beneficiaries
-  const [transactions, setTransactions] = useState([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [beneficiaries, setBeneficiaries] = useState(initialAccountData.beneficiaries);
-  const [accountBalance, setAccountBalance] = useState(initialAccountData.accountBalance);
-  const [alerts, setAlerts] = useState(initialAccountData.alerts);
+  const [accountBalance, setAccountBalance] = useState<AccountBalance>(initialAccountData.accountBalance);
+  const [alerts, setAlerts] = useState<Alert[]>(initialAccountData.alerts);
 
-  const postNotification = useCallback(async (payload) => {
+  const postNotification = useCallback(async (payload: NotificationPayload) => {
     try {
       await fetch("/api/notifications", {
         method: "POST",
@@ -196,7 +248,7 @@ export function PaymentsClient() {
       setExchangeRates(prev => {
         const updated = { ...prev };
         Object.keys(updated).forEach(key => {
-          // Simulate small fluctuations (±0.5%)
+          // Simulate small fluctuations
           const variance = (Math.random() - 0.5) * 0.01;
           updated[key] = baseExchangeRates[key] * (1 + variance);
         });
@@ -233,7 +285,7 @@ export function PaymentsClient() {
       baseFee *= 1.5; // 50% surcharge for urgent payments
     }
 
-    return Math.min(baseFee, 100); // Cap at £100
+    return Math.min(baseFee, 100); // Cap at 100
   }, [paymentForm.amount, paymentForm.currency, paymentForm.targetCurrency, paymentForm.priority]);
 
   // Calculate dynamic monthly stats
@@ -263,18 +315,18 @@ export function PaymentsClient() {
     const averageAmount = monthlyTransactions.length > 0 ? totalSent / monthlyTransactions.length : 0;
 
     // Calculate currency exposure
-    const currencyTotals = monthlyTransactions.reduce((acc, tx) => {
+    const currencyTotals: Record<string, number> = monthlyTransactions.reduce((acc: Record<string, number>, tx) => {
       const currency = tx.originalCurrency || tx.currency;
       const amount = tx.convertedAmount || tx.amount;
       acc[currency] = (acc[currency] || 0) + amount;
       return acc;
-    }, {});
+    }, {} as Record<string, number>);
 
-    const totalVolume = Object.values(currencyTotals).reduce((sum, amount) => sum + amount, 0);
-    const currencyExposure = Object.keys(currencyTotals).reduce((acc, currency) => {
+    const totalVolume: number = Object.values(currencyTotals).reduce((sum: number, amount: number) => sum + amount, 0);
+    const currencyExposure: Record<string, number> = Object.keys(currencyTotals).reduce((acc: Record<string, number>, currency: string) => {
       acc[currency] = totalVolume > 0 ? ((currencyTotals[currency] / totalVolume) * 100) : 0;
       return acc;
-    }, {});
+    }, {} as Record<string, number>);
 
     // Default exposure if no transactions
     if (Object.keys(currencyExposure).length === 0) {
@@ -313,7 +365,7 @@ export function PaymentsClient() {
       return true;
     });
 
-    return filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+    return filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [transactions, searchTerm, statusFilter, dateRange]);
 
   // Filter beneficiaries
@@ -324,7 +376,7 @@ export function PaymentsClient() {
     );
   }, [beneficiaries, searchTerm]);
 
-  const getStatusColor = (status) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed': return 'bg-green-100 text-green-800 border-green-200';
       case 'processing': return 'bg-blue-100 text-blue-800 border-blue-200';
@@ -335,7 +387,7 @@ export function PaymentsClient() {
     }
   };
 
-  const getStatusIcon = (status) => {
+  const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed': return <CheckCircle className="h-4 w-4 text-green-500" />;
       case 'processing': return <Clock className="h-4 w-4 text-blue-500" />;
@@ -346,7 +398,7 @@ export function PaymentsClient() {
     }
   };
 
-  const getRiskBadgeColor = (risk) => {
+  const getRiskBadgeColor = (risk: string) => {
     switch (risk) {
       case 'low': return 'bg-green-100 text-green-800';
       case 'medium': return 'bg-yellow-100 text-yellow-800';
@@ -355,7 +407,7 @@ export function PaymentsClient() {
     }
   };
 
-  const getPriorityColor = (priority) => {
+  const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'urgent': return 'text-red-600';
       case 'high': return 'text-orange-600';
@@ -364,7 +416,7 @@ export function PaymentsClient() {
     }
   };
 
-  const handlePaymentSubmit = useCallback((e) => {
+  const handlePaymentSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     const amount = parseFloat(paymentForm.amount);
     const beneficiary = beneficiaries.find(b => b.id === paymentForm.beneficiaryId);
@@ -401,7 +453,7 @@ export function PaymentsClient() {
     if (amount > 50000) {
       status = 'pending_review';
       flagged = true;
-      reviewReason = 'Amount exceeds £50k threshold - AML review required';
+      reviewReason = 'Amount exceeds \u00a350k threshold - AML review required';
     } else if (!beneficiary.verified) {
       status = 'pending_review';
       flagged = true;
@@ -411,7 +463,7 @@ export function PaymentsClient() {
     }
 
     // Create new transaction
-    const newTransaction = {
+    const newTransaction: Transaction = {
       id: transactionId,
       beneficiary: beneficiary.name,
       beneficiaryId: beneficiary.id,
@@ -463,7 +515,7 @@ export function PaymentsClient() {
 
     // Add alert if payment was flagged
     if (flagged) {
-      const newAlert = {
+      const newAlert: Alert = {
         id: `alert_${Date.now()}`,
         type: amount > 50000 ? 'aml_review' : 'beneficiary_verification',
         title: amount > 50000 ? 'AML Review Required' : 'Beneficiary Verification Required',
@@ -478,7 +530,7 @@ export function PaymentsClient() {
 
     void postNotification({
       title: flagged ? "Payment flagged for review" : "Payment submitted",
-      message: `${beneficiary.name} • ${paymentForm.currency} ${amount.toFixed(2)} • ${paymentForm.reference}`,
+      message: `${beneficiary.name} \u2022 ${paymentForm.currency} ${amount.toFixed(2)} \u2022 ${paymentForm.reference}`,
       severity: flagged ? "warning" : "success",
       source: "payments",
       link: "/payments",
@@ -488,7 +540,7 @@ export function PaymentsClient() {
     if (flagged) {
       alert(`Payment flagged for review: ${reviewReason}\n\nTransaction ID: ${transactionId}\nConfirmation: ${confirmationNumber}`);
     } else {
-      alert(`Payment submitted successfully!\n\nTransaction ID: ${transactionId}\nConfirmation: ${confirmationNumber}\nFees: £${estimatedFees.toFixed(2)}\nProcessing time: ${newTransaction.processingTime}`);
+      alert(`Payment submitted successfully!\n\nTransaction ID: ${transactionId}\nConfirmation: ${confirmationNumber}\nFees: \u00a3${estimatedFees.toFixed(2)}\nProcessing time: ${newTransaction.processingTime}`);
     }
 
     // Reset form
@@ -517,7 +569,7 @@ export function PaymentsClient() {
     }
   }, [paymentForm, estimatedFees, conversionRate, convertedAmount, beneficiaries, postNotification]);
 
-  const handleBeneficiarySubmit = useCallback((e) => {
+  const handleBeneficiarySubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
 
     if (!beneficiaryForm.name.trim()) {
@@ -560,7 +612,7 @@ export function PaymentsClient() {
     setBeneficiaries(prev => [newBeneficiary, ...prev]);
 
     // Add alert for new beneficiary verification
-    const newAlert = {
+    const newAlert: Alert = {
       id: `alert_${Date.now()}`,
       type: 'beneficiary_verification',
       title: 'New Beneficiary Added',
@@ -596,7 +648,7 @@ export function PaymentsClient() {
     });
   }, [beneficiaryForm, postNotification]);
 
-  const formatCurrency = useCallback((amount, currency) => {
+  const formatCurrency = useCallback((amount: number, currency: string) => {
     return new Intl.NumberFormat('en-GB', {
       style: 'currency',
       currency: currency,
@@ -605,7 +657,7 @@ export function PaymentsClient() {
     }).format(amount);
   }, []);
 
-  const copyToClipboard = useCallback((text) => {
+  const copyToClipboard = useCallback((text: string) => {
     navigator.clipboard.writeText(text);
     // In a real app, you'd show a toast notification here
   }, []);
@@ -689,7 +741,7 @@ export function PaymentsClient() {
                                   {ben.verified ? 'Verified' : 'Pending'}
                                 </Badge>
                                 <span className="text-xs text-gray-500">
-                                  {ben.country} • {ben.currency}
+                                  {ben.country} {'\u2022'} {ben.currency}
                                 </span>
                               </div>
                             </div>
@@ -805,7 +857,7 @@ export function PaymentsClient() {
                         <SelectItem value="standard">
                           <div className="flex items-center justify-between w-full">
                             <span>Standard (1-2 hours)</span>
-                            <span className="text-xs text-gray-500 ml-4">+£0</span>
+                            <span className="text-xs text-gray-500 ml-4">{'+\u00a30'}</span>
                           </div>
                         </SelectItem>
                         <SelectItem value="urgent">
@@ -898,7 +950,7 @@ export function PaymentsClient() {
                       <div>
                         <h4 className="font-semibold text-yellow-800">AML Review Required</h4>
                         <p className="text-sm text-yellow-700 mt-1">
-                          Payments over £50,000 require enhanced due diligence review. This may delay processing by 2-4 hours.
+                          Payments over {'\u00a3'}50,000 require enhanced due diligence review. This may delay processing by 2-4 hours.
                         </p>
                         <ul className="text-xs text-yellow-700 mt-2 list-disc list-inside">
                           <li>Source of funds verification</li>
@@ -1054,7 +1106,7 @@ export function PaymentsClient() {
               </div>
             </div>
             <div className="mt-4 text-xs text-blue-600">
-              {monthlyStats.transactionCount} transactions • Avg: {formatCurrency(monthlyStats.averageAmount, 'GBP')}
+              {monthlyStats.transactionCount} transactions {'\u2022'} Avg: {formatCurrency(monthlyStats.averageAmount, 'GBP')}
             </div>
           </CardContent>
         </Card>
@@ -1240,7 +1292,7 @@ export function PaymentsClient() {
                           </p>
                           {tx.convertedAmount && (
                             <p className="text-xs text-gray-500">
-                              → {formatCurrency(tx.amount, tx.currency)}
+                              {'\u2192'} {formatCurrency(tx.amount, tx.currency)}
                             </p>
                           )}
                         </div>
@@ -1341,9 +1393,9 @@ export function PaymentsClient() {
                           </div>
                           <div className="flex items-center gap-4 text-sm text-gray-600">
                             <span>{tx.reference}</span>
-                            <span>•</span>
+                            <span>{'\u2022'}</span>
                             <span>{format(tx.date, 'MMM dd, yyyy HH:mm')}</span>
-                            <span>•</span>
+                            <span>{'\u2022'}</span>
                             <span>{tx.processingTime}</span>
                           </div>
                         </div>
@@ -1359,7 +1411,7 @@ export function PaymentsClient() {
                             </p>
                             {tx.convertedAmount && (
                               <p className="text-sm text-gray-500">
-                                → {formatCurrency(tx.amount, tx.currency)} @ {tx.exchangeRate?.toFixed(4)}
+                                {'\u2192'} {formatCurrency(tx.amount, tx.currency)} @ {tx.exchangeRate?.toFixed(4)}
                               </p>
                             )}
                             <p className="text-xs text-gray-500">
@@ -1465,12 +1517,12 @@ export function PaymentsClient() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="GB">🇬🇧 United Kingdom</SelectItem>
-                            <SelectItem value="DE">🇩🇪 Germany</SelectItem>
-                            <SelectItem value="US">🇺🇸 United States</SelectItem>
-                            <SelectItem value="FR">🇫🇷 France</SelectItem>
-                            <SelectItem value="NO">🇳🇴 Norway</SelectItem>
-                            <SelectItem value="NL">🇳🇱 Netherlands</SelectItem>
+                            <SelectItem value="GB">{'\ud83c\uddec\ud83c\udde7'} United Kingdom</SelectItem>
+                            <SelectItem value="DE">{'\ud83c\udde9\ud83c\uddea'} Germany</SelectItem>
+                            <SelectItem value="US">{'\ud83c\uddfa\ud83c\uddf8'} United States</SelectItem>
+                            <SelectItem value="FR">{'\ud83c\uddeb\ud83c\uddf7'} France</SelectItem>
+                            <SelectItem value="NO">{'\ud83c\uddf3\ud83c\uddf4'} Norway</SelectItem>
+                            <SelectItem value="NL">{'\ud83c\uddf3\ud83c\uddf1'} Netherlands</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -1485,8 +1537,8 @@ export function PaymentsClient() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="GBP">GBP (£)</SelectItem>
-                            <SelectItem value="EUR">EUR (€)</SelectItem>
+                            <SelectItem value="GBP">GBP ({'\u00a3'})</SelectItem>
+                            <SelectItem value="EUR">EUR ({'\u20ac'})</SelectItem>
                             <SelectItem value="USD">USD ($)</SelectItem>
                             <SelectItem value="NOK">NOK (kr)</SelectItem>
                           </SelectContent>
@@ -1597,12 +1649,12 @@ export function PaymentsClient() {
                       <div className="space-y-3 text-sm">
                         <div className="flex items-center gap-2">
                           <MapPin className="h-4 w-4 text-gray-400" />
-                          <span>{beneficiary.country} • {beneficiary.currency}</span>
+                          <span>{beneficiary.country} {'\u2022'} {beneficiary.currency}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <CreditCard className="h-4 w-4 text-gray-400" />
                           <span className="font-mono">{beneficiary.iban || beneficiary.accountNumber}</span>
-                          <Button size="sm" variant="ghost" onClick={() => copyToClipboard(beneficiary.iban || beneficiary.accountNumber)}>
+                          <Button size="sm" variant="ghost" onClick={() => copyToClipboard(beneficiary.iban || beneficiary.accountNumber || '')}>
                             <Copy className="h-3 w-3" />
                           </Button>
                         </div>

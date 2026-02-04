@@ -22,7 +22,7 @@ import {
 import type { DashboardModule } from "@/lib/dashboard-data";
 import { usePolicyMetrics } from "@/lib/policies";
 import { useCmpSummary } from "./compliance-framework/cmp/hooks/useCmpSummary";
-import { DEFAULT_ORGANIZATION_ID } from "@/lib/constants";
+import { useOrganization } from "@/components/organization-provider";
 
 const ActivityFeed = dynamic(() => import("@/components/dashboard/activity-feed").then((mod) => mod.ActivityFeed), {
   ssr: false,
@@ -90,8 +90,9 @@ export function DashboardClient() {
   const [moduleData, setModuleData] = useState<DashboardModule[]>([]);
   const [hasError, setHasError] = useState(false);
 
+  const { organizationId } = useOrganization();
   const { metrics: policyMetrics, isLoading: isPolicyLoading, refresh: refreshPolicyMetrics } = usePolicyMetrics();
-  const { summary: cmpSummary } = useCmpSummary({ organizationId: DEFAULT_ORGANIZATION_ID });
+  const { summary: cmpSummary } = useCmpSummary({ organizationId });
 
   const policyMetricCard = useMemo(() => {
     // Show loading state until data is fetched

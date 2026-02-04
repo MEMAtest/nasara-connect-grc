@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireRole } from "@/lib/rbac";
 import {
   initDatabase,
   getAuthorizationPack,
@@ -6,7 +7,7 @@ import {
   getPackSections,
 } from "@/lib/database";
 import { logError } from "@/lib/logger";
-import { requireAuth, isValidUUID } from "@/lib/auth-utils";
+import { isValidUUID } from "@/lib/auth-utils";
 
 // Allowed fields for pack updates
 const ALLOWED_UPDATE_FIELDS = new Set([
@@ -29,7 +30,7 @@ export async function GET(
 ) {
   try {
     // Authenticate the request
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
 
     await initDatabase();
@@ -75,7 +76,7 @@ export async function PATCH(
 ) {
   try {
     // Authenticate the request
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
 
     await initDatabase();

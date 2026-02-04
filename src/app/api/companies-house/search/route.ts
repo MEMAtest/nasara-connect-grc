@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth-utils";
+import { requireRole } from "@/lib/rbac";
 
 const BASE_URL = "https://api.company-information.service.gov.uk";
 
@@ -12,7 +12,7 @@ function getAuthHeader() {
 
 export async function GET(request: NextRequest) {
   try {
-    const { error } = await requireAuth();
+    const { error } = await requireRole("member");
     if (error) return error;
     const authHeader = getAuthHeader();
 

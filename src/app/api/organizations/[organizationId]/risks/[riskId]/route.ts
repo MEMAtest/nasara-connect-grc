@@ -1,18 +1,19 @@
 import { NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth-utils";
+import { requireRole } from "@/lib/rbac";
 import {
   deleteRisk,
   getRiskById,
   updateRisk,
 } from "@/lib/server/risk-database";
 import type { RiskFormValues } from "@/app/(dashboard)/risk-assessment/lib/riskValidation";
+import type { RiskRecord } from "@/app/(dashboard)/risk-assessment/lib/riskConstants";
 
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ organizationId: string; riskId: string }> },
 ) {
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
     const { organizationId, riskId } = await params;
     if (organizationId !== auth.organizationId) {
@@ -29,7 +30,7 @@ export async function PUT(
       ...payload,
       residualLikelihood: payload.residualLikelihood ?? payload.likelihood ?? existing.residualLikelihood,
       residualImpact: payload.residualImpact ?? payload.impact ?? existing.residualImpact,
-      keyRiskIndicators: payload.keyRiskIndicators ?? existing.keyRiskIndicators ?? [],
+      keyRiskIndicators: (payload.keyRiskIndicators ?? existing.keyRiskIndicators ?? []) as RiskRecord["keyRiskIndicators"],
     };
 
     const result = await updateRisk(organizationId, riskId, updates);
@@ -45,7 +46,7 @@ export async function DELETE(
   { params }: { params: Promise<{ organizationId: string; riskId: string }> },
 ) {
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
     const { organizationId, riskId } = await params;
     if (organizationId !== auth.organizationId) {

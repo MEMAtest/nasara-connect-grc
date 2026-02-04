@@ -19,6 +19,8 @@ import { PaginationControls, usePagination } from "@/components/ui/pagination-co
 
 interface VulnerableCustomerRecord {
   id: string;
+  created_at?: string;
+  [key: string]: unknown;
   customer_reference: string;
   customer_name?: string;
   vulnerability_type: string;
@@ -116,6 +118,7 @@ export function VulnerableCustomersClient() {
 
   useEffect(() => {
     loadRecords();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount / when packId changes
   }, [packId]);
 
   const resetForm = () =>
@@ -307,7 +310,7 @@ export function VulnerableCustomersClient() {
       key: "vulnerability_type",
       header: "Type",
       sortable: true,
-      render: (value) => typeLabels[value as string] || value,
+      render: (value) => typeLabels[value as string] || String(value),
     },
     {
       key: "status",

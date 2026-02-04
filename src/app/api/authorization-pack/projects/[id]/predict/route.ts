@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireRole } from "@/lib/rbac";
 import { getAuthorizationProject } from "@/lib/authorization-pack-db";
-import { requireAuth, isValidUUID } from "@/lib/auth-utils";
+import { isValidUUID } from "@/lib/auth-utils";
 import { logError } from "@/lib/logger";
 import {
   calculatePredictiveScore,
@@ -27,7 +28,7 @@ interface ProjectAssessmentData {
  */
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
 
     const { id: projectId } = await params;
@@ -138,7 +139,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
  */
 export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
 
     const { id: projectId } = await params;

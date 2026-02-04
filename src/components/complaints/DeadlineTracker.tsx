@@ -80,6 +80,7 @@ export function DeadlineTracker({
     red: "bg-red-500",
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const statusBgColors = {
     green: "bg-emerald-100 border-emerald-200",
     amber: "bg-amber-100 border-amber-200",

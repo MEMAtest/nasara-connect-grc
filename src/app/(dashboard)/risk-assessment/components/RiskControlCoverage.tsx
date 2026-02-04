@@ -64,6 +64,7 @@ const statusColors = {
   inactive: "text-slate-400",
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function RiskControlCoverage({ riskId }: RiskControlCoverageProps) {
   // In production, fetch controls based on riskId
   const controls = mockControls;

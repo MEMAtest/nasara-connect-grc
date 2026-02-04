@@ -117,11 +117,11 @@ export function CertificationsClient() {
     return { total, approved, dueSoon, overdue };
   }, [certificationAssignments]);
 
-  const handleAssign = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleAssign = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!assignForm.personId || !assignForm.functionId || !assignForm.startDate) return;
 
-    assignRole({
+    await assignRole({
       personId: assignForm.personId,
       functionId: assignForm.functionId,
       functionType: "CF",
@@ -137,9 +137,9 @@ export function CertificationsClient() {
     setAssignDialogOpen(false);
   };
 
-  const handleRemove = (id: string) => {
+  const handleRemove = async (id: string) => {
     if (!window.confirm("Remove this certification assignment?")) return;
-    removeRole(id);
+    await removeRole(id);
   };
 
   if (!isReady) {

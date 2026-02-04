@@ -56,7 +56,7 @@ export function PolicyStatusControl({ policyId, initialStatus }: PolicyStatusCon
         variant: "success",
       });
       router.refresh();
-    } catch (error) {
+    } catch {
       setStatus(previous);
       toast({
         title: "Status update failed",

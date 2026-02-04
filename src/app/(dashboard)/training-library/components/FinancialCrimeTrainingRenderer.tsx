@@ -234,7 +234,7 @@ export function FinancialCrimeTrainingRenderer({
     return ((currentIndex + 1) / STAGE_ORDER.length) * 100;
   };
 
-  const getLessonContent = (lessonContent: TrainingModuleData["lessons"][0]["content"]): string => {
+  const getLessonContent = (lessonContent: NonNullable<TrainingModuleData["lessons"]>[number]["content"]): string => {
     if (typeof lessonContent === "string") {
       return lessonContent;
     }
@@ -245,7 +245,7 @@ export function FinancialCrimeTrainingRenderer({
     return (lessonContent.mainContent as string) || lessonContent.learningPoint || "";
   };
 
-  const getLessonCards = (lessonContent: TrainingModuleData["lessons"][0]["content"]): ContentCard[] | null => {
+  const getLessonCards = (lessonContent: NonNullable<TrainingModuleData["lessons"]>[number]["content"]): ContentCard[] | null => {
     if (typeof lessonContent === "string") {
       return null;
     }
@@ -255,7 +255,7 @@ export function FinancialCrimeTrainingRenderer({
     return null;
   };
 
-  const getLessonKeyConcepts = (lesson: TrainingModuleData["lessons"][0]) => {
+  const getLessonKeyConcepts = (lesson: NonNullable<TrainingModuleData["lessons"]>[number]) => {
     if (typeof lesson.content === "object" && lesson.content.keyConcepts) {
       return lesson.content.keyConcepts.map((concept) =>
         typeof concept === "string" ? concept : `${concept.term}: ${concept.definition}`
@@ -269,14 +269,14 @@ export function FinancialCrimeTrainingRenderer({
     return [];
   };
 
-  const getLessonExamples = (lesson: TrainingModuleData["lessons"][0]) => {
+  const getLessonExamples = (lesson: NonNullable<TrainingModuleData["lessons"]>[number]) => {
     if (typeof lesson.content === "object" && lesson.content.realExamples) {
       return lesson.content.realExamples;
     }
     return lesson.realExamples || [];
   };
 
-  const getLessonVisual = (lesson: TrainingModuleData["lessons"][0]) => {
+  const getLessonVisual = (lesson: NonNullable<TrainingModuleData["lessons"]>[number]) => {
     if (typeof lesson.content === "object" && lesson.content.visual) {
       return lesson.content.visual;
     }
@@ -573,7 +573,7 @@ export function FinancialCrimeTrainingRenderer({
                       Key Evidence Points
                     </h4>
                     <ul className="space-y-2">
-                      {keyConcepts.map((concept, index) => (
+                      {keyConcepts.map((concept: string, index: number) => (
                         <li key={index} className="text-sm text-amber-800 flex items-start gap-2">
                           <CheckCircle2 className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
                           {concept}
@@ -590,7 +590,7 @@ export function FinancialCrimeTrainingRenderer({
                       Case Examples
                     </h4>
                     <ul className="space-y-3">
-                      {examples.map((example, index) => (
+                      {examples.map((example: string | { title: string; description?: string; outcome?: string }, index: number) => (
                         <li key={index} className="text-sm text-red-800">
                           {typeof example === "string" ? (
                             example
@@ -623,7 +623,7 @@ export function FinancialCrimeTrainingRenderer({
     );
   };
 
-  const getScenarioText = (scenario: TrainingModuleData["practiceScenarios"][0]) => {
+  const getScenarioText = (scenario: NonNullable<TrainingModuleData["practiceScenarios"]>[number]) => {
     return scenario.scenario || scenario.situation || scenario.context || scenario.challenge || "";
   };
 

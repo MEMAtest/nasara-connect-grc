@@ -5,7 +5,7 @@ import {
   deleteCaseStudy,
   initDatabase,
 } from '@/lib/database';
-import { requireAuth } from '@/lib/auth-utils';
+import { requireRole } from "@/lib/rbac";
 
 // GET: Fetch a single case study by ID
 export async function GET(
@@ -13,7 +13,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { error } = await requireAuth();
+    const { error } = await requireRole("member");
     if (error) return error;
     await initDatabase();
 
@@ -45,7 +45,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { error } = await requireAuth();
+    const { error } = await requireRole("member");
     if (error) return error;
     await initDatabase();
 
@@ -79,7 +79,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { error } = await requireAuth();
+    const { error } = await requireRole("member");
     if (error) return error;
     await initDatabase();
 

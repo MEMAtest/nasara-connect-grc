@@ -87,7 +87,7 @@ export function MicroLearning({ lesson, onComplete, onProgress }: MicroLearningP
     setIsPlaying(true);
     setStageProgress(0);
 
-    const stageDuration = lesson.components[currentStage].duration * 60 * 1000; // Convert to milliseconds
+    const stageDuration = lesson.components![currentStage].duration * 60 * 1000; // Convert to milliseconds
     const interval = setInterval(() => {
       setStageProgress(prev => {
         if (prev >= 100) {
@@ -132,8 +132,8 @@ export function MicroLearning({ lesson, onComplete, onProgress }: MicroLearningP
   };
 
   const checkPracticeAnswers = () => {
-    if (currentStage === 'practice' && lesson.components.practice.type === 'scenario') {
-      const exercise = lesson.components.practice.exercise;
+    if (currentStage === 'practice' && lesson.components!.practice.type === 'scenario') {
+      const exercise = lesson.components!.practice.exercise;
       if (!isScenarioExercise(exercise)) {
         return;
       }
@@ -162,13 +162,13 @@ export function MicroLearning({ lesson, onComplete, onProgress }: MicroLearningP
           <Target className="h-8 w-8 text-blue-600" />
         </div>
         <h3 className="text-lg font-semibold text-slate-900 mb-2">Let's Begin!</h3>
-        <p className="text-slate-600">{lesson.components.hook.content}</p>
+        <p className="text-slate-600">{lesson.components!.hook.content}</p>
       </div>
 
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <div className="flex items-center gap-2 text-blue-700 text-sm">
           <Clock className="h-4 w-4" />
-          This stage takes {lesson.components.hook.duration} minutes
+          This stage takes {lesson.components!.hook.duration} minutes
         </div>
       </div>
 
@@ -192,7 +192,7 @@ export function MicroLearning({ lesson, onComplete, onProgress }: MicroLearningP
   );
 
   const renderContent = () => {
-    const content = lesson.components.content;
+    const content = lesson.components!.content;
     const interactiveData = (content.data ?? {}) as InteractiveContentData;
 
     return (
@@ -249,7 +249,7 @@ export function MicroLearning({ lesson, onComplete, onProgress }: MicroLearningP
         <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
           <div className="flex items-center gap-2 text-emerald-700 text-sm">
             <Clock className="h-4 w-4" />
-            Content duration: {lesson.components.content.duration} minutes
+            Content duration: {lesson.components!.content.duration} minutes
           </div>
         </div>
 
@@ -274,7 +274,7 @@ export function MicroLearning({ lesson, onComplete, onProgress }: MicroLearningP
   };
 
   const renderPractice = () => {
-    const practice = lesson.components.practice;
+    const practice = lesson.components!.practice;
     const scenarioExercise = isScenarioExercise(practice.exercise) ? practice.exercise : null;
 
     return (
@@ -380,7 +380,7 @@ export function MicroLearning({ lesson, onComplete, onProgress }: MicroLearningP
 
       <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
         <ul className="space-y-3">
-          {lesson.components.summary.keyTakeaways.map((takeaway, index) => (
+          {lesson.components!.summary.keyTakeaways.map((takeaway, index) => (
             <li key={index} className="flex items-start gap-3">
               <div className="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold shrink-0 mt-0.5">
                 {index + 1}

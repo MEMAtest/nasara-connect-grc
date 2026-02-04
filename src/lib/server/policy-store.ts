@@ -241,7 +241,7 @@ export async function deletePolicy(organizationId: string, policyId: string): Pr
       `DELETE FROM policies WHERE organization_id = $1 AND id = $2`,
       [organizationId, policyId],
     );
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   } finally {
     client.release();
   }

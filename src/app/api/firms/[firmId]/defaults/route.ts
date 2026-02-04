@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getFirmDefaults } from '@/lib/server/firm-profile-store';
 import type { JsonValue } from '@/lib/policies/types';
 import { logError } from '@/lib/logger';
-import { requireAuth } from '@/lib/auth-utils';
+import { requireRole } from "@/lib/rbac";
 
 const fallbackDefaults: Record<string, JsonValue> = {
   firm_role: 'principal',
@@ -29,7 +29,7 @@ export async function GET(
   { params }: { params: Promise<{ firmId: string }> }
 ) {
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
     const { firmId } = await params;
 

@@ -20,7 +20,7 @@ export const moneyLaunderingRedFlagsContent = {
     ],
     prerequisites: ["aml_fundamentals", "kyc_basics"],
     lessons: ["ml_red_flags_intro", "transaction_patterns", "customer_behavior", "escalation_procedures"]
-  } as TrainingModule,
+  } as unknown as TrainingModule,
 
   // Micro-Learning Lessons
   lessons: [
@@ -216,7 +216,7 @@ export const moneyLaunderingRedFlagsContent = {
           }
         }
       }
-    } as MicroLesson,
+    } as unknown as MicroLesson,
 
     {
       id: "transaction_patterns",
@@ -469,7 +469,7 @@ export const moneyLaunderingRedFlagsContent = {
           }
         }
       }
-    } as MicroLesson
+    } as unknown as MicroLesson
   ],
 
   // Branching Scenario
@@ -581,7 +581,7 @@ export const moneyLaunderingRedFlagsContent = {
         "documentation_requirements": true
       }
     }
-  } as BranchingScenario,
+  } as unknown as BranchingScenario,
 
   // Assessment
   assessment: {
@@ -626,7 +626,7 @@ export const moneyLaunderingRedFlagsContent = {
         category: "response_procedures"
       }
     ]
-  } as Assessment
+  } as unknown as Assessment
 };
 
 export const moneyLaunderingRedFlagsModule: TrainingModule = {

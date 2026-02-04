@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import path from "path";
 import { promises as fs } from "fs";
+import { requireRole } from "@/lib/rbac";
 // @ts-expect-error archiver has no type declarations
 import archiver from "archiver";
 import { AlignmentType, Document, HeadingLevel, Packer, Paragraph, TextRun } from "docx";
 import { PDFDocument, StandardFonts, rgb, PDFFont } from "pdf-lib";
-import { isValidUUID, requireAuth } from "@/lib/auth-utils";
+import { isValidUUID } from "@/lib/auth-utils";
 import { logError } from "@/lib/logger";
 import { buildNarrativeBlocks } from "@/lib/authorization-pack-export";
 import {
@@ -210,7 +211,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
 
     const { id } = await params;

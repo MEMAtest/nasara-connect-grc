@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
-import { requireAuth } from "@/lib/auth-utils";
+import { requireRole } from "@/lib/rbac";
 import { DEFAULT_PERMISSIONS } from "@/lib/policies";
 import { getApplicableClauses, getTemplateByCode } from "@/lib/policies/templates";
 import {
@@ -59,7 +59,7 @@ function buildFallbackPolicy(input: {
 
 export async function GET() {
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
     await initDatabase();
     const policies = await getPoliciesForOrganization(auth.organizationId);
@@ -71,7 +71,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const { auth, error } = await requireAuth();
+  const { auth, error } = await requireRole("member");
   if (error) return error;
   await initDatabase();
   const body = await request.json();

@@ -180,7 +180,7 @@ export const renderVisual = (visual?: Record<string, unknown>) => {
                       : "bg-green-500"
                   }`}
                 >
-                  {step.number}
+                  {String(step.number ?? "")}
                 </div>
                 <div className="pb-6">
                   <h4 className="text-lg font-semibold mb-2">{String(step.title || "")}</h4>

@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { completeWizardSetup } from "@/lib/database";
 import { FirmType, FIRM_TYPES } from "@/lib/types/register-hub";
-import { requireAuth } from "@/lib/auth-utils";
+import { requireRole } from "@/lib/rbac";
 
 export async function POST(request: NextRequest) {
   // Require authentication
-  const { auth, error } = await requireAuth();
+  const { auth, error } = await requireRole("member");
   if (error) return error;
 
   try {

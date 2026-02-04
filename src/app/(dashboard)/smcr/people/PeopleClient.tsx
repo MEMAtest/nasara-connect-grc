@@ -2,7 +2,6 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { FCAVerificationSheet } from "@/components/fca-register/FCAVerificationSheet";
-import type { FCAVerificationResult } from "@/hooks/useFCAVerification";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -59,7 +58,7 @@ import { TrainingStatus } from "../data/role-training";
 import { FirmSwitcher } from "../components/FirmSwitcher";
 import { PeopleIcon } from "../components/SmcrIcons";
 import { getRoleSummary } from "../data/role-descriptions";
-import { formATips, certificationTips, formCTips } from "../forms/form-data";
+import { formATips, certificationTips } from "../forms/form-data";
 import { CVGenerator } from "./components/CVGenerator";
 import { DBSRequestGenerator } from "./components/DBSRequestGenerator";
 import { ReferenceRequestGenerator } from "./components/ReferenceRequestGenerator";
@@ -428,9 +427,9 @@ export function PeopleClient() {
       let personId = activePersonId;
 
       if (dialogMode === "create") {
-        personId = addPerson(payload);
+        personId = await addPerson(payload);
       } else if (personId) {
-        updatePerson(personId, payload as Partial<PersonRecord>);
+        await updatePerson(personId, payload as Partial<PersonRecord>);
       }
 
       if (personId) {
@@ -483,7 +482,7 @@ export function PeopleClient() {
 
   const [roleError, setRoleError] = useState<string | null>(null);
 
-  const handleAssignRole = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleAssignRole = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setRoleError(null);
     if (!rolePersonId || !roleForm.functionId || !roleForm.startDate) return;
@@ -499,7 +498,7 @@ export function PeopleClient() {
     }
 
     try {
-      const createdRole = assignRole({
+      const createdRole = await assignRole({
         personId: rolePersonId,
         functionId: roleForm.functionId,
         functionType: roleForm.functionType,
@@ -530,9 +529,9 @@ export function PeopleClient() {
     }
   };
 
-  const handleRemoveRole = (roleId: string) => {
+  const handleRemoveRole = async (roleId: string) => {
     if (!window.confirm("Remove this role assignment?")) return;
-    removeRole(roleId);
+    await removeRole(roleId);
   };
 
   const pendingDocumentsCount = useMemo(() => {
@@ -838,7 +837,9 @@ export function PeopleClient() {
                               </div>
                               <Select
                                 value={item.status}
-                                onValueChange={(value) => updateTrainingItemStatus(person.id, item.id, value as TrainingStatus)}
+                                onValueChange={(value) => {
+                                  void updateTrainingItemStatus(person.id, item.id, value as TrainingStatus);
+                                }}
                               >
                                 <SelectTrigger className="h-8 w-[140px]">
                                   <SelectValue />
@@ -1789,7 +1790,7 @@ export function PeopleClient() {
             onOpenChange={setVerificationSheetOpen}
             personName={verifyPerson.name}
             irn={verifyPerson.irn}
-            onVerified={(result) => {
+            onVerified={async (result) => {
               const verificationData: FCAVerificationData = {
                 status: result.status,
                 lastChecked: result.lastChecked,
@@ -1804,7 +1805,7 @@ export function PeopleClient() {
                 })),
                 hasEnforcementHistory: result.hasEnforcementHistory,
               };
-              updatePerson(verificationPersonId, {
+              await updatePerson(verificationPersonId, {
                 fcaVerification: verificationData,
               } as Partial<PersonRecord>);
               // If FCA name differs, prompt user to choose
@@ -1840,8 +1841,8 @@ export function PeopleClient() {
               <Button
                 className="w-full justify-start"
                 variant="outline"
-                onClick={() => {
-                  updatePerson(nameMismatchData.personId, { name: nameMismatchData.fcaName } as Partial<PersonRecord>);
+                onClick={async () => {
+                  await updatePerson(nameMismatchData.personId, { name: nameMismatchData.fcaName } as Partial<PersonRecord>);
                   toast.success(`Name updated to "${nameMismatchData.fcaName}"`);
                   setNameMismatchOpen(false);
                   setNameMismatchData(null);

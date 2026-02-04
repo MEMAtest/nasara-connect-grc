@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth-utils";
+import { requireRole } from "@/lib/rbac";
 import { getOpenRouterApiKey } from "@/lib/openrouter";
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
@@ -33,7 +33,7 @@ function extractJson(content: string) {
 }
 
 export async function POST(request: Request) {
-  const { error } = await requireAuth();
+  const { error } = await requireRole("member");
   if (error) return error;
 
   const { risk } = (await request.json()) as { risk: { title?: string; category?: string; description?: string } };
@@ -103,7 +103,7 @@ export async function POST(request: Request) {
         ? parsed.regulatoryReferences
         : fallbackMitigation(title, category).regulatoryReferences,
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(fallbackMitigation(title, category));
   }
 }

@@ -15,7 +15,9 @@ import { controlledFunctions } from '../utils/form-constants';
 export function FormDSection2IndividualDetails({
   formData,
   updateField,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   validationErrors,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   validateField,
   onNext,
   onBack,
@@ -82,7 +84,7 @@ export function FormDSection2IndividualDetails({
               onChange={(e) => updateField("individualReferenceNumber", e.target.value)}
               placeholder="e.g., ABC12345"
             />
-            <FieldHelp>The individual's unique reference from the FCA Register</FieldHelp>
+            <FieldHelp>The individual&apos;s unique reference from the FCA Register</FieldHelp>
           </div>
           <div>
             <Label htmlFor="dateOfBirth">Date of Birth *</Label>

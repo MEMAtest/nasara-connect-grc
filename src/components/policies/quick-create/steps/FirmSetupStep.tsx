@@ -345,7 +345,7 @@ export function FirmSetupStep({
               {BUSINESS_PROFILE_FIELDS.map((field) => {
                 const otherKey = `${field.key}Other`;
                 const rawSelections = parseMultiSelectValue(extraFirmFields[field.key]);
-                const knownOptions = new Set(field.options);
+                const knownOptions = new Set<string>(field.options);
                 const unknownSelections = rawSelections.filter(
                   (entry) => !knownOptions.has(entry) && entry !== BUSINESS_PROFILE_OTHER_OPTION,
                 );

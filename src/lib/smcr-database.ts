@@ -35,6 +35,8 @@ export async function initSmcrDatabase() {
         id VARCHAR(255) PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         organization_id VARCHAR(255),
+        authorization_project_id VARCHAR(255),
+        authorization_project_name VARCHAR(255),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
@@ -56,6 +58,9 @@ export async function initSmcrDatabase() {
         start_date DATE,
         hire_date DATE,
         end_date DATE,
+        is_psd BOOLEAN DEFAULT false,
+        psd_status VARCHAR(50),
+        notes TEXT,
         assessment_status VARCHAR(50) DEFAULT 'not_required',
         last_assessment DATE,
         next_assessment DATE,
@@ -173,12 +178,62 @@ export async function initSmcrDatabase() {
       )
     `);
 
+    // Breaches table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS smcr_breaches (
+        id VARCHAR(255) PRIMARY KEY,
+        firm_id VARCHAR(255) REFERENCES smcr_firms(id) ON DELETE CASCADE,
+        person_id VARCHAR(255) REFERENCES smcr_people(id) ON DELETE SET NULL,
+        rule_id VARCHAR(255),
+        severity VARCHAR(50) NOT NULL,
+        status VARCHAR(50) NOT NULL,
+        timeline JSONB DEFAULT '[]',
+        details JSONB DEFAULT '{}',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Group Entities table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS smcr_group_entities (
+        id VARCHAR(255) PRIMARY KEY,
+        organization_id VARCHAR(255) NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        type VARCHAR(100) NOT NULL,
+        parent_id VARCHAR(255),
+        ownership_percent NUMERIC(5,2),
+        country VARCHAR(100),
+        linked_firm_id VARCHAR(255),
+        linked_project_id VARCHAR(255),
+        linked_project_name VARCHAR(255),
+        regulatory_status VARCHAR(255),
+        is_external BOOLEAN DEFAULT false,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
     // Create indexes
+    await client.query(`ALTER TABLE smcr_firms ADD COLUMN IF NOT EXISTS authorization_project_id VARCHAR(255)`);
+    await client.query(`ALTER TABLE smcr_firms ADD COLUMN IF NOT EXISTS authorization_project_name VARCHAR(255)`);
+    await client.query(`ALTER TABLE smcr_group_entities ADD COLUMN IF NOT EXISTS linked_firm_id VARCHAR(255)`);
+    await client.query(`ALTER TABLE smcr_group_entities ADD COLUMN IF NOT EXISTS linked_project_id VARCHAR(255)`);
+    await client.query(`ALTER TABLE smcr_group_entities ADD COLUMN IF NOT EXISTS linked_project_name VARCHAR(255)`);
+    await client.query(`ALTER TABLE smcr_group_entities ADD COLUMN IF NOT EXISTS regulatory_status VARCHAR(255)`);
+    await client.query(`ALTER TABLE smcr_group_entities ADD COLUMN IF NOT EXISTS is_external BOOLEAN DEFAULT false`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_smcr_people_firm ON smcr_people(firm_id)`);
+    await client.query(`ALTER TABLE smcr_people ADD COLUMN IF NOT EXISTS is_psd BOOLEAN DEFAULT false`);
+    await client.query(`ALTER TABLE smcr_people ADD COLUMN IF NOT EXISTS psd_status VARCHAR(50)`);
+    await client.query(`ALTER TABLE smcr_people ADD COLUMN IF NOT EXISTS notes TEXT`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_smcr_roles_person ON smcr_role_assignments(person_id)`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_smcr_roles_firm ON smcr_role_assignments(firm_id)`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_smcr_assessments_person ON smcr_fitness_assessments(person_id)`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_smcr_workflows_firm ON smcr_workflows(firm_id)`);
+    await client.query(`ALTER TABLE smcr_breaches ADD COLUMN IF NOT EXISTS details JSONB DEFAULT '{}'`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_smcr_breaches_firm ON smcr_breaches(firm_id)`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_smcr_breaches_person ON smcr_breaches(person_id)`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_smcr_group_entities_org ON smcr_group_entities(organization_id)`);
 
     // FCA verification columns
     await client.query(`ALTER TABLE smcr_people ADD COLUMN IF NOT EXISTS irn VARCHAR(20)`);
@@ -202,6 +257,8 @@ export interface SmcrFirm {
   id: string;
   name: string;
   organization_id?: string;
+  authorization_project_id?: string | null;
+  authorization_project_name?: string | null;
   created_at: Date;
   updated_at: Date;
 }
@@ -233,6 +290,35 @@ export async function getFirm(id: string): Promise<SmcrFirm | null> {
   return result.rows[0] || null;
 }
 
+export async function updateFirm(id: string, updates: Partial<SmcrFirm>): Promise<SmcrFirm | null> {
+  const startTime = Date.now();
+  const fields: string[] = [];
+  const values: unknown[] = [];
+  let paramIndex = 1;
+
+  const allowedFields = ['name', 'authorization_project_id', 'authorization_project_name'];
+
+  for (const field of allowedFields) {
+    if (field in updates) {
+      fields.push(`${field} = $${paramIndex}`);
+      values.push(updates[field as keyof typeof updates]);
+      paramIndex++;
+    }
+  }
+
+  if (fields.length === 0) return getFirm(id);
+
+  fields.push(`updated_at = CURRENT_TIMESTAMP`);
+  values.push(id);
+
+  const result = await pool.query<SmcrFirm>(
+    `UPDATE smcr_firms SET ${fields.join(', ')} WHERE id = $${paramIndex} RETURNING *`,
+    values
+  );
+  logDbOperation('update', 'smcr_firms', Date.now() - startTime);
+  return result.rows[0] || null;
+}
+
 // =====================================================
 // People CRUD Operations
 // =====================================================
@@ -251,6 +337,9 @@ export interface SmcrPerson {
   start_date: Date | null;
   hire_date: Date | null;
   end_date: Date | null;
+  is_psd: boolean;
+  psd_status: string | null;
+  notes: string | null;
   assessment_status: string;
   last_assessment: Date | null;
   next_assessment: Date | null;
@@ -274,6 +363,9 @@ export interface CreatePersonInput {
   hire_date?: string;
   end_date?: string;
   irn?: string;
+  is_psd?: boolean;
+  psd_status?: string;
+  notes?: string;
 }
 
 export async function createPerson(input: CreatePersonInput): Promise<SmcrPerson> {
@@ -288,13 +380,16 @@ export async function createPerson(input: CreatePersonInput): Promise<SmcrPerson
   const result = await pool.query<SmcrPerson>(
     `INSERT INTO smcr_people (
       id, firm_id, employee_id, name, email, department, title, phone, address,
-      line_manager, start_date, hire_date, end_date, irn
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *`,
+      line_manager, start_date, hire_date, end_date, irn, is_psd, psd_status, notes
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17) RETURNING *`,
     [
       id, input.firm_id, employeeId, input.name, input.email, input.department,
       input.title, input.phone, input.address, input.line_manager,
       input.start_date, input.hire_date || input.start_date, input.end_date,
-      input.irn
+      input.irn,
+      input.is_psd ?? false,
+      input.psd_status ?? null,
+      input.notes ?? null,
     ]
   );
   logDbOperation('insert', 'smcr_people', Date.now() - startTime);
@@ -327,7 +422,7 @@ export async function updatePerson(id: string, updates: Partial<SmcrPerson>): Pr
   const allowedFields = [
     'name', 'email', 'department', 'title', 'phone', 'address', 'line_manager',
     'start_date', 'hire_date', 'end_date', 'assessment_status', 'last_assessment',
-    'next_assessment', 'training_completion', 'irn', 'fca_verification'
+    'next_assessment', 'training_completion', 'irn', 'fca_verification', 'is_psd', 'psd_status', 'notes'
   ];
 
   for (const field of allowedFields) {
@@ -431,6 +526,16 @@ export async function getRolesByPerson(personId: string): Promise<SmcrRoleAssign
   );
   logDbOperation('query', 'smcr_role_assignments', Date.now() - startTime);
   return result.rows;
+}
+
+export async function getRoleAssignment(id: string): Promise<SmcrRoleAssignment | null> {
+  const startTime = Date.now();
+  const result = await pool.query<SmcrRoleAssignment>(
+    'SELECT * FROM smcr_role_assignments WHERE id = $1',
+    [id]
+  );
+  logDbOperation('query', 'smcr_role_assignments', Date.now() - startTime);
+  return result.rows[0] || null;
 }
 
 export async function updateRoleAssignment(id: string, updates: Partial<SmcrRoleAssignment>): Promise<SmcrRoleAssignment | null> {
@@ -541,6 +646,16 @@ export async function getAssessmentsByPerson(personId: string): Promise<SmcrFitn
   );
   logDbOperation('query', 'smcr_fitness_assessments', Date.now() - startTime);
   return result.rows;
+}
+
+export async function getFitnessAssessment(id: string): Promise<SmcrFitnessAssessment | null> {
+  const startTime = Date.now();
+  const result = await pool.query<SmcrFitnessAssessment>(
+    'SELECT * FROM smcr_fitness_assessments WHERE id = $1',
+    [id]
+  );
+  logDbOperation('query', 'smcr_fitness_assessments', Date.now() - startTime);
+  return result.rows[0] || null;
 }
 
 export async function updateFitnessAssessment(
@@ -689,6 +804,495 @@ export async function deleteWorkflow(id: string): Promise<boolean> {
   const startTime = Date.now();
   const result = await pool.query('DELETE FROM smcr_workflows WHERE id = $1', [id]);
   logDbOperation('delete', 'smcr_workflows', Date.now() - startTime);
+  return (result.rowCount ?? 0) > 0;
+}
+
+// =====================================================
+// Workflow Documents CRUD Operations
+// =====================================================
+
+export interface SmcrWorkflowDocument {
+  id: string;
+  firm_id: string;
+  workflow_id: string;
+  step_id: string;
+  name: string;
+  type: string | null;
+  size: number | null;
+  file_path: string | null;
+  summary: string | null;
+  status: string;
+  uploaded_at: Date;
+}
+
+export interface CreateWorkflowDocumentInput {
+  firm_id: string;
+  workflow_id: string;
+  step_id: string;
+  name: string;
+  type?: string;
+  size?: number;
+  file_path?: string;
+  summary?: string;
+  status?: string;
+}
+
+export async function getWorkflowDocuments(workflowId: string): Promise<SmcrWorkflowDocument[]> {
+  const startTime = Date.now();
+  const result = await pool.query<SmcrWorkflowDocument>(
+    'SELECT * FROM smcr_workflow_documents WHERE workflow_id = $1 ORDER BY uploaded_at DESC',
+    [workflowId]
+  );
+  logDbOperation('query', 'smcr_workflow_documents', Date.now() - startTime);
+  return result.rows;
+}
+
+export async function getWorkflowDocument(id: string): Promise<SmcrWorkflowDocument | null> {
+  const startTime = Date.now();
+  const result = await pool.query<SmcrWorkflowDocument>(
+    'SELECT * FROM smcr_workflow_documents WHERE id = $1',
+    [id]
+  );
+  logDbOperation('query', 'smcr_workflow_documents', Date.now() - startTime);
+  return result.rows[0] || null;
+}
+
+export async function createWorkflowDocument(input: CreateWorkflowDocumentInput): Promise<SmcrWorkflowDocument> {
+  const startTime = Date.now();
+  const id = `wdoc-${crypto.randomUUID()}`;
+  const result = await pool.query<SmcrWorkflowDocument>(
+    `INSERT INTO smcr_workflow_documents (
+      id, firm_id, workflow_id, step_id, name, type, size, file_path, summary, status
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+    [
+      id,
+      input.firm_id,
+      input.workflow_id,
+      input.step_id,
+      input.name,
+      input.type ?? null,
+      input.size ?? null,
+      input.file_path ?? null,
+      input.summary ?? null,
+      input.status ?? 'pending',
+    ]
+  );
+  logDbOperation('insert', 'smcr_workflow_documents', Date.now() - startTime);
+  return result.rows[0];
+}
+
+export async function deleteWorkflowDocument(id: string): Promise<boolean> {
+  const startTime = Date.now();
+  const result = await pool.query('DELETE FROM smcr_workflow_documents WHERE id = $1', [id]);
+  logDbOperation('delete', 'smcr_workflow_documents', Date.now() - startTime);
+  return (result.rowCount ?? 0) > 0;
+}
+
+// =====================================================
+// Documents CRUD Operations
+// =====================================================
+
+export interface SmcrDocument {
+  id: string;
+  person_id: string;
+  category: string;
+  name: string;
+  type: string | null;
+  size: number | null;
+  file_path: string | null;
+  notes: string | null;
+  uploaded_at: Date;
+}
+
+export interface CreateSmcrDocumentInput {
+  person_id: string;
+  category: string;
+  name: string;
+  type?: string;
+  size?: number;
+  file_path?: string;
+  notes?: string;
+}
+
+export async function getSmcrDocuments(personId: string): Promise<SmcrDocument[]> {
+  const startTime = Date.now();
+  const result = await pool.query<SmcrDocument>(
+    'SELECT * FROM smcr_documents WHERE person_id = $1 ORDER BY uploaded_at DESC',
+    [personId]
+  );
+  logDbOperation('query', 'smcr_documents', Date.now() - startTime);
+  return result.rows;
+}
+
+export async function getSmcrDocument(id: string): Promise<SmcrDocument | null> {
+  const startTime = Date.now();
+  const result = await pool.query<SmcrDocument>(
+    'SELECT * FROM smcr_documents WHERE id = $1',
+    [id]
+  );
+  logDbOperation('query', 'smcr_documents', Date.now() - startTime);
+  return result.rows[0] || null;
+}
+
+export async function createSmcrDocument(input: CreateSmcrDocumentInput): Promise<SmcrDocument> {
+  const startTime = Date.now();
+  const id = `doc-${crypto.randomUUID()}`;
+  const result = await pool.query<SmcrDocument>(
+    `INSERT INTO smcr_documents (
+      id, person_id, category, name, type, size, file_path, notes
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+    [
+      id,
+      input.person_id,
+      input.category,
+      input.name,
+      input.type ?? null,
+      input.size ?? null,
+      input.file_path ?? null,
+      input.notes ?? null,
+    ]
+  );
+  logDbOperation('insert', 'smcr_documents', Date.now() - startTime);
+  return result.rows[0];
+}
+
+export async function deleteSmcrDocument(id: string): Promise<boolean> {
+  const startTime = Date.now();
+  const result = await pool.query('DELETE FROM smcr_documents WHERE id = $1', [id]);
+  logDbOperation('delete', 'smcr_documents', Date.now() - startTime);
+  return (result.rowCount ?? 0) > 0;
+}
+
+// =====================================================
+// Training Items CRUD Operations
+// =====================================================
+
+export interface SmcrTrainingItem {
+  id: string;
+  person_id: string;
+  module_id: string | null;
+  title: string;
+  required: boolean;
+  role_context: string | null;
+  status: string;
+  due_date: Date | null;
+  completed_date: Date | null;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface CreateTrainingItemInput {
+  person_id: string;
+  module_id?: string;
+  title: string;
+  required?: boolean;
+  role_context?: string;
+  status?: string;
+  due_date?: string;
+  completed_date?: string;
+}
+
+export async function getTrainingItems(personId: string): Promise<SmcrTrainingItem[]> {
+  const startTime = Date.now();
+  const result = await pool.query<SmcrTrainingItem>(
+    'SELECT * FROM smcr_training_items WHERE person_id = $1 ORDER BY created_at DESC',
+    [personId]
+  );
+  logDbOperation('query', 'smcr_training_items', Date.now() - startTime);
+  return result.rows;
+}
+
+export async function createTrainingItem(input: CreateTrainingItemInput): Promise<SmcrTrainingItem> {
+  const startTime = Date.now();
+  const id = `training-${crypto.randomUUID()}`;
+  const result = await pool.query<SmcrTrainingItem>(
+    `INSERT INTO smcr_training_items (
+      id, person_id, module_id, title, required, role_context,
+      status, due_date, completed_date
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+    [
+      id,
+      input.person_id,
+      input.module_id ?? null,
+      input.title,
+      input.required ?? false,
+      input.role_context ?? null,
+      input.status ?? 'not_started',
+      input.due_date ?? null,
+      input.completed_date ?? null,
+    ]
+  );
+  logDbOperation('insert', 'smcr_training_items', Date.now() - startTime);
+  return result.rows[0];
+}
+
+export async function updateTrainingItem(id: string, updates: Partial<SmcrTrainingItem>): Promise<SmcrTrainingItem | null> {
+  const startTime = Date.now();
+  const fields: string[] = [];
+  const values: unknown[] = [];
+  let paramIndex = 1;
+
+  const allowedFields = [
+    'status', 'due_date', 'completed_date', 'required', 'role_context', 'title'
+  ];
+
+  for (const field of allowedFields) {
+    if (field in updates) {
+      fields.push(`${field} = $${paramIndex}`);
+      values.push(updates[field as keyof typeof updates]);
+      paramIndex++;
+    }
+  }
+
+  if (fields.length === 0) return null;
+
+  fields.push(`updated_at = CURRENT_TIMESTAMP`);
+  values.push(id);
+
+  const result = await pool.query<SmcrTrainingItem>(
+    `UPDATE smcr_training_items SET ${fields.join(', ')} WHERE id = $${paramIndex} RETURNING *`,
+    values
+  );
+  logDbOperation('update', 'smcr_training_items', Date.now() - startTime);
+  return result.rows[0] || null;
+}
+
+// =====================================================
+// Breaches CRUD Operations
+// =====================================================
+
+export interface SmcrBreachRecord {
+  id: string;
+  firm_id: string;
+  person_id: string | null;
+  rule_id: string | null;
+  severity: string;
+  status: string;
+  timeline: unknown[];
+  details: Record<string, unknown> | null;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface CreateBreachInput {
+  firm_id: string;
+  person_id?: string;
+  rule_id?: string;
+  severity: string;
+  status: string;
+  timeline?: unknown[];
+  details?: Record<string, unknown>;
+}
+
+export async function getBreaches(firmId: string): Promise<SmcrBreachRecord[]> {
+  const startTime = Date.now();
+  const result = await pool.query<SmcrBreachRecord>(
+    'SELECT * FROM smcr_breaches WHERE firm_id = $1 ORDER BY created_at DESC',
+    [firmId]
+  );
+  logDbOperation('query', 'smcr_breaches', Date.now() - startTime);
+  return result.rows;
+}
+
+export async function getBreach(id: string): Promise<SmcrBreachRecord | null> {
+  const startTime = Date.now();
+  const result = await pool.query<SmcrBreachRecord>(
+    'SELECT * FROM smcr_breaches WHERE id = $1',
+    [id]
+  );
+  logDbOperation('query', 'smcr_breaches', Date.now() - startTime);
+  return result.rows[0] || null;
+}
+
+export async function createBreach(input: CreateBreachInput): Promise<SmcrBreachRecord> {
+  const startTime = Date.now();
+  const id = `breach-${crypto.randomUUID()}`;
+  const result = await pool.query<SmcrBreachRecord>(
+    `INSERT INTO smcr_breaches (
+      id, firm_id, person_id, rule_id, severity, status, timeline, details
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+    [
+      id,
+      input.firm_id,
+      input.person_id ?? null,
+      input.rule_id ?? null,
+      input.severity,
+      input.status,
+      JSON.stringify(input.timeline ?? []),
+      JSON.stringify(input.details ?? {}),
+    ]
+  );
+  logDbOperation('insert', 'smcr_breaches', Date.now() - startTime);
+  return result.rows[0];
+}
+
+export async function updateBreach(id: string, updates: Partial<SmcrBreachRecord>): Promise<SmcrBreachRecord | null> {
+  const startTime = Date.now();
+  const fields: string[] = [];
+  const values: unknown[] = [];
+  let paramIndex = 1;
+
+  const allowedFields = ['person_id', 'rule_id', 'severity', 'status', 'timeline', 'details'];
+
+  for (const field of allowedFields) {
+    if (field in updates) {
+      fields.push(`${field} = $${paramIndex}`);
+      const value = updates[field as keyof typeof updates];
+      if (field === 'timeline' || field === 'details') {
+        values.push(JSON.stringify(value));
+      } else {
+        values.push(value);
+      }
+      paramIndex++;
+    }
+  }
+
+  if (fields.length === 0) return getBreach(id);
+
+  fields.push(`updated_at = CURRENT_TIMESTAMP`);
+  values.push(id);
+
+  const result = await pool.query<SmcrBreachRecord>(
+    `UPDATE smcr_breaches SET ${fields.join(', ')} WHERE id = $${paramIndex} RETURNING *`,
+    values
+  );
+  logDbOperation('update', 'smcr_breaches', Date.now() - startTime);
+  return result.rows[0] || null;
+}
+
+export async function deleteBreach(id: string): Promise<boolean> {
+  const startTime = Date.now();
+  const result = await pool.query('DELETE FROM smcr_breaches WHERE id = $1', [id]);
+  logDbOperation('delete', 'smcr_breaches', Date.now() - startTime);
+  return (result.rowCount ?? 0) > 0;
+}
+
+// =====================================================
+// Group Entities CRUD Operations
+// =====================================================
+
+export interface SmcrGroupEntity {
+  id: string;
+  organization_id: string;
+  name: string;
+  type: string;
+  parent_id: string | null;
+  ownership_percent: number | null;
+  country: string | null;
+  linked_firm_id: string | null;
+  linked_project_id: string | null;
+  linked_project_name: string | null;
+  regulatory_status: string | null;
+  is_external: boolean;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface CreateGroupEntityInput {
+  organization_id: string;
+  name: string;
+  type: string;
+  parent_id?: string;
+  ownership_percent?: number;
+  country?: string;
+  linked_firm_id?: string;
+  linked_project_id?: string;
+  linked_project_name?: string;
+  regulatory_status?: string;
+  is_external?: boolean;
+}
+
+export async function getGroupEntities(organizationId: string): Promise<SmcrGroupEntity[]> {
+  const startTime = Date.now();
+  const result = await pool.query<SmcrGroupEntity>(
+    'SELECT * FROM smcr_group_entities WHERE organization_id = $1 ORDER BY created_at DESC',
+    [organizationId]
+  );
+  logDbOperation('query', 'smcr_group_entities', Date.now() - startTime);
+  return result.rows;
+}
+
+export async function getGroupEntity(id: string): Promise<SmcrGroupEntity | null> {
+  const startTime = Date.now();
+  const result = await pool.query<SmcrGroupEntity>(
+    'SELECT * FROM smcr_group_entities WHERE id = $1',
+    [id]
+  );
+  logDbOperation('query', 'smcr_group_entities', Date.now() - startTime);
+  return result.rows[0] || null;
+}
+
+export async function createGroupEntity(input: CreateGroupEntityInput): Promise<SmcrGroupEntity> {
+  const startTime = Date.now();
+  const id = `group-${crypto.randomUUID()}`;
+  const result = await pool.query<SmcrGroupEntity>(
+    `INSERT INTO smcr_group_entities (
+      id, organization_id, name, type, parent_id, ownership_percent, country,
+      linked_firm_id, linked_project_id, linked_project_name, regulatory_status, is_external
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *`,
+    [
+      id,
+      input.organization_id,
+      input.name,
+      input.type,
+      input.parent_id ?? null,
+      input.ownership_percent ?? null,
+      input.country ?? null,
+      input.linked_firm_id ?? null,
+      input.linked_project_id ?? null,
+      input.linked_project_name ?? null,
+      input.regulatory_status ?? null,
+      input.is_external ?? false,
+    ]
+  );
+  logDbOperation('insert', 'smcr_group_entities', Date.now() - startTime);
+  return result.rows[0];
+}
+
+export async function updateGroupEntity(id: string, updates: Partial<SmcrGroupEntity>): Promise<SmcrGroupEntity | null> {
+  const startTime = Date.now();
+  const fields: string[] = [];
+  const values: unknown[] = [];
+  let paramIndex = 1;
+
+  const allowedFields = [
+    'name',
+    'type',
+    'parent_id',
+    'ownership_percent',
+    'country',
+    'linked_firm_id',
+    'linked_project_id',
+    'linked_project_name',
+    'regulatory_status',
+    'is_external',
+  ];
+
+  for (const field of allowedFields) {
+    if (field in updates) {
+      fields.push(`${field} = $${paramIndex}`);
+      values.push(updates[field as keyof typeof updates]);
+      paramIndex++;
+    }
+  }
+
+  if (fields.length === 0) return getGroupEntity(id);
+
+  fields.push(`updated_at = CURRENT_TIMESTAMP`);
+  values.push(id);
+
+  const result = await pool.query<SmcrGroupEntity>(
+    `UPDATE smcr_group_entities SET ${fields.join(', ')} WHERE id = $${paramIndex} RETURNING *`,
+    values
+  );
+  logDbOperation('update', 'smcr_group_entities', Date.now() - startTime);
+  return result.rows[0] || null;
+}
+
+export async function deleteGroupEntity(id: string): Promise<boolean> {
+  const startTime = Date.now();
+  const result = await pool.query('DELETE FROM smcr_group_entities WHERE id = $1', [id]);
+  logDbOperation('delete', 'smcr_group_entities', Date.now() - startTime);
   return (result.rowCount ?? 0) > 0;
 }
 

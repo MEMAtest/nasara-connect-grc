@@ -501,7 +501,7 @@ export function OpinionPackClient() {
       setGenerationJob(job);
       setIsStartingGeneration(false);
       await runOpinionPackJob(job.id);
-    } catch (err) {
+    } catch {
       setGenerateError("Failed to connect to the server. Please try again.");
       setIsStartingGeneration(false);
     }

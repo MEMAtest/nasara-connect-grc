@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import useSWR from "swr";
 import { Plus, Trash2 } from "lucide-react";
-import { DEFAULT_ORGANIZATION_ID } from "@/lib/constants";
+import { useOrganization } from "@/components/organization-provider";
 import type { EntityLink, EntityType } from "@/lib/server/entity-link-store";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -40,15 +40,16 @@ function getLinkTitle(link: EntityLink): string {
 }
 
 export function PolicyMappingEditor({ policyId }: { policyId: string }) {
+  const { organizationId } = useOrganization();
   const { data, mutate } = useSWR<LinkResponse>(`/api/policies/${policyId}/links`, fetcher);
-  const links = data?.links ?? [];
+  const links = useMemo(() => data?.links ?? [], [data?.links]);
 
   const { data: risksData } = useSWR<RiskOption[]>(
-    `/api/organizations/${DEFAULT_ORGANIZATION_ID}/risks`,
+    `/api/organizations/${organizationId}/risks`,
     fetcher,
   );
   const { data: controlsData } = useSWR<ControlOption[]>(
-    `/api/organizations/${DEFAULT_ORGANIZATION_ID}/cmp/controls`,
+    `/api/organizations/${organizationId}/cmp/controls`,
     fetcher,
   );
   const { data: trainingData } = useSWR<{ modules: TrainingOption[] }>(
@@ -56,9 +57,9 @@ export function PolicyMappingEditor({ policyId }: { policyId: string }) {
     fetcher,
   );
 
-  const risks = (risksData ?? []).map((risk) => ({ id: risk.id, title: risk.title, riskId: risk.riskId }));
-  const controls = (controlsData ?? []).map((control) => ({ id: control.id, title: control.title, owner: control.owner }));
-  const training = trainingData?.modules ?? [];
+  const risks = useMemo(() => (risksData ?? []).map((risk) => ({ id: risk.id, title: risk.title, riskId: risk.riskId })), [risksData]);
+  const controls = useMemo(() => (controlsData ?? []).map((control) => ({ id: control.id, title: control.title, owner: control.owner })), [controlsData]);
+  const training = useMemo(() => trainingData?.modules ?? [], [trainingData?.modules]);
 
   const [picker, setPicker] = useState<{ open: boolean; type: EntityType | null }>({ open: false, type: null });
   const [evidenceOpen, setEvidenceOpen] = useState(false);
@@ -329,4 +330,3 @@ export function PolicyMappingEditor({ policyId }: { policyId: string }) {
     </section>
   );
 }
-

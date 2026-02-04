@@ -3,10 +3,9 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, User, Briefcase, AlertTriangle, Edit3, ArrowRightLeft, CreditCard, ClipboardList } from "lucide-react";
+import { User, Briefcase, AlertTriangle, Edit3, ArrowRightLeft, CreditCard, ClipboardList } from "lucide-react";
 import { format } from "date-fns";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { useSmcrData } from "../context/SmcrDataContext";
@@ -349,6 +348,7 @@ export function FormGuideClient() {
       const isValid = validators[validatorKey as ValidatorKey](value);
       setValidationErrors(prev => {
         if (isValid) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { [field]: _, ...rest } = prev;
           return rest;
         } else {
@@ -366,6 +366,7 @@ export function FormGuideClient() {
       const isValid = validators[validatorKey as ValidatorKey](value);
       setFormCValidationErrors(prev => {
         if (isValid) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { [field]: _, ...rest } = prev;
           return rest;
         } else {
@@ -383,6 +384,7 @@ export function FormGuideClient() {
       const isValid = validators[validatorKey as ValidatorKey](value);
       setFormDValidationErrors(prev => {
         if (isValid) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { [field]: _, ...rest } = prev;
           return rest;
         } else {
@@ -400,6 +402,7 @@ export function FormGuideClient() {
       const isValid = validators[validatorKey as ValidatorKey](value);
       setFormEValidationErrors(prev => {
         if (isValid) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { [field]: _, ...rest } = prev;
           return rest;
         } else {
@@ -417,6 +420,7 @@ export function FormGuideClient() {
       const isValid = validators[validatorKey as ValidatorKey](value);
       setFormPSDValidationErrors(prev => {
         if (isValid) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { [field]: _, ...rest } = prev;
           return rest;
         } else {
@@ -1178,7 +1182,7 @@ export function FormGuideClient() {
           <FormProgress progress={formDProgress} />
 
           <SectionInfo title="Form D - Amendment to Details" variant="info">
-            <p>Use this form to notify the FCA of changes to an approved person's details, including name changes, contact details, or fitness and propriety matters.</p>
+            <p>Use this form to notify the FCA of changes to an approved person&apos;s details, including name changes, contact details, or fitness and propriety matters.</p>
           </SectionInfo>
 
           {/* Form D Section Navigation */}

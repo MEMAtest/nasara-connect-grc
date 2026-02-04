@@ -7,7 +7,6 @@ import { TemplatePackView } from '@/components/templates'
 import { UseCaseModal, type UseCaseData } from '@/components/guides/UseCaseModal'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import type { TemplateItem } from '@/components/templates'
 import {
   Rocket,

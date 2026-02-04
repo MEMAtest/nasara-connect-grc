@@ -343,6 +343,7 @@ export function AMLTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
               </div>
             </div>
             <figure className="space-y-2">
+              {/* eslint-disable-next-line @next/next/no-img-element -- static training content image with known dimensions */}
               <img
                 src="/images/training/aml-ctf-01.jpg"
                 alt="Compliance analyst reviewing transaction alerts"
@@ -481,6 +482,7 @@ export function AMLTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
               </p>
             </div>
             <figure className="space-y-2">
+              {/* eslint-disable-next-line @next/next/no-img-element -- static training content image with known dimensions */}
               <img
                 src="/images/training/aml-ctf-02.jpg"
                 alt="Professional compliance review of regulatory documentation"
@@ -597,6 +599,7 @@ export function AMLTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
               </p>
             </div>
             <figure className="space-y-2">
+              {/* eslint-disable-next-line @next/next/no-img-element -- static training content image with known dimensions */}
               <img
                 src="/images/training/aml-ctf-03.jpg"
                 alt="Team monitoring risk dashboards and alerts"

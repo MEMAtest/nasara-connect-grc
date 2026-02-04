@@ -16,7 +16,7 @@ import {
 } from '@/lib/server/firm-profile-store';
 import type { FirmProfileCreate } from '@/lib/policies/types';
 import { logError } from '@/lib/logger';
-import { requireAuth } from '@/lib/auth-utils';
+import { requireRole } from "@/lib/rbac";
 
 // =====================================================
 // GET - Retrieve firm profile
@@ -27,7 +27,7 @@ export async function GET(
   { params }: { params: Promise<{ firmId: string }> }
 ) {
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
     const { firmId } = await params;
 
@@ -66,7 +66,7 @@ export async function POST(
   { params }: { params: Promise<{ firmId: string }> }
 ) {
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
     const { firmId } = await params;
 
@@ -118,7 +118,7 @@ export async function PATCH(
   { params }: { params: Promise<{ firmId: string }> }
 ) {
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
     const { firmId } = await params;
 
@@ -174,7 +174,7 @@ export async function DELETE(
   { params }: { params: Promise<{ firmId: string }> }
 ) {
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
     const { firmId } = await params;
 

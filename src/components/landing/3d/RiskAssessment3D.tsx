@@ -2,7 +2,7 @@
 
 import { useRef } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
-import { Float, MeshDistortMaterial, Text } from '@react-three/drei'
+import { Float } from '@react-three/drei'
 import * as THREE from 'three'
 
 function RiskMeter() {
@@ -60,6 +60,7 @@ function RiskMeter() {
   )
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function RiskIndicator({ position, risk, label }: { position: [number, number, number], risk: 'low' | 'medium' | 'high', label: string }) {
   const colors = {
     low: '#10b981',

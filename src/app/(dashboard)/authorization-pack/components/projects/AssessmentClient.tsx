@@ -630,6 +630,7 @@ export function AssessmentClient() {
     });
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const updateQuestionResponse = useCallback((questionId: string, value: unknown, score?: number) => {
     setAssessment((prev) => ({
       ...prev,

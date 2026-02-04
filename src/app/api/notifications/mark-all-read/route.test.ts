@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { NextRequest } from "next/server";
 import { markAllNotificationsRead } from "@/lib/server/notifications-store";
-import { requireAuth } from "@/lib/auth-utils";
+import { requireRole } from "@/lib/rbac";
 
-vi.mock("@/lib/auth-utils", () => ({
-  requireAuth: vi.fn(),
+vi.mock("@/lib/rbac", () => ({
+  requireRole: vi.fn(),
 }));
 
 vi.mock("@/lib/server/notifications-store", () => ({
@@ -24,7 +25,7 @@ describe("Mark all read route", () => {
   });
 
   it("marks notifications for the authenticated org", async () => {
-    vi.mocked(requireAuth).mockResolvedValue({
+    vi.mocked(requireRole).mockResolvedValue({
       auth: { authenticated: true, userId: "user-1", userEmail: "user@example.com", userName: "User 1", organizationId: "org-abc" },
       error: undefined,
     });
@@ -35,7 +36,7 @@ describe("Mark all read route", () => {
     const req = new Request("http://localhost/api/notifications/mark-all-read?organizationId=evil-org", {
       method: "POST",
     });
-    const res = await POST(req);
+    const res = await POST(req as unknown as NextRequest);
 
     expect(markAllNotificationsRead).toHaveBeenCalledWith({
       organizationIds: ["org-abc"],

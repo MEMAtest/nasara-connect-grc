@@ -193,6 +193,7 @@ export function EcosystemClient() {
 
   useEffect(() => {
     loadProject();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount / when projectId changes
   }, [projectId]);
 
   if (isLoading) {
@@ -251,6 +252,7 @@ export function EcosystemClient() {
   ].filter(
     (item) => item.href
   ).length;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const completionPercent = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
 
   return (

@@ -4,11 +4,12 @@ import { REGISTER_LABELS, deriveSeverity, formatRecordSummary } from "@/lib/noti
 export async function notifyRegisterCreated(options: {
   organizationId: string;
   registerKey: string;
-  record: Record<string, unknown>;
+  record: object & { id?: string };
   actor?: string | null;
 }) {
   const label = REGISTER_LABELS[options.registerKey] ?? "Register";
-  const summary = formatRecordSummary(options.record);
+  const rec = options.record as unknown as Record<string, unknown>;
+  const summary = formatRecordSummary(rec);
   const messageParts: string[] = [];
   if (summary) messageParts.push(summary);
   if (options.actor) messageParts.push(`by ${options.actor}`);
@@ -17,12 +18,12 @@ export async function notifyRegisterCreated(options: {
     organizationId: options.organizationId,
     title: `${label} record created`,
     message: messageParts.length ? messageParts.join(" • ") : null,
-    severity: deriveSeverity(options.record),
+    severity: deriveSeverity(rec),
     source: `registers:${options.registerKey}`,
     link: `/registers/${options.registerKey}`,
     metadata: {
       register: options.registerKey,
-      recordId: typeof options.record.id === "string" ? options.record.id : null,
+      recordId: typeof rec.id === "string" ? rec.id : null,
     },
   });
 }

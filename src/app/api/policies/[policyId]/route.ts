@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth-utils";
+import { requireRole } from "@/lib/rbac";
 import { updatePolicy, getPolicyById, deletePolicy } from "@/lib/server/policy-store";
 import {
   initDatabase,
@@ -23,7 +23,7 @@ export async function GET(
   { params }: { params: Promise<{ policyId: string }> }
 ) {
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
     await initDatabase();
     const { policyId } = await params;
@@ -64,7 +64,7 @@ export async function PATCH(
   { params }: { params: Promise<{ policyId: string }> }
 ) {
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
     await initDatabase();
     const { policyId } = await params;
@@ -288,7 +288,7 @@ export async function DELETE(
   { params }: { params: Promise<{ policyId: string }> }
 ) {
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
     await initDatabase();
     const { policyId } = await params;

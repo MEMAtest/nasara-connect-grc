@@ -1,12 +1,19 @@
 import NextAuth, { DefaultSession } from "next-auth"
 import Google from "next-auth/providers/google"
-import { isAuthDisabled } from "@/lib/auth-utils"
+import { deriveOrganizationIdFromEmail, deriveUserIdFromEmail, isAuthDisabled } from "@/lib/auth-utils"
 
 declare module "next-auth" {
   interface Session {
     user: {
       id: string
+      organizationId: string
     } & DefaultSession["user"]
+  }
+}
+
+declare module "@auth/core/jwt" {
+  interface JWT {
+    organizationId?: string
   }
 }
 
@@ -36,19 +43,51 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
     async jwt({ token, account, profile }) {
       if (account && profile) {
-        token.id = profile.sub
+        const email = profile.email || token.email
+        token.id = profile.sub || (email ? await deriveUserIdFromEmail(String(email)) : token.id)
+      }
+      const email = profile?.email || token.email
+      if (email && !token.organizationId) {
+        try {
+          const { getOrganizationIdByDomain } = await import("@/lib/server/organization-store")
+          const domain = String(email).split("@")[1] || "default"
+          const orgId = await getOrganizationIdByDomain(domain)
+          token.organizationId = orgId ?? await deriveOrganizationIdFromEmail(String(email))
+        } catch {
+          token.organizationId = await deriveOrganizationIdFromEmail(String(email))
+        }
       }
       return token
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string
+        session.user.organizationId = token.organizationId as string
       }
       return session
     },
-    async signIn({ account, profile }) {
-      // Allow all Google sign-ins for now
-      // You can add custom logic here to restrict access
+    async signIn({ account, profile, user }) {
+      const email = profile?.email || user?.email
+      if (email) {
+        try {
+          const { ensureOrganizationForUser } = await import("@/lib/server/organization-store")
+          const userId = profile?.sub || account?.providerAccountId || user?.id || await deriveUserIdFromEmail(email)
+          const name = profile?.name || user?.name || email
+          const avatarUrl = (profile as { picture?: string } | null)?.picture || (user as { image?: string } | null)?.image || null
+          const organizationId = await deriveOrganizationIdFromEmail(email)
+          await ensureOrganizationForUser({
+            email,
+            userId,
+            name,
+            avatarUrl,
+            organizationId,
+          })
+        } catch (error) {
+          if (process.env.NODE_ENV !== "production") {
+            console.error("Failed to upsert organization membership on sign-in", error)
+          }
+        }
+      }
       return true
     }
   },

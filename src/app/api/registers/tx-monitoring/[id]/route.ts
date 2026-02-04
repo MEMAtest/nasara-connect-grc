@@ -12,7 +12,7 @@ import {
   sanitizeText,
   parseValidDate,
 } from "@/lib/validation";
-import { requireAuth } from "@/lib/auth-utils";
+import { requireRole } from "@/lib/rbac";
 
 const ALERT_TYPES = ["high_value", "unusual_pattern", "structuring", "rapid_movement", "dormant_account", "geographic", "other"] as const;
 const ALERT_SEVERITIES = ["low", "medium", "high", "critical"] as const;
@@ -25,7 +25,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
     await initDatabase();
 
@@ -130,7 +130,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
     await initDatabase();
 

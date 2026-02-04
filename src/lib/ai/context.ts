@@ -22,8 +22,9 @@ function scoreTextMatch(text: string, query: string): number {
 
 function summarizeControl(control: (typeof mockCmpControls)[number]): string {
   const refs = control.regulatoryReferences?.join(", ") || "N/A";
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const findings = control.findings?.length ?? 0;
-  const issues = control.issuesOpen ?? control.findings?.filter((f) => f.status !== "closed").length ?? 0;
+  const issues = control.issuesOpen ?? control.findings?.filter((f) => f.status !== "resolved").length ?? 0;
   return [
     `ID: ${control.id} — ${control.title}`,
     `Objective: ${control.objective}`,
@@ -45,8 +46,8 @@ function summarizeClause(clause: (typeof POLICY_TEMPLATE_CLAUSES)[number]): stri
 }
 
 function summarizeTemplate(template: (typeof POLICY_TEMPLATES)[number] | StoredPolicy): string {
-  const sections = template.sections
-    .map((s) => `- ${s.title}: ${s.summary}`)
+  const sections = ("sections" in template ? template.sections : template.template?.sections ?? [])
+    .map((s: { title: string; summary: string }) => `- ${s.title}: ${s.summary}`)
     .join("\n");
   return [
     `Template: ${template.name} (${template.code})`,
@@ -60,7 +61,7 @@ function summarizeStoredClauses(policy?: StoredPolicy): string[] {
   return policy.clauses.slice(0, 5).map((clause) => {
     return [
       `Clause: ${clause.title} (${clause.id})`,
-      `Summary: ${clause.summary ?? clause.body_md?.slice(0, 160) ?? ""}`,
+      `Summary: ${clause.summary ?? clause.content?.slice(0, 160) ?? ""}`,
       `Mandatory: ${clause.isMandatory ? "yes" : "no"}`,
     ].join("\n");
   });

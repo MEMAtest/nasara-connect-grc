@@ -17,7 +17,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -32,15 +31,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { format } from "date-fns";
 import { RegisterToolbar, ViewMode } from "@/components/registers/RegisterToolbar";
-import { RegisterDataTable, Column, renderBadge, renderDate, renderCurrency } from "@/components/registers/RegisterDataTable";
+import { RegisterDataTable, Column, renderBadge, renderDate } from "@/components/registers/RegisterDataTable";
 import { StatCard, DonutChart, BarChart, TrendChart } from "@/components/registers/RegisterCharts";
 import { exportToCSV, transforms } from "@/lib/export-utils";
 import { PaginationControls, usePagination } from "@/components/ui/pagination-controls";
 
 interface ComplaintRecord {
   id: string;
+  [key: string]: unknown;
   complaint_reference?: string;
   complainant_name: string;
   complaint_type: string;
@@ -109,6 +108,7 @@ export function ComplaintsRegisterClient() {
 
   const [records, setRecords] = useState<ComplaintRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("dashboard");
   const [searchQuery, setSearchQuery] = useState("");
@@ -149,7 +149,7 @@ export function ComplaintsRegisterClient() {
       if (!res.ok) throw new Error("Failed to fetch records");
       const data = await res.json();
       setRecords(data.records || []);
-    } catch (err) {
+    } catch {
       setError("Failed to load complaints");
     } finally {
       setIsLoading(false);
@@ -158,6 +158,7 @@ export function ComplaintsRegisterClient() {
 
   useEffect(() => {
     loadRecords();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount / when packId changes
   }, [packId]);
 
   const resetForm = () => {
@@ -210,7 +211,7 @@ export function ComplaintsRegisterClient() {
       setEditingRecord(null);
       resetForm();
       loadRecords();
-    } catch (err) {
+    } catch {
       toast.error("Failed to save complaint");
     } finally {
       setIsSaving(false);
@@ -223,7 +224,7 @@ export function ComplaintsRegisterClient() {
       const res = await fetch(`/api/registers/complaints/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Failed to delete");
       loadRecords();
-    } catch (err) {
+    } catch {
       toast.error("Failed to delete complaint");
     }
   };
@@ -391,31 +392,31 @@ export function ComplaintsRegisterClient() {
       key: "complaint_type",
       header: "Type",
       sortable: true,
-      render: (value, _row) => typeLabels[value as string] || String(value),
+      render: (value) => typeLabels[value as string] || String(value),
     },
     {
       key: "status",
       header: "Status",
       sortable: true,
-      render: (value, _row) => renderBadge(value as string, statusColors),
+      render: (value) => renderBadge(value as string, statusColors),
     },
     {
       key: "priority",
       header: "Priority",
       sortable: true,
-      render: (value, _row) => renderBadge(value as string, priorityColors),
+      render: (value) => renderBadge(value as string, priorityColors),
     },
     {
       key: "received_date",
       header: "Received",
       sortable: true,
-      render: (value, _row) => renderDate(value as string),
+      render: (value) => renderDate(value as string),
     },
     {
       key: "assigned_to",
       header: "Assigned To",
       sortable: true,
-      render: (value, _row) => (value as string) || "-",
+      render: (value) => (value as string) || "-",
     },
   ];
 

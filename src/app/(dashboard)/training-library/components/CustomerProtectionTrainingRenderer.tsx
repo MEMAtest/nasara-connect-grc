@@ -172,14 +172,14 @@ export function CustomerProtectionTrainingRenderer({
     return ((currentIndex + 1) / STAGE_ORDER.length) * 100;
   };
 
-  const getLessonContent = (lessonContent: TrainingModuleData["lessons"][0]["content"]): string => {
+  const getLessonContent = (lessonContent: NonNullable<TrainingModuleData["lessons"]>[number]["content"]): string => {
     if (typeof lessonContent === "string") {
       return lessonContent;
     }
     return lessonContent.mainContent || lessonContent.learningPoint || "";
   };
 
-  const getLessonKeyConcepts = (lesson: TrainingModuleData["lessons"][0]) => {
+  const getLessonKeyConcepts = (lesson: NonNullable<TrainingModuleData["lessons"]>[number]) => {
     if (typeof lesson.content === "object" && lesson.content.keyConcepts) {
       return lesson.content.keyConcepts.map((concept) =>
         typeof concept === "string" ? concept : `${concept.term}: ${concept.definition}`
@@ -193,14 +193,14 @@ export function CustomerProtectionTrainingRenderer({
     return [];
   };
 
-  const getLessonExamples = (lesson: TrainingModuleData["lessons"][0]) => {
+  const getLessonExamples = (lesson: NonNullable<TrainingModuleData["lessons"]>[number]) => {
     if (typeof lesson.content === "object" && lesson.content.realExamples) {
       return lesson.content.realExamples;
     }
     return lesson.realExamples || [];
   };
 
-  const getLessonVisual = (lesson: TrainingModuleData["lessons"][0]) => {
+  const getLessonVisual = (lesson: NonNullable<TrainingModuleData["lessons"]>[number]) => {
     if (typeof lesson.content === "object" && lesson.content.visual) {
       return lesson.content.visual;
     }

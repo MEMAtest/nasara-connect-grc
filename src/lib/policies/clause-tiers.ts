@@ -291,7 +291,7 @@ export function applyTiering(
     }
 
     // Determine limit based on section type
-    const isAppendix = standardSection.sectionType === 'appendix' || standardSection.id === 'related';
+    const isAppendix = (standardSection.sectionType as string) === 'appendix' || standardSection.id === 'related';
     const maxClauses = isAppendix ? limits.appendixMax : limits.max;
 
     // Select top clauses based on priority
@@ -317,7 +317,8 @@ export function applyTiering(
   const mappedSectionIds = new Set(
     Array.from(sectionGroups.entries())
       .filter(([key]) => STANDARD_SECTIONS.some((s) => s.id === key))
-      .flatMap(([_, sections]) => sections.map((s) => s.id))
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      .flatMap(([_key, sections]) => sections.map((s) => s.id))
   );
 
   template.sections.forEach((section) => {

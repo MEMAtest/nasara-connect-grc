@@ -3,12 +3,14 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useOrganization } from "@/components/organization-provider";
 import { usePermissions } from "@/lib/policies";
 import { POLICY_PACKAGES } from "@/lib/policies/policyPackages";
 import { QuickSetupPackages } from "@/components/policies/quick-setup-packages";
 
 export function QuickSetupClient() {
-  usePermissions();
+  const { organizationId } = useOrganization();
+  usePermissions({ organizationId });
   const applicablePackages = POLICY_PACKAGES;
 
   return (

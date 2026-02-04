@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDashboardStats, getFirm, initSmcrDatabase } from '@/lib/smcr-database';
 import { logError, logApiRequest } from '@/lib/logger';
-import { requireAuth } from '@/lib/auth-utils';
+import { requireRole } from "@/lib/rbac";
 
 export async function GET(
   request: NextRequest,
@@ -16,7 +16,7 @@ export async function GET(
   logApiRequest('GET', `/api/smcr/firms/${firmId}/stats`);
 
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
     await initSmcrDatabase();
 

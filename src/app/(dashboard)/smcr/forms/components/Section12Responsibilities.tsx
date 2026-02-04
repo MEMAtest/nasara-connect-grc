@@ -44,7 +44,7 @@ export function Section12Responsibilities({
           <p className="mt-1">The SoR should be:</p>
           <p>• <strong>Clear and specific</strong> - avoid vague language</p>
           <p>• <strong>Comprehensive</strong> - cover all areas of accountability</p>
-          <p>• <strong>Consistent</strong> - with other SMFs' SoRs (no gaps or overlaps)</p>
+          <p>• <strong>Consistent</strong> - with other SMFs&apos; SoRs (no gaps or overlaps)</p>
         </SectionInfo>
 
         <div>

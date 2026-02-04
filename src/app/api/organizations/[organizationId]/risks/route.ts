@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth-utils";
+import { requireRole } from "@/lib/rbac";
 import { getRisksForOrganization, createRisk } from "@/lib/server/risk-database";
 import { recordTrigger } from "@/lib/policies/policyTriggers";
 import type { RiskFormValues } from "@/app/(dashboard)/risk-assessment/lib/riskValidation";
@@ -10,7 +10,7 @@ export async function GET(
   { params }: { params: Promise<{ organizationId: string }> },
 ) {
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
     const { organizationId } = await params;
     if (organizationId !== auth.organizationId) {
@@ -29,7 +29,7 @@ export async function POST(
   { params }: { params: Promise<{ organizationId: string }> },
 ) {
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
     const { organizationId } = await params;
     if (organizationId !== auth.organizationId) {
@@ -58,7 +58,7 @@ export async function POST(
       regulatoryCategory: payload.regulatoryCategory ?? [],
       reportableToFCA: payload.reportableToFCA ?? false,
       consumerDutyRelevant: payload.consumerDutyRelevant ?? false,
-      keyRiskIndicators: payload.keyRiskIndicators ?? [],
+      keyRiskIndicators: (payload.keyRiskIndicators ?? []) as RiskRecord["keyRiskIndicators"],
       controlCount: 0,
       controlEffectiveness: 0,
       status: "open",

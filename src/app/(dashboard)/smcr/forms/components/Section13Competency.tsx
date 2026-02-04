@@ -30,7 +30,7 @@ export function Section13Competency({
       <CardContent className="space-y-6">
         <SectionInfo title="What the FCA looks for" variant="info">
           <p>The FCA needs to be satisfied that the candidate has the knowledge, skills, and experience to perform the function effectively.</p>
-          <p className="mt-1">Link their experience directly to the responsibilities of the role they're applying for.</p>
+          <p className="mt-1">Link their experience directly to the responsibilities of the role they&apos;re applying for.</p>
         </SectionInfo>
 
         <div>

@@ -244,6 +244,7 @@ const NODE_W = ORG_NODE_WIDTH;
 const NODE_H = 60; // Auth pack uses shorter nodes
 const GAP_H = ORG_HORIZONTAL_GAP;
 const GAP_V = ORG_VERTICAL_GAP;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const DEPT_LABEL_H = 28;
 
 interface TreeNode {

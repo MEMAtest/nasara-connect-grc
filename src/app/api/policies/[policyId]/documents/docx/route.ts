@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { Packer } from "docx";
-import { requireAuth } from "@/lib/auth-utils";
+import { requireRole } from "@/lib/rbac";
 import { getPolicyById } from "@/lib/server/policy-store";
 import { renderClause, renderLiquidTemplate } from "@/lib/policies/liquid-renderer";
 import { resolveNotePlaceholders } from "@/lib/policies/section-notes";
 import { generateDocx, type PolicySection } from "@/lib/documents/docx-generator";
 import { applyTiering, type DetailLevel, type TieredSection } from "@/lib/policies/clause-tiers";
 import { applyOptionSelections } from "@/lib/policies/section-options";
+import type { JsonValue } from "@/lib/policies/types";
 
 function sanitizeFilename(value: string) {
   return value.replace(/[^a-z0-9]/gi, "_").toLowerCase();
@@ -27,7 +28,7 @@ export async function GET(
   { params }: { params: Promise<{ policyId: string }> },
 ) {
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
     const { policyId } = await params;
     const policy = await getPolicyById(auth.organizationId, policyId);
@@ -77,12 +78,13 @@ export async function GET(
     };
     const sectionOptions = customContent.sectionOptions ?? {};
 
+    // Values originate from JSON storage so are inherently JsonValue-shaped
     const renderContext = {
       firm: firmProfile,
       firm_name: firmName,
       permissions: policy.permissions,
       ...policyInputs,
-    };
+    } as unknown as Record<string, JsonValue>;
 
     // Apply tiering to get limited, organized sections
     const tieredSections = applyTiering(
@@ -93,7 +95,7 @@ export async function GET(
     );
 
     // Convert tiered sections to document sections with rendered content
-    const documentSections: PolicySection[] = tieredSections
+    const documentSections: PolicySection[] = (tieredSections
       .map((tieredSection: TieredSection) => {
         // Filter out TOC-like clauses and render content
         const renderedClauses = tieredSection.clauses
@@ -156,7 +158,7 @@ export async function GET(
           customNotes: resolvedNotes,
         };
       })
-      .filter((section): section is PolicySection => section !== null);
+      .filter(Boolean)) as PolicySection[];
 
     // Build version history from governance data
     const versionHistory = [];
@@ -207,7 +209,7 @@ export async function GET(
     const timestamp = new Date().toISOString().split("T")[0];
     const filename = `${sanitizeFilename(policy.name)}_v${sanitizeFilename(policyVersion)}_${timestamp}.docx`;
 
-    return new NextResponse(docxBuffer, {
+    return new NextResponse(docxBuffer as unknown as BodyInit, {
       status: 200,
       headers: {
         "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",

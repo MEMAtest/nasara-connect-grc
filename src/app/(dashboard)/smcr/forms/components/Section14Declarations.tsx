@@ -90,10 +90,10 @@ export function Section14Declarations({
           <div className="text-xs text-slate-600 space-y-2">
             <p>By signing below, the firm declares that:</p>
             <ul className="list-disc pl-5 space-y-1">
-              <li>We have assessed the candidate's fitness and propriety in accordance with FCA requirements</li>
-              <li>We have verified the candidate's identity and right to work</li>
+              <li>We have assessed the candidate&apos;s fitness and propriety in accordance with FCA requirements</li>
+              <li>We have verified the candidate&apos;s identity and right to work</li>
               <li>We have obtained regulatory references from previous regulated employers</li>
-              <li>We have assessed the candidate's competency for the role</li>
+              <li>We have assessed the candidate&apos;s competency for the role</li>
               <li>We believe the candidate is fit and proper to perform the function applied for</li>
             </ul>
           </div>

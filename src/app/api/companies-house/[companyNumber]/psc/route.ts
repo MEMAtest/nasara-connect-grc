@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth-utils";
+import { requireRole } from "@/lib/rbac";
 
 const BASE_URL = "https://api.company-information.service.gov.uk";
 
@@ -34,7 +34,7 @@ type PscItem = {
 
 export async function GET(_request: NextRequest, context: { params: Promise<{ companyNumber: string }> }) {
   try {
-    const { error } = await requireAuth();
+    const { error } = await requireRole("member");
     if (error) return error;
 
     const authHeader = getAuthHeader();
@@ -68,7 +68,17 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ co
     }
 
     const data = await response.json();
-    const items = (Array.isArray(data.items) ? data.items : []).map((item: any): PscItem => {
+    interface CompaniesHousePsc {
+      etag?: string;
+      links?: { self?: string };
+      name?: string;
+      name_elements?: { title?: string; forename?: string; surname?: string };
+      kind?: string;
+      natures_of_control?: string[];
+      notified_on?: string;
+      ceased_on?: string;
+    }
+    const items = (Array.isArray(data.items) ? data.items : []).map((item: CompaniesHousePsc): PscItem => {
       const nameElements = item?.name_elements;
       const fallbackName = nameElements
         ? [nameElements.title, nameElements.forename, nameElements.surname]

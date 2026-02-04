@@ -533,7 +533,7 @@ export async function GET(request: NextRequest) {
       return authResult.error!;
     }
 
-    const organizationId = authResult.user.organizationId || 'default-org';
+    const organizationId = authResult.user.organizationId;
     const policyOrganizationId = isValidUUID(organizationId)
       ? organizationId
       : DEFAULT_ORGANIZATION_ID;

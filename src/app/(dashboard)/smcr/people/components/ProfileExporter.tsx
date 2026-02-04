@@ -10,8 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
-import { Download, FileText, User, Shield, Award, CheckCircle2 } from "lucide-react";
+import { Download, FileText, CheckCircle2 } from "lucide-react";
 import {
   PersonRecord,
   DocumentMetadata,

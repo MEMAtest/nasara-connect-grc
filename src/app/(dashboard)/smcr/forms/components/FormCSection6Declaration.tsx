@@ -47,10 +47,10 @@ export function FormCSection6Declaration({
             <p>By signing below, the firm declares that:</p>
             <ul className="list-disc pl-5 space-y-1">
               <li>The information provided in this notice is accurate and complete to the best of our knowledge</li>
-              <li>We have disclosed all relevant circumstances regarding the individual's departure</li>
+              <li>We have disclosed all relevant circumstances regarding the individual&apos;s departure</li>
               <li>We have made appropriate arrangements for the handover of responsibilities</li>
               <li>We understand that providing false or misleading information is a criminal offence</li>
-              <li>We will provide a regulatory reference if requested by the individual's new employer</li>
+              <li>We will provide a regulatory reference if requested by the individual&apos;s new employer</li>
             </ul>
           </div>
 

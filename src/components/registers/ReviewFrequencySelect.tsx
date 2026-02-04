@@ -4,7 +4,6 @@ import { useEffect, useState, useCallback } from "react";
 import { Calendar, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -19,7 +18,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { format, addMonths, addYears, addDays } from "date-fns";
+import { format, addMonths, addYears } from "date-fns";
 
 export type ReviewFrequency = "annual" | "semi_annual" | "quarterly" | "monthly" | "ad_hoc";
 

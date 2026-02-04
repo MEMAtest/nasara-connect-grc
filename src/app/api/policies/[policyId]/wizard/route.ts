@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAuth } from '@/lib/auth-utils';
+import { requireRole } from "@/lib/rbac";
 // import { getQuestionsForPolicy, getRulesForPolicy } from '@/lib/server/policy-store';
 
 // Mock data for demonstration - replace with actual database queries
@@ -129,7 +129,7 @@ export async function GET(
   { params }: { params: Promise<{ policyId: string }> }
 ) {
   try {
-    const { error } = await requireAuth();
+    const { error } = await requireRole("member");
     if (error) return error;
     const { policyId } = await params;
 

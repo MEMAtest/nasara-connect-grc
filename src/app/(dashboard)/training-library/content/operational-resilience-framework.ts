@@ -17,7 +17,7 @@ export const operationalResilienceFrameworkContent = {
       "Implement comprehensive testing programs",
       "Establish third-party risk management frameworks"
     ]
-  } as TrainingModule,
+  } as unknown as TrainingModule,
 
   lesson: {
     id: "operational_resilience_fundamentals",
@@ -358,7 +358,7 @@ export const operationalResilienceFrameworkContent = {
         }
       }
     }
-  } as MicroLesson
+  } as unknown as MicroLesson
 };
 
 export const operationalResilienceFrameworkModule: TrainingModule = {

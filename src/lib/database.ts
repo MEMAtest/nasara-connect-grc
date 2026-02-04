@@ -1,5 +1,5 @@
 import { Pool } from 'pg';
-import { logger, logError, logDbOperation } from '@/lib/logger';
+import { logger, logError } from '@/lib/logger';
 
 const connectionString = process.env.DATABASE_URL;
 const allowMissingDatabase =

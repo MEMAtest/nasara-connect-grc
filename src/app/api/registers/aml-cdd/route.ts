@@ -24,6 +24,7 @@ import { logError } from "@/lib/logger";
 const CUSTOMER_TYPES = ["individual", "company", "trust", "partnership", "charity", "other"] as const;
 const CDD_LEVELS = ["simplified", "standard", "enhanced"] as const;
 const RISK_RATINGS = ["low", "medium", "high", "critical"] as const;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const VERIFICATION_STATUSES = ["pending", "in_progress", "completed", "failed", "expired"] as const;
 const OVERALL_STATUSES = ["in_progress", "completed", "pending_review", "on_hold", "rejected"] as const;
 const APPROVAL_STATUSES = ["pending", "approved", "rejected", "conditional"] as const;

@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { generateTrendData, getMonthKey, type TrendPoint } from "@/lib/chart-utils";
 import { useToast } from "@/components/toast-provider";
-import { Plus, Loader2, Megaphone, AlertTriangle, CheckCircle, Clock, FileText, Sparkles, Upload } from "lucide-react";
+import { Plus, Loader2, Megaphone, CheckCircle, Clock, FileText, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,6 +21,7 @@ import { PaginationControls, usePagination } from "@/components/ui/pagination-co
 
 interface FinPromRecord {
   id: string;
+  [key: string]: unknown;
   promotion_reference: string;
   promotion_title: string;
   promotion_type: string;
@@ -154,6 +155,7 @@ export function FinPromClient() {
 
   useEffect(() => {
     loadRecords();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount / when packId changes
   }, [packId]);
 
   const resetForm = () =>
@@ -353,13 +355,13 @@ export function FinPromClient() {
       key: "promotion_type",
       header: "Type",
       sortable: true,
-      render: (value) => typeLabels[value as string] || value,
+      render: (value) => typeLabels[value as string] || String(value),
     },
     {
       key: "channel",
       header: "Channel",
       sortable: true,
-      render: (value) => channelLabels[value as string] || value,
+      render: (value) => channelLabels[value as string] || String(value),
     },
     {
       key: "approval_status",

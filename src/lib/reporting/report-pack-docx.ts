@@ -29,7 +29,7 @@ export async function buildReportPackDocx(summary: ReportPackSummary): Promise<B
   const periodLabel = formatLabel(summary.period);
   const generatedDate = new Date(summary.generatedAt).toLocaleDateString("en-GB");
 
-  const children: Paragraph[] = [
+  const children: (Paragraph | Table)[] = [
     new Paragraph({
       text: title,
       heading: HeadingLevel.TITLE,

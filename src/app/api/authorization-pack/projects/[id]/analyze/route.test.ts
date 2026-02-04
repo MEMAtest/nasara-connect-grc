@@ -1,14 +1,18 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import type { NextRequest } from "next/server";
 
 const originalFetch = global.fetch;
 const originalEnvKey = process.env.OPENROUTER_API_KEY;
 
 // Mock all dependencies before importing the route
-vi.mock("@/lib/auth-utils", () => ({
-  requireAuth: vi.fn().mockResolvedValue({
+vi.mock("@/lib/rbac", () => ({
+  requireRole: vi.fn().mockResolvedValue({
     auth: { userId: "test-user", organizationId: "test-org" },
     error: null,
   }),
+}));
+
+vi.mock("@/lib/auth-utils", () => ({
   isValidUUID: vi.fn().mockReturnValue(true),
 }));
 
@@ -70,7 +74,7 @@ describe("Analyze route", () => {
       }),
     });
 
-    const res = await POST(req, { params: Promise.resolve({ id: "00000000-0000-0000-0000-000000000001" }) });
+    const res = await POST(req as unknown as NextRequest, { params: Promise.resolve({ id: "00000000-0000-0000-0000-000000000001" }) });
 
     expect(res.status).toBe(200);
     expect(global.fetch).toHaveBeenCalledOnce();
@@ -91,7 +95,7 @@ describe("Analyze route", () => {
       body: JSON.stringify({ basics: { legalName: "Test" } }),
     });
 
-    const res = await POST(req, { params: Promise.resolve({ id: "00000000-0000-0000-0000-000000000001" }) });
+    const res = await POST(req as unknown as NextRequest, { params: Promise.resolve({ id: "00000000-0000-0000-0000-000000000001" }) });
     expect(res.status).toBe(200);
 
     const body = await res.json();
@@ -113,7 +117,7 @@ describe("Analyze route", () => {
       body: JSON.stringify({ basics: { legalName: "Test" } }),
     });
 
-    const res = await POST(req, { params: Promise.resolve({ id: "00000000-0000-0000-0000-000000000001" }) });
+    const res = await POST(req as unknown as NextRequest, { params: Promise.resolve({ id: "00000000-0000-0000-0000-000000000001" }) });
     expect(res.status).toBe(200);
 
     const body = await res.json();
@@ -157,7 +161,7 @@ describe("Analyze route", () => {
       }),
     });
 
-    const res = await POST(req, { params: Promise.resolve({ id: "00000000-0000-0000-0000-000000000001" }) });
+    const res = await POST(req as unknown as NextRequest, { params: Promise.resolve({ id: "00000000-0000-0000-0000-000000000001" }) });
 
     expect(res.status).toBe(200);
 

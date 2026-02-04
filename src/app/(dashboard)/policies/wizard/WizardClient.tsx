@@ -6,7 +6,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { DEFAULT_PERMISSIONS, type FirmPermissions, usePermissions, usePolicyProfile } from "@/lib/policies";
+import { useOrganization } from "@/components/organization-provider";
+import { usePermissions, usePolicyProfile } from "@/lib/policies";
 import { PolicyWizard } from "@/components/policies/policy-wizard/PolicyWizard";
 import type { FirmProfile, WizardFormState } from "@/components/policies/policy-wizard/types";
 import { getTemplateByCode, type PolicyTemplate } from "@/lib/policies/templates";
@@ -73,8 +74,9 @@ const buildAvailableTemplates = (
 };
 
 export function WizardClient() {
-  const { permissions, requiredPolicies } = usePermissions();
-  const { profile: policyProfile } = usePolicyProfile();
+  const { organizationId } = useOrganization();
+  const { permissions, requiredPolicies } = usePermissions({ organizationId });
+  const { profile: policyProfile } = usePolicyProfile({ organizationId });
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();

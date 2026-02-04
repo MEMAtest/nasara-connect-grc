@@ -2,7 +2,7 @@
 
 import { useRef } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
-import { Float, MeshDistortMaterial } from '@react-three/drei'
+import { Float } from '@react-three/drei'
 import * as THREE from 'three'
 
 function Person({ position, color, scale = 1, isLeader = false }: { position: [number, number, number], color: string, scale?: number, isLeader?: boolean }) {
@@ -47,6 +47,7 @@ function ResponsibilityLine({ start, end, color }: { start: [number, number, num
   const geometry = new THREE.BufferGeometry().setFromPoints(points)
 
   return (
+    // @ts-expect-error R3F line element extends THREE.Line, not SVGLineElement
     <line ref={lineRef} geometry={geometry}>
       <lineBasicMaterial color={color} linewidth={2} transparent opacity={0.6} />
     </line>

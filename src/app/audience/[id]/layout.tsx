@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { AUDIENCE_PAGES } from "@/lib/seo/marketing-data";
 
-export function generateMetadata({ params }: { params: { id: string } }): Metadata {
-  const page = AUDIENCE_PAGES.find((item) => item.slug === params.id);
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const page = AUDIENCE_PAGES.find((item) => item.slug === id);
   const title = page?.seoTitle ?? "Audience";
   const description =
     page?.seoDescription ??
@@ -12,11 +13,11 @@ export function generateMetadata({ params }: { params: { id: string } }): Metada
   return {
     title,
     description,
-    alternates: { canonical: `/audience/${params.id}` },
+    alternates: { canonical: `/audience/${id}` },
     openGraph: {
       title,
       description,
-      url: `/audience/${params.id}`,
+      url: `/audience/${id}`,
     },
   };
 }

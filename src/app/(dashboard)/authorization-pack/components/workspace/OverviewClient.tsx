@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NasaraLoader } from "@/components/ui/nasara-loader";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { WorkspaceHeader } from "./WorkspaceHeader";
 import { TimelineProgress } from "./TimelineProgress";
 import { ChecklistCards } from "./ChecklistCards";
@@ -219,6 +218,7 @@ export function OverviewClient() {
 
   useEffect(() => {
     loadPack();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount / when packIdParam changes
   }, [packIdParam]);
 
   // Calculate days until target

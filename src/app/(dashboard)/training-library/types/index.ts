@@ -4,6 +4,7 @@
 export interface LearnerPersona {
   id: string;
   name: string;
+  title?: string; // display title alias for name
   profile: string;
   learningStyle: string;
   depth: string;
@@ -52,6 +53,19 @@ export interface MicroLesson {
   learningObjectives?: string[];
 }
 
+
+// Flexible lesson type for inline content modules (kyc, aml, etc.)
+export interface TrainingLesson {
+  id: string;
+  title: string;
+  type?: string;
+  duration?: number;
+  content: string | Record<string, unknown>;
+  keyConcepts?: Array<string | { term: string; definition: string }>;
+  realExamples?: Array<string | { title: string; description?: string; outcome?: string }>;
+  regulatoryRequirements?: string[];
+}
+
 export interface TrainingModule {
   id: string;
   title: string;
@@ -59,9 +73,10 @@ export interface TrainingModule {
   pathway?: string;
   category?: string; // alternative to pathway
   estimatedDuration?: number; // total hours
+  estimatedDurationMinutes?: number; // total minutes
   duration?: number; // alternative to estimatedDuration (in minutes)
   difficulty?: 'beginner' | 'intermediate' | 'advanced';
-  lessons: MicroLesson[];
+  lessons: Array<MicroLesson | TrainingLesson>;
   assessments?: Assessment[];
   prerequisites?: string[];
   prerequisiteModules?: string[]; // alternative to prerequisites
@@ -69,15 +84,18 @@ export interface TrainingModule {
   tags?: string[];
   learningOutcomes?: string[];
   regulatoryMapping?: string[];
+  regulatoryArea?: string;
   competencies?: Record<string, CompetencyLevel>;
   version?: string;
   lastUpdated?: Date;
   status?: 'draft' | 'review' | 'published' | 'archived';
   hook?: {
-    type: string;
-    title: string;
+    type?: string;
+    title?: string;
     content: string;
     keyQuestion?: string;
+    statistic?: string;
+    question?: string;
   };
   practiceScenarios?: Array<Record<string, unknown>>;
   assessmentQuestions?: Array<Record<string, unknown>>;
@@ -293,13 +311,23 @@ export interface MicroChallenge {
   id: string;
   type: 'spot_the_breach' | 'quick_decision' | 'regulation_match';
   title: string;
-  content: Record<string, unknown>;
+  content: MicroChallengeContent;
   timeLimit: number; // seconds
   points: number;
   difficulty: 'easy' | 'medium' | 'hard';
   explanation: string;
   regulatoryArea: string;
   learningObjective: string;
+}
+
+export interface MicroChallengeContent {
+  image?: string;
+  text?: string;
+  context?: string;
+  scenario?: string;
+  options?: string[];
+  correct?: number | string;
+  [key: string]: unknown;
 }
 
 export interface GameificationElement {

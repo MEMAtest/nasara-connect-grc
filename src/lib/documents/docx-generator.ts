@@ -19,11 +19,6 @@ import {
   Header,
   Footer,
   PageNumber,
-  NumberFormat,
-  TableOfContents,
-  StyleLevel,
-  SectionType,
-  PageNumberSeparator,
 } from 'docx';
 import type { FirmBranding } from '../policies/types';
 import { sanitizeClauseContent, DEFAULT_SANITIZE_OPTIONS } from '../policies/content-sanitizer';
@@ -88,6 +83,7 @@ export interface LegacyDocumentGenerationOptions {
     approved_by?: string;
     approved_at?: string;
     effective_date?: string;
+    classification?: string;
   };
   watermark?: boolean;
 }

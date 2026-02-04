@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getPack, getSectionWorkspace, savePromptResponse } from "@/lib/authorization-pack-db";
-import { requireAuth, isValidUUID } from "@/lib/auth-utils";
+import { isValidUUID } from "@/lib/auth-utils";
 import { checkRateLimit, handleApiError, rateLimitExceeded, validateRequest } from "@/lib/api-utils";
+import { requireRole } from "@/lib/rbac";
 
 const SavePromptResponseSchema = z.object({
   promptId: z.string().uuid(),
@@ -15,7 +16,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string; sectionId: string }> }
 ) {
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
 
     const { success, headers } = await checkRateLimit(request);

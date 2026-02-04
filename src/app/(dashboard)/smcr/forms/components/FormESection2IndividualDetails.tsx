@@ -76,7 +76,7 @@ export function FormESection2IndividualDetails({
               onChange={(e) => updateField("individualReferenceNumber", e.target.value)}
               placeholder="e.g., ABC12345"
             />
-            <FieldHelp>The individual's unique reference from the FCA Register</FieldHelp>
+            <FieldHelp>The individual&apos;s unique reference from the FCA Register</FieldHelp>
           </div>
           <div>
             <Label htmlFor="dateOfBirth">Date of Birth *</Label>

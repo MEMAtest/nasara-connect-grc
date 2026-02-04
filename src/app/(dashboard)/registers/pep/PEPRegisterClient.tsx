@@ -20,6 +20,7 @@ import { PaginationControls, usePagination } from "@/components/ui/pagination-co
 
 interface PEPRecord {
   id: string;
+  [key: string]: unknown;
   pep_type: string;
   full_name: string;
   date_of_birth?: string;
@@ -329,7 +330,7 @@ export function PEPRegisterClient() {
       key: "pep_category",
       header: "Category",
       sortable: true,
-      render: (value) => pepCategoryLabels[value as string] || value,
+      render: (value) => pepCategoryLabels[value as string] || String(value),
     },
     {
       key: "risk_rating",
@@ -357,7 +358,7 @@ export function PEPRegisterClient() {
       key: "nationality",
       header: "Nationality",
       sortable: true,
-      render: (value) => value || "-",
+      render: (value) => (value as string) || "-",
     },
     {
       key: "identification_date",

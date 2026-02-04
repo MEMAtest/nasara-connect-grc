@@ -14,15 +14,12 @@ import {
   FileText,
   MessageSquare,
   History,
-  Download,
   Loader2,
-  ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { ComplaintTimeline } from "./ComplaintTimeline";
 import { DeadlineTracker } from "./DeadlineTracker";
 import { QuickActions } from "./QuickActions";

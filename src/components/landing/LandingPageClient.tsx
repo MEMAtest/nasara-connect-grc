@@ -18,7 +18,6 @@ import {
   FileCheck,
   AlertCircle,
   BarChart3,
-  TrendingUp
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -29,7 +28,7 @@ import Image from 'next/image'
 import dynamic from 'next/dynamic'
 import { AnimatedComplianceScore } from '@/components/landing/AnimatedComplianceScore'
 import { CaseStudiesSection } from '@/components/landing/CaseStudiesSection'
-import { AnimatedCounter, PercentCounter } from '@/components/landing/AnimatedCounter'
+import { PercentCounter } from '@/components/landing/AnimatedCounter'
 import { ParallaxElements } from '@/components/landing/ParallaxElements'
 import { Navigation } from '@/components/landing/Navigation'
 import { Footer } from '@/components/landing/Footer'
@@ -194,6 +193,7 @@ function HeroSection() {
   )
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function ClientLogosSection() {
   const logos = [
     'Tier 1 Bank', 'Leading FinTech', 'Global Issuer', 'Payment Provider',

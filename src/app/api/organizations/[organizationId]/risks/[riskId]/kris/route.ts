@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth-utils";
+import { requireRole } from "@/lib/rbac";
 import { updateRiskKris } from "@/lib/server/risk-database";
 import type { RiskKeyRiskIndicator } from "@/app/(dashboard)/risk-assessment/lib/riskConstants";
 
@@ -8,7 +8,7 @@ export async function PATCH(
   { params }: { params: Promise<{ organizationId: string; riskId: string }> },
 ) {
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
     const { organizationId, riskId } = await params;
     if (organizationId !== auth.organizationId) {

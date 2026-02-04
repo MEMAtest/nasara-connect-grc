@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { generateTrendData, getMonthKey, type TrendPoint } from "@/lib/chart-utils";
 import { useToast } from "@/components/toast-provider";
-import { Plus, Loader2, Gift, ArrowDownLeft, ArrowUpRight, Clock, CheckCircle } from "lucide-react";
+import { Plus, Loader2, Gift, ArrowDownLeft, ArrowUpRight, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,6 +20,8 @@ import { PaginationControls, usePagination } from "@/components/ui/pagination-co
 
 interface GiftRecord {
   id: string;
+  created_at?: string;
+  [key: string]: unknown;
   entry_type: string;
   date_of_event: string;
   recipient_name?: string;
@@ -116,6 +118,7 @@ export function GiftsHospitalityClient() {
 
   useEffect(() => {
     loadRecords();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount / when packId changes
   }, [packId]);
 
   const resetForm = () =>

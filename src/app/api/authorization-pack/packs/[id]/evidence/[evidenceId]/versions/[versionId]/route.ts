@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import path from "path";
 import { promises as fs } from "fs";
-import { isValidUUID, requireAuth } from "@/lib/auth-utils";
+import { isValidUUID } from "@/lib/auth-utils";
 import { getEvidenceItem, getEvidenceVersion, getPack } from "@/lib/authorization-pack-db";
+import { requireRole } from "@/lib/rbac";
 
 // Define storage root as absolute path
 const storageRoot = path.resolve(process.cwd(), "storage", "authorization-pack");
@@ -12,7 +13,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string; evidenceId: string; versionId: string }> }
 ) {
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
 
     const { id, evidenceId, versionId } = await params;

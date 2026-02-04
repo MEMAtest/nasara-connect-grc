@@ -6,15 +6,16 @@ import { normalizeTrainingModule } from "../../lib/module-normalizer";
 import { CertificateClient } from "./CertificateClient";
 
 interface CertificatePageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default async function CertificatePage({ params }: CertificatePageProps) {
-  const module = normalizeTrainingModule(getTrainingModule(params.id));
+  const { id } = await params;
+  const trainingModule = normalizeTrainingModule(getTrainingModule(id) as Parameters<typeof normalizeTrainingModule>[0]);
 
-  if (!module) {
+  if (!trainingModule) {
     notFound();
   }
 
@@ -24,8 +25,8 @@ export default async function CertificatePage({ params }: CertificatePageProps) 
 
   return (
     <CertificateClient
-      moduleId={module.id}
-      moduleTitle={module.title}
+      moduleId={trainingModule.id}
+      moduleTitle={trainingModule.title}
       learnerName={learnerName}
     />
   );

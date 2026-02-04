@@ -218,7 +218,7 @@ export default function ResourcesPage() {
       <section className="py-12 px-4 border-b border-slate-800">
         <div className="max-w-7xl mx-auto">
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {resourceCategories.map((category, i) => (
+            {resourceCategories.map((category) => (
               <motion.div
                 key={category.id}
                 id={category.id}

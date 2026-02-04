@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPackTemplates, resetAuthorizationPackData } from "@/lib/authorization-pack-db";
-import { requireAuth } from "@/lib/auth-utils";
+import { requireRole } from "@/lib/rbac";
 
 export async function POST(request: NextRequest) {
-  const { auth, error } = await requireAuth();
+  const { auth, error } = await requireRole("member");
   if (error) return error;
   if (process.env.NODE_ENV === "production") {
     return NextResponse.json({ error: "Reset not available in production" }, { status: 403 });

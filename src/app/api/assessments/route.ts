@@ -7,8 +7,8 @@ import {
   Assessment,
 } from '@/lib/database';
 import { createNotification } from "@/lib/server/notifications-store";
-import { logger, logError } from '@/lib/logger';
-import { requireAuth } from '@/lib/auth-utils';
+import { logError } from '@/lib/logger';
+import { requireRole } from "@/lib/rbac";
 
 type AssessmentDto = {
   id: string;
@@ -99,8 +99,9 @@ function createFallbackAssessment(payload: {
   };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function GET(request: NextRequest) {
-  const { auth, error } = await requireAuth();
+  const { auth, error } = await requireRole("member");
   if (error) return error;
 
   try {
@@ -114,14 +115,15 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const { auth, error } = await requireAuth();
+  const { auth, error } = await requireRole("member");
   if (error) return error;
 
+  let body = {} as { name: string; description?: string; businessType?: string; permissions?: string[] };
   try {
     // Initialize database if needed
     await initDatabase();
 
-    const body = await request.json();
+    body = await request.json();
     const { name, description, businessType, permissions } = body;
 
     if (!name) {
@@ -155,12 +157,12 @@ export async function POST(request: NextRequest) {
     }
     return NextResponse.json(dto, { status: 201 });
   } catch (error) {
-    logError(error, 'Failed to create assessment', { name, businessType, organizationId: auth.organizationId });
+    logError(error, 'Failed to create assessment', { name: body.name, businessType: body.businessType, organizationId: auth.organizationId });
     const fallback = createFallbackAssessment({
-      name,
-      description,
-      businessType,
-      permissions,
+      name: body.name,
+      description: body.description,
+      businessType: body.businessType,
+      permissions: body.permissions,
     });
     try {
       await createNotification({

@@ -77,6 +77,7 @@ function NeuralNetwork() {
           new THREE.Vector3(...nextPos)
         ]
         return (
+          // @ts-expect-error R3F line element extends THREE.Line, not SVGLineElement
           <line key={`line-${i}`} geometry={new THREE.BufferGeometry().setFromPoints(points)}>
             <lineBasicMaterial color="#10b981" transparent opacity={0.3} />
           </line>

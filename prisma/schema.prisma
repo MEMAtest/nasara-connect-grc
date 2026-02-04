@@ -1,0 +1,276 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id        String   @id @db.Uuid
+  name      String
+  domain    String   @unique
+  plan      String   @default("starter")
+  settings  Json?    @db.JsonB
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  members OrganizationMember[]
+  invites OrganizationInvite[]
+
+  @@map("organizations")
+}
+
+model User {
+  id        String   @id
+  email     String   @unique
+  name      String?
+  avatarUrl String?  @map("avatar_url")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  members OrganizationMember[]
+  invites OrganizationInvite[] @relation("InviteSender")
+
+  @@map("users")
+}
+
+model OrganizationMember {
+  id              String          @id @db.Uuid
+  organizationId  String          @map("organization_id") @db.Uuid
+  userId          String          @map("user_id")
+  role            String
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  user         User         @relation(fields: [userId], references: [id])
+
+  @@unique([organizationId, userId])
+  @@map("organization_members")
+}
+
+model OrganizationInvite {
+  id             String   @id @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  email          String
+  role           String
+  invitedBy      String?  @map("invited_by")
+  expiresAt      DateTime? @map("expires_at")
+  acceptedAt     DateTime? @map("accepted_at")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  inviter      User?        @relation("InviteSender", fields: [invitedBy], references: [id])
+
+  @@map("organization_invites")
+}
+
+model SmcrFirm {
+  id                      String    @id @db.VarChar(255)
+  name                    String
+  organizationId          String?   @map("organization_id") @db.VarChar(255)
+  authorizationProjectId  String?   @map("authorization_project_id") @db.VarChar(255)
+  authorizationProjectName String?  @map("authorization_project_name") @db.VarChar(255)
+  createdAt               DateTime  @default(now()) @map("created_at")
+  updatedAt               DateTime  @updatedAt @map("updated_at")
+
+  people    SmcrPerson[]
+  roles     SmcrRoleAssignment[]
+  workflows SmcrWorkflow[]
+  breaches  SmcrBreach[]
+
+  @@map("smcr_firms")
+}
+
+model SmcrPerson {
+  id                 String   @id @db.VarChar(255)
+  firmId             String   @map("firm_id") @db.VarChar(255)
+  employeeId         String   @map("employee_id")
+  name               String
+  email              String?
+  department         String?
+  title              String?
+  phone              String?
+  address            String?
+  lineManager        String?  @map("line_manager")
+  startDate          DateTime? @map("start_date")
+  hireDate           DateTime? @map("hire_date")
+  endDate            DateTime? @map("end_date")
+  isPsd              Boolean  @default(false) @map("is_psd")
+  psdStatus          String?  @map("psd_status")
+  notes              String?
+  assessmentStatus   String   @default("not_required") @map("assessment_status")
+  lastAssessment     DateTime? @map("last_assessment")
+  nextAssessment     DateTime? @map("next_assessment")
+  trainingCompletion Int      @default(0) @map("training_completion")
+  irn                String?
+  fcaVerification    Json?    @map("fca_verification")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  firm         SmcrFirm                @relation(fields: [firmId], references: [id])
+  roles        SmcrRoleAssignment[]
+  assessments  SmcrFitnessAssessment[]
+  training     SmcrTrainingItem[]
+  documents    SmcrDocument[]
+  breaches     SmcrBreach[]
+
+  @@map("smcr_people")
+}
+
+model SmcrRoleAssignment {
+  id             String   @id @db.VarChar(255)
+  firmId         String   @map("firm_id") @db.VarChar(255)
+  personId       String   @map("person_id") @db.VarChar(255)
+  functionId     String   @map("function_id")
+  functionType   String   @map("function_type")
+  functionLabel  String?  @map("function_label")
+  entity         String?
+  startDate      DateTime @map("start_date")
+  endDate        DateTime? @map("end_date")
+  assessmentDate DateTime? @map("assessment_date")
+  approvalStatus String   @default("draft") @map("approval_status")
+  notes          String?
+  assignedAt     DateTime @default(now()) @map("assigned_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  firm   SmcrFirm   @relation(fields: [firmId], references: [id])
+  person SmcrPerson @relation(fields: [personId], references: [id])
+
+  @@map("smcr_role_assignments")
+}
+
+model SmcrFitnessAssessment {
+  id                   String   @id @db.VarChar(255)
+  firmId               String   @map("firm_id") @db.VarChar(255)
+  personId             String   @map("person_id") @db.VarChar(255)
+  personName           String?  @map("person_name")
+  personRole           String?  @map("person_role")
+  status               String   @default("draft")
+  assessmentDate       DateTime? @map("assessment_date")
+  nextDueDate          DateTime? @map("next_due_date")
+  reviewer             String?
+  overallDetermination String?  @map("overall_determination")
+  conditions           Json?    @map("conditions")
+  responses            Json?    @map("responses")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  firm   SmcrFirm   @relation(fields: [firmId], references: [id])
+  person SmcrPerson @relation(fields: [personId], references: [id])
+
+  @@map("smcr_fitness_assessments")
+}
+
+model SmcrWorkflow {
+  id             String   @id @db.VarChar(255)
+  firmId         String   @map("firm_id") @db.VarChar(255)
+  templateId     String   @map("template_id")
+  name           String
+  summary        String?
+  ownerPersonId  String?  @map("owner_person_id")
+  ownerName      String?  @map("owner_name")
+  launchedAt     DateTime @default(now()) @map("launched_at")
+  dueDate        DateTime? @map("due_date")
+  status         String   @default("not_started")
+  steps          Json?    @map("steps")
+  successCriteria Json?   @map("success_criteria")
+  triggerEvent   String?  @map("trigger_event")
+
+  firm      SmcrFirm             @relation(fields: [firmId], references: [id])
+  documents SmcrWorkflowDocument[]
+
+  @@map("smcr_workflows")
+}
+
+model SmcrWorkflowDocument {
+  id         String   @id @db.VarChar(255)
+  firmId     String   @map("firm_id") @db.VarChar(255)
+  workflowId String   @map("workflow_id") @db.VarChar(255)
+  stepId     String   @map("step_id")
+  name       String
+  type       String?
+  size       Int?
+  filePath   String? @map("file_path")
+  summary    String?
+  status     String  @default("pending")
+  uploadedAt DateTime @default(now()) @map("uploaded_at")
+
+  workflow SmcrWorkflow @relation(fields: [workflowId], references: [id])
+
+  @@map("smcr_workflow_documents")
+}
+
+model SmcrTrainingItem {
+  id           String   @id @db.VarChar(255)
+  personId     String   @map("person_id") @db.VarChar(255)
+  moduleId     String?  @map("module_id")
+  title        String
+  required     Boolean  @default(false)
+  roleContext  String?  @map("role_context")
+  status       String   @default("not_started")
+  dueDate      DateTime? @map("due_date")
+  completedDate DateTime? @map("completed_date")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  person SmcrPerson @relation(fields: [personId], references: [id])
+
+  @@map("smcr_training_items")
+}
+
+model SmcrDocument {
+  id         String   @id @db.VarChar(255)
+  personId   String   @map("person_id") @db.VarChar(255)
+  category   String
+  name       String
+  type       String?
+  size       Int?
+  filePath   String? @map("file_path")
+  notes      String?
+  uploadedAt DateTime @default(now()) @map("uploaded_at")
+
+  person SmcrPerson @relation(fields: [personId], references: [id])
+
+  @@map("smcr_documents")
+}
+
+model SmcrBreach {
+  id        String   @id @db.VarChar(255)
+  firmId    String   @map("firm_id") @db.VarChar(255)
+  personId  String?  @map("person_id") @db.VarChar(255)
+  ruleId    String?  @map("rule_id")
+  severity  String
+  status    String
+  timeline  Json?    @map("timeline")
+  details   Json?    @map("details")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  firm   SmcrFirm   @relation(fields: [firmId], references: [id])
+  person SmcrPerson? @relation(fields: [personId], references: [id])
+
+  @@map("smcr_breaches")
+}
+
+model SmcrGroupEntity {
+  id               String   @id @db.VarChar(255)
+  organizationId   String   @map("organization_id") @db.VarChar(255)
+  name             String
+  type             String
+  parentId         String?  @map("parent_id")
+  ownershipPercent Decimal? @map("ownership_percent") @db.Decimal(5, 2)
+  country          String?
+  linkedFirmId     String?  @map("linked_firm_id")
+  linkedProjectId  String?  @map("linked_project_id")
+  linkedProjectName String? @map("linked_project_name")
+  regulatoryStatus String?  @map("regulatory_status")
+  isExternal       Boolean  @default(false) @map("is_external")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@map("smcr_group_entities")
+}

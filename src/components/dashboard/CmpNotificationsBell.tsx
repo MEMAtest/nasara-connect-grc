@@ -6,13 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { DEFAULT_ORGANIZATION_ID } from "@/lib/constants";
+import { useOrganization } from "@/components/organization-provider";
 import { useCmpSummary } from "@/app/(dashboard)/compliance-framework/cmp/hooks/useCmpSummary";
 import { buildCmpAlerts } from "@/lib/cmp-alerts";
 import { cn } from "@/lib/utils";
 
 export function CmpNotificationsBell() {
-  const { summary, isLoading, error, refresh } = useCmpSummary({ organizationId: DEFAULT_ORGANIZATION_ID });
+  const { organizationId } = useOrganization();
+  const { summary, isLoading, error, refresh } = useCmpSummary({ organizationId });
   const alerts = useMemo(() => buildCmpAlerts(summary), [summary]);
   const badgeCount = alerts.length;
 

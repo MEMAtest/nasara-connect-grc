@@ -32,7 +32,7 @@ export function PSDSection6SupplementaryInfo({
         <SectionInfo title="Purpose" variant="info">
           <p>Use this section to provide:</p>
           <ul className="list-disc pl-5 mt-1 space-y-1">
-            <li>Full details of any "Yes" answers in Section 5 (Fitness and Propriety)</li>
+            <li>Full details of any &quot;Yes&quot; answers in Section 5 (Fitness and Propriety)</li>
             <li>Additional personal details (multiple nationalities, previous names, etc.)</li>
             <li>Any other information the individual or firm considers relevant</li>
           </ul>

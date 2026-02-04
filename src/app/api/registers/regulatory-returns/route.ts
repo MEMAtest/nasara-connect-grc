@@ -3,6 +3,7 @@ import {
   initDatabase,
   getRegulatoryReturnsRecords,
   createRegulatoryReturnsRecord,
+  type RegulatoryReturnsRecord,
 } from "@/lib/database";
 import {
   isValidUUID,
@@ -15,8 +16,6 @@ import {
   authenticateRequest,
   checkRateLimit,
   rateLimitExceededResponse,
-  badRequestResponse,
-  serverErrorResponse,
 } from "@/lib/api-auth";
 import { notifyRegisterCreated } from "@/lib/server/notification-builders";
 import { logError } from "@/lib/logger";
@@ -211,7 +210,7 @@ export async function POST(request: NextRequest) {
       created_by: sanitizeString(body.created_by) || undefined,
     };
 
-    const record = await createRegulatoryReturnsRecord(recordData);
+    const record = await createRegulatoryReturnsRecord(recordData as unknown as Omit<RegulatoryReturnsRecord, 'id' | 'created_at' | 'updated_at'>);
     try {
       await notifyRegisterCreated({
         organizationId: authResult.user.organizationId,

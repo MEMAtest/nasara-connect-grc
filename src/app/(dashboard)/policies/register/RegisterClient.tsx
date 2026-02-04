@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/use-toast";
+import { useOrganization } from "@/components/organization-provider";
 import { usePolicyProfile } from "@/lib/policies";
 import type { StoredPolicy } from "@/lib/server/policy-store";
 import { cn } from "@/lib/utils";
@@ -66,7 +67,8 @@ const STATUS_TONES: Record<string, string> = {
 
 export function RegisterClient() {
   const { data, error, isLoading, mutate } = useSWR<StoredPolicy[]>("/api/policies", fetcher);
-  const { profile, isLoading: isProfileLoading } = usePolicyProfile();
+  const { organizationId } = useOrganization();
+  const { profile, isLoading: isProfileLoading } = usePolicyProfile({ organizationId });
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const highlightId = searchParams.get("highlight");
@@ -76,7 +78,7 @@ export function RegisterClient() {
   const [deletePolicy, setDeletePolicy] = useState<StoredPolicy | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const policies = data ?? [];
+  const policies = useMemo(() => data ?? [], [data]);
 
   const statusOptions = useMemo(() => {
     const statuses = ["draft", "in_review", "approved", "archived", "expired"];

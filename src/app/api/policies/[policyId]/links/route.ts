@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth-utils";
+import { requireRole } from "@/lib/rbac";
 import type { EntityType } from "@/lib/server/entity-link-store";
 import { deleteEntityLink, listEntityLinks, upsertEntityLink } from "@/lib/server/entity-link-store";
 
@@ -13,7 +13,7 @@ export async function GET(
   _request: Request,
   { params }: { params: Promise<{ policyId: string }> },
 ) {
-  const { auth, error } = await requireAuth();
+  const { auth, error } = await requireRole("member");
   if (error) return error;
   const { policyId } = await params;
   const links = await listEntityLinks({
@@ -28,7 +28,7 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ policyId: string }> },
 ) {
-  const { auth, error } = await requireAuth();
+  const { auth, error } = await requireRole("member");
   if (error) return error;
   const { policyId } = await params;
   const body = (await request.json()) as Record<string, unknown>;
@@ -55,7 +55,7 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ policyId: string }> },
 ) {
-  const { auth, error } = await requireAuth();
+  const { auth, error } = await requireRole("member");
   if (error) return error;
   const { policyId } = await params;
   const body = (await request.json()) as Record<string, unknown>;

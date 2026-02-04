@@ -14,13 +14,12 @@ import {
   ArrowRight,
   Lightbulb,
   Users,
-  TrendingUp,
   BarChart3,
   MapPin,
   Shield,
   Search,
   FileText,
-  Image,
+  Image as ImageIcon,
   Star,
   Brain,
   Zap,
@@ -73,7 +72,7 @@ interface TrainingContentRendererProps {
 
 export function TrainingContentRenderer({ contentId, onComplete, onProgress, deepLink, onDeepLinkChange }: TrainingContentRendererProps) {
   // Get the training module from our content registry
-  const trainingModule = normalizeTrainingModule(getTrainingModule(contentId)) as TrainingModuleData | undefined;
+  const trainingModule = normalizeTrainingModule(getTrainingModule(contentId) as Parameters<typeof normalizeTrainingModule>[0]) as TrainingModuleData | undefined;
 
   // If no module found, show error state
   if (!trainingModule) {
@@ -220,6 +219,7 @@ interface TrainingModuleData {
   description: string;
   duration: number;
   difficulty: string;
+  category?: string;
   hook?: {
     title?: string;
     content?: string;
@@ -475,7 +475,7 @@ function GenericTrainingRenderer({ moduleId, module, onComplete, onProgress, dee
       case 'infographic':
         return (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 my-6">
-            {visual.elements?.map((element: Record<string, unknown>, index: number) => (
+            {(visual.elements as Record<string, unknown>[] | undefined)?.map((element: Record<string, unknown>, index: number) => (
               <div key={index} className={`p-4 rounded-lg border ${
                 element.color === 'red' ? 'border-red-200 bg-red-50' :
                 element.color === 'amber' ? 'border-amber-200 bg-amber-50' :
@@ -497,9 +497,9 @@ function GenericTrainingRenderer({ moduleId, module, onComplete, onProgress, dee
                     element.color === 'amber' ? 'text-amber-600' :
                     'text-green-600'
                   }`} />}
-                  <h4 className="font-semibold">{element.text}</h4>
+                  <h4 className="font-semibold">{String(element.text ?? "")}</h4>
                 </div>
-                <p className="text-sm text-slate-600">{element.description}</p>
+                <p className="text-sm text-slate-600">{String(element.description ?? "")}</p>
               </div>
             ))}
           </div>
@@ -508,7 +508,7 @@ function GenericTrainingRenderer({ moduleId, module, onComplete, onProgress, dee
       case 'process_flow':
         return (
           <div className="space-y-6 my-8">
-            {visual.steps?.map((step: Record<string, unknown>, index: number) => (
+            {(visual.steps as Record<string, unknown>[] | undefined)?.map((step: Record<string, unknown>, index: number) => (
               <div key={index} className="relative">
                 <div className={`border-l-4 ${
                   step.color === 'red' ? 'border-red-500' :
@@ -520,17 +520,17 @@ function GenericTrainingRenderer({ moduleId, module, onComplete, onProgress, dee
                     step.color === 'amber' ? 'bg-amber-500' :
                     'bg-green-500'
                   }`}>
-                    {step.number}
+                    {String(step.number ?? "")}
                   </div>
                   <div className="pb-6">
-                    <h4 className="text-lg font-semibold mb-2">{step.title}</h4>
-                    <p className="text-slate-600 mb-4">{step.description}</p>
+                    <h4 className="text-lg font-semibold mb-2">{String(step.title ?? "")}</h4>
+                    <p className="text-slate-600 mb-4">{String(step.description ?? "")}</p>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <h5 className="font-medium text-emerald-800 mb-2">Common Examples:</h5>
                         <ul className="space-y-1">
-                          {step.examples?.map((example: string, i: number) => (
+                          {(step.examples as string[] | undefined)?.map((example: string, i: number) => (
                             <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
                               <CheckCircle2 className="h-3 w-3 text-emerald-500 mt-0.5 shrink-0" />
                               {formatListItem(example)}
@@ -541,7 +541,7 @@ function GenericTrainingRenderer({ moduleId, module, onComplete, onProgress, dee
                       <div>
                         <h5 className="font-medium text-red-800 mb-2">Red Flags to Watch:</h5>
                         <ul className="space-y-1">
-                          {step.redFlags?.map((flag: string, i: number) => (
+                          {(step.redFlags as string[] | undefined)?.map((flag: string, i: number) => (
                             <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
                               <AlertTriangle className="h-3 w-3 text-red-500 mt-0.5 shrink-0" />
                               {formatListItem(flag)}
@@ -560,7 +560,7 @@ function GenericTrainingRenderer({ moduleId, module, onComplete, onProgress, dee
       case 'category_grid':
         return (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-8">
-            {visual.categories?.map((category: Record<string, unknown>, index: number) => (
+            {(visual.categories as Record<string, unknown>[] | undefined)?.map((category: Record<string, unknown>, index: number) => (
               <div key={index} className={`p-6 rounded-lg border-2 ${
                 category.riskLevel === 'high' ? 'border-red-200 bg-red-50' :
                 category.riskLevel === 'medium' ? 'border-amber-200 bg-amber-50' :
@@ -588,21 +588,21 @@ function GenericTrainingRenderer({ moduleId, module, onComplete, onProgress, dee
                     'text-green-600'
                   }`} />}
                   <div>
-                    <h4 className="text-lg font-semibold">{category.title}</h4>
+                    <h4 className="text-lg font-semibold">{String(category.title ?? "")}</h4>
                     <Badge className={`mt-1 ${
                       category.riskLevel === 'high' ? 'bg-red-600' :
                       category.riskLevel === 'medium' ? 'bg-amber-600' :
                       'bg-green-600'
                     }`}>
-                      {category.riskLevel} risk
+                      {String(category.riskLevel ?? "")} risk
                     </Badge>
                   </div>
                 </div>
-                <p className="text-slate-700 mb-4">{category.description}</p>
+                <p className="text-slate-700 mb-4">{String(category.description ?? "")}</p>
                 <div>
                   <h5 className="font-medium mb-2">Common Indicators:</h5>
                   <ul className="space-y-2">
-                    {category.examples?.map((example: string, i: number) => (
+                    {(category.examples as string[] | undefined)?.map((example: string, i: number) => (
                       <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
                         <div className={`w-2 h-2 rounded-full mt-2 shrink-0 ${
                           category.riskLevel === 'high' ? 'bg-red-500' :
@@ -625,7 +625,7 @@ function GenericTrainingRenderer({ moduleId, module, onComplete, onProgress, dee
             <div className="w-24 h-24 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
               <AlertTriangle className="h-12 w-12 text-blue-600" />
             </div>
-            <p className="text-slate-600 italic">{visual.description}</p>
+            <p className="text-slate-600 italic">{String(visual.description ?? "")}</p>
           </div>
         );
 
@@ -649,7 +649,7 @@ function GenericTrainingRenderer({ moduleId, module, onComplete, onProgress, dee
       <Card className="border border-slate-200 bg-slate-50">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-slate-900">
-            <Image className="h-5 w-5 text-slate-600" />
+            <ImageIcon className="h-5 w-5 text-slate-600" />
             Visual Toolkit
           </CardTitle>
           <CardDescription>Quick visual references to reinforce the lesson</CardDescription>
@@ -687,7 +687,7 @@ function GenericTrainingRenderer({ moduleId, module, onComplete, onProgress, dee
               return (
                 <div key={`image-${image.id || image.section || index}`} className="rounded-lg border border-slate-200 bg-white p-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <Image className="h-4 w-4 text-slate-500" />
+                    <ImageIcon className="h-4 w-4 text-slate-500" />
                     <h4 className="text-sm font-semibold text-slate-900">{title}</h4>
                   </div>
                   <p className="text-xs text-slate-600">{image.description}</p>
@@ -879,7 +879,7 @@ function GenericTrainingRenderer({ moduleId, module, onComplete, onProgress, dee
               {lessonVisual && (
                 <div className="mt-6 p-4 bg-slate-50 border border-slate-200 rounded-lg">
                   <h4 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
-                    <Image className="h-4 w-4" />
+                    <ImageIcon className="h-4 w-4" />
                     Visual Reference
                   </h4>
                   {renderVisual(lessonVisual)}
@@ -1377,7 +1377,7 @@ function GenericTrainingRenderer({ moduleId, module, onComplete, onProgress, dee
                   </li>
                 ))}
               </ul>
-            ) : (
+            ) : quickReference ? (
               <div className="space-y-3">
                 {quickReference.title ? (
                   <h4 className="text-sm font-semibold text-slate-900">{quickReference.title}</h4>
@@ -1391,7 +1391,7 @@ function GenericTrainingRenderer({ moduleId, module, onComplete, onProgress, dee
                   ))}
                 </div>
               </div>
-            )}
+            ) : null}
           </CardContent>
         </Card>
         );

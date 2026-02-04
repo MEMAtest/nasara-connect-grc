@@ -15,7 +15,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CheckCircle, Clock, Download, Plus, Search, Settings, Trash2, Sparkles, PartyPopper, ChevronRight, AlertCircle } from "lucide-react";
+import { CheckCircle, Clock, Download, Plus, Search, Settings, Trash2, Sparkles, PartyPopper, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { workflowTemplates, getWorkflowTemplate } from "../data/workflow-templates";
 import { useSmcrData, WorkflowInstance, WorkflowDocument } from "../context/SmcrDataContext";
@@ -175,7 +175,7 @@ export function WorkflowsClient() {
     setLaunchDialogOpen(true);
   };
 
-  const handleLaunchWorkflow = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleLaunchWorkflow = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!selectedTemplateId) return;
     if (!launchForm.ownerId) {
@@ -183,7 +183,7 @@ export function WorkflowsClient() {
       return;
     }
     setLaunchError(null);
-    const created = launchWorkflow({
+    const created = await launchWorkflow({
       templateId: selectedTemplateId,
       ownerPersonId: launchForm.ownerId,
       dueDate: launchForm.dueDate ? new Date(launchForm.dueDate).toISOString() : undefined,
@@ -197,7 +197,7 @@ export function WorkflowsClient() {
   };
 
   const handleToggleStep = (workflow: WorkflowInstance, stepId: string, completed: boolean) => {
-    updateWorkflowStep({
+    void updateWorkflowStep({
       workflowId: workflow.id,
       stepId,
       status: completed ? "completed" : "pending",
@@ -329,7 +329,7 @@ export function WorkflowsClient() {
 
   const handleUpdateTaskNotes = (notes: string) => {
     if (!activeTask) return;
-    updateWorkflowStep({
+    void updateWorkflowStep({
       workflowId: activeTask.workflowId,
       stepId: activeTask.stepId,
       notes,
@@ -338,7 +338,7 @@ export function WorkflowsClient() {
 
   const handleUpdateTaskStatus = (status: "pending" | "completed") => {
     if (!activeTask) return;
-    updateWorkflowStep({
+    void updateWorkflowStep({
       workflowId: activeTask.workflowId,
       stepId: activeTask.stepId,
       status,
@@ -560,7 +560,7 @@ export function WorkflowsClient() {
                           <Button variant="ghost" size="icon" onClick={() => handleExportWorkflow(workflow)} aria-label="Export workflow">
                             <Download className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" onClick={() => removeWorkflow(workflow.id)} aria-label="Remove workflow">
+                          <Button variant="ghost" size="icon" onClick={() => { void removeWorkflow(workflow.id); }} aria-label="Remove workflow">
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
@@ -839,7 +839,7 @@ export function WorkflowsClient() {
                       people={firmPeople}
                       roles={firmRoles}
                       onUpdateDraft={(updater) =>
-                        updateFpChecklist({
+                        void updateFpChecklist({
                           workflowId: activeTaskData.workflow.id,
                           stepId: activeTaskData.step.id,
                           updater,
@@ -847,7 +847,7 @@ export function WorkflowsClient() {
                       }
                       riskValue={typeof activeRiskField?.value === "string" ? activeRiskField.value : ""}
                       onRiskChange={(value) =>
-                        updateWorkflowField({
+                        void updateWorkflowField({
                           workflowId: activeTaskData.workflow.id,
                           stepId: activeTaskData.step.id,
                           fieldId: activeRiskField?.id ?? "risk-rating",
@@ -856,7 +856,7 @@ export function WorkflowsClient() {
                       }
                       notesValue={typeof activeNotesField?.value === "string" ? activeNotesField.value : ""}
                       onNotesChange={(value) =>
-                        updateWorkflowField({
+                        void updateWorkflowField({
                           workflowId: activeTaskData.workflow.id,
                           stepId: activeTaskData.step.id,
                           fieldId: activeNotesField?.id ?? "notes",
@@ -869,7 +869,7 @@ export function WorkflowsClient() {
                       draft={referenceRequestDraft}
                       people={firmPeople}
                       onUpdateDraft={(updater) =>
-                        updateReferenceRequest({
+                        void updateReferenceRequest({
                           workflowId: activeTaskData.workflow.id,
                           stepId: activeTaskData.step.id,
                           updater,
@@ -881,7 +881,7 @@ export function WorkflowsClient() {
                       draft={criminalCheckDraft}
                       people={firmPeople}
                       onUpdateDraft={(updater) =>
-                        updateCriminalCheck({
+                        void updateCriminalCheck({
                           workflowId: activeTaskData.workflow.id,
                           stepId: activeTaskData.step.id,
                           updater,
@@ -894,7 +894,7 @@ export function WorkflowsClient() {
                       people={firmPeople}
                       roles={firmRoles}
                       onUpdateDraft={(updater) =>
-                        updateTrainingPlan({
+                        void updateTrainingPlan({
                           workflowId: activeTaskData.workflow.id,
                           stepId: activeTaskData.step.id,
                           updater,
@@ -907,7 +907,7 @@ export function WorkflowsClient() {
                       people={firmPeople}
                       roles={firmRoles}
                       onUpdateDraft={(updater) =>
-                        updateStatementOfResponsibilities({
+                        void updateStatementOfResponsibilities({
                           workflowId: activeTaskData.workflow.id,
                           stepId: activeTaskData.step.id,
                           updater,
@@ -929,7 +929,7 @@ export function WorkflowsClient() {
                                 <Input
                                   value={(field.value as string) ?? ""}
                                   onChange={(event) =>
-                                    updateWorkflowField({
+                                    void updateWorkflowField({
                                       workflowId: activeTaskData.workflow.id,
                                       stepId: activeTaskData.step.id,
                                       fieldId: field.id,
@@ -944,7 +944,7 @@ export function WorkflowsClient() {
                                   rows={3}
                                   value={(field.value as string) ?? ""}
                                   onChange={(event) =>
-                                    updateWorkflowField({
+                                    void updateWorkflowField({
                                       workflowId: activeTaskData.workflow.id,
                                       stepId: activeTaskData.step.id,
                                       fieldId: field.id,
@@ -960,7 +960,7 @@ export function WorkflowsClient() {
                                   placeholder="Select date"
                                   value={typeof field.value === "string" && field.value ? new Date(field.value) : undefined}
                                   onChange={(date) =>
-                                    updateWorkflowField({
+                                    void updateWorkflowField({
                                       workflowId: activeTaskData.workflow.id,
                                       stepId: activeTaskData.step.id,
                                       fieldId: field.id,
@@ -973,7 +973,7 @@ export function WorkflowsClient() {
                                 <Select
                                   value={(field.value as string) ?? ""}
                                   onValueChange={(value) =>
-                                    updateWorkflowField({
+                                    void updateWorkflowField({
                                       workflowId: activeTaskData.workflow.id,
                                       stepId: activeTaskData.step.id,
                                       fieldId: field.id,
@@ -998,7 +998,7 @@ export function WorkflowsClient() {
                                   <Checkbox
                                     checked={Boolean(field.value)}
                                     onCheckedChange={(checked) =>
-                                      updateWorkflowField({
+                                      void updateWorkflowField({
                                         workflowId: activeTaskData.workflow.id,
                                         stepId: activeTaskData.step.id,
                                         fieldId: field.id,
@@ -1026,7 +1026,7 @@ export function WorkflowsClient() {
                                 <Checkbox
                                   checked={item.completed}
                                   onCheckedChange={(checked) =>
-                                    updateWorkflowChecklist({
+                                    void updateWorkflowChecklist({
                                       workflowId: activeTaskData.workflow.id,
                                       stepId: activeTaskData.step.id,
                                       checklistId: item.id,
@@ -1115,7 +1115,7 @@ export function WorkflowsClient() {
                             <Button size="icon" variant="ghost" onClick={() => handleEvidenceDownload(doc)} aria-label="Download evidence">
                               <Download className="h-4 w-4" />
                             </Button>
-                            <Button size="icon" variant="ghost" onClick={() => removeWorkflowEvidence(doc.id)} aria-label="Remove evidence">
+                            <Button size="icon" variant="ghost" onClick={() => { void removeWorkflowEvidence(doc.id); }} aria-label="Remove evidence">
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>

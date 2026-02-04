@@ -1,9 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, type Variants, type TargetAndTransition } from "framer-motion";
 import {
-  ChevronRight,
   ArrowUpRight,
   Sparkles,
   TrendingUp,
@@ -31,7 +30,7 @@ import {
   GRCHeroIllustration,
 } from "@/components/grc-hub/GRCIllustrations";
 
-const containerVariants = {
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -39,7 +38,7 @@ const containerVariants = {
   },
 };
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { y: 30, opacity: 0 },
   visible: {
     y: 0,
@@ -48,7 +47,7 @@ const itemVariants = {
   },
 };
 
-const cardHover = {
+const cardHover: TargetAndTransition = {
   y: -8,
   transition: { duration: 0.3, ease: "easeOut" },
 };

@@ -17,7 +17,9 @@ import { reasonCategories } from '../utils/form-constants';
 export function FormCSection3CessationDetails({
   formData,
   updateField,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   validationErrors,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   validateField,
   onNext,
   onBack,

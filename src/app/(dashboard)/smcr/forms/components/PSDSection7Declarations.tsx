@@ -62,7 +62,7 @@ export function PSDSection7Declarations({
           </div>
 
           <div>
-            <Label htmlFor="individualFullName">Individual's Full Name *</Label>
+            <Label htmlFor="individualFullName">Individual&apos;s Full Name *</Label>
             <Input
               id="individualFullName"
               value={formData.individualFullName}

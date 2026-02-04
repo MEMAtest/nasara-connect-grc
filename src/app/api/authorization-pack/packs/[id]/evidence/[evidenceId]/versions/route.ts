@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { isValidUUID, requireAuth } from "@/lib/auth-utils";
+import { isValidUUID } from "@/lib/auth-utils";
 import { getEvidenceItem, getPack, listEvidenceVersions } from "@/lib/authorization-pack-db";
+import { requireRole } from "@/lib/rbac";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; evidenceId: string }> }
 ) {
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
 
     const { id, evidenceId } = await params;

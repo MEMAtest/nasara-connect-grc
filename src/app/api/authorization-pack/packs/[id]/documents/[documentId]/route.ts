@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { isValidUUID, requireAuth } from "@/lib/auth-utils";
+import { isValidUUID } from "@/lib/auth-utils";
 import { getPack, getPackDocument } from "@/lib/authorization-pack-db";
 import { readAuthorizationPackPdf } from "@/lib/authorization-pack-storage";
+import { requireRole } from "@/lib/rbac";
 
 function sanitizeFilename(input: string) {
   return input.replace(/[<>:"/\\|?*\x00-\x1f]/g, "_").trim().slice(0, 180);
@@ -12,7 +13,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string; documentId: string }> }
 ) {
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
 
     const { id: packId, documentId } = await params;

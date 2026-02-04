@@ -99,8 +99,8 @@ export function FormESection9Declarations({
             <p>By signing below, the firm declares that:</p>
             <ul className="list-disc pl-5 space-y-1">
               <li>The information provided is accurate and complete to the best of our knowledge</li>
-              <li>We have assessed the candidate's fitness and propriety for the new function</li>
-              <li>We have assessed the candidate's competence for the new function</li>
+              <li>We have assessed the candidate&apos;s fitness and propriety for the new function</li>
+              <li>We have assessed the candidate&apos;s competence for the new function</li>
               <li>We have appropriate systems to supervise the candidate</li>
               <li>We understand that providing false or misleading information is a criminal offence</li>
             </ul>

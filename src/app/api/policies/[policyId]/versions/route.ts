@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth-utils";
+import { requireRole } from "@/lib/rbac";
 import { getPolicyById } from "@/lib/server/policy-store";
 import {
   initDatabase,
@@ -21,7 +21,7 @@ export async function GET(
   { params }: { params: Promise<{ policyId: string }> }
 ) {
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
     await initDatabase();
     const { policyId } = await params;
@@ -56,7 +56,7 @@ export async function POST(
   { params }: { params: Promise<{ policyId: string }> }
 ) {
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
     await initDatabase();
     const { policyId } = await params;

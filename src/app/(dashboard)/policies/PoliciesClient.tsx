@@ -3,11 +3,13 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { RegisterClient } from "./register/RegisterClient";
+import { useOrganization } from "@/components/organization-provider";
 import { usePolicyProfile } from "@/lib/policies";
 
 export function PoliciesClient() {
   const router = useRouter();
-  const { profile, isLoading, error } = usePolicyProfile();
+  const { organizationId } = useOrganization();
+  const { profile, isLoading, error } = usePolicyProfile({ organizationId });
   const firmName =
     typeof profile?.firmProfile?.name === "string" ? profile.firmProfile.name.trim() : "";
 

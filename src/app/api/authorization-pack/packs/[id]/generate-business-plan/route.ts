@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireRole } from "@/lib/rbac";
 import path from "path";
-import { requireAuth, isValidUUID } from "@/lib/auth-utils";
+import { isValidUUID } from "@/lib/auth-utils";
 import {
   createPackDocument,
   createOpinionPackGenerationJob,
@@ -958,7 +959,7 @@ export async function POST(
 ) {
   let jobForError: { id: string } | null = null;
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
 
     const { success, headers } = await checkRateLimit(request);

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPack, getSectionWorkspace, listEvidence } from "@/lib/authorization-pack-db";
-import { requireAuth, isValidUUID } from "@/lib/auth-utils";
+import { isValidUUID } from "@/lib/auth-utils";
 import { logError } from "@/lib/logger";
 import { getOpenRouterApiKey } from "@/lib/openrouter";
+import { requireRole } from "@/lib/rbac";
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const DEFAULT_MODEL = process.env.OPENROUTER_MODEL ?? "openai/gpt-4o-mini";
@@ -105,7 +106,7 @@ export async function GET(
   }
 
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
 
     const { id, sectionId } = await params;
@@ -205,7 +206,7 @@ export async function GET(
                         [null, content];
       const jsonContent = jsonMatch[1] || content;
       analysis = JSON.parse(jsonContent.trim());
-    } catch (parseError) {
+    } catch {
       console.error("Failed to parse AI response as JSON:", content);
       // Return a fallback response
       return NextResponse.json({

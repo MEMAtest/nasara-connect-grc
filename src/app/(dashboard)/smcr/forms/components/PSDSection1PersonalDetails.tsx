@@ -12,7 +12,6 @@ import type { PSDFormSectionProps, PSDAddressEntry } from '../types/form-types';
 import { FieldHelp } from './FieldHelp';
 import { SectionInfo } from './SectionInfo';
 import { FormDatePicker } from './FormDatePicker';
-import { createEmptyPSDAddress } from '../utils/form-constants';
 
 interface PSDSection1Props extends PSDFormSectionProps {
   addPreviousAddress: () => void;

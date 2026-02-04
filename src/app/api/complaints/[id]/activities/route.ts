@@ -7,7 +7,7 @@ import {
   ActivityType,
 } from "@/lib/database";
 import { isValidUUID, sanitizeString, sanitizeText } from "@/lib/validation";
-import { requireAuth } from "@/lib/auth-utils";
+import { requireRole } from "@/lib/rbac";
 
 const ACTIVITY_TYPES: ActivityType[] = [
   "complaint_created",
@@ -28,7 +28,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
     await initDatabase();
     const { id } = await params;
@@ -65,7 +65,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
     await initDatabase();
     const { id } = await params;

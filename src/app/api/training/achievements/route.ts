@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAuth } from '@/lib/auth-utils';
+import { requireRole } from "@/lib/rbac";
 import { logError, logApiRequest } from '@/lib/logger';
 import {
   initTrainingDatabase,
@@ -77,11 +77,12 @@ const AVAILABLE_BADGES = {
   },
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function GET(request: NextRequest) {
   logApiRequest('GET', '/api/training/achievements');
 
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
     if (!auth.userEmail) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -120,7 +121,7 @@ export async function POST(request: NextRequest) {
   logApiRequest('POST', '/api/training/achievements');
 
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
     if (!auth.userEmail) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

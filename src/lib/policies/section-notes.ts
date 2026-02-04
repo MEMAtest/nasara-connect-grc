@@ -171,6 +171,7 @@ const KEYWORD_OPTIONS: Array<{ match: RegExp; options: string[] }> = [
 
 const MAX_OPTIONS = 8;
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const normalizeSentence = (value: string) => {
   const trimmed = value.trim();
   if (!trimmed) return "";

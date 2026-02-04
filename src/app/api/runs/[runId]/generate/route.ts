@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { generateDocumentWithPdf } from '@/lib/documents/document-generator';
-import { requireAuth } from '@/lib/auth-utils';
+import { requireRole } from "@/lib/rbac";
 // import { getRunById } from '@/lib/server/run-store';
 // import { getPolicyById } from '@/lib/server/policy-store';
 // import { getFirmProfile } from '@/lib/server/firm-profile-store';
@@ -17,6 +17,7 @@ const MOCK_RUN: Run = {
   id: 'run-001',
   firm_id: '00000000-0000-0000-0000-000000000001',
   policy_id: 'aml',
+  title: 'AML Policy Run',
   status: 'draft',
   answers: {
     firm_role: 'principal',
@@ -29,6 +30,8 @@ const MOCK_RUN: Run = {
     approver_role: 'SMF17',
   },
   metadata: {},
+  version: 1,
+  created_by: 'system',
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString(),
 };
@@ -166,7 +169,7 @@ export async function POST(
   { params }: { params: Promise<{ runId: string }> }
 ) {
   try {
-    const { error } = await requireAuth();
+    const { error } = await requireRole("member");
     if (error) return error;
     const { runId } = await params;
     const body = await request.json();

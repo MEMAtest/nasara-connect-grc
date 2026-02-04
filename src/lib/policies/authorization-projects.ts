@@ -102,7 +102,7 @@ export function mergeFirmProfiles(
       const value = update[key];
       if (typeof value === "string") {
         if (!next[key] || String(next[key]).trim().length === 0) {
-          next[key] = value;
+          (next as Record<string, unknown>)[key] = value;
         }
         return;
       }
@@ -110,7 +110,7 @@ export function mergeFirmProfiles(
         const existing = Array.isArray(next[key]) ? (next[key] as string[]) : [];
         const merged = Array.from(new Set([...existing, ...value.filter(Boolean)]));
         if (!existing.length) {
-          next[key] = merged;
+          (next as Record<string, unknown>)[key] = merged;
         }
       }
     });
@@ -122,8 +122,7 @@ export function mergePermissions(
   base: FirmPermissions,
   updates: Array<FirmPermissions | undefined>,
 ): FirmPermissions {
-  return updates.filter(Boolean).reduce((acc, update) => {
-    if (!update) return acc;
+  return updates.filter((u): u is FirmPermissions => u !== undefined).reduce((acc, update) => {
     return Object.keys(acc).reduce((next, key) => {
       const typedKey = key as keyof FirmPermissions;
       next[typedKey] = acc[typedKey] || update[typedKey];

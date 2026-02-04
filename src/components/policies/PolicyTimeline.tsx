@@ -5,7 +5,6 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
-  FileText,
   Edit3,
   UserPlus,
   GitBranch,
@@ -115,6 +114,7 @@ const ACTIVITY_LABELS: Record<PolicyActivityType, string> = {
   review_scheduled: "Review Schedules",
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface GroupedActivities {
   date: string;
   dateLabel: string;

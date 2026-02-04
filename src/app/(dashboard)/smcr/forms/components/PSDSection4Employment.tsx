@@ -43,6 +43,7 @@ export function PSDSection4Employment({
       setDateErrors(prev => ({ ...prev, [empId]: "End date must be after start date" }));
     } else {
       setDateErrors(prev => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { [empId]: _, ...rest } = prev;
         return rest;
       });
@@ -362,7 +363,7 @@ export function PSDSection4Employment({
           ))}
 
           {formData.qualifications.length === 0 && (
-            <p className="text-xs text-slate-500 italic">No qualifications added. Click "Add Qualification" to add relevant qualifications.</p>
+            <p className="text-xs text-slate-500 italic">No qualifications added. Click &quot;Add Qualification&quot; to add relevant qualifications.</p>
           )}
         </div>
 

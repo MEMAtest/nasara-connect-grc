@@ -8,13 +8,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createFirm, getFirms, initSmcrDatabase } from '@/lib/smcr-database';
 import { createNotification } from "@/lib/server/notifications-store";
 import { logError, logApiRequest } from '@/lib/logger';
-import { requireAuth } from '@/lib/auth-utils';
+import { requireRole } from "@/lib/rbac";
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function GET(request: NextRequest) {
   logApiRequest('GET', '/api/smcr/firms');
 
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
     await initSmcrDatabase();
 
@@ -33,7 +34,7 @@ export async function POST(request: NextRequest) {
   logApiRequest('POST', '/api/smcr/firms');
 
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
     await initSmcrDatabase();
 

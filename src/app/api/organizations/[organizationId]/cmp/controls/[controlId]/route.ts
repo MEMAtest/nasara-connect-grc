@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth-utils";
+import { requireRole } from "@/lib/rbac";
 import { getCmpControl } from "@/lib/server/cmp-store";
 
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ organizationId: string; controlId: string }> },
 ) {
-  const { auth, error } = await requireAuth();
+  const { auth, error } = await requireRole("member");
   if (error) return error;
   const { organizationId, controlId } = await params;
   if (organizationId !== auth.organizationId) {

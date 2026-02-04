@@ -172,6 +172,7 @@ export function TrainingSlideGallery({
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         {slides.map((slide) => (
           <figure key={slide.src} className="space-y-2">
+            {/* eslint-disable-next-line @next/next/no-img-element -- dynamic slide images with fallback handler */}
             <img
               src={slide.src}
               alt={slide.alt}

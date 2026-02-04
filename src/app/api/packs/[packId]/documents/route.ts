@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireRole } from "@/lib/rbac";
 import {
   initDatabase,
   getProjectDocuments,
@@ -8,7 +9,7 @@ import {
   getAuthorizationPack,
 } from "@/lib/database";
 import { logError } from "@/lib/logger";
-import { requireAuth, isValidUUID } from "@/lib/auth-utils";
+import { isValidUUID } from "@/lib/auth-utils";
 
 // Allowed document statuses
 const VALID_STATUSES = new Set(['draft', 'review', 'approved', 'signed']);
@@ -30,7 +31,7 @@ export async function GET(
 ) {
   try {
     // Authenticate the request
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
 
     await initDatabase();
@@ -86,7 +87,7 @@ export async function POST(
 ) {
   try {
     // Authenticate the request
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
 
     await initDatabase();
@@ -148,7 +149,7 @@ export async function POST(
       file_size_bytes: fileSizeBytes,
       mime_type: mimeType,
       checksum,
-      uploaded_by: auth.userId,
+      uploaded_by: auth.userId ?? undefined,
     });
 
     return NextResponse.json({ document }, { status: 201 });
@@ -164,7 +165,7 @@ export async function PATCH(
 ) {
   try {
     // Authenticate the request
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
 
     await initDatabase();
@@ -240,7 +241,7 @@ export async function DELETE(
 ) {
   try {
     // Authenticate the request
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
 
     await initDatabase();

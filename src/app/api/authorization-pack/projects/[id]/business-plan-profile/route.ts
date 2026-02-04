@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthorizationProject, saveAuthorizationBusinessPlanProfile } from "@/lib/authorization-pack-db";
-import { requireAuth, isValidUUID } from "@/lib/auth-utils";
+import { isValidUUID } from "@/lib/auth-utils";
 import { logError } from "@/lib/logger";
 import type { BusinessPlanProfile, ProfileResponse } from "@/lib/business-plan-profile";
+import { requireRole } from "@/lib/rbac";
 
 const DEFAULT_PROFILE: BusinessPlanProfile = {
   version: 1,
@@ -142,7 +143,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
 
     const { id } = await params;
@@ -194,7 +195,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
 
     const { id } = await params;

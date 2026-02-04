@@ -16,7 +16,7 @@ export function StepReview({ state, onBack, onNext, isSubmitting }: WizardStepPr
 
   const handleExport = () => {
     if (!template) return;
-    const firmContext = {
+    const firmContext: Record<string, any> = { // eslint-disable-line @typescript-eslint/no-explicit-any
       firm: state.firmProfile,
       firm_name: state.firmProfile.name,
       permissions: state.permissions,

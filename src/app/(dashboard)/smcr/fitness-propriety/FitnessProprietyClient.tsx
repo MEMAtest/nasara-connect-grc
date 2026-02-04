@@ -165,10 +165,10 @@ export function FitnessProprietyClient() {
     return grouped;
   }, [assessments]);
 
-  const handleStartAssessment = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleStartAssessment = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!startForm.personId) return;
-    const created = startAssessment({
+    const created = await startAssessment({
       personId: startForm.personId,
       assessmentDate: toISO(startForm.assessmentDate),
       nextDueDate: toISO(startForm.nextDueDate),
@@ -188,9 +188,9 @@ export function FitnessProprietyClient() {
     exportJson(`${assessment.personName.replace(/\s+/g, "-").toLowerCase()}-assessment.json`, assessment);
   };
 
-  const handleMarkStatus = (status: FitnessAssessmentStatus) => {
+  const handleMarkStatus = async (status: FitnessAssessmentStatus) => {
     if (!activeAssessment) return;
-    updateAssessmentStatus({
+    await updateAssessmentStatus({
       assessmentId: activeAssessment.id,
       status,
       overallDetermination: statusDraft.overallDetermination,
@@ -211,7 +211,7 @@ export function FitnessProprietyClient() {
 
   const handleRemoveAssessment = (assessmentId: string) => {
     if (!window.confirm("Remove this assessment record?")) return;
-    removeAssessment(assessmentId);
+    void removeAssessment(assessmentId);
     if (detailAssessmentId === assessmentId) {
       setDetailAssessmentId(null);
     }
@@ -466,7 +466,7 @@ export function FitnessProprietyClient() {
                               <Select
                                 value={typeof value === "string" ? value : ""}
                                 onValueChange={(selected) =>
-                                  updateAssessmentResponse({
+                                  void updateAssessmentResponse({
                                     assessmentId: activeAssessment.id,
                                     questionId: question.id,
                                     value: selected as FitnessBooleanAnswer,
@@ -489,7 +489,7 @@ export function FitnessProprietyClient() {
                               <Textarea
                                 value={typeof value === "string" ? value : ""}
                                 onChange={(event) =>
-                                  updateAssessmentResponse({
+                                  void updateAssessmentResponse({
                                     assessmentId: activeAssessment.id,
                                     questionId: question.id,
                                     value: event.target.value,
@@ -507,7 +507,7 @@ export function FitnessProprietyClient() {
                               <Textarea
                                 value={notes}
                                 onChange={(event) =>
-                                  updateAssessmentResponse({
+                                  void updateAssessmentResponse({
                                     assessmentId: activeAssessment.id,
                                     questionId: question.id,
                                     value,

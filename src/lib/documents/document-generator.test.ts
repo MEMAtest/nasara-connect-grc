@@ -14,6 +14,7 @@ describe('Document Generation - Phase 2 Tests', () => {
     id: 'test-run-001',
     firm_id: 'firm-001',
     policy_id: 'aml',
+    title: 'Test Run',
     status: 'draft',
     answers: {
       firm_name: 'Test Financial Ltd',
@@ -27,6 +28,8 @@ describe('Document Generation - Phase 2 Tests', () => {
       approver_role: 'SMF17',
     },
     metadata: {},
+    version: 1,
+    created_by: 'test-user',
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };
@@ -106,7 +109,7 @@ This clause applies to all firms.`,
     version: '1.0.0',
   };
 
-  const mockRulesResult = {
+  const mockRulesResult: import('../policies/types').RulesEngineResult = {
     included_clauses: ['test_clause_1', 'test_clause_2'],
     excluded_clauses: [],
     suggested_clauses: [],
@@ -115,6 +118,7 @@ This clause applies to all firms.`,
     },
     rules_fired: [
       {
+        rule_id: 'rule-1',
         rule_name: 'Test Rule 1',
         condition_met: true,
       },
@@ -416,7 +420,7 @@ This clause applies to all firms.`,
           suggested_clauses: [],
           variables: {},
           rules_fired: [],
-        },
+        } as import('../policies/types').RulesEngineResult,
       });
 
       expect(result.docx_buffer.length).toBeGreaterThan(0);
@@ -439,7 +443,7 @@ This clause applies to all firms.`,
           suggested_clauses: [],
           variables: {},
           rules_fired: [],
-        },
+        } as import('../policies/types').RulesEngineResult,
       });
 
       expect(result.docx_buffer.length).toBeGreaterThan(0);

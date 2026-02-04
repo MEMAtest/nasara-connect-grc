@@ -118,10 +118,11 @@ export default async function PolicyDetailPage({
   searchParams,
 }: {
   params: Promise<PageParams>;
-  searchParams?: Record<string, string | string[] | undefined>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { policyId } = await params;
-  const packId = typeof searchParams?.packId === "string" ? searchParams.packId : undefined;
+  const resolvedSearchParams = await searchParams;
+  const packId = typeof resolvedSearchParams?.packId === "string" ? resolvedSearchParams.packId : undefined;
   const session = await auth();
   const organizationId = session?.user?.email
     ? await deriveOrganizationIdFromEmail(session.user.email)
@@ -153,7 +154,7 @@ export default async function PolicyDetailPage({
   const noteSections = getNoteSections(policy.template);
 
   const firmName = typeof firmProfile.name === "string" && firmProfile.name.trim().length > 0 ? firmProfile.name.trim() : null;
-  const renderContext = {
+  const renderContext: Record<string, any> = { // eslint-disable-line @typescript-eslint/no-explicit-any
     firm: firmProfile,
     firm_name: firmName ?? "",
     permissions: policy.permissions,
@@ -207,7 +208,7 @@ export default async function PolicyDetailPage({
           DISP: "FCA Dispute Resolution: Complaints",
           PSR: "Payment Services Regulations 2017",
         }
-      : {};
+      : {} as Record<string, string>;
 
   const templateSections = policy.template.sections.map((section) => {
     const rawClauseIds =

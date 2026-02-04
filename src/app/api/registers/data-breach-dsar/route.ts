@@ -3,6 +3,7 @@ import {
   initDatabase,
   getDataBreachDsarRecords,
   createDataBreachDsarRecord,
+  type DataBreachDsarRecord,
 } from "@/lib/database";
 import {
   isValidUUID,
@@ -16,8 +17,6 @@ import {
   authenticateRequest,
   checkRateLimit,
   rateLimitExceededResponse,
-  badRequestResponse,
-  serverErrorResponse,
 } from "@/lib/api-auth";
 import { notifyRegisterCreated } from "@/lib/server/notification-builders";
 import { logError } from "@/lib/logger";
@@ -182,7 +181,7 @@ export async function POST(request: NextRequest) {
       created_by: sanitizeString(body.created_by) || undefined,
     };
 
-    const record = await createDataBreachDsarRecord(recordData);
+    const record = await createDataBreachDsarRecord(recordData as unknown as Omit<DataBreachDsarRecord, 'id' | 'created_at' | 'updated_at'>);
     try {
       await notifyRegisterCreated({
         organizationId: authResult.user.organizationId,

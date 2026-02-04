@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { getPackTemplates, syncAuthorizationTemplates } from "@/lib/authorization-pack-db";
 import { logError } from "@/lib/logger";
-import { requireAuth } from "@/lib/auth-utils";
+import { requireRole } from "@/lib/rbac";
 
 export async function GET() {
   try {
-    const { error } = await requireAuth();
+    const { error } = await requireRole("member");
     if (error) return error;
     await syncAuthorizationTemplates();
 

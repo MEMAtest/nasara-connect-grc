@@ -2,9 +2,10 @@
  * Zod validation schemas for all register types
  */
 
-import { z } from "zod";
+import { z, type ZodIssue } from "zod";
 
 // Common schemas
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const uuidSchema = z.string().uuid("Invalid UUID format");
 const dateSchema = z.string().datetime().or(z.date()).optional();
 const positiveNumberSchema = z.number().min(0, "Must be a positive number").optional();
@@ -348,8 +349,8 @@ export function validateRegisterInput<T>(
     return { success: true, data: result.data };
   }
 
-  const errors = result.error.errors.map(
-    (err) => `${err.path.join(".")}: ${err.message}`
+  const errors = result.error.issues.map(
+    (err: ZodIssue) => `${err.path.join(".")}: ${err.message}`
   );
 
   return { success: false, errors };

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { badRequestResponse, serverErrorResponse } from "@/lib/api-auth";
-import { requireAuth } from "@/lib/auth-utils";
+import { requireRole } from "@/lib/rbac";
 import { setNotificationRead } from "@/lib/server/notifications-store";
 import { logError } from "@/lib/logger";
 
@@ -9,7 +9,7 @@ export async function POST(
   { params }: { params: Promise<{ notificationId: string }> },
 ) {
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
 
     const { notificationId } = await params;

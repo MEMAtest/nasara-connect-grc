@@ -141,7 +141,7 @@ export const buildGovernanceDefaultsPayload = (state: GovernanceState) => ({
 });
 
 export const coerceReviewCadence = (value: unknown): GovernanceState["reviewCadence"] | undefined =>
-  typeof value === "string" && REVIEW_CADENCE_VALUES.has(value)
+  typeof value === "string" && (REVIEW_CADENCE_VALUES as Set<string>).has(value)
     ? (value as GovernanceState["reviewCadence"])
     : undefined;
 

@@ -21,7 +21,6 @@ import {
   Move,
   RotateCcw,
   Plus,
-  GripVertical,
   HelpCircle,
   Building2,
   FolderOpen,
@@ -30,7 +29,7 @@ import {
   Link2,
   Trash2,
   FileSpreadsheet,
-  Image,
+  Image as ImageIcon,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -796,6 +795,7 @@ function ConnectorLines({ connectors, highlightedIds }: ConnectorLinesProps) {
 export function OrgChartClient() {
   const {
     state, firms, activeFirmId, updatePerson, addPerson, assignRole,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     groupEntities, addGroupEntity, updateGroupEntity, removeGroupEntity,
   } = useSmcrData();
   const toast = useToast();
@@ -883,7 +883,7 @@ export function OrgChartClient() {
       (e) => e.id === firmRootId || (e.linkedFirmId === activeFirmId && !e.parentId)
     );
     if (!firmAlreadyExists) {
-      addGroupEntity({
+      void addGroupEntity({
         name: activeFirm.name,
         type: "parent",
         linkedFirmId: activeFirmId,
@@ -1046,9 +1046,9 @@ export function OrgChartClient() {
     }
   };
 
-  const handleAddEntity = () => {
+  const handleAddEntity = async () => {
     if (!entityForm.name.trim()) return;
-    addGroupEntity({
+    await addGroupEntity({
       name: entityForm.name.trim(),
       type: entityForm.type,
       parentId: entityForm.parentId || undefined,
@@ -1073,7 +1073,7 @@ export function OrgChartClient() {
     setAddEntityDialogOpen(false);
   };
 
-  const handleRenameDepartment = (oldName: string, newName: string) => {
+  const handleRenameDepartment = async (oldName: string, newName: string) => {
     if (!newName.trim() || newName.trim() === oldName) return;
     const trimmed = newName.trim();
     // Update all people in this department — collect failures
@@ -1081,7 +1081,7 @@ export function OrgChartClient() {
     const failed: string[] = [];
     for (const p of toUpdate) {
       try {
-        updatePerson(p.id, { department: trimmed });
+        await updatePerson(p.id, { department: trimmed });
       } catch {
         failed.push(p.name);
       }
@@ -1106,19 +1106,19 @@ export function OrgChartClient() {
     setEditDialogOpen(true);
   };
 
-  const handleSaveReportingLine = () => {
+  const handleSaveReportingLine = async () => {
     if (!selectedNode) return;
-    updatePerson(selectedNode.id, {
+    await updatePerson(selectedNode.id, {
       lineManager: editManager.trim() || undefined,
     });
     setEditDialogOpen(false);
     setSelectedNode(null);
   };
 
-  const handleAddPerson = () => {
+  const handleAddPerson = async () => {
     if (!addPersonForm.name.trim()) return;
 
-    const personId = addPerson({
+    const personId = await addPerson({
       name: addPersonForm.name.trim(),
       title: addPersonForm.title.trim() || undefined,
       department: addPersonForm.department.trim() || "General",
@@ -1134,7 +1134,7 @@ export function OrgChartClient() {
         const smf = allSMFs.find((s) => s.id === roleId);
         if (smf) {
           try {
-            assignRole({
+            await assignRole({
               personId,
               functionId: smf.id,
               functionType: "SMF",
@@ -1371,7 +1371,7 @@ export function OrgChartClient() {
                   Export PPTX
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleExportPNG}>
-                  <Image className="h-4 w-4 mr-2" />
+                  <ImageIcon className="h-4 w-4 mr-2" />
                   Export PNG
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -1765,8 +1765,8 @@ export function OrgChartClient() {
                         variant="outline"
                         size="sm"
                         className="w-full text-rose-600 hover:text-rose-700 hover:bg-rose-50"
-                        onClick={() => {
-                          removeGroupEntity(selectedNode.entityData!.id);
+                        onClick={async () => {
+                          await removeGroupEntity(selectedNode.entityData!.id);
                           setSelectedNode(null);
                         }}
                       >

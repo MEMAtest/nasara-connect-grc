@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth-utils";
+import { requireRole } from "@/lib/rbac";
 import { initDatabase } from "@/lib/database";
 import { getPoliciesForOrganization, updatePolicy } from "@/lib/server/policy-store";
 import { enhanceClausesWithAi, DEFAULT_POLICY_MODEL, type PolicyAiDetailLevel } from "@/lib/policies/ai-policy-writer";
@@ -9,7 +9,7 @@ function nowIso() {
 }
 
 export async function POST(request: Request) {
-  const { auth, error } = await requireAuth();
+  const { auth, error } = await requireRole("member");
   if (error) return error;
   await initDatabase();
   const url = new URL(request.url);

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth-utils";
+import { requireRole } from "@/lib/rbac";
 import { logError } from "@/lib/logger";
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 
@@ -30,7 +30,8 @@ const sanitize = (str: unknown): string => {
  */
 export async function GET(request: NextRequest) {
   try {
-    const { auth, error } = await requireAuth();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { auth, error } = await requireRole("member");
     if (error) return error;
 
     const searchParams = request.nextUrl.searchParams;

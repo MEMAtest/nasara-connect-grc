@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, AlertTriangle, Info, Zap, BookOpen, Scale, Users, Shield } from "lucide-react";
+import { CheckCircle2, AlertTriangle, Info, Zap } from "lucide-react";
 
 // Card type definitions
 export interface KeyPointCardProps {

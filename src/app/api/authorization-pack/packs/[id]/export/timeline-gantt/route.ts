@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { isValidUUID, requireAuth } from "@/lib/auth-utils";
+import { isValidUUID } from "@/lib/auth-utils";
 import { getPack } from "@/lib/authorization-pack-db";
 import { pool } from "@/lib/database";
 import { TIMELINE_PHASES } from "@/lib/fca-api-checklist";
 import { getWeekDate } from "@/lib/checklist-constants";
 import ExcelJS from "exceljs";
+import { requireRole } from "@/lib/rbac";
 
 function sanitizeFilename(input: string) {
   return input.replace(/[^a-z0-9-_]+/gi, "-").replace(/-+/g, "-").toLowerCase();
@@ -40,7 +41,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
 
     const { id: packId } = await params;

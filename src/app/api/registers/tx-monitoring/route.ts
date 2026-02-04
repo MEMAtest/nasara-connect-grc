@@ -3,6 +3,7 @@ import {
   initDatabase,
   getTxMonitoringRecords,
   createTxMonitoringRecord,
+  type TxMonitoringRecord,
 } from "@/lib/database";
 import {
   isValidUUID,
@@ -154,7 +155,7 @@ export async function POST(request: NextRequest) {
       created_by: sanitizeString(body.created_by) || undefined,
     };
 
-    const record = await createTxMonitoringRecord(recordData);
+    const record = await createTxMonitoringRecord(recordData as unknown as Omit<TxMonitoringRecord, 'id' | 'created_at' | 'updated_at'>);
     try {
       await notifyRegisterCreated({
         organizationId: authResult.user.organizationId,

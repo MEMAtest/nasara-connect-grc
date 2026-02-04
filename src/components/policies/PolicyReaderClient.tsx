@@ -126,19 +126,6 @@ export function PolicyReaderClient({
     }
   }, [sectionNotes]);
 
-  useEffect(() => {
-    if (!activeSection) return;
-    setClauseDrafts((prev) => {
-      const next = { ...prev };
-      activeSection.clauses.forEach((clause) => {
-        if (typeof clause.contentMd === "string") {
-          next[clause.id] = clause.contentMd;
-        }
-      });
-      return next;
-    });
-  }, [activeSection]);
-
   const groupedSections = useMemo(() => {
     return sections.reduce(
       (acc, section) => {
@@ -151,6 +138,19 @@ export function PolicyReaderClient({
 
   const activeIndex = sections.findIndex((section) => section.id === activeSectionId);
   const activeSection = sections[activeIndex] ?? sections[0];
+
+  useEffect(() => {
+    if (!activeSection) return;
+    setClauseDrafts((prev) => {
+      const next = { ...prev };
+      activeSection.clauses.forEach((clause) => {
+        if (typeof clause.contentMd === "string") {
+          next[clause.id] = clause.contentMd;
+        }
+      });
+      return next;
+    });
+  }, [activeSection]);
   const noteSectionMap = useMemo(
     () => new Map((noteSections ?? []).map((section) => [section.id, section])),
     [noteSections],

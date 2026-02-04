@@ -46,6 +46,10 @@ export async function deriveOrganizationIdFromEmail(email: string): Promise<stri
   return generateDeterministicUUID(`org:${emailDomain}`);
 }
 
+export async function deriveUserIdFromEmail(email: string): Promise<string> {
+  return generateDeterministicUUID(`user:${email}`);
+}
+
 // UUID validation helper
 export function isValidUUID(uuid: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(uuid);
@@ -97,11 +101,12 @@ export async function authenticateApiRequest(): Promise<ApiAuthResult> {
 
   // Generate deterministic organization ID from user email domain
   // In production, this should come from a user/organization database lookup
-  const organizationId = await deriveOrganizationIdFromEmail(session.user.email);
+  const organizationId = session.user.organizationId
+    ?? await deriveOrganizationIdFromEmail(session.user.email);
 
   return {
     authenticated: true,
-    userId: session.user.id || await generateDeterministicUUID(`user:${session.user.email}`),
+    userId: session.user.id || await deriveUserIdFromEmail(session.user.email),
     userEmail: session.user.email,
     userName: session.user.name || session.user.email,
     organizationId,
@@ -123,6 +128,30 @@ export async function requireAuth(): Promise<{ auth: ApiAuthResult; error?: Next
         { status: 401 }
       ),
     };
+  }
+
+  if (process.env.ENFORCE_RBAC === "true" && !isAuthDisabled()) {
+    try {
+      const { getOrganizationMemberByUserId, initOrganizationTables } = await import("@/lib/server/organization-store");
+      await initOrganizationTables();
+      const member = authResult.userId
+        ? await getOrganizationMemberByUserId(authResult.organizationId, authResult.userId)
+        : null;
+      if (!member) {
+        return {
+          auth: authResult,
+          error: NextResponse.json({ error: "Organization membership required" }, { status: 403 }),
+        };
+      }
+    } catch (error) {
+      return {
+        auth: authResult,
+        error: NextResponse.json(
+          { error: "RBAC enforcement unavailable", details: error instanceof Error ? error.message : "Unknown error" },
+          { status: 503 }
+        ),
+      };
+    }
   }
 
   return { auth: authResult };

@@ -118,8 +118,6 @@ export async function listNotifications(options: {
     "n.organization_id = ANY($1)",
     "(n.user_id IS NULL OR n.user_id = $2)",
   ];
-  const values: unknown[] = [options.organizationIds, options.userId];
-
   if (options.unreadOnly) {
     filters.push("r.read_at IS NULL");
   }

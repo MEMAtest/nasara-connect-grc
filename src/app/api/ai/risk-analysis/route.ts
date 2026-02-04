@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth-utils";
+import { requireRole } from "@/lib/rbac";
 import { getOpenRouterApiKey } from "@/lib/openrouter";
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
@@ -23,7 +23,7 @@ function extractJson(content: string) {
 }
 
 export async function POST(request: Request) {
-  const { error } = await requireAuth();
+  const { error } = await requireRole("member");
   if (error) return error;
 
   const body = (await request.json()) as {
@@ -90,7 +90,7 @@ export async function POST(request: Request) {
       similar: parsed.similar ?? fallbackAnalysis(title, category).similar,
       controls: parsed.controls ?? fallbackAnalysis(title, category).controls,
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(fallbackAnalysis(title, category));
   }
 }

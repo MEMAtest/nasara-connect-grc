@@ -14,7 +14,7 @@ import {
   initSmcrDatabase,
 } from '@/lib/smcr-database';
 import { logError, logApiRequest } from '@/lib/logger';
-import { requireAuth } from '@/lib/auth-utils';
+import { requireRole } from "@/lib/rbac";
 
 export async function GET(
   request: NextRequest,
@@ -24,7 +24,7 @@ export async function GET(
   logApiRequest('GET', `/api/smcr/people/${personId}`);
 
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
     await initSmcrDatabase();
 
@@ -59,7 +59,7 @@ export async function PATCH(
   logApiRequest('PATCH', `/api/smcr/people/${personId}`);
 
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
     await initSmcrDatabase();
 
@@ -77,6 +77,9 @@ export async function PATCH(
     if (body.startDate !== undefined) updates.start_date = body.startDate;
     if (body.hireDate !== undefined) updates.hire_date = body.hireDate;
     if (body.endDate !== undefined) updates.end_date = body.endDate;
+    if (body.isPsd !== undefined) updates.is_psd = body.isPsd;
+    if (body.psdStatus !== undefined) updates.psd_status = body.psdStatus;
+    if (body.notes !== undefined) updates.notes = body.notes;
     if (body.assessmentStatus !== undefined) updates.assessment_status = body.assessmentStatus;
     if (body.lastAssessment !== undefined) updates.last_assessment = body.lastAssessment;
     if (body.nextAssessment !== undefined) updates.next_assessment = body.nextAssessment;
@@ -116,7 +119,7 @@ export async function DELETE(
   logApiRequest('DELETE', `/api/smcr/people/${personId}`);
 
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
     await initSmcrDatabase();
 

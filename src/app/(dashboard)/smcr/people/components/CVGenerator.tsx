@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -273,7 +273,7 @@ export function CVGenerator({ person, open, onOpenChange }: CVGeneratorProps) {
 
               {formData.employmentHistory.length === 0 ? (
                 <p className="text-sm text-slate-500 py-4 text-center">
-                  No employment history added yet. Click "Add Position" to begin.
+                  No employment history added yet. Click &quot;Add Position&quot; to begin.
                 </p>
               ) : (
                 <div className="space-y-4">
@@ -353,7 +353,7 @@ export function CVGenerator({ person, open, onOpenChange }: CVGeneratorProps) {
 
               {formData.qualifications.length === 0 ? (
                 <p className="text-sm text-slate-500 py-4 text-center">
-                  No qualifications added yet. Click "Add Qualification" to begin.
+                  No qualifications added yet. Click &quot;Add Qualification&quot; to begin.
                 </p>
               ) : (
                 <div className="space-y-3">

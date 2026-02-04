@@ -1,14 +1,18 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import type { NextRequest } from "next/server";
 
 const originalFetch = global.fetch;
 const originalEnvKey = process.env.OPENROUTER_API_KEY;
 
 // Mock all dependencies before importing the route
-vi.mock("@/lib/auth-utils", () => ({
-  requireAuth: vi.fn().mockResolvedValue({
+vi.mock("@/lib/rbac", () => ({
+  requireRole: vi.fn().mockResolvedValue({
     auth: { userId: "test-user", organizationId: "test-org" },
     error: null,
   }),
+}));
+
+vi.mock("@/lib/auth-utils", () => ({
   isValidUUID: vi.fn().mockReturnValue(true),
 }));
 
@@ -88,7 +92,7 @@ describe("Evidence gaps route", () => {
       method: "GET",
     });
 
-    const res = await GET(req, {
+    const res = await GET(req as unknown as NextRequest, {
       params: Promise.resolve({
         id: "00000000-0000-0000-0000-000000000001",
         sectionId: "00000000-0000-0000-0000-000000000002",
@@ -110,7 +114,7 @@ describe("Evidence gaps route", () => {
       method: "GET",
     });
 
-    const res = await GET(req, {
+    const res = await GET(req as unknown as NextRequest, {
       params: Promise.resolve({
         id: "00000000-0000-0000-0000-000000000001",
         sectionId: "00000000-0000-0000-0000-000000000002",
@@ -135,7 +139,7 @@ describe("Evidence gaps route", () => {
       method: "GET",
     });
 
-    const res = await GET(req, {
+    const res = await GET(req as unknown as NextRequest, {
       params: Promise.resolve({
         id: "00000000-0000-0000-0000-000000000001",
         sectionId: "00000000-0000-0000-0000-000000000002",
@@ -167,7 +171,7 @@ describe("Evidence gaps route", () => {
       method: "GET",
     });
 
-    const res = await GET(req, {
+    const res = await GET(req as unknown as NextRequest, {
       params: Promise.resolve({
         id: "00000000-0000-0000-0000-000000000001",
         sectionId: "00000000-0000-0000-0000-000000000002",
@@ -194,7 +198,7 @@ describe("Evidence gaps route", () => {
       method: "GET",
     });
 
-    const res = await GET(req, {
+    const res = await GET(req as unknown as NextRequest, {
       params: Promise.resolve({
         id: "00000000-0000-0000-0000-000000000001",
         sectionId: "00000000-0000-0000-0000-000000000002",

@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { NextRequest } from "next/server";
 import { createNotification, listNotifications } from "@/lib/server/notifications-store";
-import { requireAuth } from "@/lib/auth-utils";
+import { requireRole } from "@/lib/rbac";
 
-vi.mock("@/lib/auth-utils", () => ({
-  requireAuth: vi.fn(),
+vi.mock("@/lib/rbac", () => ({
+  requireRole: vi.fn(),
 }));
 
 vi.mock("@/lib/server/notifications-store", () => ({
@@ -26,7 +27,7 @@ describe("Notifications route", () => {
   });
 
   it("uses the authenticated org for GET requests", async () => {
-    vi.mocked(requireAuth).mockResolvedValue({
+    vi.mocked(requireRole).mockResolvedValue({
       auth: { authenticated: true, userId: "user-1", userEmail: "user@example.com", userName: "User 1", organizationId: "org-abc" },
       error: undefined,
     });
@@ -37,7 +38,7 @@ describe("Notifications route", () => {
     const req = new Request(
       "http://localhost/api/notifications?organizationId=evil-org&limit=5&offset=1&unreadOnly=true"
     );
-    const res = await GET(req);
+    const res = await GET(req as unknown as NextRequest);
 
     expect(listNotifications).toHaveBeenCalledWith({
       organizationIds: ["org-abc"],
@@ -51,7 +52,7 @@ describe("Notifications route", () => {
   });
 
   it("drops external links on POST requests", async () => {
-    vi.mocked(requireAuth).mockResolvedValue({
+    vi.mocked(requireRole).mockResolvedValue({
       auth: { authenticated: true, userId: "user-1", userEmail: "user@example.com", userName: "User 1", organizationId: "org-123" },
       error: undefined,
     });
@@ -82,7 +83,7 @@ describe("Notifications route", () => {
       }),
     });
 
-    const res = await POST(req);
+    const res = await POST(req as unknown as NextRequest);
 
     expect(createNotification).toHaveBeenCalledWith(
       expect.objectContaining({

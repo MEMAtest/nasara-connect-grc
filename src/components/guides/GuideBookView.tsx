@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, ChevronRight, BookOpen, Menu, Check, Circle, Lightbulb, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -22,6 +22,7 @@ export type GuideBookViewProps = {
   overview: string
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function GuideBookView({ chapters, guideTitle, overview }: GuideBookViewProps) {
   const [activeChapter, setActiveChapter] = useState(0)
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
@@ -36,17 +37,17 @@ export function GuideBookView({ chapters, guideTitle, overview }: GuideBookViewP
     }
   }
 
-  const goNext = () => {
+  const goNext = useCallback(() => {
     if (activeChapter < chapters.length - 1) {
       goToChapter(activeChapter + 1)
     }
-  }
+  }, [activeChapter, chapters.length])
 
-  const goPrev = () => {
+  const goPrev = useCallback(() => {
     if (activeChapter > 0) {
       goToChapter(activeChapter - 1)
     }
-  }
+  }, [activeChapter])
 
   // Keyboard navigation
   useEffect(() => {
@@ -59,7 +60,7 @@ export function GuideBookView({ chapters, guideTitle, overview }: GuideBookViewP
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [activeChapter])
+  }, [goNext, goPrev])
 
   const chapter = chapters[activeChapter]
   const progress = ((activeChapter + 1) / chapters.length) * 100

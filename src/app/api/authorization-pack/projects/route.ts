@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createAuthorizationProject, getAuthorizationProjects } from "@/lib/authorization-pack-db";
 import { PermissionCode } from "@/lib/authorization-pack-ecosystems";
-import { requireAuth } from "@/lib/auth-utils";
+import { requireRole } from "@/lib/rbac";
 import { createNotification } from "@/lib/server/notifications-store";
 import {
   ApiError,
@@ -24,7 +24,7 @@ const CreateProjectSchema = z.object({
 export async function GET(request: NextRequest) {
   try {
     // Authenticate the request
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
 
     const { success, headers } = await checkRateLimit(request);
@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Authenticate the request
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
 
     const { success, headers } = await checkRateLimit(request);

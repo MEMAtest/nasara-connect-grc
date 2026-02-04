@@ -29,7 +29,7 @@ export default function WizardQuestion({
         return (
           <input
             type="text"
-            value={value ?? ''}
+            value={(value ?? '') as any} // eslint-disable-line @typescript-eslint/no-explicit-any
             onChange={(e) => onChange(e.target.value)}
             placeholder={question.help}
             className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-slate-200 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50"
@@ -40,16 +40,16 @@ export default function WizardQuestion({
         return (
           <input
             type="number"
-            value={value ?? ''}
+            value={(value ?? '') as any} // eslint-disable-line @typescript-eslint/no-explicit-any
             onChange={(e) => {
               const nextValue = e.target.value
               if (nextValue === '') {
-                onChange(undefined)
+                onChange(null)
                 return
               }
 
               const parsed = Number(nextValue)
-              onChange(Number.isNaN(parsed) ? undefined : parsed)
+              onChange(Number.isNaN(parsed) ? null : parsed)
             }}
             min={question.validation?.min}
             max={question.validation?.max}
@@ -62,7 +62,7 @@ export default function WizardQuestion({
         return (
           <input
             type="date"
-            value={value ?? ''}
+            value={(value ?? '') as any} // eslint-disable-line @typescript-eslint/no-explicit-any
             onChange={(e) => onChange(e.target.value)}
             className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50"
           />
@@ -99,7 +99,7 @@ export default function WizardQuestion({
       case 'select':
         return (
           <select
-            value={value ?? ''}
+            value={(value ?? '') as any} // eslint-disable-line @typescript-eslint/no-explicit-any
             onChange={(e) => onChange(e.target.value)}
             className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50"
           >

@@ -21,7 +21,7 @@ export function FCARegisterClient() {
     }
   }, [activeFirmId]);
 
-  const handleAddPerson = useCallback((person: FCAPersonToAdd) => {
+  const handleAddPerson = useCallback(async (person: FCAPersonToAdd) => {
     if (!activeFirmId) {
       toast({
         title: "No firm selected",
@@ -45,7 +45,7 @@ export function FCARegisterClient() {
     }
 
     try {
-      addPerson({
+      await addPerson({
         name: person.name,
         email: "",
         department: "",

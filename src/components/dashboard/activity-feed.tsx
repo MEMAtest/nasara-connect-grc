@@ -49,7 +49,7 @@ function ActivityFeedComponent({ events }: ActivityFeedProps) {
       </div>
 
       <div className="px-6 pt-4">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab as (value: string) => void} className="w-full">
           <TabsList className="grid w-full grid-cols-5 rounded-xl bg-slate-50 p-1 text-xs">
             {(["all", "success", "warning", "danger", "info"] as const).map((tab) => (
               <TabsTrigger

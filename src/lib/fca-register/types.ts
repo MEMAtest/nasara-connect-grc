@@ -143,13 +143,13 @@ export interface FCAApiResponse<T> {
   };
 }
 
-export interface FirmResponse extends FCAApiResponse<FCAFirm> {}
-export interface PermissionsResponse extends FCAApiResponse<FirmPermission> {}
-export interface IndividualsResponse extends FCAApiResponse<FirmIndividual> {}
-export interface DisciplinaryResponse extends FCAApiResponse<DisciplinaryAction> {}
-export interface IndividualResponse extends FCAApiResponse<FCAIndividual> {}
-export interface ControlFunctionsResponse extends FCAApiResponse<FCAControlFunctionsData> {}
-export interface SearchResponse extends FCAApiResponse<FCASearchResult> {}
+export type FirmResponse = FCAApiResponse<FCAFirm>;
+export type PermissionsResponse = FCAApiResponse<FirmPermission>;
+export type IndividualsResponse = FCAApiResponse<FirmIndividual>;
+export type DisciplinaryResponse = FCAApiResponse<DisciplinaryAction>;
+export type IndividualResponse = FCAApiResponse<FCAIndividual>;
+export type ControlFunctionsResponse = FCAApiResponse<FCAControlFunctionsData>;
+export type SearchResponse = FCAApiResponse<FCASearchResult>;
 
 // ============================================
 // Client Configuration

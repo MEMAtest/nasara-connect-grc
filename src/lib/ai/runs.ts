@@ -1,6 +1,4 @@
 import type { Run } from "@/lib/policies/types";
-import { mockCmpControls } from "@/data/cmp/mock-data";
-
 // Lightweight in-memory placeholder: extend to DB when run-store is available.
 const mockRuns: Run[] = [
   {

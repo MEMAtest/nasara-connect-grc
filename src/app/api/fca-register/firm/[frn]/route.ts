@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getFCAConfig, isFCAApiError } from "@/lib/fca-register";
-import { requireAuth } from "@/lib/auth-utils";
+import { requireRole } from "@/lib/rbac";
 
 interface RouteParams {
   params: Promise<{ frn: string }>;
@@ -37,7 +37,7 @@ async function fcaFetch(endpoint: string, config: { email: string; apiKey: strin
  */
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
-    const { error } = await requireAuth();
+    const { error } = await requireRole("member");
     if (error) return error;
     const { frn } = await params;
 

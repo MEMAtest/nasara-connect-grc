@@ -14,7 +14,7 @@ import {
 } from '@/lib/smcr-database';
 import { createNotification } from "@/lib/server/notifications-store";
 import { logError, logApiRequest } from '@/lib/logger';
-import { requireAuth } from '@/lib/auth-utils';
+import { requireRole } from "@/lib/rbac";
 
 export async function GET(
   request: NextRequest,
@@ -24,7 +24,7 @@ export async function GET(
   logApiRequest('GET', `/api/smcr/firms/${firmId}/people`);
 
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
     await initSmcrDatabase();
 
@@ -55,7 +55,7 @@ export async function POST(
   logApiRequest('POST', `/api/smcr/firms/${firmId}/people`);
 
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
     await initSmcrDatabase();
 
@@ -68,7 +68,7 @@ export async function POST(
     }
 
     const body = await request.json();
-    const { name, email, department, title, phone, address, lineManager, startDate, hireDate, endDate } = body;
+    const { name, email, department, title, phone, address, lineManager, startDate, hireDate, endDate, isPsd, psdStatus, notes } = body;
 
     if (!name || typeof name !== 'string' || name.trim().length === 0) {
       return NextResponse.json(
@@ -89,6 +89,9 @@ export async function POST(
       start_date: startDate,
       hire_date: hireDate,
       end_date: endDate,
+      is_psd: typeof isPsd === 'boolean' ? isPsd : undefined,
+      psd_status: typeof psdStatus === 'string' ? psdStatus : undefined,
+      notes: typeof notes === 'string' ? notes : undefined,
     };
 
     const person = await createPerson(input);

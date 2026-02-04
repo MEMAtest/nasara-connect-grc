@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getEvidenceDocuments, initializeEvidenceDocuments, updateEvidenceDocument, getAssessment } from '@/lib/database';
 import { logError } from '@/lib/logger';
-import { requireAuth } from '@/lib/auth-utils';
+import { requireRole } from "@/lib/rbac";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
     const { id: assessmentId } = await params;
 
@@ -45,7 +45,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
     const { id: assessmentId } = await params;
     const { documentId, ...updates } = await request.json();

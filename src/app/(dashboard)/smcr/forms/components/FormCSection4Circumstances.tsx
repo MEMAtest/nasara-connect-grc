@@ -29,7 +29,7 @@ export function FormCSection4Circumstances({
       </CardHeader>
       <CardContent className="space-y-6">
         <SectionInfo title="Disclosure requirements" variant="warning">
-          <p><strong>You must disclose</strong> any circumstances that may be relevant to the individual's fitness and propriety, even if they have now left.</p>
+          <p><strong>You must disclose</strong> any circumstances that may be relevant to the individual&apos;s fitness and propriety, even if they have now left.</p>
           <p className="mt-1">Failure to disclose material information is itself a regulatory concern.</p>
         </SectionInfo>
 

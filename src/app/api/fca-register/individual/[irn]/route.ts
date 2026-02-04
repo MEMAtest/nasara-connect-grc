@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createFCAClient, isFCAApiError } from "@/lib/fca-register";
-import { requireAuth } from "@/lib/auth-utils";
+import { requireRole } from "@/lib/rbac";
 
 interface RouteParams {
   params: Promise<{ irn: string }>;
@@ -12,7 +12,7 @@ interface RouteParams {
  */
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
-    const { error } = await requireAuth();
+    const { error } = await requireRole("member");
     if (error) return error;
     const { irn } = await params;
 

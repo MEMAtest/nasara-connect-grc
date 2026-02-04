@@ -112,7 +112,7 @@ export function CompaniesHouseLookup({ onSelect }: CompaniesHouseLookupProps) {
       setQuery(data.company_name);
       setResults([]);
       setIsOpen(false);
-    } catch (fetchError) {
+    } catch {
       setError("Unable to fetch company details.");
     } finally {
       setIsLoading(false);

@@ -45,7 +45,7 @@ export function FormESection6Responsibilities({
         {hasSmfFunction ? (
           <>
             <SectionInfo title="SMF Statement of Responsibilities" variant="info">
-              <p>A Statement of Responsibilities (SoR) is required for SMF roles. This document defines the senior manager's responsibilities and must be kept up to date.</p>
+              <p>A Statement of Responsibilities (SoR) is required for SMF roles. This document defines the senior manager&apos;s responsibilities and must be kept up to date.</p>
             </SectionInfo>
 
             <div>
@@ -101,7 +101,7 @@ export function FormESection6Responsibilities({
           </>
         ) : (
           <SectionInfo title="No SoR Required" variant="info">
-            <p>A Statement of Responsibilities is not required for Certification Functions. However, the firm should maintain records of the individual's responsibilities.</p>
+            <p>A Statement of Responsibilities is not required for Certification Functions. However, the firm should maintain records of the individual&apos;s responsibilities.</p>
             <Button
               variant="link"
               className="p-0 h-auto text-sm"

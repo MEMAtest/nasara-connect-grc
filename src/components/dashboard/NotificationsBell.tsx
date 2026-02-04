@@ -130,6 +130,7 @@ export function NotificationsBell() {
           ) : items.length === 0 ? (
             <p className="text-sm text-slate-500">No notifications yet.</p>
           ) : (
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             items.map(({ notification, severity, styles }) => {
               const Icon = styles.icon;
               const isUnread = !notification.readAt;

@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth-utils";
+import { requireRole } from "@/lib/rbac";
 import { getPolicyFirmProfile, upsertPolicyFirmProfile } from "@/lib/server/policy-firm-profile";
 
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ organizationId: string }> },
 ) {
-  const { auth, error } = await requireAuth();
+  const { auth, error } = await requireRole("member");
   if (error) return error;
   const { organizationId } = await params;
   if (organizationId !== auth.organizationId) {
@@ -23,7 +23,7 @@ export async function PUT(
   request: Request,
   { params }: { params: Promise<{ organizationId: string }> },
 ) {
-  const { auth, error } = await requireAuth();
+  const { auth, error } = await requireRole("member");
   if (error) return error;
   const { organizationId } = await params;
   if (organizationId !== auth.organizationId) {

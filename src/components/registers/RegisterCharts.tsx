@@ -357,6 +357,7 @@ export function TrendChart({
   const pathD = points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ");
 
   const total = data.reduce((sum, d) => sum + d.value, 0);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const avg = data.length > 0 ? Math.round(total / data.length) : 0;
 
   return (

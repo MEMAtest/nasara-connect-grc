@@ -111,6 +111,7 @@ const ACTIVITY_LABELS: Record<ActivityType, string> = {
   closed: "Closures",
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface GroupedActivities {
   date: string;
   dateLabel: string;
@@ -248,7 +249,7 @@ export function ComplaintTimeline({
 
             {/* Activity groups */}
             <div className="space-y-4">
-              {groupedActivities.map((group, groupIndex) => (
+              {groupedActivities.map((group) => (
                 <div key={group.date} className="relative">
                   {/* Date header */}
                   <button

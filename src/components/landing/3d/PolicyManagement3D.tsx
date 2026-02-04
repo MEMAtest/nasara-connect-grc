@@ -108,6 +108,7 @@ function AttestationBadge() {
 }
 
 function AutoUpdateIndicator() {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const groupRef = useRef<THREE.Group>(null)
   const arrowRef = useRef<THREE.Mesh>(null)
 

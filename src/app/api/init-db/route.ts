@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { initDatabase } from '@/lib/database';
-import { requireAuth } from '@/lib/auth-utils';
+import { requireRole } from "@/lib/rbac";
 
 export async function POST() {
   try {
-    const { error } = await requireAuth();
+    const { error } = await requireRole("admin");
     if (error) return error;
     if (process.env.NODE_ENV === 'production') {
       return NextResponse.json({ error: 'Init DB not available in production' }, { status: 403 });

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
-export default function DocumentsPage({ params }: { params: { projectId: string } }) {
-  redirect(`/authorization-pack/${params.projectId}/opinion-pack`);
+export default async function DocumentsPage({ params }: { params: Promise<{ projectId: string }> }) {
+  const { projectId } = await params;
+  redirect(`/authorization-pack/${projectId}/opinion-pack`);
 }

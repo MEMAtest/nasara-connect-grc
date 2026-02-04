@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -32,7 +32,6 @@ import {
   Gamepad2,
   MessageSquare,
   Crown,
-  Shield,
   Loader2
 } from "lucide-react";
 import { featuredModules, learningPathways, getAllTrainingModules } from "./content";
@@ -117,7 +116,7 @@ export function TrainingLibraryClient() {
 
   const pathways = learningPathways;
   const allModules = getAllTrainingModules();
-  const moduleMatchesQuery = (module: { id?: string; title?: string; description?: string; category?: string; difficulty?: string; targetPersonas?: string[] }) => {
+  const moduleMatchesQuery = useCallback((module: { id?: string; title?: string; description?: string; category?: string; difficulty?: string; targetPersonas?: string[] }) => {
     const query = searchQuery.trim().toLowerCase();
     if (!query) return true;
     const haystack = [
@@ -132,7 +131,7 @@ export function TrainingLibraryClient() {
       .join(" ")
       .toLowerCase();
     return haystack.includes(query);
-  };
+  }, [searchQuery]);
 
   const filteredModules = useMemo(() => {
     return allModules.filter((module) => {
@@ -141,12 +140,12 @@ export function TrainingLibraryClient() {
         : Array.isArray(module.targetPersonas) && module.targetPersonas.includes(selectedPersona);
       return personaMatch && moduleMatchesQuery(module);
     });
-  }, [allModules, selectedPersona, searchQuery]);
+  }, [allModules, selectedPersona, moduleMatchesQuery]);
 
   const filteredFeaturedModules = useMemo(() => {
     if (!searchQuery.trim()) return featuredModules.slice(0, 3);
     return featuredModules.filter((module) => moduleMatchesQuery(module)).slice(0, 3);
-  }, [searchQuery]);
+  }, [searchQuery, moduleMatchesQuery]);
 
   const visibleModuleIds = useMemo(() => filteredModules.map((module) => module.id), [filteredModules]);
   const weeklyGoal = Math.max(userProgress.weekly_goal, 0);
@@ -469,8 +468,8 @@ export function TrainingLibraryClient() {
   };
 
   const openAssignDialog = (moduleId: string) => {
-    const module = allModules.find((item) => item.id === moduleId) || featuredModules.find((item) => item.id === moduleId);
-    setAssignmentModule({ id: moduleId, title: module?.title || "Training Module" });
+    const trainingMod = allModules.find((item) => item.id === moduleId) || featuredModules.find((item) => item.id === moduleId);
+    setAssignmentModule({ id: moduleId, title: trainingMod?.title || "Training Module" });
     setAssignee("");
     setAssignmentDueDate("");
     setAssignmentNotes("");
@@ -790,7 +789,7 @@ export function TrainingLibraryClient() {
                   id={module.id}
                   title={module.title}
                   description={module.description}
-                  category={module.category || ""}
+                  category={(module as { category?: string }).category || ""}
                   duration={module.duration}
                   difficulty={(module.difficulty as "beginner" | "intermediate" | "advanced") || "beginner"}
                   progress={moduleProgress[module.id]}
@@ -869,7 +868,7 @@ export function TrainingLibraryClient() {
                       title={module.title}
                       description={module.description}
                       category={module.category || ""}
-                      duration={module.duration}
+                      duration={module.duration ?? 0}
                       difficulty={(module.difficulty as "beginner" | "intermediate" | "advanced") || "beginner"}
                       progress={moduleProgress[module.id]}
                       certificate={certificateDownloads[module.id]}
@@ -965,7 +964,7 @@ export function TrainingLibraryClient() {
             ) : (
               <Card className="border border-slate-100">
                 <CardContent className="p-6 text-sm text-slate-500">
-                  No modules match "{searchQuery.trim() || "your filters"}".
+                  No modules match &quot;{searchQuery.trim() || "your filters"}&quot;.
                 </CardContent>
               </Card>
             )}
@@ -1026,7 +1025,7 @@ export function TrainingLibraryClient() {
                             variant="outline"
                             className={getPersonaColor(roleId)}
                           >
-                            {personas[roleId]?.name || roleId}
+                            {(personas as Record<string, { name: string }>)[roleId]?.name || roleId}
                           </Badge>
                         ))}
                       </div>
@@ -1072,19 +1071,19 @@ export function TrainingLibraryClient() {
                       <div className="grid grid-cols-4 gap-2 text-xs">
                         <div className="bg-blue-50 p-2 rounded">
                           <div className="font-medium text-blue-700">Hook</div>
-                          <div className="text-blue-600">{lesson.components.hook.duration}min</div>
+                          <div className="text-blue-600">{lesson.components?.hook?.duration ?? 0}min</div>
                         </div>
                         <div className="bg-emerald-50 p-2 rounded">
                           <div className="font-medium text-emerald-700">Content</div>
-                          <div className="text-emerald-600">{lesson.components.content.duration}min</div>
+                          <div className="text-emerald-600">{lesson.components?.content?.duration ?? 0}min</div>
                         </div>
                         <div className="bg-amber-50 p-2 rounded">
                           <div className="font-medium text-amber-700">Practice</div>
-                          <div className="text-amber-600">{lesson.components.practice.duration}min</div>
+                          <div className="text-amber-600">{lesson.components?.practice?.duration ?? 0}min</div>
                         </div>
                         <div className="bg-purple-50 p-2 rounded">
                           <div className="font-medium text-purple-700">Summary</div>
-                          <div className="text-purple-600">{lesson.components.summary.duration}min</div>
+                          <div className="text-purple-600">{lesson.components?.summary?.duration ?? 0}min</div>
                         </div>
                       </div>
                     </div>
@@ -1136,11 +1135,11 @@ export function TrainingLibraryClient() {
                         </div>
                       </div>
 
-                      {simulation.features.documentTypes && (
+                      {Array.isArray((simulation.features as Record<string, unknown>).documentTypes) && (
                         <div className="mb-4">
                           <h4 className="text-sm font-medium text-slate-700 mb-2">Practice Materials:</h4>
                           <div className="flex flex-wrap gap-2">
-                            {simulation.features.documentTypes.map((type: string, index: number) => (
+                            {((simulation.features as Record<string, unknown>).documentTypes as string[]).map((type: string, index: number) => (
                               <Badge key={index} variant="outline" className="text-xs">
                                 {type}
                               </Badge>

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
-import { requireAuth } from "@/lib/auth-utils";
+import { requireRole } from "@/lib/rbac";
 
 export const runtime = "nodejs";
 
@@ -36,7 +36,7 @@ function summarizeState(statePath: string) {
   try {
     const raw = readFileSync(statePath, "utf8");
     const state = JSON.parse(raw);
-    const counts = { pending: 0, running: 0, done: 0, failed: 0 };
+    const counts: Record<string, number> = { pending: 0, running: 0, done: 0, failed: 0 };
     for (const window of state.windows || []) {
       counts[window.status] = (counts[window.status] || 0) + 1;
     }
@@ -115,7 +115,7 @@ function summarizeParsed(year: number | null) {
 
 export async function GET(request: Request) {
   try {
-    const { error } = await requireAuth();
+    const { error } = await requireRole("member");
     if (error) return error;
     const { searchParams } = new URL(request.url);
     const yearParam = searchParams.get("year");
@@ -134,7 +134,7 @@ export async function GET(request: Request) {
     return NextResponse.json(data, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     return NextResponse.json(
-      { error: String(error?.message || error) },
+      { error: error instanceof Error ? error.message : String(error) },
       { status: 400 },
     );
   }

@@ -23,12 +23,6 @@ import {
   CreditCard,
   Globe,
   FolderOpen,
-  Users,
-  Building2,
-  AlertTriangle,
-  FileWarning,
-  Scale,
-  Gift,
   Gauge,
   MessageSquareWarning,
 } from "lucide-react";
@@ -233,7 +227,6 @@ const glowByPath: Record<string, string> = {
   // Individual register paths
   "/registers/pep": "shadow-[0_0_18px_rgba(168,85,247,0.45)]",
   "/registers/third-party": "shadow-[0_0_18px_rgba(59,130,246,0.45)]",
-  "/registers/complaints": "shadow-[0_0_18px_rgba(234,179,8,0.45)]",
   "/registers/incidents": "shadow-[0_0_18px_rgba(239,68,68,0.45)]",
   "/registers/conflicts": "shadow-[0_0_18px_rgba(168,162,158,0.45)]",
   "/registers/gifts-hospitality": "shadow-[0_0_18px_rgba(236,72,153,0.45)]",
@@ -430,6 +423,7 @@ export function Sidebar({ onNavigate, onClose, isMobile = false }: SidebarProps)
       <div className="border-t border-white/10 bg-white/5 px-6 py-5 backdrop-blur-sm">
         <div className="flex items-center gap-3">
           {session?.user?.image ? (
+            /* eslint-disable-next-line @next/next/no-img-element -- dynamic user avatar from OAuth provider */
             <img
               src={session.user.image}
               alt={session.user.name || "User"}

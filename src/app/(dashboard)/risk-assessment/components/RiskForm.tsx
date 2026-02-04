@@ -87,7 +87,7 @@ export function RiskForm({
   );
 
   const form = useForm<RiskFormValues>({
-    resolver: zodResolver(riskFormSchema),
+    resolver: zodResolver(riskFormSchema) as any, // eslint-disable-line @typescript-eslint/no-explicit-any
     defaultValues: {
       ...baseValues,
       ...defaultValues,

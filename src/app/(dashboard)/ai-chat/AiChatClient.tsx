@@ -49,7 +49,7 @@ const normalizeAssistantText = (text: string) => {
 const renderAssistantContent = (text: string) => {
   const normalized = normalizeAssistantText(text);
   const lines = normalized.split("\n");
-  const rendered: JSX.Element[] = [];
+  const rendered: React.ReactElement[] = [];
   let hasTitle = false;
 
   for (let i = 0; i < lines.length; i += 1) {
@@ -62,7 +62,7 @@ const renderAssistantContent = (text: string) => {
     }
 
     const isBullet = trimmed.startsWith("- ");
-    let content = isBullet ? trimmed.slice(2).trimStart() : trimmed;
+    const content = isBullet ? trimmed.slice(2).trimStart() : trimmed;
     const isTitle = !hasTitle && !isBullet;
     if (isTitle) {
       hasTitle = true;

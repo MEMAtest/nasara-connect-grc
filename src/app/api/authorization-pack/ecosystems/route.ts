@@ -5,11 +5,11 @@ import {
   syncPermissionEcosystems,
 } from "@/lib/authorization-pack-db";
 import { logError } from "@/lib/logger";
-import { requireAuth } from "@/lib/auth-utils";
+import { requireRole } from "@/lib/rbac";
 
 export async function GET(request: Request) {
   try {
-    const { error } = await requireAuth();
+    const { error } = await requireRole("member");
     if (error) return error;
     const url = new URL(request.url);
     const force = url.searchParams.get("force") === "1";

@@ -23,10 +23,8 @@ import {
   type RiskRecord,
 } from "./lib/riskConstants";
 import type { RiskFormValues } from "./lib/riskValidation";
-import { DEFAULT_ORGANIZATION_ID } from "@/lib/constants";
+import { useOrganization } from "@/components/organization-provider";
 import { useAssistantContext } from "@/components/dashboard/useAssistantContext";
-
-const ORGANIZATION_ID = DEFAULT_ORGANIZATION_ID;
 
 function toFormValues(risk: RiskRecord): RiskFormValues {
   return {
@@ -54,6 +52,7 @@ export function RiskAssessmentClient() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { organizationId } = useOrganization();
   const {
     risks,
     filteredRisks,
@@ -62,7 +61,7 @@ export function RiskAssessmentClient() {
     isLoading,
     error,
     refresh,
-  } = useRiskData({ organizationId: ORGANIZATION_ID });
+  } = useRiskData({ organizationId });
 
   const metrics = useRiskCalculations(risks);
   const [heatMapView, setHeatMapView] = useState<HeatMapView>("inherent");
@@ -82,8 +81,8 @@ export function RiskAssessmentClient() {
     setIsSubmitting(true);
     try {
       const endpoint = editingRisk
-        ? `/api/organizations/${ORGANIZATION_ID}/risks/${encodeURIComponent(editingRisk.id)}`
-        : `/api/organizations/${ORGANIZATION_ID}/risks`;
+        ? `/api/organizations/${organizationId}/risks/${encodeURIComponent(editingRisk.id)}`
+        : `/api/organizations/${organizationId}/risks`;
       const method = editingRisk ? "PUT" : "POST";
       const response = await fetch(endpoint, {
         method,
@@ -172,7 +171,7 @@ export function RiskAssessmentClient() {
 
   const handleKriUpdate = async (riskId: string, kris: RiskKeyRiskIndicator[]) => {
     try {
-      const response = await fetch(`/api/organizations/${ORGANIZATION_ID}/risks/${encodeURIComponent(riskId)}/kris`, {
+      const response = await fetch(`/api/organizations/${organizationId}/risks/${encodeURIComponent(riskId)}/kris`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(kris),
@@ -295,7 +294,7 @@ export function RiskAssessmentClient() {
                 <LinkedPoliciesPanel
                   title="Linked policies"
                   helperText="Policies mapped to this risk (to track policy coverage against the risk register)."
-                  endpoint={`/api/organizations/${ORGANIZATION_ID}/risks/${encodeURIComponent(selectedRisk.id)}/links`}
+                  endpoint={`/api/organizations/${organizationId}/risks/${encodeURIComponent(selectedRisk.id)}/links`}
                 />
                 <RiskControlCoverage riskId={selectedRisk.riskId} />
                 <KRIManager

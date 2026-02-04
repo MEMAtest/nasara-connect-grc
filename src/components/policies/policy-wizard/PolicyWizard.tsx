@@ -46,7 +46,7 @@ const STEP_ICONS = {
 };
 
 const wizardSpring = {
-  type: "spring",
+  type: "spring" as const,
   stiffness: 180,
   damping: 20,
 };

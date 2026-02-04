@@ -95,6 +95,7 @@ const ChecklistItemRow = memo(function ChecklistItemRow({
   linkHref?: string;
 }) {
   const statusOption = CHECKLIST_STATUS_OPTIONS.find((opt) => opt.value === status);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const colors = PHASE_COLORS[accentColor] || PHASE_COLORS.teal;
 
   return (

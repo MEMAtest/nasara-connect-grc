@@ -9,7 +9,22 @@ import { useState } from 'react'
 import Link from 'next/link'
 
 // Mock data
-const MOCK_APPROVALS = [
+type ApprovalStatus = 'pending' | 'approved' | 'rejected';
+
+const MOCK_APPROVALS: Array<{
+  id: string;
+  run_id: string;
+  policy_name: string;
+  policy_version: string;
+  firm_name: string;
+  status: ApprovalStatus;
+  requested_by: string;
+  requested_at: string;
+  approver_role: string;
+  comments_count: number;
+  approved_by?: string;
+  approved_at?: string;
+}> = [
   {
     id: '1',
     run_id: 'run-001',
@@ -51,7 +66,7 @@ const MOCK_APPROVALS = [
 ]
 
 export default function ApprovalsPage() {
-  const [filterStatus, setFilterStatus] = useState<string>('all')
+  const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all')
 
   const filteredApprovals = MOCK_APPROVALS.filter(
     (approval) => filterStatus === 'all' || approval.status === filterStatus
@@ -84,12 +99,12 @@ export default function ApprovalsPage() {
         <div className="flex items-center gap-4">
           <label className="text-sm font-medium text-slate-300">Filter by Status:</label>
           <div className="flex gap-2">
-            {[
+            {([
               { value: 'all', label: 'All' },
               { value: 'pending', label: 'Pending' },
               { value: 'approved', label: 'Approved' },
               { value: 'rejected', label: 'Rejected' },
-            ].map((option) => (
+            ] as const).map((option) => (
               <button
                 key={option.value}
                 onClick={() => setFilterStatus(option.value)}

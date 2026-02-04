@@ -49,7 +49,7 @@ const accentMap: Record<ModuleAccent, { gradient: string; glow: string; button: 
   },
 };
 
-const springTransition = { type: "spring", stiffness: 260, damping: 24 };
+const springTransition = { type: "spring" as const, stiffness: 260, damping: 24 };
 
 export const ModuleCard = memo(function ModuleCard({
   title,

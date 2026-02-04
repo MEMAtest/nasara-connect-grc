@@ -115,14 +115,15 @@ export function StepContentBuilder({ state, updateState, onNext, onBack }: Wizar
       sectionClauses: assembly.sectionClauses,
       selectedClauses,
     }));
-  }, [assemblyKey, clauseById, template, updateState, state.sectionClauses]);
+  }, [assemblyKey, clauseById, template, updateState, state.sectionClauses, assembly.sectionClauses]);
 
   useEffect(() => {
     if (!template?.sections?.length) return;
     setActiveSectionId(template.sections[0].id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only reset active section when template changes, not on every sections array reference change
   }, [template?.code]);
 
-  const firmContext = useMemo(() => {
+  const firmContext: Record<string, any> = useMemo(() => { // eslint-disable-line @typescript-eslint/no-explicit-any
     return {
       firm: {
         name: state.firmProfile.name,

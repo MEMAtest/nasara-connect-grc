@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
-import { FileText, Paperclip, Upload, ChevronDown, ChevronUp, Download, Trash2, UserPlus } from "lucide-react";
+import { FileText, Paperclip, ChevronDown, ChevronUp, Download, Trash2, UserPlus } from "lucide-react";
 import {
   useSmcrData,
   type DocumentMetadata,

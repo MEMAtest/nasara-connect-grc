@@ -2,14 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { saveAssessmentResponse, getAssessmentResponses, updateSectionProgress, getAssessment } from '@/lib/database';
 import { getQuestionsBySection } from '@/app/(dashboard)/authorization-pack/lib/questionBank';
 import { logError } from '@/lib/logger';
-import { requireAuth } from '@/lib/auth-utils';
+import { requireRole } from "@/lib/rbac";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
     const { id } = await params;
     const { searchParams } = new URL(request.url);
@@ -45,7 +45,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
     const { id: assessmentId } = await params;
     const body = await request.json();

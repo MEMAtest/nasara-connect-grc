@@ -3,6 +3,7 @@ import {
   initDatabase,
   getTcRecordRecords,
   createTcRecordRecord,
+  type TcRecordRecord,
 } from "@/lib/database";
 import {
   isValidUUID,
@@ -15,8 +16,6 @@ import {
   authenticateRequest,
   checkRateLimit,
   rateLimitExceededResponse,
-  badRequestResponse,
-  serverErrorResponse,
 } from "@/lib/api-auth";
 import { notifyRegisterCreated } from "@/lib/server/notification-builders";
 import { logError } from "@/lib/logger";
@@ -183,7 +182,7 @@ export async function POST(request: NextRequest) {
       created_by: sanitizeString(body.created_by) || undefined,
     };
 
-    const record = await createTcRecordRecord(recordData);
+    const record = await createTcRecordRecord(recordData as unknown as Omit<TcRecordRecord, 'id' | 'created_at' | 'updated_at'>);
     try {
       await notifyRegisterCreated({
         organizationId: authResult.user.organizationId,

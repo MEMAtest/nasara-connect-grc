@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPack } from "@/lib/authorization-pack-db";
-import { requireAuth, isValidUUID } from "@/lib/auth-utils";
+import { isValidUUID } from "@/lib/auth-utils";
 import { pool } from "@/lib/database";
+import { requireRole } from "@/lib/rbac";
 
 async function verifyPackOwnership(packId: string, organizationId: string) {
   const pack = await getPack(packId);
@@ -24,7 +25,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
 
     const { id: packId } = await params;
@@ -57,7 +58,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
 
     const { id: packId } = await params;

@@ -265,7 +265,7 @@ export function FormDSection3ChangeDetails({
           <div className="border rounded-lg p-4 space-y-4">
             <h3 className="text-sm font-semibold text-slate-700">Fitness & Propriety Update</h3>
             <SectionInfo title="Disclosure requirement" variant="warning">
-              <p><strong>You must notify the FCA</strong> of any matter that may affect the individual's fitness and propriety, including matters that arise after approval.</p>
+              <p><strong>You must notify the FCA</strong> of any matter that may affect the individual&apos;s fitness and propriety, including matters that arise after approval.</p>
             </SectionInfo>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -1,5 +1,6 @@
 "use client";
 
+import type React from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -102,7 +103,7 @@ const categoryLabels: Record<string, string> = {
 
 // Beautiful detailed SVG icons with gradients, shadows, and depth
 function PremiumIcon({ moduleId, accent, dark }: { moduleId: string; accent: string; dark: string }) {
-  const icons: Record<string, JSX.Element> = {
+  const icons: Record<string, React.JSX.Element> = {
     // AML - Magnifying glass with currency detection
     "aml-fundamentals": (
       <svg viewBox="0 0 64 64" className="w-full h-full">

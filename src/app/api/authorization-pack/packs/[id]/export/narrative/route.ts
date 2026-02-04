@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { isValidUUID, requireAuth } from "@/lib/auth-utils";
+import { isValidUUID } from "@/lib/auth-utils";
 import { getNarrativeExportRows, getPack } from "@/lib/authorization-pack-db";
 import { buildNarrativeBlocks } from "@/lib/authorization-pack-export";
+import { requireRole } from "@/lib/rbac";
 
 function sanitizeFilename(input: string) {
   return input.replace(/[^a-z0-9-_]+/gi, "-").replace(/-+/g, "-").toLowerCase();
@@ -38,7 +39,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
 
     const { id } = await params;

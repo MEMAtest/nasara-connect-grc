@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Dialog,
@@ -17,14 +16,12 @@ import {
 } from "@/components/ui/dialog";
 import {
   ArrowRight,
-  CircleDot,
   Download,
   Eraser,
   Loader2,
   Pencil,
   Plus,
   Save,
-  Trash2,
   GripVertical,
   Building2,
   Wallet,
@@ -32,7 +29,6 @@ import {
   Target,
   Wand2,
   X,
-  RotateCcw,
   Link2,
 } from "lucide-react";
 
@@ -268,13 +264,6 @@ export function FlowOfFundsBuilder({ packId }: FlowOfFundsBuilderProps) {
     };
     loadDiagram();
   }, [packId]);
-
-  // Reset to demo
-  const handleResetToDemo = () => {
-    setNodes(DEFAULT_PAYMENT_FLOW.nodes);
-    setConnections(DEFAULT_PAYMENT_FLOW.connections);
-    setSelectedNodeId(null);
-  };
 
   // Clear canvas (with confirmation)
   const handleClear = () => {

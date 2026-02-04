@@ -33,7 +33,7 @@ export function FormCSection2IndividualDetails({
       </CardHeader>
       <CardContent className="space-y-6">
         <SectionInfo title="Finding the IRN" variant="info">
-          <p>The Individual Reference Number (IRN) can be found on the <a href="https://register.fca.org.uk" target="_blank" rel="noopener noreferrer" className="underline">FCA Register</a> by searching for the individual's name.</p>
+          <p>The Individual Reference Number (IRN) can be found on the <a href="https://register.fca.org.uk" target="_blank" rel="noopener noreferrer" className="underline">FCA Register</a> by searching for the individual&apos;s name.</p>
         </SectionInfo>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

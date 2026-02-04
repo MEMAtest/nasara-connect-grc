@@ -31,7 +31,7 @@ export function Section1FirmDetails({
       </CardHeader>
       <CardContent className="space-y-6">
         <SectionInfo title="What to enter" variant="info">
-          <p>Enter your firm's official details exactly as registered with the FCA. The FRN can be found on the FCA Register or your authorisation letter.</p>
+          <p>Enter your firm&apos;s official details exactly as registered with the FCA. The FRN can be found on the FCA Register or your authorisation letter.</p>
         </SectionInfo>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -68,29 +68,29 @@ export function FirmSwitcher() {
     }
   }, [isLinkDialogOpen]);
 
-  const handleAddFirm = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleAddFirm = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const trimmed = name.trim();
     if (!trimmed) return;
-    addFirm(trimmed);
+    await addFirm(trimmed);
     setName("");
     setDialogOpen(false);
   };
 
-  const handleLinkProject = () => {
+  const handleLinkProject = async () => {
     if (!activeFirmId || !selectedProjectId) return;
     const project = projects.find((p) => p.id === selectedProjectId);
     if (project) {
-      linkAuthorizationProject(activeFirmId, project.id, project.name);
+      await linkAuthorizationProject(activeFirmId, project.id, project.name);
     }
     setSelectedProjectId("");
     setLinkDialogOpen(false);
   };
 
-  const handleUnlinkProject = () => {
+  const handleUnlinkProject = async () => {
     if (!activeFirmId) return;
     if (!window.confirm("Unlink this authorization project from the firm?")) return;
-    unlinkAuthorizationProject(activeFirmId);
+    await unlinkAuthorizationProject(activeFirmId);
   };
 
   return (

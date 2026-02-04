@@ -84,8 +84,8 @@ export function DailyMicroChallenge({ challenge, onComplete }: DailyMicroChallen
 
   const checkAnswer = (): boolean => {
     if (challenge.type === 'quick_decision' && challenge.content.correct !== undefined) {
-      const correctIndex = challenge.content.correct;
-      const correctOption = challenge.content.options[correctIndex];
+      const correctIndex = Number(challenge.content.correct);
+      const correctOption = challenge.content.options?.[correctIndex];
       return selectedAnswer === correctOption;
     }
 

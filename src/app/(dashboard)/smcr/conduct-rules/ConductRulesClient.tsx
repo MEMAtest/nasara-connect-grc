@@ -39,7 +39,6 @@ import {
   Download,
   Trash2,
   ChevronRight,
-  Info,
   Scale,
   Shield,
 } from "lucide-react";
@@ -180,7 +179,7 @@ export function ConductRulesClient() {
     });
   }, [firmBreaches, searchTerm, statusFilter, severityFilter]);
 
-  const handleReportBreach = () => {
+  const handleReportBreach = async () => {
     if (!formData.personId || !formData.ruleId || !formData.dateIdentified || !formData.description) {
       return;
     }
@@ -188,7 +187,7 @@ export function ConductRulesClient() {
     const rule = allConductRules.find((r) => r.id === formData.ruleId);
     if (!rule) return;
 
-    addBreach({
+    await addBreach({
       personId: formData.personId,
       personName: formData.personName,
       ruleId: formData.ruleId,
@@ -203,7 +202,7 @@ export function ConductRulesClient() {
     setReportDialogOpen(false);
   };
 
-  const handleStatusUpdate = () => {
+  const handleStatusUpdate = async () => {
     if (!selectedBreach || !updateForm.status) return;
 
     const updates: Partial<ConductBreach> = {
@@ -220,11 +219,11 @@ export function ConductRulesClient() {
       updates.resolutionDate = new Date().toISOString();
     }
 
-    updateBreach(selectedBreach.id, updates);
+    await updateBreach(selectedBreach.id, updates);
 
     // Add timeline entry
     if (updateForm.action && updateForm.description) {
-      addBreachTimelineEntry(selectedBreach.id, {
+      await addBreachTimelineEntry(selectedBreach.id, {
         date: new Date().toISOString(),
         action: updateForm.action,
         description: updateForm.description,
@@ -247,9 +246,9 @@ export function ConductRulesClient() {
     }
   };
 
-  const handleDeleteBreach = (id: string) => {
+  const handleDeleteBreach = async (id: string) => {
     if (!window.confirm("Are you sure you want to delete this breach record?")) return;
-    removeBreach(id);
+    await removeBreach(id);
     setDetailDialogOpen(false);
     setSelectedBreach(null);
   };

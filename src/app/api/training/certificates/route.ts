@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth-utils";
+import { requireRole } from "@/lib/rbac";
 import { logError, logApiRequest } from "@/lib/logger";
 import { getCertificateDownloads, initTrainingDatabase, logCertificateDownload } from "@/lib/training-database";
 
@@ -12,7 +12,7 @@ export async function GET() {
   logApiRequest("GET", "/api/training/certificates");
 
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
     if (!auth.userEmail) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
   logApiRequest("POST", "/api/training/certificates");
 
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
     if (!auth.userEmail) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

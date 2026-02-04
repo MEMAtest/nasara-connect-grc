@@ -87,7 +87,7 @@ export function Section4FunctionDetails({
               onChange={(e) => updateField("jobTitle", e.target.value)}
               placeholder="e.g., Chief Executive Officer"
             />
-            <FieldHelp>The candidate's official job title at your firm</FieldHelp>
+            <FieldHelp>The candidate&apos;s official job title at your firm</FieldHelp>
           </div>
         </div>
 

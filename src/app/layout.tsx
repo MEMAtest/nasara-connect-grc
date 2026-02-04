@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SessionProvider } from "@/components/session-provider";
+import { OrganizationProvider } from "@/components/organization-provider";
 import { SiteStructuredData } from "@/components/seo/SiteStructuredData";
 import { ToastProvider } from "@/components/toast-provider";
 import { ProgressProvider } from "@/components/progress-provider";
@@ -55,13 +56,15 @@ export default function RootLayout({
         <EnvironmentBanner />
         <SiteStructuredData />
         <SessionProvider>
-          <Suspense fallback={null}>
-            <ProgressProvider>
-              <ToastProvider>
-                {children}
-              </ToastProvider>
-            </ProgressProvider>
-          </Suspense>
+          <OrganizationProvider>
+            <Suspense fallback={null}>
+              <ProgressProvider>
+                <ToastProvider>
+                  {children}
+                </ToastProvider>
+              </ProgressProvider>
+            </Suspense>
+          </OrganizationProvider>
         </SessionProvider>
       </body>
     </html>

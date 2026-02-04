@@ -329,7 +329,7 @@ export interface CapitalCalculation {
 export const CAPITAL_CALCULATION_METHODS: CapitalCalculation = {
   methodA: {
     name: "Method A - Fixed Overheads",
-    formula: "10% of fixed overheads from previous financial year",
+    formula: "10% of fixed overheads for previous year",
     applicableTo: ["PI with payment accounts", "PI with card issuing", "PI with acquiring"],
     example: "If fixed overheads (rent, salaries, admin, depreciation) were GBP 500k last year: Method A = GBP 500k x 10% = GBP 50k"
   },
@@ -862,8 +862,9 @@ export interface ConfidenceScore {
   recommendations: string[];
 }
 
-export function calculateConfidenceScore(responses: Record<string, any>): ConfidenceScore {
-  let baseScore = 100;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function calculateConfidenceScore(responses: Record<string, { value?: any } | undefined>): ConfidenceScore {
+  const baseScore = 100;
   const adjustments: ConfidenceScore["adjustments"] = [];
   const hardGateFailures: string[] = [];
   const criticalGaps: string[] = [];
@@ -1101,7 +1102,7 @@ export const REFUSAL_PATTERNS: RefusalPattern[] = [
   }
 ];
 
-export default {
+const paymentsRegulatoryIntelligence = {
   THRESHOLD_CONDITIONS,
   CAPITAL_REQUIREMENTS,
   CAPITAL_CALCULATION_METHODS,
@@ -1110,3 +1111,5 @@ export default {
   calculateConfidenceScore,
   REFUSAL_PATTERNS
 };
+
+export default paymentsRegulatoryIntelligence;

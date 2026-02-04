@@ -1,11 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { NextRequest } from "next/server";
+import type { ApiAuthResult } from "@/lib/auth-utils";
 import type { ProfileQuestion, ProfileSection } from "@/lib/business-plan-profile";
 import { getPack, getPackDocuments, getProjectByPackId } from "@/lib/authorization-pack-db";
 import { getProfileQuestions, getProfileSections, isProfilePermissionCode } from "@/lib/business-plan-profile";
-import { isValidUUID, requireAuth } from "@/lib/auth-utils";
+import { isValidUUID } from "@/lib/auth-utils";
+import { requireRole } from "@/lib/rbac";
+
+vi.mock("@/lib/rbac", () => ({
+  requireRole: vi.fn(),
+}));
 
 vi.mock("@/lib/auth-utils", () => ({
-  requireAuth: vi.fn(),
   isValidUUID: vi.fn(),
 }));
 
@@ -53,9 +59,9 @@ describe("Validate route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    vi.mocked(requireAuth).mockResolvedValue({
-      auth: { userId: "test-user", organizationId: "test-org" },
-      error: null,
+    vi.mocked(requireRole).mockResolvedValue({
+      auth: { userId: "test-user", organizationId: "test-org" } as unknown as ApiAuthResult,
+      error: undefined,
     });
     vi.mocked(isValidUUID).mockReturnValue(true);
     vi.mocked(getPack).mockResolvedValue({
@@ -68,7 +74,7 @@ describe("Validate route", () => {
       name: "Test Project",
       permissionCode: "payments",
       permissionName: "Payments",
-      assessmentData: { businessPlanProfile: { responses: {} } },
+      assessmentData: { businessPlanProfile: { version: 1, responses: {} } },
     });
     vi.mocked(getPackDocuments).mockResolvedValue([]);
     vi.mocked(getProfileSections).mockReturnValue(sections);
@@ -84,7 +90,7 @@ describe("Validate route", () => {
       permissionName: "Payments",
       assessmentData: {
         businessPlanProfile: {
-          responses: { q1: "Yes", q2: true },
+          version: 1, responses: { q1: "Yes", q2: true },
         },
       },
     });
@@ -98,7 +104,7 @@ describe("Validate route", () => {
       { method: "POST" }
     );
 
-    const res = await POST(req, {
+    const res = await POST(req as unknown as NextRequest, {
       params: Promise.resolve({ id: "00000000-0000-0000-0000-000000000001" }),
     });
     const body = await res.json();
@@ -119,7 +125,7 @@ describe("Validate route", () => {
       permissionName: "Payments",
       assessmentData: {
         businessPlanProfile: {
-          responses: { q1: "Yes" },
+          version: 1, responses: { q1: "Yes" },
         },
       },
     });
@@ -131,7 +137,7 @@ describe("Validate route", () => {
       { method: "POST" }
     );
 
-    const res = await POST(req, {
+    const res = await POST(req as unknown as NextRequest, {
       params: Promise.resolve({ id: "00000000-0000-0000-0000-000000000001" }),
     });
     const body = await res.json();
@@ -152,7 +158,7 @@ describe("Validate route", () => {
       { method: "POST" }
     );
 
-    const res = await POST(req, { params: Promise.resolve({ id: "not-a-uuid" }) });
+    const res = await POST(req as unknown as NextRequest, { params: Promise.resolve({ id: "not-a-uuid" }) });
     const body = await res.json();
 
     expect(res.status).toBe(400);
@@ -167,7 +173,7 @@ describe("Validate route", () => {
       { method: "POST" }
     );
 
-    const res = await POST(req, {
+    const res = await POST(req as unknown as NextRequest, {
       params: Promise.resolve({ id: "00000000-0000-0000-0000-000000000001" }),
     });
     const body = await res.json();

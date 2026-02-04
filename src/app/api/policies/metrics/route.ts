@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { PolicyMetrics } from "@/lib/policies";
 import { getPoliciesForOrganization } from "@/lib/server/policy-store";
 import { getRequiredPolicies, DEFAULT_PERMISSIONS } from "@/lib/policies/permissions";
-import { requireAuth } from "@/lib/auth-utils";
+import { requireRole } from "@/lib/rbac";
 
 // Fallback metrics when database is unavailable
 const FALLBACK_METRICS: PolicyMetrics = {
@@ -17,7 +17,7 @@ const FALLBACK_METRICS: PolicyMetrics = {
 
 export async function GET() {
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
     // Get all policies for the organization
     const policies = await getPoliciesForOrganization(auth.organizationId);

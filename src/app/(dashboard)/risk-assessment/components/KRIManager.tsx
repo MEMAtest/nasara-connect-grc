@@ -25,6 +25,7 @@ import { Label } from "@/components/ui/label";
 import type { RiskKeyRiskIndicator } from "../lib/riskConstants";
 
 interface KRIManagerProps {
+  riskId: string;
   kris: RiskKeyRiskIndicator[];
   onUpdate: (kris: RiskKeyRiskIndicator[]) => Promise<void> | void;
 }

@@ -155,8 +155,8 @@ export function Section5EmploymentHistory({
 
         <SectionInfo title="Tip: Accounting for gaps" variant="info">
           <p>If there are gaps between employments, add an entry explaining what you were doing:</p>
-          <p>• Employer: "Career Break" or "Self-employed" or "Full-time study"</p>
-          <p>• Job Title: Brief description (e.g., "Travelling", "Caring responsibilities", "MBA Studies")</p>
+          <p>• Employer: &quot;Career Break&quot; or &quot;Self-employed&quot; or &quot;Full-time study&quot;</p>
+          <p>• Job Title: Brief description (e.g., &quot;Travelling&quot;, &quot;Caring responsibilities&quot;, &quot;MBA Studies&quot;)</p>
         </SectionInfo>
 
         <div className="flex justify-between">

@@ -20,7 +20,7 @@ import {
   Sparkles,
   Target,
 } from "lucide-react";
-import { DEFAULT_ORGANIZATION_ID } from "@/lib/constants";
+import { useOrganization } from "@/components/organization-provider";
 import { useCmpSummary } from "./cmp/hooks/useCmpSummary";
 import { buildCmpAlerts } from "@/lib/cmp-alerts";
 import { useAssistantContext } from "@/components/dashboard/useAssistantContext";
@@ -51,15 +51,16 @@ function formatDate(value: string | null) {
 export function ComplianceFrameworkClient() {
   const router = useRouter();
   const { setContext } = useAssistantContext();
+  const { organizationId } = useOrganization();
   const { summary, isLoading: summaryLoading, error: summaryError, refresh } = useCmpSummary({
-    organizationId: DEFAULT_ORGANIZATION_ID,
+    organizationId,
   });
   const {
     controls,
     isLoading: controlsLoading,
     error: controlsError,
     refresh: refreshControls,
-  } = useCmpControls({ organizationId: DEFAULT_ORGANIZATION_ID });
+  } = useCmpControls({ organizationId });
   const { data: policies, error: policiesError, isLoading: policiesLoading } = useSWR<StoredPolicy[]>(
     "/api/policies",
     fetcher
@@ -71,9 +72,9 @@ export function ComplianceFrameworkClient() {
   const [actionState, setActionState] = useState<ActionState>({ type: null, control: null });
 
   const alerts = useMemo(() => buildCmpAlerts(summary), [summary]);
-  const counts = mappingData?.counts ?? {};
 
   const coverage = useMemo(() => {
+    const counts = mappingData?.counts ?? {};
     return (policies ?? []).map((policy) => {
       const governance = (policy.customContent as { governance?: Record<string, unknown> } | null)?.governance ?? null;
       const effectiveDate = governance && typeof governance.effectiveDate === "string" ? governance.effectiveDate : null;
@@ -91,7 +92,7 @@ export function ComplianceFrameworkClient() {
         },
       };
     });
-  }, [policies, counts]);
+  }, [policies, mappingData?.counts]);
 
   const missingMapping = useMemo(
     () => coverage.filter((row) => row.counts.control === 0 || row.counts.risk === 0),
@@ -753,14 +754,14 @@ export function ComplianceFrameworkClient() {
         open={actionState.type === "logTest"}
         control={actionState.control}
         onClose={closeAction}
-        organizationId={DEFAULT_ORGANIZATION_ID}
+        organizationId={organizationId}
         onSuccess={refreshControls}
       />
       <RaiseFindingDialog
         open={actionState.type === "finding"}
         control={actionState.control}
         onClose={closeAction}
-        organizationId={DEFAULT_ORGANIZATION_ID}
+        organizationId={organizationId}
         onSuccess={refreshControls}
       />
     </div>

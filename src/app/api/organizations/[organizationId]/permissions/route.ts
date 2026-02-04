@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth-utils";
+import { requireRole } from "@/lib/rbac";
 import { DEFAULT_PERMISSIONS } from "@/lib/policies";
 import { getPolicyPermissions, upsertPolicyPermissions } from "@/lib/server/policy-permissions";
 
@@ -7,7 +7,7 @@ export async function GET(
   _request: Request,
   { params }: { params: Promise<{ organizationId: string }> },
 ) {
-  const { auth, error } = await requireAuth();
+  const { auth, error } = await requireRole("member");
   if (error) return error;
   const { organizationId } = await params;
   if (organizationId !== auth.organizationId) {
@@ -21,7 +21,7 @@ export async function PUT(
   request: Request,
   { params }: { params: Promise<{ organizationId: string }> },
 ) {
-  const { auth, error } = await requireAuth();
+  const { auth, error } = await requireRole("member");
   if (error) return error;
   const { organizationId } = await params;
   if (organizationId !== auth.organizationId) {

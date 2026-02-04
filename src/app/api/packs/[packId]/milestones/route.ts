@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireRole } from "@/lib/rbac";
 import {
   initDatabase,
   getProjectMilestones,
@@ -7,7 +8,7 @@ import {
   getAuthorizationPack,
 } from "@/lib/database";
 import { logError } from "@/lib/logger";
-import { requireAuth, isValidUUID } from "@/lib/auth-utils";
+import { isValidUUID } from "@/lib/auth-utils";
 
 // Valid milestone statuses
 const VALID_STATUSES = new Set(['pending', 'in_progress', 'completed', 'blocked']);
@@ -27,7 +28,7 @@ export async function GET(
 ) {
   try {
     // Authenticate the request
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
 
     await initDatabase();
@@ -76,7 +77,7 @@ export async function POST(
 ) {
   try {
     // Authenticate the request
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
 
     await initDatabase();
@@ -142,7 +143,7 @@ export async function PATCH(
 ) {
   try {
     // Authenticate the request
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
 
     await initDatabase();

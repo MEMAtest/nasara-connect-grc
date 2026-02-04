@@ -271,7 +271,7 @@ export function ContentEditorClient() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="content-type">Content Type</Label>
-                      <Select value={contentType} onValueChange={setContentType}>
+                      <Select value={contentType} onValueChange={(v) => setContentType(v as ContentType)}>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
@@ -287,7 +287,7 @@ export function ContentEditorClient() {
 
                     <div>
                       <Label htmlFor="difficulty">Difficulty Level</Label>
-                      <Select value={formData.difficulty} onValueChange={(value) => handleInputChange('difficulty', value)}>
+                      <Select value={formData.difficulty} onValueChange={(value) => handleInputChange('difficulty', value as "beginner" | "intermediate" | "advanced")}>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>

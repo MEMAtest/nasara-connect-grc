@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { badRequestResponse, serverErrorResponse } from "@/lib/api-auth";
-import { requireAuth } from "@/lib/auth-utils";
+import { requireRole } from "@/lib/rbac";
 import { sanitizeString, sanitizeText } from "@/lib/validation";
 import { createNotification, listNotifications } from "@/lib/server/notifications-store";
 import type { NotificationSeverity } from "@/lib/notifications/types";
@@ -10,7 +10,7 @@ const ALLOWED_SEVERITIES: NotificationSeverity[] = ["info", "warning", "critical
 
 export async function GET(request: NextRequest) {
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
 
     const { searchParams } = new URL(request.url);
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
 
     const body = await request.json();

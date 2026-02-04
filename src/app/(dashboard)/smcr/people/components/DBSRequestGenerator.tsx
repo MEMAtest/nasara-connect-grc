@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Shield, Download, FileCheck } from "lucide-react";
+import { Shield, Download } from "lucide-react";
 import { PersonRecord } from "../../context/SmcrDataContext";
 
 interface DBSFormData {

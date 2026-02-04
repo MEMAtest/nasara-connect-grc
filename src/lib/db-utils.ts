@@ -3,7 +3,7 @@
  * Prevents SQL injection by using strict column validation
  */
 
-import { Pool, PoolClient } from 'pg';
+import { PoolClient } from 'pg';
 import { pool } from './database';
 
 /**

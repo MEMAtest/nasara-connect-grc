@@ -3,6 +3,7 @@ import {
   initDatabase,
   getInsiderListRecords,
   createInsiderListRecord,
+  type InsiderListRecord,
 } from "@/lib/database";
 import {
   isValidUUID,
@@ -15,8 +16,6 @@ import {
   authenticateRequest,
   checkRateLimit,
   rateLimitExceededResponse,
-  badRequestResponse,
-  serverErrorResponse,
 } from "@/lib/api-auth";
 import { notifyRegisterCreated } from "@/lib/server/notification-builders";
 import { logError } from "@/lib/logger";
@@ -146,7 +145,7 @@ export async function POST(request: NextRequest) {
       created_by: sanitizeString(body.created_by) || undefined,
     };
 
-    const record = await createInsiderListRecord(recordData);
+    const record = await createInsiderListRecord(recordData as unknown as Omit<InsiderListRecord, 'id' | 'created_at' | 'updated_at'>);
     try {
       await notifyRegisterCreated({
         organizationId: authResult.user.organizationId,

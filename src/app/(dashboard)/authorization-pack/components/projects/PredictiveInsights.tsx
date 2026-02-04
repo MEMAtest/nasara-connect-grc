@@ -311,7 +311,8 @@ export function PredictiveInsights({ projectId, onScoreChange }: PredictiveInsig
             const score = prediction.sectionScores[sectionKey];
             const metadata = SECTION_METADATA[sectionKey];
             const isPassing = score !== undefined && score >= SCORE_THRESHOLDS.NEEDS_FOCUS;
-            const hasFailure = hardGateFailures.some(f => {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const hasFailure = hardGateFailures.some((_f) => {
               const section = Object.entries(prediction.sectionScores).find(([key]) => key === sectionKey);
               return section && score !== undefined && score < SCORE_THRESHOLDS.NEEDS_FOCUS;
             });

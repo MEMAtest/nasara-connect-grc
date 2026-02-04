@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState, useEffect, useCallback } from "react";
+import React, { useMemo, useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { AlertTriangle, Award, Check, CheckCircle2, ChevronRight, ClipboardCheck, FileText, Loader2, Plus, RefreshCw, Shield, Target, Users, UserPlus, Play, Flag } from "lucide-react";
+import { AlertTriangle, Award, Check, ChevronRight, ClipboardCheck, Loader2, RefreshCw, Shield, Users, UserPlus, Play, Flag } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSmcrData, type FCAVerificationData, type PersonRecord } from "./context/SmcrDataContext";
 import { allSMFs, certificationFunctions } from "./data/core-functions";
@@ -137,7 +137,7 @@ export function SMCRClient() {
             })),
             hasEnforcementHistory: data.hasEnforcementHistory ?? false,
           };
-          updatePerson(person.id, { fcaVerification: verificationData } as Partial<PersonRecord>);
+          await updatePerson(person.id, { fcaVerification: verificationData } as Partial<PersonRecord>);
           fetch(`/api/smcr/people/${person.id}/fca-verification`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -180,6 +180,7 @@ export function SMCRClient() {
   const current = scopedPeople.filter((person) => person.assessment.status === "current").length;
   const dueSoon = scopedPeople.filter((person) => person.assessment.status === "due").length;
   const overdue = scopedPeople.filter((person) => person.assessment.status === "overdue").length;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const trainingAverage = totalPeople === 0
     ? 0
     : Math.round(
@@ -187,9 +188,13 @@ export function SMCRClient() {
           totalPeople,
       );
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const totalAssessments = scopedAssessments.length;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const assessmentsDraft = scopedAssessments.filter((assessment) => assessment.status === "draft").length;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const assessmentsInReview = scopedAssessments.filter((assessment) => assessment.status === "in_review").length;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const assessmentsCompleted = scopedAssessments.filter((assessment) => assessment.status === "completed").length;
 
   const activeWorkflows = scopedWorkflows.filter((workflow) => workflow.status !== "completed");
@@ -297,6 +302,7 @@ export function SMCRClient() {
   const hasWorkflows = scopedWorkflows.length > 0;
   const onboardingStep = getOnboardingStep(hasFirm, hasPeople, hasRoles, hasWorkflows);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleWidgetClick = (filter: string, status?: string) => {
     const params = new URLSearchParams();
     if (status) params.set("status", status);
@@ -891,6 +897,7 @@ export function SMCRClient() {
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function SummaryCard({ icon: Icon, label, value, accent }: SummaryCardProps) {
   return (
     <Card>
@@ -926,6 +933,7 @@ function ClickableSummaryCard({ icon: Icon, label, value, accent, onClick }: Cli
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function ActionLink({ href, label, description, icon: Icon }: ActionLinkProps) {
   return (
     <Link

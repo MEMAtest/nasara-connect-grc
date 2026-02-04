@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/components/ui/use-toast";
-import { DEFAULT_ORGANIZATION_ID } from "@/lib/constants";
+import { useOrganization } from "@/components/organization-provider";
 import {
   DEFAULT_PERMISSIONS,
   getRequiredPolicies,
@@ -50,6 +50,7 @@ import {
   BUSINESS_PROFILE_FIELD_KEYS,
   BUSINESS_PROFILE_OPTION_LOOKUP,
   BUSINESS_PROFILE_OTHER_OPTION,
+  KNOWN_FIRM_KEYS,
   PERMISSION_KEY_SET,
   REQUIRED_GOVERNANCE_FIELDS,
   STEP_LABELS,
@@ -78,14 +79,15 @@ const DEFAULT_GOVERNANCE: GovernanceState = {
 };
 
 export function QuickCreateWizard() {
-  const { permissions, requiredPolicies, isLoading: isPermissionsLoading, refresh: refreshPermissions } = usePermissions();
+  const { organizationId } = useOrganization();
+  const { permissions, requiredPolicies, isLoading: isPermissionsLoading, refresh: refreshPermissions } = usePermissions({ organizationId });
   const {
     profile: policyProfile,
     isLoading: isProfileLoading,
     error: policyProfileError,
     save: savePolicyProfile,
     refresh: refreshPolicyProfile,
-  } = usePolicyProfile();
+  } = usePolicyProfile({ organizationId });
   const { toast } = useToast();
   const [step, setStep] = useState(0);
   const [forceSetup, setForceSetup] = useState(false);
@@ -322,7 +324,7 @@ export function QuickCreateWizard() {
       };
     }
 
-    const renderContext = {
+    const renderContext: Record<string, any> = { // eslint-disable-line @typescript-eslint/no-explicit-any
       firm: firmContext,
       firm_name: firmProfile.name.trim(),
       permissions: draftPayload?.permissions ?? effectivePermissions,
@@ -360,7 +362,7 @@ export function QuickCreateWizard() {
       missingGlobals: Array.from(missingGlobals),
       clauseVariableMap,
     };
-  }, [draftPayload?.permissions, firmContext, firmProfile.name, effectivePermissions, selectedClauses]);
+  }, [draftPayload?.permissions, draftPayload?.policyInputs, firmContext, firmProfile.name, effectivePermissions, selectedClauses]);
 
   const noteSections = useMemo(
     () => (selectedTemplate ? getNoteSections(selectedTemplate) : []),
@@ -414,7 +416,7 @@ export function QuickCreateWizard() {
   const requiredPolicyCodes = useMemo(() => requiredPolicies.map((policy) => policy.code), [requiredPolicies]);
   const goldStandardSet = useMemo(() => new Set(GOLD_STANDARD_POLICY_CODES), []);
   const availableTemplates = useMemo(
-    () => POLICY_TEMPLATES.filter((template) => goldStandardSet.has(template.code)),
+    () => POLICY_TEMPLATES.filter((template) => (goldStandardSet as Set<string>).has(template.code)),
     [goldStandardSet],
   );
   const orderedTemplates = useMemo(() => {
@@ -647,7 +649,7 @@ export function QuickCreateWizard() {
       }
 
       const permissionsResponse = await fetch(
-        `/api/organizations/${DEFAULT_ORGANIZATION_ID}/permissions`,
+        `/api/organizations/${organizationId}/permissions`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },

@@ -2,7 +2,6 @@
 
 import React, { useCallback, useMemo, useState } from "react";
 import { FCAVerificationSheet } from "@/components/fca-register/FCAVerificationSheet";
-import type { FCAVerificationResult } from "@/hooks/useFCAVerification";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,7 +29,7 @@ import { allSMFs } from "../data/core-functions";
 import { useSmcrData, RoleAssignment, RoleApprovalStatus, PersonRecord, FCAVerificationData } from "../context/SmcrDataContext";
 import { useAllMismatches } from "@/hooks/useRoleMismatchDetection";
 import { SmfIcon } from "../components/SmcrIcons";
-import { formATips, sorTips, formCTips } from "../forms/form-data";
+import { formATips, sorTips } from "../forms/form-data";
 
 interface AssignmentRow {
   role: RoleAssignment;
@@ -150,11 +149,11 @@ export function SMFsClient() {
     return { total, approved, pending, overdue };
   }, [smfAssignments]);
 
-  const handleAssign = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleAssign = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!assignForm.personId || !assignForm.smfId || !assignForm.startDate) return;
 
-    assignRole({
+    await assignRole({
       personId: assignForm.personId,
       functionId: assignForm.smfId,
       functionType: "SMF",
@@ -179,9 +178,9 @@ export function SMFsClient() {
     setAssignDialogOpen(false);
   };
 
-  const handleRemove = useCallback((id: string) => {
+  const handleRemove = useCallback(async (id: string) => {
     if (!window.confirm("Remove this SMF assignment?")) return;
-    removeRole(id);
+    await removeRole(id);
   }, [removeRole]);
 
   if (!isReady) {
@@ -414,7 +413,7 @@ export function SMFsClient() {
             onOpenChange={setVerificationSheetOpen}
             personName={verifyPerson.name}
             irn={verifyPerson.irn}
-            onVerified={(result) => {
+            onVerified={async (result) => {
               const verificationData: FCAVerificationData = {
                 status: result.status,
                 lastChecked: result.lastChecked,
@@ -428,7 +427,7 @@ export function SMFsClient() {
                 })),
                 hasEnforcementHistory: result.hasEnforcementHistory,
               };
-              updatePerson(verificationPersonId, {
+              await updatePerson(verificationPersonId, {
                 fcaVerification: verificationData,
               } as Partial<PersonRecord>);
               fetch(`/api/smcr/people/${verificationPersonId}/fca-verification`, {

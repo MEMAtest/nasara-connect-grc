@@ -86,7 +86,7 @@ export function evaluateCondition(
     if (!Array.isArray(value)) {
       return false;
     }
-    return value.includes(condition.includes);
+    return value.includes(condition.includes as JsonValue);
   }
 
   // Numeric comparison operators

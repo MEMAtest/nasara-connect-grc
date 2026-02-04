@@ -81,7 +81,7 @@ export function PSDSection3Arrangements({
             3.2 You must attach the following (as applicable) *
           </Label>
           <SectionInfo title="Note" variant="info">
-            <p>In most cases we expect to receive the individual's employment contract. Where not available, supply a letter of appointment or offer letter as confirmation.</p>
+            <p>In most cases we expect to receive the individual&apos;s employment contract. Where not available, supply a letter of appointment or offer letter as confirmation.</p>
             <p className="mt-1">Ensure the document clearly identifies the role, responsibilities, and start date.</p>
           </SectionInfo>
 

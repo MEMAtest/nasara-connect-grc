@@ -4,12 +4,12 @@ import {
   getRegisterSubscriptions,
   setRegisterSubscription,
 } from "@/lib/database";
-import { requireAuth } from "@/lib/auth-utils";
+import { requireRole } from "@/lib/rbac";
 
 // GET /api/register-hub/subscriptions - Get organization's subscriptions
 export async function GET() {
   // Require authentication
-  const { auth, error } = await requireAuth();
+  const { auth, error } = await requireRole("member");
   if (error) return error;
 
   try {
@@ -31,7 +31,7 @@ export async function GET() {
 // POST /api/register-hub/subscriptions - Enable/disable a register
 export async function POST(request: NextRequest) {
   // Require authentication
-  const { auth, error } = await requireAuth();
+  const { auth, error } = await requireRole("member");
   if (error) return error;
 
   try {
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
 // PATCH /api/register-hub/subscriptions - Bulk enable registers
 export async function PATCH(request: NextRequest) {
   // Require authentication
-  const { auth, error } = await requireAuth();
+  const { auth, error } = await requireRole("member");
   if (error) return error;
 
   try {

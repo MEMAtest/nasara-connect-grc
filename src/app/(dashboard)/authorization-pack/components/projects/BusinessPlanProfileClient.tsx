@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { NasaraLoader } from "@/components/ui/nasara-loader";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -137,6 +137,7 @@ const SECTION_TAB_LABELS: Record<string, string> = {
   investments: "Investments",
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const SECTION_TAB_STYLES: Record<string, string> = {
   scope: "data-[state=active]:bg-teal-600 data-[state=active]:border-teal-600 data-[state=active]:text-white",
   model: "data-[state=active]:bg-blue-600 data-[state=active]:border-blue-600 data-[state=active]:text-white",
@@ -577,7 +578,7 @@ export function BusinessPlanProfileClient({
     };
   };
 
-  const isResponseComplete = (question: ProfileQuestion, response: ProfileResponse | undefined) => {
+  const isResponseComplete = useCallback((question: ProfileQuestion, response: ProfileResponse | undefined) => {
     if (
       question.allowOther &&
       ((Array.isArray(response) && response.includes("other")) || response === "other")
@@ -588,9 +589,9 @@ export function BusinessPlanProfileClient({
     if (Array.isArray(response)) return response.length > 0;
     if (typeof response === "string") return response.trim().length > 0;
     return true;
-  };
+  }, [otherTextValues]);
 
-  const formatAnswer = (question: ProfileQuestion, response: ProfileResponse | undefined) => {
+  const formatAnswer = useCallback((question: ProfileQuestion, response: ProfileResponse | undefined) => {
     if (response === undefined || response === null) return "";
     const resolveOption = (value: string) => {
       if (value === "other") {
@@ -614,7 +615,7 @@ export function BusinessPlanProfileClient({
       return option?.label ?? response;
     }
     return String(response);
-  };
+  }, [otherTextValues]);
 
   const sectionProgress = useMemo(
     () =>
@@ -630,7 +631,7 @@ export function BusinessPlanProfileClient({
           remaining: Math.max(total - answered, 0),
         };
       }),
-    [sections, questions, responses, otherTextValues]
+    [sections, questions, responses, isResponseComplete]
   );
 
   const incompleteSections = sectionProgress.filter((section) => section.remaining > 0);
@@ -639,7 +640,7 @@ export function BusinessPlanProfileClient({
       questions
         .filter((question) => question.required)
         .filter((question) => !isResponseComplete(question, responses[question.id])),
-    [questions, responses, otherTextValues]
+    [questions, responses, isResponseComplete]
   );
   const remainingRequired = questions
     .filter((question) => question.required)
@@ -668,7 +669,7 @@ export function BusinessPlanProfileClient({
           };
         })
         .filter((section) => section.items.length > 0),
-    [sections, questions, responses, otherTextValues]
+    [sections, questions, responses, isResponseComplete, formatAnswer]
   );
   const monthlyOpex = parseNumericValue(responses["pay-monthly-opex"]);
   const monthlyVolume = parseNumericValue(responses["pay-volume"]);
@@ -1625,7 +1626,7 @@ export function BusinessPlanProfileClient({
                   <div>
                     <p className="text-sm font-semibold text-slate-900">Answer summary</p>
                     <p className="text-xs text-slate-500">
-                      Review what you've answered before generating the opinion pack.
+                      Review what you&apos;ve answered before generating the opinion pack.
                     </p>
                   </div>
                   <CollapsibleTrigger asChild>
@@ -1829,7 +1830,7 @@ export function ProfileInsightsPanel({ insights }: { insights: ProfileInsights }
               </ResponsiveContainer>
             </div>
             <p className="text-xs text-slate-500">
-              Tip: selecting "draft complete" or similar readiness options boosts the section score.
+              Tip: selecting &quot;draft complete&quot; or similar readiness options boosts the section score.
             </p>
           </CollapsibleInsightCard>
         </div>

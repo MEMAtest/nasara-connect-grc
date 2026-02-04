@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Upload, FileSpreadsheet, AlertTriangle, CheckCircle, Loader2, X } from "lucide-react";
+import { Upload, FileSpreadsheet, AlertTriangle, CheckCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -188,7 +188,7 @@ export function BatchScreeningModal({
 
       setParsedRecords(records);
       setStep("configure");
-    } catch (err) {
+    } catch {
       setError("Failed to parse CSV file. Please ensure it is a valid CSV format.");
     }
   };

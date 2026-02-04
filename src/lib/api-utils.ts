@@ -3,7 +3,7 @@
 // ============================================================================
 
 import { NextRequest, NextResponse } from "next/server";
-import { z, ZodError, ZodType } from "zod";
+import { z, ZodError, ZodIssue, ZodType } from "zod";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import { logError } from "./logger";
@@ -44,7 +44,7 @@ export function handleApiError(error: unknown): NextResponse {
         error: {
           code: "VALIDATION_ERROR",
           message: "Invalid input",
-          fields: error.errors.map((e) => ({
+          fields: error.issues.map((e: ZodIssue) => ({
             path: e.path.join("."),
             message: e.message,
           })),
@@ -111,7 +111,7 @@ function getRatelimiter(config?: Partial<RateLimitConfig>): Ratelimit | null {
         key,
         new Ratelimit({
           redis: Redis.fromEnv(),
-          limiter: Ratelimit.slidingWindow(requests, window),
+          limiter: Ratelimit.slidingWindow(requests, window as "60 s"),
           analytics: true,
         })
       );
@@ -263,7 +263,7 @@ export interface AuditLogEntry {
 }
 
 export async function logAuditEvent(
-  pool: any,
+  pool: { query: (text: string, values?: unknown[]) => Promise<unknown> },
   entry: AuditLogEntry
 ): Promise<void> {
   try {

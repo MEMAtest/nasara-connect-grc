@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth-utils";
+import { requireRole } from "@/lib/rbac";
 import { logError } from "@/lib/logger";
 
 const COMPANIES_HOUSE_API = "https://api.company-information.service.gov.uk";
@@ -35,7 +35,7 @@ interface CompanyProfile {
 
 export async function GET(request: NextRequest) {
   try {
-    const { error } = await requireAuth();
+    const { error } = await requireRole("member");
     if (error) return error;
 
     const searchParams = request.nextUrl.searchParams;

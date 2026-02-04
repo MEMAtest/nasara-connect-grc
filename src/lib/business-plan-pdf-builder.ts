@@ -699,6 +699,7 @@ function renderSection(
     const uploadedEvidence = section.evidence.filter(
       (e) => e.status === "uploaded" || e.status === "approved"
     );
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const missingEvidence = section.evidence.filter(
       (e) => e.status !== "uploaded" && e.status !== "approved"
     );

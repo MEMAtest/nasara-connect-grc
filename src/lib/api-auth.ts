@@ -3,12 +3,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/auth";
-import {
-  isAuthDisabled,
-  deriveOrganizationIdFromEmail,
-  DEFAULT_ORG_ID,
-} from "@/lib/auth-utils";
+import { requireRole } from "@/lib/rbac";
 
 export interface AuthenticatedRequest {
   userId: string;
@@ -25,48 +20,32 @@ export interface AuthResult {
 /**
  * Authenticate an API request and return user info
  * Returns error response if authentication fails
+ * @deprecated Prefer requireAuth() from auth-utils in new routes.
  */
 export async function authenticateRequest(
   request: NextRequest
 ): Promise<AuthResult> {
-  // In development with auth disabled, return default user
-  if (isAuthDisabled()) {
-    return {
-      authenticated: true,
-      user: {
-        userId: "dev-user",
-        userEmail: "dev@example.com",
-        // Keep legacy default-org data visible in auth-disabled mode.
-        organizationId: DEFAULT_ORG_ID,
-      },
-    };
-  }
-
-  const session = await auth();
-
-  if (!session?.user) {
+  const method = request.method?.toUpperCase?.() ?? "GET";
+  const minRole = method === "GET" || method === "HEAD" ? "viewer" : "member";
+  const { auth, error } = await requireRole(minRole);
+  if (error || !auth.authenticated) {
     return {
       authenticated: false,
-      error: NextResponse.json(
-        { error: "Unauthorized. Please sign in." },
-        { status: 401 }
-      ),
+      error:
+        error ??
+        NextResponse.json(
+          { error: "Unauthorized. Please sign in." },
+          { status: 401 }
+        ),
     };
   }
-
-  // Derive organization ID from the user email.
-  // Do not accept org overrides from query params (prevents tenant hopping).
-  const derivedOrgId = session.user.email
-    ? await deriveOrganizationIdFromEmail(session.user.email)
-    : DEFAULT_ORG_ID;
-  const organizationId = derivedOrgId;
 
   return {
     authenticated: true,
     user: {
-      userId: session.user.id || session.user.email || "unknown",
-      userEmail: session.user.email || "",
-      organizationId,
+      userId: auth.userId || "unknown",
+      userEmail: auth.userEmail || "",
+      organizationId: auth.organizationId,
     },
   };
 }

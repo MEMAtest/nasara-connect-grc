@@ -68,7 +68,7 @@ export function PSDSection5FitnessPropriety({
         <SectionInfo title="Disclosure Requirements" variant="warning">
           <p>Give the <strong>widest possible interpretation</strong> to all questions. The FCA treats non-disclosure very seriously.</p>
           <p className="mt-1"><strong>If in doubt, disclose.</strong> It is better to disclose something that turns out to be irrelevant than to fail to disclose something material.</p>
-          <p className="mt-1">Include matters both in the UK and overseas. Any "Yes" answers require full details in Section 6.</p>
+          <p className="mt-1">Include matters both in the UK and overseas. Any &quot;Yes&quot; answers require full details in Section 6.</p>
           <p className="mt-1 text-xs">A standard DBS (Disclosure and Barring Service) check should be carried out for individuals not currently approved as an SMF manager. Evidence should be available on request.</p>
         </SectionInfo>
 

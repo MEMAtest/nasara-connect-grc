@@ -26,6 +26,48 @@ import {
 } from 'lucide-react';
 import { kycFundamentalsModule } from '../content/kyc-fundamentals';
 
+// Typed view of the KYC module for safe property access
+interface KYCModuleView {
+  title: string;
+  description: string;
+  duration?: number;
+  tags?: string[];
+  hook?: {
+    title?: string;
+    content: string;
+    keyQuestion?: string;
+  };
+  lessons: Array<{
+    title: string;
+    content: string | {
+      learningPoint?: string;
+      keyConcepts?: Array<string | { term: string; definition: string }>;
+      [key: string]: unknown;
+    };
+    [key: string]: unknown;
+  }>;
+  practiceScenarios?: Array<{
+    id: string;
+    title: string;
+    context?: string;
+    situation?: string;
+    challenge?: string;
+    question?: string;
+    options: Array<string | { text?: string; isCorrect?: boolean }>;
+    correctAnswer?: number;
+    explanation?: string;
+    learningPoints?: string[];
+    [key: string]: unknown;
+  }>;
+  summary?: {
+    keyTakeaways?: string[];
+    nextSteps?: string[];
+    quickReference?: string[];
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
+}
+
 interface KYCTrainingRendererProps {
   onComplete?: (score: number, timeSpent: number) => void;
   onProgress?: (progress: number) => void;
@@ -38,7 +80,7 @@ export function KYCTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
   const [showResults, setShowResults] = useState<Record<string, boolean>>({});
   const [completedSections, setCompletedSections] = useState<Set<number>>(new Set());
 
-  const kycModule = kycFundamentalsModule;
+  const kycModule = kycFundamentalsModule as unknown as KYCModuleView;
 
   const sections = useMemo(
     () => ([
@@ -46,7 +88,7 @@ export function KYCTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
       { id: 'pillars', title: 'CDD Pillars' },
       { id: 'risk', title: 'Risk Assessment' },
       { id: 'monitoring', title: 'Ongoing Monitoring' },
-      ...kycModule.practiceScenarios.map((_, index) => ({
+      ...(kycModule.practiceScenarios ?? []).map((_: unknown, index: number) => ({
         id: `scenario-${index}`,
         title: `Scenario ${index + 1}`,
       })),
@@ -79,9 +121,10 @@ export function KYCTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
   const activeSectionId = sections[currentSection]?.id ?? String(currentSection);
 
   const calculateScenarioScore = () => {
-    const totalScenarios = kycModule.practiceScenarios.length;
+    const scenarios = kycModule.practiceScenarios ?? [];
+    const totalScenarios = scenarios.length;
     if (!totalScenarios) return 100;
-    const correctCount = kycModule.practiceScenarios.reduce((count, scenario) => {
+    const correctCount = scenarios.reduce((count: number, scenario) => {
       return selectedAnswers[scenario.id] === scenario.correctAnswer ? count + 1 : count;
     }, 0);
     return Math.round((correctCount / totalScenarios) * 100);
@@ -94,7 +137,7 @@ export function KYCTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
     onProgress?.(((newCompleted.size) / totalSections) * 100);
 
     if (newCompleted.size === totalSections) {
-      onComplete?.(calculateScenarioScore(), kycModule.duration);
+      onComplete?.(calculateScenarioScore(), kycModule.duration ?? 0);
     }
   };
 
@@ -110,7 +153,7 @@ export function KYCTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
           <AlertTriangle className="w-4 h-4 mr-2" />
           Critical Alert
         </Badge>
-        <h2 className="text-3xl font-bold text-red-600 mb-4">{kycModule.hook.title}</h2>
+        <h2 className="text-3xl font-bold text-red-600 mb-4">{kycModule.hook?.title}</h2>
       </div>
 
       <Card className="border-red-200 bg-red-50">
@@ -131,14 +174,14 @@ export function KYCTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
           </div>
 
           <div className="prose max-w-none">
-            {kycModule.hook.content.split('\n\n').map((paragraph, index) => (
+            {(kycModule.hook?.content ?? '').split('\n\n').map((paragraph: string, index: number) => (
               <p key={index} className="mb-4 text-gray-700">{paragraph}</p>
             ))}
           </div>
 
           <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
             <h4 className="font-semibold text-yellow-800 mb-2">Critical Question:</h4>
-            <p className="text-yellow-700">{kycModule.hook.keyQuestion}</p>
+            <p className="text-yellow-700">{kycModule.hook?.keyQuestion}</p>
           </div>
         </CardContent>
       </Card>
@@ -151,7 +194,7 @@ export function KYCTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
       <div className="space-y-6">
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold mb-4">{lesson.title}</h2>
-          <p className="text-lg text-muted-foreground">{lesson.content.learningPoint}</p>
+          <p className="text-lg text-muted-foreground">{typeof lesson.content === 'object' ? lesson.content.learningPoint : lesson.content}</p>
         </div>
 
         <div className="grid md:grid-cols-3 gap-6 mb-8">
@@ -252,10 +295,10 @@ export function KYCTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
           </CardHeader>
           <CardContent>
             <div className="grid md:grid-cols-2 gap-4">
-              {lesson.content.keyConcepts.map((concept, index) => (
+              {(typeof lesson.content === 'object' ? lesson.content.keyConcepts ?? [] : []).map((concept: string | { term: string; definition: string }, index: number) => (
                 <div key={index} className="p-4 border rounded-lg">
-                  <h4 className="font-semibold text-blue-600 mb-2">{concept.term}</h4>
-                  <p className="text-sm text-gray-600">{concept.definition}</p>
+                  <h4 className="font-semibold text-blue-600 mb-2">{typeof concept === 'string' ? concept : concept.term}</h4>
+                  <p className="text-sm text-gray-600">{typeof concept === 'string' ? '' : concept.definition}</p>
                 </div>
               ))}
             </div>
@@ -271,7 +314,7 @@ export function KYCTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
       <div className="space-y-6">
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold mb-4">{lesson.title}</h2>
-          <p className="text-lg text-muted-foreground">{lesson.content.learningPoint}</p>
+          <p className="text-lg text-muted-foreground">{typeof lesson.content === 'object' ? lesson.content.learningPoint : lesson.content}</p>
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -394,7 +437,7 @@ export function KYCTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
       <div className="space-y-6">
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold mb-4">{lesson.title}</h2>
-          <p className="text-lg text-muted-foreground">{lesson.content.learningPoint}</p>
+          <p className="text-lg text-muted-foreground">{typeof lesson.content === 'object' ? lesson.content.learningPoint : lesson.content}</p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-6 mb-8">
@@ -517,7 +560,7 @@ export function KYCTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
     );
   };
 
-  const renderScenario = (scenario: typeof kycModule.practiceScenarios[0], index: number) => {
+  const renderScenario = (scenario: NonNullable<KYCModuleView['practiceScenarios']>[number], index: number) => {
     const isAnswered = showResults[scenario.id];
     const selectedAnswer = selectedAnswers[scenario.id];
     const isCorrect = selectedAnswer === scenario.correctAnswer;
@@ -535,7 +578,7 @@ export function KYCTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
           <div className="mb-6 p-4 bg-gray-50 border rounded-lg">
             <h4 className="font-semibold mb-3">Situation:</h4>
             <div className="prose max-w-none">
-              {scenario.situation.split('\n\n').map((paragraph, pIndex) => (
+              {(scenario.situation ?? '').split('\n\n').map((paragraph: string, pIndex: number) => (
                 <p key={pIndex} className="mb-2 text-sm">{paragraph}</p>
               ))}
             </div>
@@ -544,7 +587,7 @@ export function KYCTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
           <div className="mb-6">
             <h4 className="font-semibold mb-3">{scenario.challenge}</h4>
             <div className="space-y-2">
-              {scenario.options.map((option, optionIndex) => (
+              {scenario.options.map((option: string | { text?: string; isCorrect?: boolean }, optionIndex: number) => (
                 <Button
                   key={optionIndex}
                   variant={isAnswered ?
@@ -560,7 +603,7 @@ export function KYCTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
                 >
                   <div className="flex items-start">
                     <span className="mr-3 font-semibold">{String.fromCharCode(65 + optionIndex)}.</span>
-                    <span>{option}</span>
+                    <span>{typeof option === 'string' ? option : option.text ?? ''}</span>
                     {isAnswered && optionIndex === scenario.correctAnswer && (
                       <CheckCircle className="w-5 h-5 text-green-600 ml-auto" />
                     )}
@@ -582,7 +625,7 @@ export function KYCTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
               <div>
                 <h5 className="font-semibold mb-2">Key Learning Points:</h5>
                 <ul className="text-sm space-y-1">
-                  {scenario.learningPoints.map((point, pointIndex) => (
+                  {(scenario.learningPoints ?? []).map((point: string, pointIndex: number) => (
                     <li key={pointIndex} className="flex items-start">
                       <CheckCircle className="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
                       {point}
@@ -613,7 +656,7 @@ export function KYCTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
         </CardHeader>
         <CardContent>
           <ul className="space-y-3">
-            {kycModule.summary.keyTakeaways.map((takeaway, index) => (
+            {(kycModule.summary?.keyTakeaways ?? []).map((takeaway: string, index: number) => (
               <li key={index} className="flex items-start">
                 <CheckCircle className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
                 <span>{takeaway}</span>
@@ -633,7 +676,7 @@ export function KYCTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
           </CardHeader>
           <CardContent>
             <ul className="space-y-2">
-              {kycModule.summary.nextSteps.map((step, index) => (
+              {(kycModule.summary?.nextSteps ?? []).map((step: string, index: number) => (
                 <li key={index} className="flex items-start">
                   <Target className="w-4 h-4 text-blue-500 mr-2 mt-0.5 flex-shrink-0" />
                   <span className="text-sm">{step}</span>
@@ -652,7 +695,7 @@ export function KYCTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
           </CardHeader>
           <CardContent>
             <ul className="space-y-2">
-              {kycModule.summary.quickReference.map((ref, index) => (
+              {(kycModule.summary?.quickReference ?? []).map((ref: string, index: number) => (
                 <li key={index} className="flex items-start">
                   <Shield className="w-4 h-4 text-purple-500 mr-2 mt-0.5 flex-shrink-0" />
                   <span className="text-sm font-mono bg-gray-100 px-2 py-1 rounded">{ref}</span>
@@ -687,7 +730,7 @@ export function KYCTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
         if (!sectionId.startsWith('scenario-')) return null;
         const scenarioIndex = Number(sectionId.replace('scenario-', ''));
         if (!Number.isFinite(scenarioIndex)) return null;
-        const scenario = kycModule.practiceScenarios[scenarioIndex];
+        const scenario = kycModule.practiceScenarios?.[scenarioIndex];
         if (!scenario) return null;
         content = renderScenario(scenario, scenarioIndex);
         break;
@@ -777,7 +820,7 @@ export function KYCTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
         </div>
 
         <div className="flex items-center gap-2 mb-4">
-          {kycModule.tags.map((tag) => (
+          {(kycModule.tags ?? []).map((tag: string) => (
             <Badge key={tag} variant="outline">{tag}</Badge>
           ))}
         </div>

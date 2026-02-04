@@ -7,14 +7,13 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
-import { persistDocumentBlob, removeDocumentBlob } from "../utils/document-storage";
 import { allSMFs, certificationFunctions, prescribedResponsibilities } from "../data/core-functions";
 import { getWorkflowTemplate, WorkflowFieldDefinition } from "../data/workflow-templates";
 import { getAllFitnessQuestions } from "../data/fitness-framework";
 import { getTrainingModulesForRole, TrainingModuleDefinition, TrainingStatus } from "../data/role-training";
+import { smcrApi } from "@/lib/smcr-api-client";
 
 export type DocumentCategory = "cv" | "dbs" | "reference" | "qualification" | "id" | "other";
 
@@ -385,8 +384,6 @@ interface SmcrDataState {
   settings: SmcrSettings;
 }
 
-const STORAGE_KEY = "smcr-data-v1";
-
 const defaultSettings: SmcrSettings = {
   verificationStaleThresholdDays: 30,
 };
@@ -409,44 +406,44 @@ interface SmcrContextValue {
   firms: Firm[];
   activeFirmId: string | null;
   setActiveFirm: (id: string) => void;
-  addFirm: (name: string) => string;
-  linkAuthorizationProject: (firmId: string, projectId: string, projectName: string) => void;
-  unlinkAuthorizationProject: (firmId: string) => void;
-  addPerson: (input: NewPersonInput) => string;
-  updatePerson: (id: string, updates: Partial<PersonRecord>) => void;
+  addFirm: (name: string) => Promise<string>;
+  linkAuthorizationProject: (firmId: string, projectId: string, projectName: string) => Promise<void>;
+  unlinkAuthorizationProject: (firmId: string) => Promise<void>;
+  addPerson: (input: NewPersonInput) => Promise<string>;
+  updatePerson: (id: string, updates: Partial<PersonRecord>) => Promise<void>;
   removePerson: (id: string) => Promise<void>;
   attachDocuments: (personId: string, payload: DocumentUploadPayload[]) => Promise<void>;
   removeDocument: (id: string) => Promise<void>;
-  assignRole: (input: NewRoleInput) => RoleAssignment;
-  updateRole: (id: string, updates: Partial<RoleAssignment>) => void;
-  removeRole: (id: string) => void;
-  launchWorkflow: (input: WorkflowLaunchInput) => WorkflowInstance;
-  updateWorkflowStep: (input: WorkflowStepUpdateInput) => void;
-  removeWorkflow: (id: string) => void;
+  assignRole: (input: NewRoleInput) => Promise<RoleAssignment>;
+  updateRole: (id: string, updates: Partial<RoleAssignment>) => Promise<void>;
+  removeRole: (id: string) => Promise<void>;
+  launchWorkflow: (input: WorkflowLaunchInput) => Promise<WorkflowInstance>;
+  updateWorkflowStep: (input: WorkflowStepUpdateInput) => Promise<void>;
+  removeWorkflow: (id: string) => Promise<void>;
   attachWorkflowEvidence: (workflowId: string, stepId: string, file: File) => Promise<WorkflowDocument>;
   removeWorkflowEvidence: (id: string) => Promise<void>;
-  updateWorkflowField: (input: WorkflowFieldUpdateInput) => void;
-  updateWorkflowChecklist: (input: WorkflowChecklistUpdateInput) => void;
-  updateFpChecklist: (input: FpChecklistUpdateInput) => void;
-  updateReferenceRequest: (input: ReferenceRequestUpdateInput) => void;
-  updateCriminalCheck: (input: CriminalCheckUpdateInput) => void;
-  updateTrainingPlan: (input: TrainingPlanUpdateInput) => void;
-  updateStatementOfResponsibilities: (input: StatementOfResponsibilitiesUpdateInput) => void;
-  updateTrainingItemStatus: (personId: string, itemId: string, status: TrainingStatus) => void;
-  startAssessment: (input: NewAssessmentInput) => FitnessAssessmentRecord;
-  updateAssessmentResponse: (input: AssessmentResponseUpdate) => void;
-  updateAssessmentStatus: (input: AssessmentStatusUpdate) => void;
-  removeAssessment: (id: string) => void;
+  updateWorkflowField: (input: WorkflowFieldUpdateInput) => Promise<void>;
+  updateWorkflowChecklist: (input: WorkflowChecklistUpdateInput) => Promise<void>;
+  updateFpChecklist: (input: FpChecklistUpdateInput) => Promise<void>;
+  updateReferenceRequest: (input: ReferenceRequestUpdateInput) => Promise<void>;
+  updateCriminalCheck: (input: CriminalCheckUpdateInput) => Promise<void>;
+  updateTrainingPlan: (input: TrainingPlanUpdateInput) => Promise<void>;
+  updateStatementOfResponsibilities: (input: StatementOfResponsibilitiesUpdateInput) => Promise<void>;
+  updateTrainingItemStatus: (personId: string, itemId: string, status: TrainingStatus) => Promise<void>;
+  startAssessment: (input: NewAssessmentInput) => Promise<FitnessAssessmentRecord>;
+  updateAssessmentResponse: (input: AssessmentResponseUpdate) => Promise<void>;
+  updateAssessmentStatus: (input: AssessmentStatusUpdate) => Promise<void>;
+  removeAssessment: (id: string) => Promise<void>;
   // Breach management
-  addBreach: (input: NewBreachInput) => ConductBreach;
-  updateBreach: (id: string, updates: Partial<ConductBreach>) => void;
-  addBreachTimelineEntry: (breachId: string, entry: Omit<BreachTimelineEntry, "id">) => void;
-  removeBreach: (id: string) => void;
+  addBreach: (input: NewBreachInput) => Promise<ConductBreach>;
+  updateBreach: (id: string, updates: Partial<ConductBreach>) => Promise<void>;
+  addBreachTimelineEntry: (breachId: string, entry: Omit<BreachTimelineEntry, "id">) => Promise<void>;
+  removeBreach: (id: string) => Promise<void>;
   // Group entities
   groupEntities: GroupEntity[];
-  addGroupEntity: (input: Omit<GroupEntity, "id">) => GroupEntity;
-  updateGroupEntity: (id: string, updates: Partial<GroupEntity>) => void;
-  removeGroupEntity: (id: string) => void;
+  addGroupEntity: (input: Omit<GroupEntity, "id">) => Promise<GroupEntity>;
+  updateGroupEntity: (id: string, updates: Partial<GroupEntity>) => Promise<void>;
+  removeGroupEntity: (id: string) => Promise<void>;
   // Settings
   updateSettings: (updates: Partial<SmcrSettings>) => void;
 }
@@ -463,6 +460,9 @@ type NewPersonInput = {
   startDate?: string;
   hireDate?: string;
   endDate?: string;
+  notes?: string;
+  isPsd?: boolean;
+  psdStatus?: PsdStatus;
   assessment?: Partial<PersonAssessment>;
 };
 
@@ -705,129 +705,387 @@ function calculateTrainingCompletion(plan: TrainingPlanItem[]): number {
   return Math.round((completed / plan.length) * 100);
 }
 
+function toIsoString(value: unknown): string | undefined {
+  if (!value) return undefined;
+  const date = value instanceof Date ? value : new Date(value as string);
+  if (Number.isNaN(date.getTime())) return undefined;
+  return date.toISOString();
+}
+
+function parseJsonArray(value: unknown): unknown[] {
+  if (Array.isArray(value)) return value;
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
+function parseJsonObject(value: unknown): Record<string, unknown> {
+  if (!value) return {};
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      return parsed && typeof parsed === "object" ? (parsed as Record<string, unknown>) : {};
+    } catch {
+      return {};
+    }
+  }
+  if (typeof value === "object") return value as Record<string, unknown>;
+  return {};
+}
+
+function mapFirmRecord(record: Record<string, unknown>): Firm {
+  return {
+    id: String(record.id),
+    name: String(record.name ?? "Unnamed Firm"),
+    createdAt: toIsoString(record.created_at) ?? new Date().toISOString(),
+    authorizationProjectId: (record.authorization_project_id as string | undefined) ?? undefined,
+    authorizationProjectName: (record.authorization_project_name as string | undefined) ?? undefined,
+  };
+}
+
+function mapTrainingItem(record: Record<string, unknown>): TrainingPlanItem {
+  return {
+    id: String(record.id),
+    moduleId: (record.module_id as string | undefined) ?? "",
+    title: String(record.title ?? "Training item"),
+    required: Boolean(record.required),
+    roleContext: (record.role_context as string | undefined) ?? "",
+    status: (record.status as TrainingStatus) ?? "not_started",
+    dueDate: toIsoString(record.due_date),
+  };
+}
+
+function mapPersonRecord(record: Record<string, unknown>, trainingPlan: TrainingPlanItem[]): PersonRecord {
+  const computedCompletion = calculateTrainingCompletion(trainingPlan);
+  const assessment = sanitizeAssessment({
+    status: (record.assessment_status as AssessmentStatus) ?? "not_required",
+    lastAssessment: toIsoString(record.last_assessment),
+    nextAssessment: toIsoString(record.next_assessment),
+    trainingCompletion:
+      trainingPlan.length > 0
+        ? computedCompletion
+        : typeof record.training_completion === "number"
+          ? record.training_completion
+          : computedCompletion,
+  });
+
+  return {
+    id: String(record.id),
+    firmId: String(record.firm_id),
+    employeeId: String(record.employee_id ?? ""),
+    name: String(record.name ?? "Unnamed"),
+    email: (record.email as string | undefined) ?? "",
+    department: (record.department as string | undefined) ?? "",
+    title: (record.title as string | undefined) ?? undefined,
+    phone: (record.phone as string | undefined) ?? undefined,
+    address: (record.address as string | undefined) ?? undefined,
+    lineManager: (record.line_manager as string | undefined) ?? undefined,
+    startDate: toIsoString(record.start_date),
+    hireDate: toIsoString(record.hire_date),
+    endDate: toIsoString(record.end_date),
+    irn: (record.irn as string | undefined) ?? undefined,
+    notes: (record.notes as string | undefined) ?? undefined,
+    isPsd: Boolean(record.is_psd ?? record.isPsd),
+    psdStatus: record.psd_status ? (record.psd_status as PsdStatus) : undefined,
+    fcaVerification: (record.fca_verification as FCAVerificationData | undefined) ?? undefined,
+    assessment,
+    createdAt: toIsoString(record.created_at) ?? new Date().toISOString(),
+    updatedAt: toIsoString(record.updated_at) ?? new Date().toISOString(),
+    trainingPlan,
+  };
+}
+
+function mapDocumentRecord(record: Record<string, unknown>): DocumentMetadata {
+  return {
+    id: String(record.id),
+    personId: String(record.person_id),
+    category: record.category as DocumentCategory,
+    name: String(record.name ?? "Document"),
+    type: (record.type as string | undefined) ?? "application/octet-stream",
+    size: typeof record.size === "number" ? record.size : 0,
+    uploadedAt: toIsoString(record.uploaded_at) ?? new Date().toISOString(),
+    notes: (record.notes as string | undefined) ?? undefined,
+  };
+}
+
+function mapRoleRecord(record: Record<string, unknown>): RoleAssignment {
+  return {
+    id: String(record.id),
+    firmId: String(record.firm_id),
+    personId: String(record.person_id),
+    functionId: String(record.function_id),
+    functionType: record.function_type as RoleType,
+    functionLabel: (record.function_label as string | undefined) ?? String(record.function_id),
+    entity: (record.entity as string | undefined) ?? undefined,
+    startDate: toIsoString(record.start_date) ?? new Date().toISOString(),
+    endDate: toIsoString(record.end_date),
+    assessmentDate: toIsoString(record.assessment_date),
+    approvalStatus: (record.approval_status as RoleApprovalStatus) ?? "draft",
+    notes: (record.notes as string | undefined) ?? undefined,
+    assignedAt: toIsoString(record.assigned_at) ?? new Date().toISOString(),
+    updatedAt: toIsoString(record.updated_at) ?? new Date().toISOString(),
+  };
+}
+
+function mapWorkflowRecord(record: Record<string, unknown>): WorkflowInstance {
+  return {
+    id: String(record.id),
+    firmId: String(record.firm_id),
+    templateId: String(record.template_id),
+    name: String(record.name ?? "Workflow"),
+    summary: (record.summary as string | undefined) ?? "",
+    ownerPersonId: (record.owner_person_id as string | undefined) ?? undefined,
+    ownerName: (record.owner_name as string | undefined) ?? undefined,
+    launchedAt: toIsoString(record.launched_at) ?? new Date().toISOString(),
+    dueDate: toIsoString(record.due_date),
+    status: (record.status as WorkflowStatus) ?? "not_started",
+    steps: parseJsonArray(record.steps) as WorkflowStepInstance[],
+    successCriteria: (parseJsonArray(record.success_criteria) as string[]) ?? [],
+    trigger: (record.trigger_event as string | undefined) ?? undefined,
+  };
+}
+
+function mapWorkflowDocumentRecord(record: Record<string, unknown>): WorkflowDocument {
+  return {
+    id: String(record.id),
+    firmId: String(record.firm_id),
+    workflowId: String(record.workflow_id),
+    stepId: String(record.step_id),
+    name: String(record.name ?? "Document"),
+    type: (record.type as string | undefined) ?? "application/octet-stream",
+    size: typeof record.size === "number" ? record.size : 0,
+    uploadedAt: toIsoString(record.uploaded_at) ?? new Date().toISOString(),
+    summary: (record.summary as string | undefined) ?? "",
+    status: (record.status as "pending" | "reviewed") ?? "pending",
+  };
+}
+
+function mapAssessmentRecord(record: Record<string, unknown>): FitnessAssessmentRecord {
+  return {
+    id: String(record.id),
+    firmId: String(record.firm_id),
+    personId: String(record.person_id),
+    personName: String(record.person_name ?? ""),
+    personRole: (record.person_role as string | undefined) ?? undefined,
+    status: (record.status as FitnessAssessmentStatus) ?? "draft",
+    assessmentDate: toIsoString(record.assessment_date),
+    nextDueDate: toIsoString(record.next_due_date),
+    reviewer: (record.reviewer as string | undefined) ?? undefined,
+    overallDetermination: (record.overall_determination as FitnessAssessmentRecord["overallDetermination"]) ?? undefined,
+    conditions: parseJsonArray(record.conditions) as string[],
+    createdAt: toIsoString(record.created_at) ?? new Date().toISOString(),
+    updatedAt: toIsoString(record.updated_at) ?? new Date().toISOString(),
+    responses: parseJsonArray(record.responses) as FitnessAssessmentResponse[],
+  };
+}
+
+function mapBreachRecord(record: Record<string, unknown>): ConductBreach {
+  const details = parseJsonObject(record.details);
+  const timeline = parseJsonArray(record.timeline) as BreachTimelineEntry[];
+  return {
+    id: String(record.id),
+    firmId: String(record.firm_id),
+    personId: (record.person_id as string | undefined) ?? "",
+    personName: String(details.personName ?? details.person_name ?? ""),
+    ruleId: String(record.rule_id ?? details.ruleId ?? details.rule_id ?? ""),
+    ruleName: String(details.ruleName ?? details.rule_name ?? ""),
+    dateIdentified: String(details.dateIdentified ?? details.date_identified ?? toIsoString(record.created_at) ?? ""),
+    dateOccurred: details.dateOccurred ? String(details.dateOccurred) : undefined,
+    description: String(details.description ?? ""),
+    severity: String(record.severity ?? "") as BreachSeverity,
+    status: String(record.status ?? "") as BreachStatus,
+    investigator: details.investigator ? String(details.investigator) : undefined,
+    findings: details.findings ? String(details.findings) : undefined,
+    recommendations: Array.isArray(details.recommendations) ? (details.recommendations as string[]) : undefined,
+    disciplinaryAction: details.disciplinaryAction ? String(details.disciplinaryAction) : undefined,
+    trainingRequired: typeof details.trainingRequired === "boolean" ? details.trainingRequired : undefined,
+    fcaNotification: typeof details.fcaNotification === "boolean" ? details.fcaNotification : undefined,
+    fcaNotificationDate: details.fcaNotificationDate ? String(details.fcaNotificationDate) : undefined,
+    resolutionDate: details.resolutionDate ? String(details.resolutionDate) : undefined,
+    lessonsLearned: details.lessonsLearned ? String(details.lessonsLearned) : undefined,
+    timeline,
+    createdAt: toIsoString(record.created_at) ?? new Date().toISOString(),
+    updatedAt: toIsoString(record.updated_at) ?? new Date().toISOString(),
+  };
+}
+
+function mapGroupEntityRecord(record: Record<string, unknown>): GroupEntity {
+  const ownershipRaw = record.ownership_percent;
+  const ownershipPercent =
+    typeof ownershipRaw === "number"
+      ? ownershipRaw
+      : typeof ownershipRaw === "string"
+        ? Number(ownershipRaw)
+        : undefined;
+  return {
+    id: String(record.id),
+    name: String(record.name ?? "Entity"),
+    type: (record.type as GroupEntity["type"]) ?? "holding",
+    parentId: (record.parent_id as string | undefined) ?? undefined,
+    ownershipPercent: Number.isNaN(ownershipPercent) ? undefined : ownershipPercent,
+    country: (record.country as string | undefined) ?? undefined,
+    linkedFirmId: (record.linked_firm_id as string | undefined) ?? undefined,
+    linkedProjectId: (record.linked_project_id as string | undefined) ?? undefined,
+    linkedProjectName: (record.linked_project_name as string | undefined) ?? undefined,
+    regulatoryStatus: (record.regulatory_status as string | undefined) ?? undefined,
+    isExternal: typeof record.is_external === "boolean" ? record.is_external : undefined,
+  };
+}
+
 export function SmcrDataProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<SmcrDataState>(emptyState);
   const [isReady, setIsReady] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [firms, setFirms] = useState<Firm[]>([]);
   const [activeFirmId, setActiveFirmId] = useState<string | null>(null);
-  const isInitialised = useRef(false);
 
   useEffect(() => {
-    if (!isInitialised.current && typeof window !== "undefined") {
-      isInitialised.current = true;
+    let isMounted = true;
+
+    const loadFirms = async () => {
+      setIsReady(false);
+      setLoadError(null);
       try {
-        const stored = window.localStorage.getItem(STORAGE_KEY);
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (parsed && typeof parsed === "object" && "data" in parsed && "firms" in parsed) {
-            const snapshot = parsed as { data: SmcrDataState; firms: Firm[]; activeFirmId: string | null };
-            setState({
-              people: (snapshot.data.people ?? []).map((person) => ({
-                ...person,
-                trainingPlan: person.trainingPlan ?? [],
-                assessment: sanitizeAssessment(person.assessment),
-              })),
-              documents: snapshot.data.documents ?? [],
-              roles: snapshot.data.roles ?? [],
-              workflows: snapshot.data.workflows ?? [],
-              workflowDocuments: snapshot.data.workflowDocuments ?? [],
-              assessments: snapshot.data.assessments ?? [],
-              breaches: snapshot.data.breaches ?? [],
-              groupEntities: (snapshot.data as Partial<SmcrDataState>).groupEntities ?? [],
-              settings: { ...defaultSettings, ...snapshot.data.settings },
-            });
-            setFirms(snapshot.firms ?? []);
-            setActiveFirmId(snapshot.activeFirmId ?? snapshot.firms?.[0]?.id ?? null);
-          } else if (parsed && typeof parsed === "object" && "people" in parsed) {
-            const legacy = parsed as SmcrDataState;
-            const defaultFirmId = createId("firm");
-            const defaultFirm: Firm = {
-              id: defaultFirmId,
-              name: "Default Firm",
-              createdAt: new Date().toISOString(),
-            };
-            setState({
-              people: (legacy.people ?? []).map((person) => ({
-                ...person,
-                firmId: (person as PersonRecord).firmId ?? defaultFirmId,
-                trainingPlan: (person as PersonRecord).trainingPlan ?? [],
-                assessment: sanitizeAssessment(person.assessment),
-              })),
-              documents: legacy.documents ?? [],
-              roles: (legacy.roles ?? []).map((role) => ({
-                ...role,
-                firmId: (role as RoleAssignment).firmId ?? defaultFirmId,
-              })),
-              workflows: (legacy.workflows ?? []).map((workflow) => ({
-                ...workflow,
-                firmId: (workflow as WorkflowInstance).firmId ?? defaultFirmId,
-              })),
-              workflowDocuments: (legacy.workflowDocuments ?? []).map((doc) => ({
-                ...doc,
-                firmId: (doc as WorkflowDocument).firmId ?? defaultFirmId,
-              })),
-              assessments: (legacy.assessments ?? []).map((assessment) => ({
-                ...assessment,
-                firmId: (assessment as FitnessAssessmentRecord).firmId ?? defaultFirmId,
-              })),
-              breaches: ((legacy as unknown as { breaches?: ConductBreach[] }).breaches ?? []).map((breach) => ({
-                ...breach,
-                firmId: breach.firmId ?? defaultFirmId,
-              })),
-              groupEntities: [],
-              settings: defaultSettings,
-            });
-            setFirms([defaultFirm]);
-            setActiveFirmId(defaultFirmId);
-          }
+        const firmResponse = await smcrApi.getFirms();
+        const firmRecords = Array.isArray(firmResponse) ? firmResponse : [];
+        const mapped = firmRecords.map((firm) => mapFirmRecord(firm as Record<string, unknown>));
+        if (!isMounted) return;
+        setFirms(mapped);
+        const initialFirmId = mapped[0]?.id ?? null;
+        setActiveFirmId(initialFirmId);
+        if (!initialFirmId) {
+          setState(emptyState);
+          setIsReady(true);
         }
       } catch (error) {
-        if (process.env.NODE_ENV !== "production") {
-          console.error("Failed to hydrate SMCR store from localStorage", error);
-        }
-      } finally {
+        if (!isMounted) return;
+        setLoadError(error instanceof Error ? error.message : "Failed to load SMCR firms");
         setIsReady(true);
       }
-    } else if (typeof window === "undefined") {
-      setIsReady(true);
-    }
+    };
+
+    loadFirms();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   useEffect(() => {
-    if (!isReady || typeof window === "undefined") return;
-    try {
-      window.localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({ data: state, firms, activeFirmId }),
-      );
-    } catch (error) {
-      if (process.env.NODE_ENV !== "production") {
-        console.error("Failed to persist SMCR store to localStorage", error);
+    if (!activeFirmId) return;
+    let isMounted = true;
+
+    const loadFirmData = async () => {
+      setIsReady(false);
+      setLoadError(null);
+      try {
+        const [peopleRaw, rolesRaw, workflowsRaw, assessmentsRaw, breachesRaw, groupEntitiesRaw] =
+          await Promise.all([
+            smcrApi.getPeople(activeFirmId),
+            smcrApi.getRoles(activeFirmId),
+            smcrApi.getWorkflows(activeFirmId),
+            smcrApi.getAssessments(activeFirmId),
+            smcrApi.getBreaches(activeFirmId),
+            smcrApi.getGroupEntities(),
+          ]);
+
+        const peopleRecords = Array.isArray(peopleRaw) ? peopleRaw : [];
+        const roleRecords = Array.isArray(rolesRaw) ? rolesRaw : [];
+        const workflowRecords = Array.isArray(workflowsRaw) ? workflowsRaw : [];
+        const assessmentRecords = Array.isArray(assessmentsRaw) ? assessmentsRaw : [];
+        const breachRecords = Array.isArray(breachesRaw)
+          ? breachesRaw
+          : Array.isArray((breachesRaw as { breaches?: unknown[] })?.breaches)
+            ? (breachesRaw as { breaches?: unknown[] }).breaches ?? []
+            : [];
+        const groupEntityRecords = Array.isArray(groupEntitiesRaw) ? groupEntitiesRaw : [];
+
+        const documentsByPerson = await Promise.all(
+          peopleRecords.map((person) =>
+            smcrApi.getPersonDocuments(String((person as Record<string, unknown>).id)).catch(() => [])
+          )
+        );
+        const trainingByPerson = await Promise.all(
+          peopleRecords.map((person) =>
+            smcrApi.getTrainingItems(String((person as Record<string, unknown>).id)).catch(() => [])
+          )
+        );
+        const workflowDocumentsByWorkflow = await Promise.all(
+          workflowRecords.map((workflow) =>
+            smcrApi.getWorkflowDocuments(String((workflow as Record<string, unknown>).id)).catch(() => [])
+          )
+        );
+
+        const documents = documentsByPerson.flatMap((docs) =>
+          Array.isArray(docs) ? docs.map((doc) => mapDocumentRecord(doc as Record<string, unknown>)) : []
+        );
+        const trainingMap = new Map<string, TrainingPlanItem[]>();
+        peopleRecords.forEach((person, idx) => {
+          const trainingItems = Array.isArray(trainingByPerson[idx])
+            ? trainingByPerson[idx].map((item) => mapTrainingItem(item as Record<string, unknown>))
+            : [];
+          trainingMap.set(String((person as Record<string, unknown>).id), trainingItems);
+        });
+
+        const people = peopleRecords.map((person) =>
+          mapPersonRecord(
+            person as Record<string, unknown>,
+            trainingMap.get(String((person as Record<string, unknown>).id)) ?? []
+          )
+        );
+        const roles = roleRecords.map((role) => mapRoleRecord(role as Record<string, unknown>));
+        const workflows = workflowRecords.map((workflow) => mapWorkflowRecord(workflow as Record<string, unknown>));
+        const workflowDocuments = workflowDocumentsByWorkflow.flatMap((docs) =>
+          Array.isArray(docs) ? docs.map((doc) => mapWorkflowDocumentRecord(doc as Record<string, unknown>)) : []
+        );
+        const assessments = assessmentRecords.map((record) =>
+          mapAssessmentRecord(record as Record<string, unknown>)
+        );
+        const breaches = breachRecords.map((record) => mapBreachRecord(record as Record<string, unknown>));
+        const groupEntities = groupEntityRecords.map((entity) =>
+          mapGroupEntityRecord(entity as Record<string, unknown>)
+        );
+
+        if (!isMounted) return;
+        setState({
+          people,
+          documents,
+          roles,
+          workflows,
+          workflowDocuments,
+          assessments,
+          breaches,
+          groupEntities,
+          settings: defaultSettings,
+        });
+      } catch (error) {
+        if (!isMounted) return;
+        setLoadError(error instanceof Error ? error.message : "Failed to load SMCR data");
+      } finally {
+        if (isMounted) setIsReady(true);
       }
-    }
-  }, [state, firms, activeFirmId, isReady]);
-
-  const generateEmployeeId = useCallback(() => {
-    const maxCurrent = state.people.reduce((acc, person) => {
-      const match = person.employeeId.match(/EMP(\d+)/i);
-      if (!match) return acc;
-      const parsed = parseInt(match[1], 10);
-      return Number.isNaN(parsed) ? acc : Math.max(acc, parsed);
-    }, 0);
-    const nextNumber = String(maxCurrent + 1).padStart(3, "0");
-    return `EMP${nextNumber}`;
-  }, [state.people]);
-
-  const addFirm = useCallback((name: string) => {
-    const trimmed = name.trim() || "Unnamed Firm";
-    const newFirm: Firm = {
-      id: createId("firm"),
-      name: trimmed,
-      createdAt: new Date().toISOString(),
     };
-    setFirms((prev) => [...prev, newFirm]);
-    setActiveFirmId(newFirm.id);
-    return newFirm.id;
+
+    loadFirmData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [activeFirmId]);
+
+  const addFirm = useCallback(async (name: string) => {
+    const trimmed = name.trim() || "Unnamed Firm";
+    const firmResponse = await smcrApi.createFirm(trimmed);
+    const mapped = mapFirmRecord(firmResponse as Record<string, unknown>);
+    setFirms((prev) => [...prev, mapped]);
+    setActiveFirmId(mapped.id);
+    return mapped.id;
   }, []);
 
   const setActiveFirm = useCallback((id: string) => {
@@ -835,7 +1093,11 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const linkAuthorizationProject = useCallback(
-    (firmId: string, projectId: string, projectName: string) => {
+    async (firmId: string, projectId: string, projectName: string) => {
+      await smcrApi.updateFirm(firmId, {
+        authorizationProjectId: projectId,
+        authorizationProjectName: projectName,
+      });
       setFirms((prev) =>
         prev.map((firm) =>
           firm.id === firmId
@@ -847,7 +1109,11 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
     []
   );
 
-  const unlinkAuthorizationProject = useCallback((firmId: string) => {
+  const unlinkAuthorizationProject = useCallback(async (firmId: string) => {
+    await smcrApi.updateFirm(firmId, {
+      authorizationProjectId: null,
+      authorizationProjectName: null,
+    });
     setFirms((prev) =>
       prev.map((firm) =>
         firm.id === firmId
@@ -858,45 +1124,86 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const addPerson = useCallback(
-    (input: NewPersonInput) => {
+    async (input: NewPersonInput) => {
       if (!activeFirmId) {
         throw new Error("Select a firm before adding a person");
       }
-      const id = createId("person");
-      const timestamp = new Date().toISOString();
-      const employeeId = generateEmployeeId();
+
+      const payload = {
+        name: input.name.trim(),
+        email: input.email.trim(),
+        department: input.department,
+        title: input.title?.trim() || undefined,
+        phone: input.phone?.trim() || undefined,
+        address: input.address?.trim() || undefined,
+        lineManager: input.lineManager?.trim() || undefined,
+        irn: input.irn?.trim() || undefined,
+        notes: input.notes?.trim() || undefined,
+        startDate: input.startDate,
+        hireDate: input.hireDate ?? input.startDate,
+        endDate: input.endDate,
+        isPsd: input.isPsd ?? false,
+        psdStatus: input.psdStatus ?? undefined,
+      };
+
+      const created = await smcrApi.createPerson(activeFirmId, payload);
+      const createdRecord = created as Record<string, unknown>;
+
+      if (input.assessment) {
+        await smcrApi.updatePerson(String(createdRecord.id), {
+          assessmentStatus: input.assessment.status,
+          lastAssessment: input.assessment.lastAssessment,
+          nextAssessment: input.assessment.nextAssessment,
+          trainingCompletion: input.assessment.trainingCompletion,
+        });
+      }
+
+      const person = mapPersonRecord(
+        {
+          ...createdRecord,
+          assessment_status: input.assessment?.status ?? createdRecord.assessment_status,
+          last_assessment: input.assessment?.lastAssessment ?? createdRecord.last_assessment,
+          next_assessment: input.assessment?.nextAssessment ?? createdRecord.next_assessment,
+          training_completion: input.assessment?.trainingCompletion ?? createdRecord.training_completion,
+          is_psd: input.isPsd ?? createdRecord.is_psd,
+          psd_status: input.psdStatus ?? createdRecord.psd_status,
+        },
+        []
+      );
+
       setState((prev) => ({
         ...prev,
-        people: [
-          ...prev.people,
-          {
-            id,
-            firmId: activeFirmId,
-            employeeId,
-            name: input.name.trim(),
-            email: input.email.trim(),
-            department: input.department,
-            title: input.title?.trim() || undefined,
-            phone: input.phone?.trim() || undefined,
-            address: input.address?.trim() || undefined,
-            lineManager: input.lineManager?.trim() || undefined,
-            irn: input.irn?.trim() || undefined,
-            startDate: input.startDate,
-            hireDate: input.hireDate ?? input.startDate,
-            endDate: input.endDate,
-            assessment: sanitizeAssessment(input.assessment),
-            createdAt: timestamp,
-            updatedAt: timestamp,
-            trainingPlan: [],
-          },
-        ],
+        people: [...prev.people, person],
       }));
-      return id;
+
+      return person.id;
     },
-    [generateEmployeeId, activeFirmId],
+    [activeFirmId],
   );
 
-  const updatePerson = useCallback((id: string, updates: Partial<PersonRecord>) => {
+  const updatePerson = useCallback(async (id: string, updates: Partial<PersonRecord>) => {
+    await smcrApi.updatePerson(id, {
+      name: updates.name,
+      email: updates.email,
+      department: updates.department,
+      title: updates.title,
+      phone: updates.phone,
+      address: updates.address,
+      lineManager: updates.lineManager,
+      startDate: updates.startDate,
+      hireDate: updates.hireDate,
+      endDate: updates.endDate,
+      notes: updates.notes,
+      assessmentStatus: updates.assessment?.status,
+      lastAssessment: updates.assessment?.lastAssessment,
+      nextAssessment: updates.assessment?.nextAssessment,
+      trainingCompletion: updates.assessment?.trainingCompletion,
+      irn: updates.irn,
+      fcaVerification: updates.fcaVerification,
+      isPsd: updates.isPsd,
+      psdStatus: updates.psdStatus,
+    });
+
     const timestamp = new Date().toISOString();
     setState((prev) => ({
       ...prev,
@@ -918,7 +1225,7 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
 
   const removePerson = useCallback(
     async (id: string) => {
-      const documentsToRemove = state.documents.filter((doc) => doc.personId === id);
+      await smcrApi.deletePerson(id);
       setState((prev) => ({
         ...prev,
         people: prev.people.filter((person) => person.id !== id),
@@ -926,49 +1233,42 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
         roles: prev.roles.filter((role) => role.personId !== id),
         breaches: prev.breaches.filter((breach) => breach.personId !== id),
       }));
-      await Promise.all(documentsToRemove.map((doc) => removeDocumentBlob(doc.id)));
     },
-    [state.documents],
+    [],
   );
 
   const attachDocuments = useCallback(
     async (personId: string, payload: DocumentUploadPayload[]) => {
       if (payload.length === 0) return;
-      const timestamp = new Date().toISOString();
-      const newDocuments: DocumentMetadata[] = [];
+      const createdDocs = await Promise.all(
+        payload.map((item) =>
+          smcrApi.uploadPersonDocument(personId, {
+            file: item.file,
+            category: item.category,
+            notes: item.notes,
+          })
+        )
+      );
 
-      for (const item of payload) {
-        const docId = createId("doc");
-        await persistDocumentBlob(docId, item.file);
-        newDocuments.push({
-          id: docId,
-          personId,
-          category: item.category,
-          name: item.file.name,
-          type: item.file.type || "application/octet-stream",
-          size: item.file.size,
-          uploadedAt: timestamp,
-          notes: item.notes,
-        });
-      }
+      const mapped = createdDocs.map((doc) => mapDocumentRecord(doc as Record<string, unknown>));
 
       setState((prev) => ({
         ...prev,
-        documents: [...prev.documents, ...newDocuments],
+        documents: [...prev.documents, ...mapped],
       }));
     },
     [],
   );
 
   const removeDocument = useCallback(async (id: string) => {
+    await smcrApi.deleteDocument(id);
     setState((prev) => ({
       ...prev,
       documents: prev.documents.filter((doc) => doc.id !== id),
     }));
-    await removeDocumentBlob(id);
   }, []);
 
-  const assignRole = useCallback((input: NewRoleInput) => {
+  const assignRole = useCallback(async (input: NewRoleInput) => {
     if (!activeFirmId) {
       throw new Error("Select a firm before assigning roles");
     }
@@ -1010,10 +1310,7 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
     const label = found
       ? `${"smf_number" in found ? found.smf_number : found.cf_number} - ${found.title}`
       : input.functionId;
-    const timestamp = new Date().toISOString();
-    const role: RoleAssignment = {
-      id: createId("role"),
-       firmId: activeFirmId,
+    const roleResponse = await smcrApi.createRole(activeFirmId, {
       personId: input.personId,
       functionId: input.functionId,
       functionType: input.functionType,
@@ -1024,10 +1321,26 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
       assessmentDate: input.assessmentDate,
       approvalStatus: input.approvalStatus,
       notes: input.notes,
-      assignedAt: timestamp,
-      updatedAt: timestamp,
-    };
+    });
+    const role = mapRoleRecord(roleResponse as Record<string, unknown>);
     const modules = getTrainingModulesForRole(input.functionId);
+    let trainingAdditions: TrainingPlanItem[] = [];
+    if (modules.length > 0) {
+      const draftItems = buildTrainingPlanItems(role.id, modules);
+      const created = await smcrApi.createTrainingItems(
+        input.personId,
+        draftItems.map((item) => ({
+          moduleId: item.moduleId,
+          title: item.title,
+          required: item.required,
+          roleContext: item.roleContext,
+          status: item.status,
+          dueDate: item.dueDate,
+        }))
+      );
+      const createdItems = Array.isArray(created) ? created : [created];
+      trainingAdditions = createdItems.map((item) => mapTrainingItem(item as Record<string, unknown>));
+    }
 
     setState((prev) => {
       const updatedRoles = [...prev.roles, role];
@@ -1035,9 +1348,8 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
         if (person.id !== input.personId) return person;
 
         let trainingPlan = person.trainingPlan;
-        if (modules.length > 0) {
-          const additions = buildTrainingPlanItems(role.id, modules);
-          trainingPlan = mergeTrainingPlan(trainingPlan, additions);
+        if (trainingAdditions.length > 0) {
+          trainingPlan = mergeTrainingPlan(trainingPlan, trainingAdditions);
         }
 
         return {
@@ -1047,7 +1359,7 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
             ...person.assessment,
             trainingCompletion: calculateTrainingCompletion(trainingPlan),
           },
-          updatedAt: timestamp,
+          updatedAt: new Date().toISOString(),
         };
       });
 
@@ -1058,9 +1370,19 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
       };
     });
     return role;
-  }, [activeFirmId]);
+  }, [activeFirmId, state.roles]);
 
-  const updateRole = useCallback((id: string, updates: Partial<RoleAssignment>) => {
+  const updateRole = useCallback(async (id: string, updates: Partial<RoleAssignment>) => {
+    await smcrApi.updateRole(id, {
+      functionLabel: updates.functionLabel,
+      entity: updates.entity,
+      startDate: updates.startDate,
+      endDate: updates.endDate,
+      assessmentDate: updates.assessmentDate,
+      approvalStatus: updates.approvalStatus,
+      notes: updates.notes,
+    });
+
     const timestamp = new Date().toISOString();
     setState((prev) => ({
       ...prev,
@@ -1076,7 +1398,8 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
-  const removeRole = useCallback((id: string) => {
+  const removeRole = useCallback(async (id: string) => {
+    await smcrApi.deleteRole(id);
     setState((prev) => {
       const roleToRemove = prev.roles.find((role) => role.id === id);
       const remainingRoles = prev.roles.filter((role) => role.id !== id);
@@ -1104,7 +1427,7 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const launchWorkflow = useCallback((input: WorkflowLaunchInput) => {
+  const launchWorkflow = useCallback(async (input: WorkflowLaunchInput) => {
     if (!activeFirmId) {
       throw new Error("Select a firm before launching workflows");
     }
@@ -1114,7 +1437,6 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
     }
 
     const owner = input.ownerPersonId ? state.people.find((person) => person.id === input.ownerPersonId) : undefined;
-    const timestamp = new Date().toISOString();
 
     const steps: WorkflowStepInstance[] = template.steps.map((step) => {
       const fpChecklist = step.id === "generate-fp-checklist" ? createDefaultFpChecklistDraft() : undefined;
@@ -1158,21 +1480,19 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
       };
     });
 
-    const workflow: WorkflowInstance = {
-      id: createId("workflow"),
-      firmId: activeFirmId,
-      templateId: template.id,
-      name: input.customName?.trim() || template.title,
-      summary: template.summary,
-      ownerPersonId: owner?.id,
-      ownerName: owner?.name,
-      launchedAt: timestamp,
-      dueDate: input.dueDate,
-      status: "not_started",
-      steps,
-      successCriteria: template.successCriteria,
-      trigger: template.trigger,
-    };
+      const workflowResponse = await smcrApi.createWorkflow(activeFirmId, {
+        templateId: template.id,
+        name: input.customName?.trim() || template.title,
+        summary: template.summary,
+        ownerPersonId: owner?.id,
+        ownerName: owner?.name,
+        dueDate: input.dueDate,
+        steps,
+        successCriteria: template.successCriteria,
+        triggerEvent: template.trigger,
+      });
+
+    const workflow = mapWorkflowRecord(workflowResponse as Record<string, unknown>);
 
     setState((prev) => ({
       ...prev,
@@ -1182,13 +1502,16 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
     return workflow;
   }, [state.people, activeFirmId]);
 
-  const updateWorkflowStep = useCallback(({ workflowId, stepId, status, notes }: WorkflowStepUpdateInput) => {
+  const updateWorkflowStep = useCallback(async ({ workflowId, stepId, status, notes }: WorkflowStepUpdateInput) => {
     const timestamp = new Date().toISOString();
+    let updatedSteps: WorkflowStepInstance[] | null = null;
+    let nextStatus: WorkflowStatus | null = null;
+
     setState((prev) => {
       const updatedWorkflows = prev.workflows.map((workflow) => {
         if (workflow.id !== workflowId) return workflow;
 
-        const updatedSteps = workflow.steps.map((step) => {
+        const steps = workflow.steps.map((step) => {
           if (step.id !== stepId) return step;
           return {
             ...step,
@@ -1198,8 +1521,8 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
           };
         });
 
-        const totalSteps = updatedSteps.length;
-        const completedSteps = updatedSteps.filter((step) => step.status === "completed").length;
+        const totalSteps = steps.length;
+        const completedSteps = steps.filter((step) => step.status === "completed").length;
 
         let workflowStatus: WorkflowStatus = "not_started";
         if (completedSteps === totalSteps && totalSteps > 0) {
@@ -1208,9 +1531,12 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
           workflowStatus = "in_progress";
         }
 
+        updatedSteps = steps;
+        nextStatus = workflowStatus;
+
         return {
           ...workflow,
-          steps: updatedSteps,
+          steps,
           status: workflowStatus,
         };
       });
@@ -1220,9 +1546,14 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
         workflows: updatedWorkflows,
       };
     });
+
+    if (updatedSteps) {
+      await smcrApi.updateWorkflow(workflowId, { steps: updatedSteps, status: nextStatus });
+    }
   }, []);
 
-  const removeWorkflow = useCallback((id: string) => {
+  const removeWorkflow = useCallback(async (id: string) => {
+    await smcrApi.deleteWorkflow(id);
     setState((prev) => ({
       ...prev,
       workflows: prev.workflows.filter((workflow) => workflow.id !== id),
@@ -1235,9 +1566,6 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
     if (!workflow) {
       throw new Error("Workflow not found");
     }
-    const docId = createId("wdoc");
-    await persistDocumentBlob(docId, file);
-    const timestamp = new Date().toISOString();
     const lowerName = file.name.toLowerCase();
     let summary = "Awaiting review";
     if (lowerName.includes("dbs")) {
@@ -1248,18 +1576,13 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
       summary = "Detected regulatory reference";
     }
 
-    const document: WorkflowDocument = {
-      id: docId,
-      firmId: workflow.firmId,
-      workflowId,
+    const uploaded = await smcrApi.uploadWorkflowDocument(workflowId, {
+      file,
       stepId,
-      name: file.name,
-      type: file.type || "application/octet-stream",
-      size: file.size,
-      uploadedAt: timestamp,
-      status: summary === "Awaiting review" ? "pending" : "reviewed",
       summary,
-    };
+      status: summary === "Awaiting review" ? "pending" : "reviewed",
+    });
+    const document = mapWorkflowDocumentRecord(uploaded as Record<string, unknown>);
 
     setState((prev) => ({
       ...prev,
@@ -1270,21 +1593,21 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
   }, [state.workflows]);
 
   const removeWorkflowEvidence = useCallback(async (id: string) => {
+    await smcrApi.deleteDocument(id);
     setState((prev) => ({
       ...prev,
       workflowDocuments: prev.workflowDocuments.filter((doc) => doc.id !== id),
     }));
-    await removeDocumentBlob(id);
   }, []);
 
-  const updateWorkflowField = useCallback(({ workflowId, stepId, fieldId, value }: WorkflowFieldUpdateInput) => {
-    setState((prev) => ({
-      ...prev,
-      workflows: prev.workflows.map((workflow) => {
-        if (workflow.id !== workflowId) return workflow;
-        return {
-          ...workflow,
-          steps: workflow.steps.map((step) => {
+  const updateWorkflowField = useCallback(
+    async ({ workflowId, stepId, fieldId, value }: WorkflowFieldUpdateInput) => {
+      let updatedSteps: WorkflowStepInstance[] | null = null;
+      setState((prev) => ({
+        ...prev,
+        workflows: prev.workflows.map((workflow) => {
+          if (workflow.id !== workflowId) return workflow;
+          const steps = workflow.steps.map((step) => {
             if (step.id !== stepId || !step.form) return step;
             return {
               ...step,
@@ -1297,20 +1620,29 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
                   : field,
               ),
             };
-          }),
-        };
-      }),
-    }));
-  }, []);
+          });
+          updatedSteps = steps;
+          return {
+            ...workflow,
+            steps,
+          };
+        }),
+      }));
+      if (updatedSteps) {
+        await smcrApi.updateWorkflow(workflowId, { steps: updatedSteps });
+      }
+    },
+    [],
+  );
 
-  const updateWorkflowChecklist = useCallback(({ workflowId, stepId, checklistId, completed }: WorkflowChecklistUpdateInput) => {
-    setState((prev) => ({
-      ...prev,
-      workflows: prev.workflows.map((workflow) => {
-        if (workflow.id !== workflowId) return workflow;
-        return {
-          ...workflow,
-          steps: workflow.steps.map((step) => {
+  const updateWorkflowChecklist = useCallback(
+    async ({ workflowId, stepId, checklistId, completed }: WorkflowChecklistUpdateInput) => {
+      let updatedSteps: WorkflowStepInstance[] | null = null;
+      setState((prev) => ({
+        ...prev,
+        workflows: prev.workflows.map((workflow) => {
+          if (workflow.id !== workflowId) return workflow;
+          const steps = workflow.steps.map((step) => {
             if (step.id !== stepId || !step.checklist) return step;
             return {
               ...step,
@@ -1323,20 +1655,29 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
                   : item,
               ),
             };
-          }),
-        };
-      }),
-    }));
-  }, []);
+          });
+          updatedSteps = steps;
+          return {
+            ...workflow,
+            steps,
+          };
+        }),
+      }));
+      if (updatedSteps) {
+        await smcrApi.updateWorkflow(workflowId, { steps: updatedSteps });
+      }
+    },
+    [],
+  );
 
-  const updateFpChecklist = useCallback(({ workflowId, stepId, updater }: FpChecklistUpdateInput) => {
-    setState((prev) => ({
-      ...prev,
-      workflows: prev.workflows.map((workflow) => {
-        if (workflow.id !== workflowId) return workflow;
-        return {
-          ...workflow,
-          steps: workflow.steps.map((step) => {
+  const updateFpChecklist = useCallback(
+    async ({ workflowId, stepId, updater }: FpChecklistUpdateInput) => {
+      let updatedSteps: WorkflowStepInstance[] | null = null;
+      setState((prev) => ({
+        ...prev,
+        workflows: prev.workflows.map((workflow) => {
+          if (workflow.id !== workflowId) return workflow;
+          const steps = workflow.steps.map((step) => {
             if (step.id !== stepId || !step.fpChecklist) return step;
             const nextDraft = updater(step.fpChecklist);
             return {
@@ -1346,20 +1687,29 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
                 lastUpdated: new Date().toISOString(),
               },
             };
-          }),
-        };
-      }),
-    }));
-  }, []);
+          });
+          updatedSteps = steps;
+          return {
+            ...workflow,
+            steps,
+          };
+        }),
+      }));
+      if (updatedSteps) {
+        await smcrApi.updateWorkflow(workflowId, { steps: updatedSteps });
+      }
+    },
+    [],
+  );
 
-  const updateReferenceRequest = useCallback(({ workflowId, stepId, updater }: ReferenceRequestUpdateInput) => {
-    setState((prev) => ({
-      ...prev,
-      workflows: prev.workflows.map((workflow) => {
-        if (workflow.id !== workflowId) return workflow;
-        return {
-          ...workflow,
-          steps: workflow.steps.map((step) => {
+  const updateReferenceRequest = useCallback(
+    async ({ workflowId, stepId, updater }: ReferenceRequestUpdateInput) => {
+      let updatedSteps: WorkflowStepInstance[] | null = null;
+      setState((prev) => ({
+        ...prev,
+        workflows: prev.workflows.map((workflow) => {
+          if (workflow.id !== workflowId) return workflow;
+          const steps = workflow.steps.map((step) => {
             if (step.id !== stepId || !step.referenceRequest) return step;
             const nextDraft = updater(step.referenceRequest);
             return {
@@ -1369,20 +1719,29 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
                 lastUpdated: new Date().toISOString(),
               },
             };
-          }),
-        };
-      }),
-    }));
-  }, []);
+          });
+          updatedSteps = steps;
+          return {
+            ...workflow,
+            steps,
+          };
+        }),
+      }));
+      if (updatedSteps) {
+        await smcrApi.updateWorkflow(workflowId, { steps: updatedSteps });
+      }
+    },
+    [],
+  );
 
-  const updateCriminalCheck = useCallback(({ workflowId, stepId, updater }: CriminalCheckUpdateInput) => {
-    setState((prev) => ({
-      ...prev,
-      workflows: prev.workflows.map((workflow) => {
-        if (workflow.id !== workflowId) return workflow;
-        return {
-          ...workflow,
-          steps: workflow.steps.map((step) => {
+  const updateCriminalCheck = useCallback(
+    async ({ workflowId, stepId, updater }: CriminalCheckUpdateInput) => {
+      let updatedSteps: WorkflowStepInstance[] | null = null;
+      setState((prev) => ({
+        ...prev,
+        workflows: prev.workflows.map((workflow) => {
+          if (workflow.id !== workflowId) return workflow;
+          const steps = workflow.steps.map((step) => {
             if (step.id !== stepId || !step.criminalCheck) return step;
             const nextDraft = updater(step.criminalCheck);
             return {
@@ -1392,20 +1751,29 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
                 lastUpdated: new Date().toISOString(),
               },
             };
-          }),
-        };
-      }),
-    }));
-  }, []);
+          });
+          updatedSteps = steps;
+          return {
+            ...workflow,
+            steps,
+          };
+        }),
+      }));
+      if (updatedSteps) {
+        await smcrApi.updateWorkflow(workflowId, { steps: updatedSteps });
+      }
+    },
+    [],
+  );
 
-  const updateTrainingPlan = useCallback(({ workflowId, stepId, updater }: TrainingPlanUpdateInput) => {
-    setState((prev) => ({
-      ...prev,
-      workflows: prev.workflows.map((workflow) => {
-        if (workflow.id !== workflowId) return workflow;
-        return {
-          ...workflow,
-          steps: workflow.steps.map((step) => {
+  const updateTrainingPlan = useCallback(
+    async ({ workflowId, stepId, updater }: TrainingPlanUpdateInput) => {
+      let updatedSteps: WorkflowStepInstance[] | null = null;
+      setState((prev) => ({
+        ...prev,
+        workflows: prev.workflows.map((workflow) => {
+          if (workflow.id !== workflowId) return workflow;
+          const steps = workflow.steps.map((step) => {
             if (step.id !== stepId || !step.trainingPlan) return step;
             const nextDraft = updater(step.trainingPlan);
             return {
@@ -1415,31 +1783,75 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
                 lastUpdated: new Date().toISOString(),
               },
             };
-          }),
-        };
-      }),
-    }));
-  }, []);
+          });
+          updatedSteps = steps;
+          return {
+            ...workflow,
+            steps,
+          };
+        }),
+      }));
+      if (updatedSteps) {
+        await smcrApi.updateWorkflow(workflowId, { steps: updatedSteps });
+      }
+    },
+    [],
+  );
 
   const updateStatementOfResponsibilities = useCallback(
-    ({ workflowId, stepId, updater }: StatementOfResponsibilitiesUpdateInput) => {
+    async ({ workflowId, stepId, updater }: StatementOfResponsibilitiesUpdateInput) => {
+      let updatedSteps: WorkflowStepInstance[] | null = null;
       setState((prev) => ({
         ...prev,
         workflows: prev.workflows.map((workflow) => {
           if (workflow.id !== workflowId) return workflow;
+          const steps = workflow.steps.map((step) => {
+            if (step.id !== stepId || !step.statementOfResponsibilities) return step;
+            const nextDraft = updater(step.statementOfResponsibilities);
+            return {
+              ...step,
+              statementOfResponsibilities: {
+                ...nextDraft,
+                lastUpdated: new Date().toISOString(),
+              },
+            };
+          });
+          updatedSteps = steps;
           return {
             ...workflow,
-            steps: workflow.steps.map((step) => {
-              if (step.id !== stepId || !step.statementOfResponsibilities) return step;
-              const nextDraft = updater(step.statementOfResponsibilities);
-              return {
-                ...step,
-                statementOfResponsibilities: {
-                  ...nextDraft,
-                  lastUpdated: new Date().toISOString(),
-                },
-              };
-            }),
+            steps,
+          };
+        }),
+      }));
+      if (updatedSteps) {
+        await smcrApi.updateWorkflow(workflowId, { steps: updatedSteps });
+      }
+    },
+    [],
+  );
+
+  const updateTrainingItemStatus = useCallback(
+    async (personId: string, itemId: string, status: TrainingStatus) => {
+      await smcrApi.updateTrainingItem(personId, { id: itemId, status });
+      setState((prev) => ({
+        ...prev,
+        people: prev.people.map((person) => {
+          if (person.id !== personId) return person;
+          const trainingPlan = person.trainingPlan.map((item) =>
+            item.id === itemId
+              ? {
+                  ...item,
+                  status,
+                }
+              : item,
+          );
+          return {
+            ...person,
+            trainingPlan,
+            assessment: {
+              ...person.assessment,
+              trainingCompletion: calculateTrainingCompletion(trainingPlan),
+            },
           };
         }),
       }));
@@ -1447,94 +1859,72 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
     [],
   );
 
-  const updateTrainingItemStatus = useCallback((personId: string, itemId: string, status: TrainingStatus) => {
-    setState((prev) => ({
-      ...prev,
-      people: prev.people.map((person) => {
-        if (person.id !== personId) return person;
-        const trainingPlan = person.trainingPlan.map((item) =>
-          item.id === itemId
+  const startAssessment = useCallback(
+    async (input: NewAssessmentInput) => {
+      if (!activeFirmId) {
+        throw new Error("Select a firm before starting assessments");
+      }
+      const person = state.people.find((p) => p.id === input.personId);
+      if (!person) {
+        throw new Error(`Person with id ${input.personId} not found`);
+      }
+
+      const responses: FitnessAssessmentResponse[] = getAllFitnessQuestions().map((question) => ({
+        questionId: question.id,
+        value: question.type === "text" ? "" : null,
+        notes: "",
+      }));
+
+      const assessmentResponse = await smcrApi.createAssessment(activeFirmId, {
+        personId: person.id,
+        personName: person.name,
+        personRole: person.title,
+        assessmentDate: input.assessmentDate,
+        nextDueDate: input.nextDueDate,
+        reviewer: input.reviewer,
+        responses,
+      });
+
+      const assessment = mapAssessmentRecord(assessmentResponse as Record<string, unknown>);
+
+      await smcrApi.updatePerson(person.id, {
+        assessmentStatus: "due",
+        lastAssessment: input.assessmentDate ?? person.assessment.lastAssessment,
+        nextAssessment: input.nextDueDate ?? person.assessment.nextAssessment,
+      });
+
+      setState((prev) => ({
+        ...prev,
+        assessments: [...prev.assessments, assessment],
+        people: prev.people.map((p) =>
+          p.id === person.id
             ? {
-                ...item,
-                status,
+                ...p,
+                assessment: {
+                  ...p.assessment,
+                  status: "due",
+                  lastAssessment: input.assessmentDate ?? p.assessment.lastAssessment,
+                  nextAssessment: input.nextDueDate ?? p.assessment.nextAssessment,
+                },
               }
-            : item,
-        );
-        return {
-          ...person,
-          trainingPlan,
-          assessment: {
-            ...person.assessment,
-            trainingCompletion: calculateTrainingCompletion(trainingPlan),
-          },
-        };
-      }),
-    }));
-  }, []);
+            : p,
+        ),
+      }));
 
-  const startAssessment = useCallback((input: NewAssessmentInput) => {
-    if (!activeFirmId) {
-      throw new Error("Select a firm before starting assessments");
-    }
-    const person = state.people.find((p) => p.id === input.personId);
-    if (!person) {
-      throw new Error(`Person with id ${input.personId} not found`);
-    }
+      return assessment;
+    },
+    [state.people, activeFirmId],
+  );
 
-    const timestamp = new Date().toISOString();
-    const responses: FitnessAssessmentResponse[] = getAllFitnessQuestions().map((question) => ({
-      questionId: question.id,
-      value: question.type === "text" ? "" : null,
-      notes: "",
-    }));
-
-    const assessment: FitnessAssessmentRecord = {
-      id: createId("assessment"),
-      firmId: person.firmId,
-      personId: person.id,
-      personName: person.name,
-      personRole: person.title,
-      status: "draft",
-      assessmentDate: input.assessmentDate,
-      nextDueDate: input.nextDueDate,
-      reviewer: input.reviewer,
-      overallDetermination: undefined,
-      conditions: [],
-      createdAt: timestamp,
-      updatedAt: timestamp,
-      responses,
-    };
-
-    setState((prev) => ({
-      ...prev,
-      assessments: [...prev.assessments, assessment],
-      people: prev.people.map((p) =>
-        p.id === person.id
-          ? {
-              ...p,
-              assessment: {
-                ...p.assessment,
-                status: "due",
-                lastAssessment: input.assessmentDate ?? p.assessment.lastAssessment,
-                nextAssessment: input.nextDueDate ?? p.assessment.nextAssessment,
-              },
-            }
-          : p,
-      ),
-    }));
-
-    return assessment;
-  }, [state.people, activeFirmId]);
-
-  const updateAssessmentResponse = useCallback(({ assessmentId, questionId, value, notes }: AssessmentResponseUpdate) => {
-    const timestamp = new Date().toISOString();
-    setState((prev) => ({
-      ...prev,
-      assessments: prev.assessments.map((record) => {
-        if (record.id !== assessmentId) return record;
-        return {
-          ...record,
-          responses: record.responses.map((response) =>
+  const updateAssessmentResponse = useCallback(
+    async ({ assessmentId, questionId, value, notes }: AssessmentResponseUpdate) => {
+      let updatedResponses: FitnessAssessmentResponse[] | null = null;
+      const timestamp = new Date().toISOString();
+      setState((prev) => ({
+        ...prev,
+        assessments: prev.assessments.map((record) => {
+          if (record.id !== assessmentId) return record;
+          const responses = record.responses.map((response) =>
             response.questionId === questionId
               ? {
                   ...response,
@@ -1542,73 +1932,107 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
                   notes: notes ?? response.notes,
                 }
               : response,
-          ),
-          updatedAt: timestamp,
-        };
-      }),
-    }));
-  }, []);
+          );
+          updatedResponses = responses;
+          return {
+            ...record,
+            responses,
+            updatedAt: timestamp,
+          };
+        }),
+      }));
 
-  const updateAssessmentStatus = useCallback(({ assessmentId, status, overallDetermination, conditions, assessmentDate, nextDueDate, reviewer }: AssessmentStatusUpdate) => {
-    const timestamp = new Date().toISOString();
-    setState((prev) => {
-      let updatedAssessment: FitnessAssessmentRecord | undefined;
+      if (updatedResponses) {
+        await smcrApi.updateAssessment(assessmentId, { responses: updatedResponses });
+      }
+    },
+    [],
+  );
 
-      const updatedAssessments = prev.assessments.map((record) => {
-        if (record.id !== assessmentId) return record;
-        const nextRecord: FitnessAssessmentRecord = {
-          ...record,
-          status,
-          overallDetermination: overallDetermination ?? record.overallDetermination,
-          conditions: conditions ?? record.conditions,
-          assessmentDate: assessmentDate ?? record.assessmentDate,
-          nextDueDate: nextDueDate ?? record.nextDueDate,
-          reviewer: reviewer ?? record.reviewer,
-          updatedAt: timestamp,
+  const updateAssessmentStatus = useCallback(
+    async ({ assessmentId, status, overallDetermination, conditions, assessmentDate, nextDueDate, reviewer }: AssessmentStatusUpdate) => {
+      const timestamp = new Date().toISOString();
+      let personId: string | null = null;
+
+      setState((prev) => {
+        let updatedAssessment: FitnessAssessmentRecord | undefined;
+
+        const updatedAssessments = prev.assessments.map((record) => {
+          if (record.id !== assessmentId) return record;
+          const nextRecord: FitnessAssessmentRecord = {
+            ...record,
+            status,
+            overallDetermination: overallDetermination ?? record.overallDetermination,
+            conditions: conditions ?? record.conditions,
+            assessmentDate: assessmentDate ?? record.assessmentDate,
+            nextDueDate: nextDueDate ?? record.nextDueDate,
+            reviewer: reviewer ?? record.reviewer,
+            updatedAt: timestamp,
+          };
+          updatedAssessment = nextRecord;
+          return nextRecord;
+        });
+
+        let updatedPeople = prev.people;
+        if (updatedAssessment) {
+          personId = updatedAssessment.personId;
+          updatedPeople = prev.people.map((person) => {
+            if (person.id !== updatedAssessment!.personId) return person;
+
+            let nextStatus = person.assessment.status;
+            if (status === "completed") {
+              if (updatedAssessment!.overallDetermination === "Fit and Proper") {
+                nextStatus = "current";
+              } else if (updatedAssessment!.overallDetermination === "Conditional") {
+                nextStatus = "due";
+              } else if (updatedAssessment!.overallDetermination === "Not Fit and Proper") {
+                nextStatus = "overdue";
+              }
+            } else if (status === "in_review") {
+              nextStatus = "due";
+            }
+
+            return {
+              ...person,
+              assessment: {
+                ...person.assessment,
+                status: nextStatus,
+                lastAssessment: updatedAssessment!.assessmentDate ?? person.assessment.lastAssessment,
+                nextAssessment: updatedAssessment!.nextDueDate ?? person.assessment.nextAssessment,
+              },
+            };
+          });
+        }
+
+        return {
+          ...prev,
+          assessments: updatedAssessments,
+          people: updatedPeople,
         };
-        updatedAssessment = nextRecord;
-        return nextRecord;
       });
 
-      let updatedPeople = prev.people;
-      if (updatedAssessment) {
-        updatedPeople = prev.people.map((person) => {
-          if (person.id !== updatedAssessment!.personId) return person;
+      await smcrApi.updateAssessment(assessmentId, {
+        status,
+        overall_determination: overallDetermination,
+        conditions,
+        assessment_date: assessmentDate,
+        next_due_date: nextDueDate,
+        reviewer,
+      });
 
-          let nextStatus = person.assessment.status;
-          if (status === "completed") {
-            if (updatedAssessment!.overallDetermination === "Fit and Proper") {
-              nextStatus = "current";
-            } else if (updatedAssessment!.overallDetermination === "Conditional") {
-              nextStatus = "due";
-            } else if (updatedAssessment!.overallDetermination === "Not Fit and Proper") {
-              nextStatus = "overdue";
-            }
-          } else if (status === "in_review") {
-            nextStatus = "due";
-          }
-
-          return {
-            ...person,
-            assessment: {
-              ...person.assessment,
-              status: nextStatus,
-              lastAssessment: updatedAssessment!.assessmentDate ?? person.assessment.lastAssessment,
-              nextAssessment: updatedAssessment!.nextDueDate ?? person.assessment.nextAssessment,
-            },
-          };
+      if (personId) {
+        await smcrApi.updatePerson(personId, {
+          assessmentStatus: status === "completed" ? "current" : status === "in_review" ? "due" : undefined,
+          lastAssessment: assessmentDate,
+          nextAssessment: nextDueDate,
         });
       }
+    },
+    [],
+  );
 
-      return {
-        ...prev,
-        assessments: updatedAssessments,
-        people: updatedPeople,
-      };
-    });
-  }, []);
-
-  const removeAssessment = useCallback((id: string) => {
+  const removeAssessment = useCallback(async (id: string) => {
+    await smcrApi.deleteAssessment(id);
     setState((prev) => ({
       ...prev,
       assessments: prev.assessments.filter((record) => record.id !== id),
@@ -1616,44 +2040,73 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Breach management functions
-  const addBreach = useCallback((input: NewBreachInput): ConductBreach => {
-    if (!activeFirmId) {
-      throw new Error("No active firm selected");
-    }
-    const timestamp = new Date().toISOString();
-    const breach: ConductBreach = {
-      id: createId("breach"),
-      firmId: activeFirmId,
-      personId: input.personId,
-      personName: input.personName,
-      ruleId: input.ruleId,
-      ruleName: input.ruleName,
-      dateIdentified: input.dateIdentified,
-      dateOccurred: input.dateOccurred,
-      description: input.description,
-      severity: input.severity,
-      status: "open",
-      timeline: [
+  const addBreach = useCallback(
+    async (input: NewBreachInput): Promise<ConductBreach> => {
+      if (!activeFirmId) {
+        throw new Error("No active firm selected");
+      }
+      const timestamp = new Date().toISOString();
+      const timeline = [
         {
           id: createId("timeline"),
           date: timestamp,
           action: "Breach Reported",
           description: `Breach of ${input.ruleName} reported for ${input.personName}`,
         },
-      ],
-      createdAt: timestamp,
-      updatedAt: timestamp,
-    };
+      ];
 
-    setState((prev) => ({
-      ...prev,
-      breaches: [...prev.breaches, breach],
-    }));
+      const breachResponse = await smcrApi.createBreach(activeFirmId, {
+        person_id: input.personId,
+        rule_id: input.ruleId,
+        severity: input.severity,
+        status: "open",
+        timeline,
+        details: {
+          personName: input.personName,
+          ruleName: input.ruleName,
+          dateIdentified: input.dateIdentified,
+          dateOccurred: input.dateOccurred,
+          description: input.description,
+        },
+      });
 
-    return breach;
-  }, [activeFirmId]);
+      const breach = mapBreachRecord(breachResponse as Record<string, unknown>);
 
-  const updateBreach = useCallback((id: string, updates: Partial<ConductBreach>) => {
+      setState((prev) => ({
+        ...prev,
+        breaches: [...prev.breaches, breach],
+      }));
+
+      return breach;
+    },
+    [activeFirmId],
+  );
+
+  const updateBreach = useCallback(async (id: string, updates: Partial<ConductBreach>) => {
+    await smcrApi.updateBreach(id, {
+      person_id: updates.personId,
+      rule_id: updates.ruleId,
+      severity: updates.severity,
+      status: updates.status,
+      timeline: updates.timeline,
+      details: {
+        personName: updates.personName,
+        ruleName: updates.ruleName,
+        dateIdentified: updates.dateIdentified,
+        dateOccurred: updates.dateOccurred,
+        description: updates.description,
+        investigator: updates.investigator,
+        findings: updates.findings,
+        recommendations: updates.recommendations,
+        disciplinaryAction: updates.disciplinaryAction,
+        trainingRequired: updates.trainingRequired,
+        fcaNotification: updates.fcaNotification,
+        fcaNotificationDate: updates.fcaNotificationDate,
+        resolutionDate: updates.resolutionDate,
+        lessonsLearned: updates.lessonsLearned,
+      },
+    });
+
     setState((prev) => ({
       ...prev,
       breaches: prev.breaches.map((breach) =>
@@ -1665,35 +2118,41 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const addBreachTimelineEntry = useCallback(
-    (breachId: string, entry: Omit<BreachTimelineEntry, "id">) => {
+    async (breachId: string, entry: Omit<BreachTimelineEntry, "id">) => {
+      const updated = await smcrApi.addBreachTimelineEntry(breachId, entry as Record<string, unknown>);
+      const mapped = mapBreachRecord(updated as Record<string, unknown>);
       setState((prev) => ({
         ...prev,
         breaches: prev.breaches.map((breach) =>
-          breach.id === breachId
-            ? {
-                ...breach,
-                timeline: [
-                  ...breach.timeline,
-                  { ...entry, id: createId("timeline") },
-                ],
-                updatedAt: new Date().toISOString(),
-              }
-            : breach
+          breach.id === breachId ? mapped : breach
         ),
       }));
     },
-    []
+    [],
   );
 
-  const removeBreach = useCallback((id: string) => {
+  const removeBreach = useCallback(async (id: string) => {
+    await smcrApi.deleteBreach(id);
     setState((prev) => ({
       ...prev,
       breaches: prev.breaches.filter((breach) => breach.id !== id),
     }));
   }, []);
 
-  const addGroupEntity = useCallback((input: Omit<GroupEntity, "id">): GroupEntity => {
-    const entity: GroupEntity = { ...input, id: createId("entity") };
+  const addGroupEntity = useCallback(async (input: Omit<GroupEntity, "id">): Promise<GroupEntity> => {
+    const created = await smcrApi.createGroupEntity({
+      name: input.name,
+      type: input.type,
+      parentId: input.parentId,
+      ownershipPercent: input.ownershipPercent,
+      country: input.country,
+      linkedFirmId: input.linkedFirmId,
+      linkedProjectId: input.linkedProjectId,
+      linkedProjectName: input.linkedProjectName,
+      regulatoryStatus: input.regulatoryStatus,
+      isExternal: input.isExternal,
+    });
+    const entity = mapGroupEntityRecord(created as Record<string, unknown>);
     setState((prev) => ({
       ...prev,
       groupEntities: [...prev.groupEntities, entity],
@@ -1701,7 +2160,19 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
     return entity;
   }, []);
 
-  const updateGroupEntity = useCallback((id: string, updates: Partial<GroupEntity>) => {
+  const updateGroupEntity = useCallback(async (id: string, updates: Partial<GroupEntity>) => {
+    await smcrApi.updateGroupEntity(id, {
+      name: updates.name,
+      type: updates.type,
+      parentId: updates.parentId,
+      ownershipPercent: updates.ownershipPercent,
+      country: updates.country,
+      linkedFirmId: updates.linkedFirmId,
+      linkedProjectId: updates.linkedProjectId,
+      linkedProjectName: updates.linkedProjectName,
+      regulatoryStatus: updates.regulatoryStatus,
+      isExternal: updates.isExternal,
+    });
     setState((prev) => ({
       ...prev,
       groupEntities: prev.groupEntities.map((e) =>
@@ -1710,7 +2181,8 @@ export function SmcrDataProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
-  const removeGroupEntity = useCallback((id: string) => {
+  const removeGroupEntity = useCallback(async (id: string) => {
+    await smcrApi.deleteGroupEntity(id);
     setState((prev) => ({
       ...prev,
       groupEntities: prev.groupEntities.filter((e) => e.id !== id),

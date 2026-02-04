@@ -31,7 +31,7 @@ export function FormDSection1FirmDetails({
       </CardHeader>
       <CardContent className="space-y-6">
         <SectionInfo title="About Form D" variant="info">
-          <p>Use this form to notify the FCA of changes to an approved person's details, including name changes, contact updates, or new fitness and propriety matters.</p>
+          <p>Use this form to notify the FCA of changes to an approved person&apos;s details, including name changes, contact updates, or new fitness and propriety matters.</p>
           <p className="mt-1"><strong>Note:</strong> Submit as soon as possible after becoming aware of the change.</p>
         </SectionInfo>
 

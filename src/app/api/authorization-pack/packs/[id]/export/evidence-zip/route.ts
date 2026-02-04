@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import path from "path";
 import { promises as fs } from "fs";
+import { requireRole } from "@/lib/rbac";
 // @ts-expect-error archiver does not have types
 import archiver from "archiver";
 import { PassThrough, Readable } from "stream";
-import { isValidUUID, requireAuth } from "@/lib/auth-utils";
+import { isValidUUID } from "@/lib/auth-utils";
 import {
   getPack,
   listEvidenceFilesForZip,
@@ -75,7 +76,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { auth, error } = await requireAuth();
+    const { auth, error } = await requireRole("member");
     if (error) return error;
 
     const { id } = await params;

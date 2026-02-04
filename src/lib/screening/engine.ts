@@ -165,7 +165,7 @@ function screenRecord(
 
     // Check country if enabled
     const countryMatched = options.checkCountry && record.country
-      ? entry.countries.some(c => countryMatch(record.country, c))
+      ? entry.countries.some(c => countryMatch(record.country ?? null, c))
       : false;
 
     // Adjust score based on additional matches
@@ -222,27 +222,27 @@ async function getListEntries(
 
     if (listNames.includes("ofac") && dataSourceConfig.fetchOFAC) {
       fetchPromises.push(
-        dataSourceConfig.fetchOFAC().then(data => entries.push(...data))
+        dataSourceConfig.fetchOFAC().then(data => { entries.push(...data); })
       );
     }
     if (listNames.includes("eu") && dataSourceConfig.fetchEU) {
       fetchPromises.push(
-        dataSourceConfig.fetchEU().then(data => entries.push(...data))
+        dataSourceConfig.fetchEU().then(data => { entries.push(...data); })
       );
     }
     if (listNames.includes("uk") && dataSourceConfig.fetchUK) {
       fetchPromises.push(
-        dataSourceConfig.fetchUK().then(data => entries.push(...data))
+        dataSourceConfig.fetchUK().then(data => { entries.push(...data); })
       );
     }
     if (listNames.includes("un") && dataSourceConfig.fetchUN) {
       fetchPromises.push(
-        dataSourceConfig.fetchUN().then(data => entries.push(...data))
+        dataSourceConfig.fetchUN().then(data => { entries.push(...data); })
       );
     }
     if (listNames.includes("pep") && dataSourceConfig.fetchPEP) {
       fetchPromises.push(
-        dataSourceConfig.fetchPEP().then(data => entries.push(...data))
+        dataSourceConfig.fetchPEP().then(data => { entries.push(...data); })
       );
     }
 

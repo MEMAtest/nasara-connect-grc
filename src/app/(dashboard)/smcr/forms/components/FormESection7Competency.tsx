@@ -24,7 +24,7 @@ export function FormESection7Competency({
           Section 7: Competency for New Role
         </CardTitle>
         <CardDescription>
-          Demonstrate the individual's suitability for the new function
+          Demonstrate the individual&apos;s suitability for the new function
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">

@@ -242,7 +242,8 @@ export async function scanFileForViruses(buffer: Buffer): Promise<VirusScanResul
 
 async function scanWithClamAV(buffer: Buffer): Promise<VirusScanResult> {
   try {
-    const NodeClam = require("clamscan");
+    // @ts-expect-error -- clamscan has no type declarations
+    const { default: NodeClam } = await import("clamscan");
     const clamscan = await new NodeClam().init({
       clamdscan: {
         host: process.env.CLAMAV_HOST,
@@ -265,7 +266,8 @@ async function scanWithClamAV(buffer: Buffer): Promise<VirusScanResult> {
   }
 }
 
-async function scanWithVirusTotal(buffer: Buffer): Promise<VirusScanResult> {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function scanWithVirusTotal(_buffer: Buffer): Promise<VirusScanResult> {
   // Implementation for VirusTotal API
   // Note: VirusTotal has rate limits and is async (may take time)
   console.warn("VirusTotal scanning not yet implemented");

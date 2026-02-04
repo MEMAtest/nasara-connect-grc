@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 import type {
   PersonRecord,
-  FCAVerificationData,
   RoleAssignment,
 } from "@/app/(dashboard)/smcr/context/SmcrDataContext";
 import { allSMFs } from "@/app/(dashboard)/smcr/data/core-functions";

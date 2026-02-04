@@ -127,7 +127,7 @@ export async function generateDocument(
     excluded_clauses: rulesResult.excluded_clauses,
     suggested_clauses: rulesResult.suggested_clauses,
     variables: rulesResult.variables,
-    metadata: run.metadata,
+    metadata: run.metadata as Record<string, JsonValue> | undefined,
   };
 
   // Step 6: Generate filename

@@ -9,15 +9,9 @@ import {
   Clock,
   Building2,
   Shield,
-  Calendar,
   Loader2,
-  Trash2,
-  Edit,
   X,
   ExternalLink,
-  Mail,
-  Phone,
-  MapPin,
   FileCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -66,6 +60,7 @@ import { PaginationControls, usePagination } from "@/components/ui/pagination-co
 
 interface ThirdPartyRecord {
   id: string;
+  [key: string]: unknown;
   organization_id: string;
   pack_id?: string;
   vendor_name: string;
@@ -278,7 +273,7 @@ export function ThirdPartyRegisterClient() {
       if (!response.ok) throw new Error("Failed to fetch records");
       const data = await response.json();
       setRecords(data.records || []);
-    } catch (err) {
+    } catch {
       setError("Failed to load third-party records");
     } finally {
       setIsLoading(false);
@@ -287,6 +282,7 @@ export function ThirdPartyRegisterClient() {
 
   useEffect(() => {
     loadRecords();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount / when packId changes
   }, [packId]);
 
   const resetForm = () => {
@@ -346,7 +342,7 @@ export function ThirdPartyRegisterClient() {
       setShowAddDialog(false);
       resetForm();
       await loadRecords();
-    } catch (err) {
+    } catch {
       setError("Failed to save third-party record");
     } finally {
       setIsSaving(false);
@@ -391,7 +387,7 @@ export function ThirdPartyRegisterClient() {
       });
       if (!response.ok) throw new Error("Failed to delete record");
       await loadRecords();
-    } catch (err) {
+    } catch {
       setError("Failed to delete third-party record");
     }
   };
@@ -549,7 +545,7 @@ export function ThirdPartyRegisterClient() {
   };
 
   // Bulk import handler
-  const handleBulkImport = async (importedRecords: Record<string, string>[]) => {
+  const handleBulkImport = async (importedRecords: Record<string, unknown>[]) => {
     try {
       for (const record of importedRecords) {
         await fetch("/api/registers/third-party", {
@@ -568,7 +564,7 @@ export function ThirdPartyRegisterClient() {
             contract_start_date: record.contract_start_date || null,
             contract_end_date: record.contract_end_date || null,
             contract_value_gbp: record.contract_value_gbp
-              ? parseFloat(record.contract_value_gbp)
+              ? parseFloat(String(record.contract_value_gbp))
               : null,
             primary_contact_name: record.primary_contact_name || null,
             primary_contact_email: record.primary_contact_email || null,
@@ -579,7 +575,7 @@ export function ThirdPartyRegisterClient() {
         });
       }
       await loadRecords();
-    } catch (err) {
+    } catch {
       setError("Failed to import some records");
     }
   };
@@ -1091,6 +1087,7 @@ export function ThirdPartyRegisterClient() {
 
       {/* Toolbar */}
       <RegisterToolbar
+        registerName="Third Party"
         viewMode={viewMode}
         onViewModeChange={setViewMode}
         searchQuery={searchQuery}

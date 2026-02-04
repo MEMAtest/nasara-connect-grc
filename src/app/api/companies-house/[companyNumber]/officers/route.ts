@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth-utils";
+import { requireRole } from "@/lib/rbac";
 
 const BASE_URL = "https://api.company-information.service.gov.uk";
 
@@ -33,7 +33,7 @@ type OfficerItem = {
 
 export async function GET(_request: NextRequest, context: { params: Promise<{ companyNumber: string }> }) {
   try {
-    const { error } = await requireAuth();
+    const { error } = await requireRole("member");
     if (error) return error;
 
     const authHeader = getAuthHeader();
@@ -67,7 +67,14 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ co
     }
 
     const data = await response.json();
-    const items = (Array.isArray(data.items) ? data.items : []).map((item: any): OfficerItem => {
+    interface CompaniesHouseOfficer {
+      links?: { self?: string };
+      name?: string;
+      officer_role?: string;
+      appointed_on?: string;
+      resigned_on?: string;
+    }
+    const items = (Array.isArray(data.items) ? data.items : []).map((item: CompaniesHouseOfficer): OfficerItem => {
       return {
         id: item?.links?.self || `${item?.name}-${item?.appointed_on || ""}`,
         name: item?.name || "Unknown officer",

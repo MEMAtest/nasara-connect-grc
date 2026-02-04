@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { DEFAULT_ORGANIZATION_ID } from "@/lib/constants";
+import { useOrganization } from "@/components/organization-provider";
 import { useCmpControls, DEFAULT_CMP_FILTERS, type CmpFilterState } from "./hooks/useCmpControls";
 import type { CmpControlDetail } from "@/data/cmp/types";
 import { CmpMetricGrid } from "./components/CmpMetricGrid";
@@ -13,13 +13,12 @@ import { CmpControlTable } from "./components/CmpControlTable";
 import { LogTestDialog, RaiseFindingDialog } from "./components/CmpActionDialogs";
 import { AlertTriangle, CheckCircle2, Clock3, Flag, RefreshCcw } from "lucide-react";
 
-const ORGANIZATION_ID = DEFAULT_ORGANIZATION_ID;
-
 type ActionState = { type: "logTest" | "finding" | null; control: CmpControlDetail | null };
 
 export function CmpOverviewClient() {
   const router = useRouter();
-  const { controls, filteredControls, filters, setFilters, isLoading, error, refresh } = useCmpControls({ organizationId: ORGANIZATION_ID });
+  const { organizationId } = useOrganization();
+  const { controls, filteredControls, filters, setFilters, isLoading, error, refresh } = useCmpControls({ organizationId });
   const [actionState, setActionState] = useState<ActionState>({ type: null, control: null });
 
   const metrics = useMemo(() => buildMetrics(controls), [controls]);
@@ -81,14 +80,14 @@ export function CmpOverviewClient() {
         open={actionState.type === "logTest"}
         control={actionState.control}
         onClose={closeAction}
-        organizationId={ORGANIZATION_ID}
+        organizationId={organizationId}
         onSuccess={refresh}
       />
       <RaiseFindingDialog
         open={actionState.type === "finding"}
         control={actionState.control}
         onClose={closeAction}
-        organizationId={ORGANIZATION_ID}
+        organizationId={organizationId}
         onSuccess={refresh}
       />
     </div>

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { pool, getOrganizationSettings, getRegisterSubscriptions } from "@/lib/database";
-import { requireAuth } from "@/lib/auth-utils";
+import { requireRole } from "@/lib/rbac";
 
 interface RegisterStats {
   code: string;
@@ -99,7 +99,7 @@ async function getRegisterStats(
 
 export async function GET() {
   // Require authentication
-  const { auth, error } = await requireAuth();
+  const { auth, error } = await requireRole("member");
   if (error) return error;
 
   try {

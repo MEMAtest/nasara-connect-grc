@@ -181,7 +181,7 @@ export function normalizeName(name: string): string {
     "jr", "sr", "junior", "senior", "ii", "iii", "iv", "phd", "md", "esq"
   ];
 
-  let normalized = name.toLowerCase()
+  const normalized = name.toLowerCase()
     .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()'"]/g, " ")  // Replace punctuation with spaces
     .replace(/\s+/g, " ")  // Normalize whitespace
     .trim();

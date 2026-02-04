@@ -10,7 +10,6 @@ import { RESOURCE_TEMPLATES } from "@/lib/seo/marketing-data";
 import {
   FileText,
   CheckSquare,
-  Shield,
   BarChart3,
   ArrowRight,
   Users,

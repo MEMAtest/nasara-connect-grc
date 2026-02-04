@@ -4,18 +4,19 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAuth } from '@/lib/auth-utils';
+import { requireRole } from "@/lib/rbac";
 import { logError, logApiRequest } from '@/lib/logger';
 import {
   initTrainingDatabase,
   getDashboardStats,
 } from '@/lib/training-database';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function GET(request: NextRequest) {
   logApiRequest('GET', '/api/training/stats');
 
   try {
-    const { error } = await requireAuth();
+    const { error } = await requireRole("member");
     if (error) return error;
 
     await initTrainingDatabase();

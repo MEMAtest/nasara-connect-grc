@@ -7,12 +7,12 @@ import {
 } from "@/lib/database";
 import { getRecommendationsForFirmType } from "@/lib/register-hub/recommendations";
 import { FirmType } from "@/lib/types/register-hub";
-import { requireAuth } from "@/lib/auth-utils";
+import { requireRole } from "@/lib/rbac";
 
 // GET /api/register-hub/recommendations - Get recommendations for a firm type
 export async function GET(request: NextRequest) {
   // Require authentication
-  const { auth, error } = await requireAuth();
+  const { auth, error } = await requireRole("member");
   if (error) return error;
 
   try {
@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
 // POST /api/register-hub/recommendations - Set organization's firm type
 export async function POST(request: NextRequest) {
   // Require authentication
-  const { auth, error } = await requireAuth();
+  const { auth, error } = await requireRole("member");
   if (error) return error;
 
   try {

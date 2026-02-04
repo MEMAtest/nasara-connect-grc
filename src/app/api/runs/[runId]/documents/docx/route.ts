@@ -6,13 +6,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateDocument } from '@/lib/documents/document-generator';
 import type { Run, FirmProfile, Clause } from '@/lib/policies/types';
-import { requireAuth } from '@/lib/auth-utils';
+import { requireRole } from "@/lib/rbac";
 
 // Mock data (same as generate route - in production, fetch from database)
 const MOCK_RUN: Run = {
   id: 'run-001',
   firm_id: '00000000-0000-0000-0000-000000000001',
   policy_id: 'aml',
+  title: 'AML Policy Run',
   status: 'draft',
   answers: {
     firm_role: 'principal',
@@ -26,6 +27,8 @@ const MOCK_RUN: Run = {
     approver_role: 'SMF17',
   },
   metadata: {},
+  version: 1,
+  created_by: 'system',
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString(),
 };
@@ -163,7 +166,7 @@ export async function GET(
   { params }: { params: Promise<{ runId: string }> }
 ) {
   try {
-    const { error } = await requireAuth();
+    const { error } = await requireRole("member");
     if (error) return error;
     const { runId } = await params;
 
@@ -194,7 +197,7 @@ export async function GET(
     });
 
     // Return DOCX as downloadable file
-    return new NextResponse(result.docx_buffer, {
+    return new NextResponse(result.docx_buffer as unknown as BodyInit, {
       status: 200,
       headers: {
         'Content-Type':

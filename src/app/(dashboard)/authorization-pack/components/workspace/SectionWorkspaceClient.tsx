@@ -176,9 +176,11 @@ export function SectionWorkspaceClient() {
 
   // Cleanup timers and abort controllers on unmount
   useEffect(() => {
+    const timers = saveTimers.current;
+    const controllers = abortControllers.current;
     return () => {
-      Object.values(saveTimers.current).forEach((timer) => clearTimeout(timer));
-      Object.values(abortControllers.current).forEach((controller) => controller.abort());
+      Object.values(timers).forEach((timer) => clearTimeout(timer));
+      Object.values(controllers).forEach((controller) => controller.abort());
     };
   }, []);
 
@@ -258,7 +260,7 @@ export function SectionWorkspaceClient() {
     [navSections, sectionId]
   );
 
-  const handlePromptChange = (promptId: string, value: string) => {
+  const handlePromptChange = useCallback((promptId: string, value: string) => {
     setPrompts((prev) => prev.map((prompt) => (prompt.id === promptId ? { ...prompt, value } : prompt)));
     setMutationError(null);
 
@@ -301,7 +303,7 @@ export function SectionWorkspaceClient() {
         setMutationError("Failed to save. Please try again.");
       }
     }, AUTOSAVE_DELAY_MS);
-  };
+  }, [pack, sectionId]);
 
   // AI-powered narrative generation
   const handleGenerateNarrative = useCallback(

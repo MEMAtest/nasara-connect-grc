@@ -480,6 +480,7 @@ const QUESTION_SECTION_MAP: Record<string, string> = {
  */
 export function calculatePredictiveScore(
   responses: Record<string, unknown>,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _permissionCode?: string // TODO: Implement permission-specific scoring (e.g., EMI vs PI thresholds)
 ): PredictiveScore {
   // Handle empty responses - return insufficient data state
@@ -924,7 +925,6 @@ export { FCA_ENHANCED_GUIDANCE };
 
 import {
   QUESTION_TO_SECTION_MAP,
-  THRESHOLD_QUESTIONS,
   SECTION_METADATA,
   isThresholdSection,
 } from "./question-section-mapping";
@@ -1076,6 +1076,7 @@ export function identifyHardGateFailures(
 export function calculateFromQuestionBank(
   questionResponses: Record<string, QuestionResponse>,
   questionDefinitions: QuestionDefinition[],
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   permissionCode?: string
 ): PredictiveScore {
   // Handle empty responses

@@ -30,12 +30,12 @@ export function FitnessProprietySections({
           Sections 7-11: Fitness & Propriety
         </CardTitle>
         <CardDescription>
-          Disclosure questions about the candidate's background
+          Disclosure questions about the candidate&apos;s background
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <SectionInfo title="Important disclosure rules" variant="warning">
-          <p><strong>Answer YES</strong> to any question that applies, even if you think it's minor or historical.</p>
+          <p><strong>Answer YES</strong> to any question that applies, even if you think it&apos;s minor or historical.</p>
           <p><strong>Answering YES does NOT automatically disqualify</strong> - the FCA considers each case individually.</p>
           <p><strong>Failure to disclose</strong> is itself a fitness & propriety concern and may result in rejection or later enforcement.</p>
           <p className="mt-1 font-medium">When in doubt, DISCLOSE.</p>

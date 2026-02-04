@@ -25,6 +25,7 @@ const mockTransactions: Transaction[] = [
 
 export default function PaymentsDemo() {
   const [transactions, setTransactions] = useState(mockTransactions)
+  const [, setSelectedTx] = useState<Transaction | null>(null)
 
   useEffect(() => {
     const interval = setInterval(() => {

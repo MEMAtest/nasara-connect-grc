@@ -10,13 +10,11 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { DEFAULT_ORGANIZATION_ID } from "@/lib/constants";
+import { useOrganization } from "@/components/organization-provider";
 import type { CmpControlDetail } from "@/data/cmp/types";
 import { LogTestDialog, RaiseFindingDialog } from "./components/CmpActionDialogs";
 import { AlertTriangle, ArrowLeft, Building, CalendarDays, CheckCircle2, GitBranch, Link as LinkIcon, Target, TrendingUp } from "lucide-react";
 import { LinkedPoliciesPanel } from "@/components/policies/LinkedPoliciesPanel";
-
-const ORGANIZATION_ID = DEFAULT_ORGANIZATION_ID;
 
 type ActionState = { type: "logTest" | "finding" | null; control: CmpControlDetail | null };
 type ControlTab = "summary" | "plan" | "execution" | "findings" | "kri";
@@ -30,6 +28,7 @@ export function CmpControlDetailClient({ controlId }: CmpControlDetailClientProp
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { organizationId } = useOrganization();
   const [control, setControl] = useState<CmpControlDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -40,7 +39,7 @@ export function CmpControlDetailClient({ controlId }: CmpControlDetailClientProp
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(`/api/organizations/${ORGANIZATION_ID}/cmp/controls/${controlId}`);
+      const response = await fetch(`/api/organizations/${organizationId}/cmp/controls/${controlId}`);
       if (!response.ok) throw new Error("Unable to load control");
       const data = (await response.json()) as CmpControlDetail;
       setControl(data);
@@ -49,7 +48,7 @@ export function CmpControlDetailClient({ controlId }: CmpControlDetailClientProp
     } finally {
       setIsLoading(false);
     }
-  }, [controlId]);
+  }, [controlId, organizationId]);
 
   useEffect(() => {
     void fetchControl();
@@ -191,7 +190,7 @@ export function CmpControlDetailClient({ controlId }: CmpControlDetailClientProp
       <LinkedPoliciesPanel
         title="Linked policies"
         helperText="Policies mapped to this control (for coverage and evidence reporting)."
-        endpoint={`/api/organizations/${ORGANIZATION_ID}/cmp/controls/${controlId}/links`}
+        endpoint={`/api/organizations/${organizationId}/cmp/controls/${controlId}/links`}
       />
 
       <Tabs value={tab} onValueChange={handleTabChange} className="space-y-4">
@@ -326,14 +325,14 @@ export function CmpControlDetailClient({ controlId }: CmpControlDetailClientProp
       <LogTestDialog
         open={actionState.type === "logTest"}
         control={control}
-        organizationId={ORGANIZATION_ID}
+        organizationId={organizationId}
         onClose={closeAction}
         onSuccess={fetchControl}
       />
       <RaiseFindingDialog
         open={actionState.type === "finding"}
         control={control}
-        organizationId={ORGANIZATION_ID}
+        organizationId={organizationId}
         onClose={closeAction}
         onSuccess={fetchControl}
       />

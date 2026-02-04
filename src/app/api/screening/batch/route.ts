@@ -8,7 +8,7 @@ import {
   getDataSourceStatus,
 } from "@/lib/screening/engine";
 import { logError } from "@/lib/logger";
-import { requireAuth } from "@/lib/auth-utils";
+import { requireRole } from "@/lib/rbac";
 
 interface BatchScreeningRequest {
   records: Array<{
@@ -25,7 +25,7 @@ interface BatchScreeningRequest {
 
 export async function POST(request: Request) {
   // Require authentication
-  const { auth, error } = await requireAuth();
+  const { auth, error } = await requireRole("member");
   if (error) return error;
 
   try {
@@ -135,7 +135,8 @@ export async function POST(request: Request) {
 
 export async function GET() {
   // Require authentication
-  const { auth, error } = await requireAuth();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { auth, error } = await requireRole("member");
   if (error) return error;
 
   // Return available screening lists and data source status
