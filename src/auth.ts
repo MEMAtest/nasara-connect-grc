@@ -47,15 +47,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.id = profile.sub || (email ? await deriveUserIdFromEmail(String(email)) : token.id)
       }
       const email = profile?.email || token.email
-      if (email && !token.organizationId) {
+      const now = Math.floor(Date.now() / 1000)
+      const orgRefreshedAt = (token.orgRefreshedAt as number | undefined) ?? 0
+      const ORG_REFRESH_INTERVAL = 3600 // Re-check org membership every hour
+      const needsRefresh = !token.organizationId || (now - orgRefreshedAt > ORG_REFRESH_INTERVAL)
+      if (email && needsRefresh) {
         try {
           const { getOrganizationIdByDomain } = await import("@/lib/server/organization-store")
           const domain = String(email).split("@")[1] || "default"
           const orgId = await getOrganizationIdByDomain(domain)
           token.organizationId = orgId ?? await deriveOrganizationIdFromEmail(String(email))
         } catch {
-          token.organizationId = await deriveOrganizationIdFromEmail(String(email))
+          token.organizationId = token.organizationId ?? await deriveOrganizationIdFromEmail(String(email))
         }
+        token.orgRefreshedAt = now
       }
       return token
     },

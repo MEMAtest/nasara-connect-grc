@@ -5,6 +5,7 @@ import {
   getOrganizationMemberByEmail,
   listOrganizationInvites,
 } from "@/lib/server/organization-store";
+import { checkRateLimit, rateLimitExceeded } from "@/lib/api-utils";
 
 const ROLE_VALUES: OrganizationRole[] = ["owner", "admin", "member", "viewer"];
 
@@ -25,6 +26,10 @@ export async function POST(
   { params }: { params: Promise<{ organizationId: string }> }
 ) {
   const { organizationId } = await params;
+
+  const { success, headers: rlHeaders } = await checkRateLimit(request, { requests: 10, window: "60 s" });
+  if (!success) return rateLimitExceeded(rlHeaders);
+
   const { auth, error } = await requireRole("admin", organizationId);
   if (error) return error;
 

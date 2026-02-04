@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { deriveUserIdFromEmail, requireAuth } from "@/lib/auth-utils";
 import { acceptOrganizationInvite, getOrganizationInvite, upsertUser } from "@/lib/server/organization-store";
+import { checkRateLimit, rateLimitExceeded } from "@/lib/api-utils";
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ organizationId: string; inviteId: string }> }
 ) {
   const { organizationId, inviteId } = await params;
+
+  const { success, headers: rlHeaders } = await checkRateLimit(request, { requests: 5, window: "60 s" });
+  if (!success) return rateLimitExceeded(rlHeaders);
+
   const { auth, error } = await requireAuth();
   if (error) return error;
 
