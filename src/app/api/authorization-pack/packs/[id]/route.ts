@@ -138,6 +138,14 @@ export async function PATCH(
       return NextResponse.json({ error: "Failed to update pack" }, { status: 500 });
     }
 
+    await logAuditEvent(pool, {
+      entityType: 'authorization_pack',
+      entityId: id,
+      action: 'updated',
+      actorId: auth.userId ?? 'unknown',
+      organizationId: auth.organizationId,
+    });
+
     return NextResponse.json({ status: "ok" });
   } catch (error) {
     logError(error, "Failed to update authorization pack");

@@ -10,12 +10,13 @@ import {
   type StoredPolicy,
 } from "@/lib/server/policy-store";
 import { upsertEntityLink } from "@/lib/server/entity-link-store";
-import { initDatabase, createPolicyActivity } from "@/lib/database";
+import { initDatabase, createPolicyActivity, pool } from "@/lib/database";
 import { sanitizeString } from "@/lib/validation";
 import { enhanceClausesWithAi, DEFAULT_POLICY_MODEL } from "@/lib/policies/ai-policy-writer";
 import type { FirmPermissions } from "@/lib/policies";
 import type { PolicyClause, PolicyTemplate } from "@/lib/policies/templates";
 import { createNotification } from "@/lib/server/notifications-store";
+import { logAuditEvent } from "@/lib/api-utils";
 
 const fallbackPolicies: StoredPolicy[] = [];
 
@@ -257,6 +258,15 @@ export async function POST(request: Request) {
     } catch {
       // Non-blocking notification failures
     }
+
+    await logAuditEvent(pool, {
+      entityType: 'policy',
+      entityId: created.id,
+      action: 'created',
+      actorId: auth.userId ?? 'unknown',
+      organizationId: auth.organizationId,
+    });
+
     return NextResponse.json(created, { status: 201 });
   } catch (error) {
     console.error("Error creating policy, falling back to mock store:", error);

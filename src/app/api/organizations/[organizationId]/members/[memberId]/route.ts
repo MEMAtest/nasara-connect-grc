@@ -6,6 +6,8 @@ import {
   removeOrganizationMember,
   updateOrganizationMemberRole,
 } from "@/lib/server/organization-store";
+import { logAuditEvent } from "@/lib/api-utils";
+import { pool } from "@/lib/database";
 
 const ROLE_VALUES: OrganizationRole[] = ["owner", "admin", "member", "viewer"];
 
@@ -14,7 +16,7 @@ export async function PATCH(
   { params }: { params: Promise<{ organizationId: string; memberId: string }> }
 ) {
   const { organizationId, memberId } = await params;
-  const { error } = await requireRole("admin", organizationId);
+  const { auth, error } = await requireRole("admin", organizationId);
   if (error) return error;
 
   const body = await request.json();
@@ -40,6 +42,14 @@ export async function PATCH(
     return NextResponse.json({ error: "Member not found" }, { status: 404 });
   }
 
+  await logAuditEvent(pool, {
+    entityType: 'organization_member',
+    entityId: memberId,
+    action: 'updated',
+    actorId: auth.userId ?? 'unknown',
+    organizationId: organizationId,
+  });
+
   return NextResponse.json(updated);
 }
 
@@ -48,7 +58,7 @@ export async function DELETE(
   { params }: { params: Promise<{ organizationId: string; memberId: string }> }
 ) {
   const { organizationId, memberId } = await params;
-  const { error } = await requireRole("admin", organizationId);
+  const { auth, error } = await requireRole("admin", organizationId);
   if (error) return error;
 
   const existing = await getOrganizationMemberById(organizationId, memberId);
@@ -67,6 +77,14 @@ export async function DELETE(
   if (!removed) {
     return NextResponse.json({ error: "Member not found" }, { status: 404 });
   }
+
+  await logAuditEvent(pool, {
+    entityType: 'organization_member',
+    entityId: memberId,
+    action: 'deleted',
+    actorId: auth.userId ?? 'unknown',
+    organizationId: organizationId,
+  });
 
   return NextResponse.json({ success: true });
 }

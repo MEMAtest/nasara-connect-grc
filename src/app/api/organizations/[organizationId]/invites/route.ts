@@ -5,7 +5,8 @@ import {
   getOrganizationMemberByEmail,
   listOrganizationInvites,
 } from "@/lib/server/organization-store";
-import { checkRateLimit, rateLimitExceeded } from "@/lib/api-utils";
+import { checkRateLimit, logAuditEvent, rateLimitExceeded } from "@/lib/api-utils";
+import { pool } from "@/lib/database";
 
 const ROLE_VALUES: OrganizationRole[] = ["owner", "admin", "member", "viewer"];
 
@@ -56,6 +57,14 @@ export async function POST(
     role,
     invitedBy: auth.userId ?? null,
     expiresAt,
+  });
+
+  await logAuditEvent(pool, {
+    entityType: 'organization_invite',
+    entityId: invite.id,
+    action: 'created',
+    actorId: auth.userId ?? 'unknown',
+    organizationId: organizationId,
   });
 
   return NextResponse.json(invite, { status: 201 });

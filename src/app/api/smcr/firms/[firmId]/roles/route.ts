@@ -15,6 +15,8 @@ import {
 import { createNotification } from "@/lib/server/notifications-store";
 import { logError, logApiRequest } from '@/lib/logger';
 import { requireRole } from "@/lib/rbac";
+import { logAuditEvent } from "@/lib/api-utils";
+import { pool } from "@/lib/database";
 
 export async function GET(
   request: NextRequest,
@@ -32,7 +34,7 @@ export async function GET(
     if (!firm) {
       return NextResponse.json({ error: 'Firm not found' }, { status: 404 });
     }
-    if (firm.organization_id && firm.organization_id !== auth.organizationId) {
+    if (firm.organization_id !== auth.organizationId) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
@@ -63,7 +65,7 @@ export async function POST(
     if (!firm) {
       return NextResponse.json({ error: 'Firm not found' }, { status: 404 });
     }
-    if (firm.organization_id && firm.organization_id !== auth.organizationId) {
+    if (firm.organization_id !== auth.organizationId) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
@@ -125,6 +127,15 @@ export async function POST(
     } catch {
       // Non-blocking notification failures
     }
+
+    await logAuditEvent(pool, {
+      entityType: 'smcr_role',
+      entityId: role.id,
+      action: 'created',
+      actorId: auth.userId ?? 'unknown',
+      organizationId: auth.organizationId,
+    });
+
     return NextResponse.json(role, { status: 201 });
   } catch (error) {
     logError(error, 'Failed to create SMCR role assignment', { firmId });

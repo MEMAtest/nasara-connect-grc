@@ -29,7 +29,7 @@ export async function POST(
     if (!firm) {
       return NextResponse.json({ error: "Firm not found" }, { status: 404 });
     }
-    if (firm.organization_id && firm.organization_id !== auth.organizationId) {
+    if (firm.organization_id !== auth.organizationId) {
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 

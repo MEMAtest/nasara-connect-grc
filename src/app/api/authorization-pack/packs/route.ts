@@ -7,10 +7,12 @@ import {
   checkRateLimit,
   getPaginationParams,
   handleApiError,
+  logAuditEvent,
   paginate,
   rateLimitExceeded,
   validateRequest,
 } from "@/lib/api-utils";
+import { pool } from "@/lib/database";
 
 const CreatePackSchema = z.object({
   templateType: z.string().min(1),
@@ -92,6 +94,14 @@ export async function POST(request: NextRequest) {
     } catch {
       // Non-blocking notification failures
     }
+
+    await logAuditEvent(pool, {
+      entityType: 'authorization_pack',
+      entityId: created.id,
+      action: 'created',
+      actorId: auth.userId ?? 'unknown',
+      organizationId: auth.organizationId,
+    });
 
     return NextResponse.json({ pack: pack ?? { id: created.id } }, { status: 201, headers });
   } catch (error) {

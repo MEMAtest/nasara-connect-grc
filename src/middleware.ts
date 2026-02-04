@@ -5,6 +5,40 @@ import { NextResponse } from "next/server"
 // Set AUTH_DISABLED=true in .env for development, remove for production
 const isAuthDisabled = () => process.env.AUTH_DISABLED === "true" || process.env.AUTH_DISABLED === "1";
 
+// ---------------------------------------------------------------------------
+// Global rate limiting (in-memory sliding window, per Edge instance)
+// Provides baseline protection; per-route Upstash limiters apply stricter caps.
+// ---------------------------------------------------------------------------
+const GLOBAL_WINDOW_MS = 60_000 // 1 minute
+const GLOBAL_MAX_REQUESTS = 200 // 200 requests per IP per minute
+
+const ipRequestLog = new Map<string, number[]>()
+
+// Prevent unbounded memory growth — prune every 5 minutes
+let lastPrune = Date.now()
+function pruneStaleEntries() {
+  const now = Date.now()
+  if (now - lastPrune < 300_000) return
+  lastPrune = now
+  const cutoff = now - GLOBAL_WINDOW_MS
+  for (const [ip, timestamps] of ipRequestLog) {
+    const valid = timestamps.filter(t => t > cutoff)
+    if (valid.length === 0) ipRequestLog.delete(ip)
+    else ipRequestLog.set(ip, valid)
+  }
+}
+
+function isGlobalRateLimited(ip: string): boolean {
+  pruneStaleEntries()
+  const now = Date.now()
+  const cutoff = now - GLOBAL_WINDOW_MS
+  const timestamps = ipRequestLog.get(ip) ?? []
+  const recent = timestamps.filter(t => t > cutoff)
+  recent.push(now)
+  ipRequestLog.set(ip, recent)
+  return recent.length > GLOBAL_MAX_REQUESTS
+}
+
 export default auth((req) => {
   const { pathname } = req.nextUrl
 
@@ -15,6 +49,19 @@ export default auth((req) => {
   const isApiRoute = pathname.startsWith('/api')
   const isAuthApi = pathname.startsWith('/api/auth')
   const isProbeRoute = pathname === '/api/health' || pathname === '/api/readiness'
+
+  // Global rate limiting for all API routes (except probes and auth)
+  if (isApiRoute && !isAuthApi && !isProbeRoute) {
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+      ?? req.headers.get('x-real-ip')
+      ?? 'anonymous'
+    if (isGlobalRateLimited(ip)) {
+      return NextResponse.json(
+        { error: { code: 'RATE_LIMIT_EXCEEDED', message: 'Too many requests. Please try again later.' } },
+        { status: 429 }
+      )
+    }
+  }
 
   if (isAuthDisabled()) {
     if (pathname.startsWith('/auth/login') || pathname.startsWith('/auth/error')) {

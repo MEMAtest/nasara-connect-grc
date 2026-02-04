@@ -274,6 +274,14 @@ export async function PATCH(
       }
     }
 
+    await logAuditEvent(pool, {
+      entityType: 'policy',
+      entityId: policyId,
+      action: 'updated',
+      actorId: auth.userId ?? 'unknown',
+      organizationId: auth.organizationId,
+    });
+
     return NextResponse.json(updated);
   } catch (error) {
     console.error("Error updating policy:", error);

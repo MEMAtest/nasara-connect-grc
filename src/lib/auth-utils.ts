@@ -130,7 +130,9 @@ export async function requireAuth(): Promise<{ auth: ApiAuthResult; error?: Next
     };
   }
 
-  if (process.env.ENFORCE_RBAC === "true" && !isAuthDisabled()) {
+  const enforceRbac = process.env.ENFORCE_RBAC !== "false" && process.env.NODE_ENV === "production"
+    || process.env.ENFORCE_RBAC === "true";
+  if (enforceRbac && !isAuthDisabled()) {
     try {
       const { getOrganizationMemberByUserId, initOrganizationTables } = await import("@/lib/server/organization-store");
       await initOrganizationTables();

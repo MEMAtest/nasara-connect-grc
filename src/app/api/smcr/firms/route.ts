@@ -9,6 +9,8 @@ import { createFirm, getFirms, initSmcrDatabase } from '@/lib/smcr-database';
 import { createNotification } from "@/lib/server/notifications-store";
 import { logError, logApiRequest } from '@/lib/logger';
 import { requireRole } from "@/lib/rbac";
+import { logAuditEvent } from "@/lib/api-utils";
+import { pool } from "@/lib/database";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function GET(request: NextRequest) {
@@ -62,6 +64,15 @@ export async function POST(request: NextRequest) {
     } catch {
       // Non-blocking notification failures
     }
+
+    await logAuditEvent(pool, {
+      entityType: 'smcr_firm',
+      entityId: firm.id,
+      action: 'created',
+      actorId: auth.userId ?? 'unknown',
+      organizationId: auth.organizationId,
+    });
+
     return NextResponse.json(firm, { status: 201 });
   } catch (error) {
     logError(error, 'Failed to create SMCR firm');

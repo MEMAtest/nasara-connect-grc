@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireRole } from "@/lib/rbac";
 import { getOrganizationById, updateOrganization } from "@/lib/server/organization-store";
+import { logAuditEvent } from "@/lib/api-utils";
+import { pool } from "@/lib/database";
 
 export async function GET(
   request: NextRequest,
@@ -23,7 +25,7 @@ export async function PATCH(
   { params }: { params: Promise<{ organizationId: string }> }
 ) {
   const { organizationId } = await params;
-  const { error } = await requireRole("admin", organizationId);
+  const { auth, error } = await requireRole("admin", organizationId);
   if (error) return error;
 
   const body = await request.json();
@@ -37,6 +39,14 @@ export async function PATCH(
   if (!updated) {
     return NextResponse.json({ error: "Organization not found" }, { status: 404 });
   }
+
+  await logAuditEvent(pool, {
+    entityType: 'organization',
+    entityId: organizationId,
+    action: 'updated',
+    actorId: auth.userId ?? 'unknown',
+    organizationId: auth.organizationId,
+  });
 
   return NextResponse.json(updated);
 }
