@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
+import { requireAuth } from "@/lib/auth-utils";
 
 export const runtime = "nodejs";
 
@@ -114,6 +115,8 @@ function summarizeParsed(year: number | null) {
 
 export async function GET(request: Request) {
   try {
+    const { error } = await requireAuth();
+    if (error) return error;
     const { searchParams } = new URL(request.url);
     const yearParam = searchParams.get("year");
     const year = yearParam ? Number.parseInt(yearParam, 10) : null;

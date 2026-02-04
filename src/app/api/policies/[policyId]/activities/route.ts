@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { DEFAULT_ORGANIZATION_ID } from "@/lib/constants";
+import { requireAuth } from "@/lib/auth-utils";
 import { getPolicyById } from "@/lib/server/policy-store";
 import {
   initDatabase,
@@ -20,6 +20,8 @@ export async function GET(
   { params }: { params: Promise<{ policyId: string }> }
 ) {
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
     await initDatabase();
     const { policyId } = await params;
 
@@ -31,7 +33,7 @@ export async function GET(
     }
 
     // Verify policy exists
-    const policy = await getPolicyById(DEFAULT_ORGANIZATION_ID, policyId);
+    const policy = await getPolicyById(auth.organizationId, policyId);
     if (!policy) {
       return NextResponse.json({ error: "Policy not found" }, { status: 404 });
     }
@@ -53,6 +55,8 @@ export async function POST(
   { params }: { params: Promise<{ policyId: string }> }
 ) {
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
     await initDatabase();
     const { policyId } = await params;
 
@@ -64,7 +68,7 @@ export async function POST(
     }
 
     // Verify policy exists
-    const policy = await getPolicyById(DEFAULT_ORGANIZATION_ID, policyId);
+    const policy = await getPolicyById(auth.organizationId, policyId);
     if (!policy) {
       return NextResponse.json({ error: "Policy not found" }, { status: 404 });
     }

@@ -1,8 +1,14 @@
 import { NextResponse } from 'next/server';
 import { initDatabase } from '@/lib/database';
+import { requireAuth } from '@/lib/auth-utils';
 
 export async function POST() {
   try {
+    const { error } = await requireAuth();
+    if (error) return error;
+    if (process.env.NODE_ENV === 'production') {
+      return NextResponse.json({ error: 'Init DB not available in production' }, { status: 403 });
+    }
     await initDatabase();
     return NextResponse.json({ success: true, message: 'Database initialized successfully' });
   } catch (error) {

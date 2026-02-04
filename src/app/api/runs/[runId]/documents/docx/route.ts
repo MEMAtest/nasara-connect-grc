@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateDocument } from '@/lib/documents/document-generator';
 import type { Run, FirmProfile, Clause } from '@/lib/policies/types';
+import { requireAuth } from '@/lib/auth-utils';
 
 // Mock data (same as generate route - in production, fetch from database)
 const MOCK_RUN: Run = {
@@ -162,6 +163,8 @@ export async function GET(
   { params }: { params: Promise<{ runId: string }> }
 ) {
   try {
+    const { error } = await requireAuth();
+    if (error) return error;
     const { runId } = await params;
 
     // In production, check if document already exists in storage

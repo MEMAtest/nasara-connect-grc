@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPackTemplates, resetAuthorizationPackData } from "@/lib/authorization-pack-db";
+import { requireAuth } from "@/lib/auth-utils";
 
 export async function POST(request: NextRequest) {
+  const { auth, error } = await requireAuth();
+  if (error) return error;
   if (process.env.NODE_ENV === "production") {
     return NextResponse.json({ error: "Reset not available in production" }, { status: 403 });
   }
@@ -18,7 +21,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    await resetAuthorizationPackData();
+    await resetAuthorizationPackData(auth.organizationId);
     const templates = await getPackTemplates();
     return NextResponse.json({ status: "ok", templates });
   } catch (error) {

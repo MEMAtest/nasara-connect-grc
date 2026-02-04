@@ -4,7 +4,6 @@ import { fetchPolicyContext } from "@/lib/ai/policies";
 import { logError } from "@/lib/logger";
 import { requireAuth } from "@/lib/auth-utils";
 import { getPoliciesForOrganization } from "@/lib/server/policy-store";
-import { DEFAULT_ORGANIZATION_ID } from "@/lib/constants";
 import { getOpenRouterApiKey } from "@/lib/openrouter";
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
@@ -103,10 +102,7 @@ export async function POST(request: Request) {
   let orgPolicySummary = "";
   if (process.env.NODE_ENV !== "test") {
     try {
-      let orgPolicies = await getPoliciesForOrganization(auth.organizationId);
-      if (!orgPolicies.length && auth.organizationId !== DEFAULT_ORGANIZATION_ID) {
-        orgPolicies = await getPoliciesForOrganization(DEFAULT_ORGANIZATION_ID);
-      }
+      const orgPolicies = await getPoliciesForOrganization(auth.organizationId);
       if (orgPolicies.length) {
         const statusCounts = orgPolicies.reduce<Record<string, number>>((acc, policy) => {
           acc[policy.status] = (acc[policy.status] ?? 0) + 1;
@@ -270,7 +266,7 @@ export async function POST(request: Request) {
   } catch (error) {
     logError(error, "AI chat route error");
     return NextResponse.json(
-      { error: "Failed to contact model", details: error instanceof Error ? error.message : "Unknown error" },
+      { error: "Failed to contact model" },
       { status: 500 }
     );
   }

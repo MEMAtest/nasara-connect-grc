@@ -11,7 +11,10 @@ import { DEFAULT_ORGANIZATION_ID } from '@/lib/constants';
 import { logError, logApiRequest } from '@/lib/logger';
 import { isValidUUID } from '@/lib/validation';
 
-const connectionString = process.env.DATABASE_URL || "postgresql://neondb_owner:npg_Vtu9NK8ThRbB@ep-royal-queen-abitcphb-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require";
+const connectionString = process.env.DATABASE_URL;
+if (!connectionString) {
+  throw new Error("DATABASE_URL is required.");
+}
 
 const pool = new Pool({
   connectionString,

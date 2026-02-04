@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { DEFAULT_ORGANIZATION_ID } from "@/lib/constants";
+import { requireAuth } from "@/lib/auth-utils";
 import type { EntityType } from "@/lib/server/entity-link-store";
 import { deleteEntityLink, listEntityLinks, upsertEntityLink } from "@/lib/server/entity-link-store";
 
@@ -13,9 +13,11 @@ export async function GET(
   _request: Request,
   { params }: { params: Promise<{ policyId: string }> },
 ) {
+  const { auth, error } = await requireAuth();
+  if (error) return error;
   const { policyId } = await params;
   const links = await listEntityLinks({
-    organizationId: DEFAULT_ORGANIZATION_ID,
+    organizationId: auth.organizationId,
     fromType: "policy",
     fromId: policyId,
   });
@@ -26,6 +28,8 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ policyId: string }> },
 ) {
+  const { auth, error } = await requireAuth();
+  if (error) return error;
   const { policyId } = await params;
   const body = (await request.json()) as Record<string, unknown>;
 
@@ -36,7 +40,7 @@ export async function POST(
   const metadata = typeof body.metadata === "object" && body.metadata !== null ? (body.metadata as Record<string, unknown>) : {};
 
   const link = await upsertEntityLink({
-    organizationId: DEFAULT_ORGANIZATION_ID,
+    organizationId: auth.organizationId,
     fromType: "policy",
     fromId: policyId,
     toType: body.toType,
@@ -51,6 +55,8 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ policyId: string }> },
 ) {
+  const { auth, error } = await requireAuth();
+  if (error) return error;
   const { policyId } = await params;
   const body = (await request.json()) as Record<string, unknown>;
 
@@ -59,7 +65,7 @@ export async function DELETE(
   }
 
   const deleted = await deleteEntityLink({
-    organizationId: DEFAULT_ORGANIZATION_ID,
+    organizationId: auth.organizationId,
     fromType: "policy",
     fromId: policyId,
     toType: body.toType,
@@ -68,4 +74,3 @@ export async function DELETE(
 
   return NextResponse.json({ success: deleted });
 }
-

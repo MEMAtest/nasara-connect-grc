@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
-import { DEFAULT_ORGANIZATION_ID } from "@/lib/constants";
+import { requireAuth } from "@/lib/auth-utils";
 import { DEFAULT_PERMISSIONS } from "@/lib/policies";
 import { getApplicableClauses, getTemplateByCode } from "@/lib/policies/templates";
 import {
@@ -31,11 +31,12 @@ function buildFallbackPolicy(input: {
   clauses: PolicyClause[];
   customContent: Record<string, unknown>;
   approvals: StoredPolicy["approvals"];
+  organizationId: string;
 }): StoredPolicy {
   const timestamp = nowIso();
   return {
     id: input.id ?? randomUUID(),
-    organizationId: DEFAULT_ORGANIZATION_ID,
+    organizationId: input.organizationId,
     code: input.template.code,
     name: input.template.name,
     description: input.template.description,
@@ -58,8 +59,10 @@ function buildFallbackPolicy(input: {
 
 export async function GET() {
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
     await initDatabase();
-    const policies = await getPoliciesForOrganization(DEFAULT_ORGANIZATION_ID);
+    const policies = await getPoliciesForOrganization(auth.organizationId);
     return NextResponse.json(policies);
   } catch (error) {
     console.error("Error fetching policies, returning fallback:", error);
@@ -68,6 +71,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const { auth, error } = await requireAuth();
+  if (error) return error;
   await initDatabase();
   const body = await request.json();
   const templateCode: string | undefined = body.templateCode;
@@ -143,7 +148,7 @@ export async function POST(request: Request) {
         .filter((mapping) => allowed.has(mapping.toType) && typeof mapping.toId === "string" && mapping.toId.trim().length > 0)
         .map((mapping) =>
           upsertEntityLink({
-            organizationId: DEFAULT_ORGANIZATION_ID,
+            organizationId: auth.organizationId,
             fromType: "policy",
             fromId: policyId,
             toType: mapping.toType as "risk" | "control" | "training" | "evidence",
@@ -203,7 +208,7 @@ export async function POST(request: Request) {
   };
 
   try {
-    const created = await createPolicy(DEFAULT_ORGANIZATION_ID, {
+    const created = await createPolicy(auth.organizationId, {
       id: body.id,
       code: template.code,
       name: template.name,
@@ -217,7 +222,7 @@ export async function POST(request: Request) {
     });
 
     // Fire-and-forget: AI enhancement runs in the background
-    runAiEnhancement(created.id, DEFAULT_ORGANIZATION_ID);
+    runAiEnhancement(created.id, auth.organizationId);
 
     // Create initial activity record for policy creation
     try {
@@ -241,7 +246,7 @@ export async function POST(request: Request) {
     }
     try {
       await createNotification({
-        organizationId: DEFAULT_ORGANIZATION_ID,
+        organizationId: auth.organizationId,
         title: "Policy created",
         message: `Draft "${created.name}" created from template.`,
         severity: "success",
@@ -262,11 +267,12 @@ export async function POST(request: Request) {
       clauses: selectedClauses,
       customContent,
       approvals,
+      organizationId: auth.organizationId,
     });
     fallbackPolicies.unshift(fallback);
 
     // Fire-and-forget: AI enhancement for fallback path
-    runAiEnhancement(fallback.id, DEFAULT_ORGANIZATION_ID);
+    runAiEnhancement(fallback.id, auth.organizationId);
 
     try {
       await persistSuggestedMappings(fallback.id);
@@ -275,7 +281,7 @@ export async function POST(request: Request) {
     }
     try {
       await createNotification({
-        organizationId: DEFAULT_ORGANIZATION_ID,
+        organizationId: auth.organizationId,
         title: "Policy created",
         message: `Draft "${fallback.name}" created from template.`,
         severity: "success",

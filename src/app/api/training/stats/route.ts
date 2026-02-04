@@ -4,8 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/auth';
-import { getSessionIdentity } from '@/lib/auth-utils';
+import { requireAuth } from '@/lib/auth-utils';
 import { logError, logApiRequest } from '@/lib/logger';
 import {
   initTrainingDatabase,
@@ -16,12 +15,8 @@ export async function GET(request: NextRequest) {
   logApiRequest('GET', '/api/training/stats');
 
   try {
-    const session = await auth();
-    const identity = getSessionIdentity(session);
-
-    if (!identity?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const { error } = await requireAuth();
+    if (error) return error;
 
     await initTrainingDatabase();
 
@@ -31,7 +26,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     logError(error, 'Failed to fetch training stats');
     return NextResponse.json(
-      { error: 'Failed to fetch stats', details: error instanceof Error ? error.message : 'Unknown error' },
+      { error: 'Failed to fetch stats' },
       { status: 500 }
     );
   }

@@ -5,8 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/auth';
-import { getSessionIdentity } from '@/lib/auth-utils';
+import { requireAuth } from '@/lib/auth-utils';
 import { logError, logApiRequest } from '@/lib/logger';
 import {
   initTrainingDatabase,
@@ -82,16 +81,15 @@ export async function GET(request: NextRequest) {
   logApiRequest('GET', '/api/training/achievements');
 
   try {
-    const session = await auth();
-    const identity = getSessionIdentity(session);
-
-    if (!identity?.email) {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
+    if (!auth.userEmail) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     await initTrainingDatabase();
 
-    const earnedBadges = await getUserBadges(identity.email);
+    const earnedBadges = await getUserBadges(auth.userEmail);
 
     // Map earned badges and include all available badges with earned status
     const earnedBadgeIds = new Set(earnedBadges.map(b => b.badge_id));
@@ -122,10 +120,9 @@ export async function POST(request: NextRequest) {
   logApiRequest('POST', '/api/training/achievements');
 
   try {
-    const session = await auth();
-    const identity = getSessionIdentity(session);
-
-    if (!identity?.email) {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
+    if (!auth.userEmail) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -144,7 +141,7 @@ export async function POST(request: NextRequest) {
     }
 
     const badge = await awardBadge(
-      identity.email,
+      auth.userEmail,
       badgeId,
       badgeDefinition.name,
       badgeDefinition.description,

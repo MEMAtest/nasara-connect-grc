@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { PDFDocument, StandardFonts, rgb, PDFFont, PDFPage } from "pdf-lib";
-import { DEFAULT_ORGANIZATION_ID } from "@/lib/constants";
+import { requireAuth } from "@/lib/auth-utils";
 import { getPolicyById } from "@/lib/server/policy-store";
 import { renderClause, renderLiquidTemplate } from "@/lib/policies/liquid-renderer";
 import { sanitizeClauseContent, DEFAULT_SANITIZE_OPTIONS } from "@/lib/policies/content-sanitizer";
@@ -323,8 +323,10 @@ export async function GET(
   { params }: { params: Promise<{ policyId: string }> }
 ) {
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
     const { policyId } = await params;
-    const policy = await getPolicyById(DEFAULT_ORGANIZATION_ID, policyId);
+    const policy = await getPolicyById(auth.organizationId, policyId);
 
     if (!policy) {
       return NextResponse.json({ error: "Policy not found" }, { status: 404 });

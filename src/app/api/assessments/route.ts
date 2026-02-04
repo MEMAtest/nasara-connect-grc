@@ -8,6 +8,7 @@ import {
 } from '@/lib/database';
 import { createNotification } from "@/lib/server/notifications-store";
 import { logger, logError } from '@/lib/logger';
+import { requireAuth } from '@/lib/auth-utils';
 
 type AssessmentDto = {
   id: string;
@@ -99,26 +100,29 @@ function createFallbackAssessment(payload: {
 }
 
 export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const organizationId = searchParams.get('organizationId') || 'default-org';
+  const { auth, error } = await requireAuth();
+  if (error) return error;
 
-    const assessments = await getAssessments(organizationId);
+  try {
+    const assessments = await getAssessments(auth.organizationId);
     return NextResponse.json(assessments.map(mapAssessmentToDto));
   } catch (error) {
-    logError(error, 'Failed to fetch assessments', { organizationId: 'default-org' });
+    logError(error, 'Failed to fetch assessments', { organizationId: auth.organizationId });
     // Fall back to mock data so the dashboard still renders in dev environments
     return NextResponse.json(fallbackAssessments);
   }
 }
 
 export async function POST(request: NextRequest) {
+  const { auth, error } = await requireAuth();
+  if (error) return error;
+
   try {
     // Initialize database if needed
     await initDatabase();
 
     const body = await request.json();
-    const { name, description, businessType, permissions, organizationId } = body;
+    const { name, description, businessType, permissions } = body;
 
     if (!name) {
       return NextResponse.json(
@@ -132,13 +136,13 @@ export async function POST(request: NextRequest) {
       description,
       business_type: businessType,
       target_permissions: permissions,
-      organization_id: organizationId || 'default-org',
+      organization_id: auth.organizationId,
     });
 
     const dto = mapAssessmentToDto(created);
     try {
       await createNotification({
-        organizationId: organizationId || 'default-org',
+        organizationId: auth.organizationId,
         title: "Risk assessment created",
         message: `"${dto.name}" started in the risk assessment tool.`,
         severity: "info",
@@ -151,7 +155,7 @@ export async function POST(request: NextRequest) {
     }
     return NextResponse.json(dto, { status: 201 });
   } catch (error) {
-    logError(error, 'Failed to create assessment', { name, businessType });
+    logError(error, 'Failed to create assessment', { name, businessType, organizationId: auth.organizationId });
     const fallback = createFallbackAssessment({
       name,
       description,
@@ -160,7 +164,7 @@ export async function POST(request: NextRequest) {
     });
     try {
       await createNotification({
-        organizationId: "default-org",
+        organizationId: auth.organizationId,
         title: "Risk assessment created",
         message: `"${fallback.name}" started in the risk assessment tool.`,
         severity: "info",

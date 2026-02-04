@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   initDatabase,
+  getSarNcaRecords,
   updateSarNcaRecord,
   deleteSarNcaRecord,
 } from "@/lib/database";
@@ -11,6 +12,7 @@ import {
   sanitizeText,
   parseValidDate,
 } from "@/lib/validation";
+import { requireAuth } from "@/lib/auth-utils";
 
 const SUBJECT_TYPES = ["individual", "company", "trust", "other"] as const;
 const SUSPICION_TYPES = ["money_laundering", "terrorist_financing", "fraud", "tax_evasion", "sanctions_breach", "other"] as const;
@@ -23,6 +25,8 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
     await initDatabase();
 
     const { id } = await params;
@@ -92,6 +96,12 @@ export async function PATCH(
     if (body.outcome !== undefined) updateData.outcome = sanitizeText(body.outcome);
     if (body.notes !== undefined) updateData.notes = sanitizeText(body.notes);
 
+    const records = await getSarNcaRecords(auth.organizationId);
+    const existing = records.find((item) => item.id === id);
+    if (!existing) {
+      return NextResponse.json({ error: "Record not found" }, { status: 404 });
+    }
+
     const record = await updateSarNcaRecord(id, updateData);
 
     if (!record) {
@@ -117,6 +127,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
     await initDatabase();
 
     const { id } = await params;
@@ -126,6 +138,12 @@ export async function DELETE(
         { error: "Invalid record ID format" },
         { status: 400 }
       );
+    }
+
+    const records = await getSarNcaRecords(auth.organizationId);
+    const existing = records.find((item) => item.id === id);
+    if (!existing) {
+      return NextResponse.json({ error: "Record not found" }, { status: 404 });
     }
 
     const deleted = await deleteSarNcaRecord(id);

@@ -2141,32 +2141,49 @@ export async function syncPackFromTemplate(packId: string) {
   }
 }
 
-export async function resetAuthorizationPackData() {
+export async function resetAuthorizationPackData(organizationId?: string) {
   templatesSynced = false;
   ecosystemsSynced = false;
   await initAuthorizationPackDatabase();
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
-    await client.query(`
-      TRUNCATE TABLE
-        activity_log,
-        review_gates,
-        tasks,
-        pack_documents,
-        evidence_versions,
-        evidence_items,
-        prompt_responses,
-        section_instances,
-        authorization_projects,
-        packs,
-        required_evidence,
-        prompts,
-        section_templates,
-        pack_templates,
-        permission_ecosystems
-      RESTART IDENTITY CASCADE
-    `);
+
+    if (organizationId) {
+      // Scoped reset: only delete data belonging to this organization
+      await client.query("DELETE FROM activity_log WHERE pack_id IN (SELECT id FROM packs WHERE organization_id = $1)", [organizationId]);
+      await client.query("DELETE FROM review_gates WHERE pack_id IN (SELECT id FROM packs WHERE organization_id = $1)", [organizationId]);
+      await client.query("DELETE FROM tasks WHERE pack_id IN (SELECT id FROM packs WHERE organization_id = $1)", [organizationId]);
+      await client.query("DELETE FROM pack_documents WHERE pack_id IN (SELECT id FROM packs WHERE organization_id = $1)", [organizationId]);
+      await client.query("DELETE FROM evidence_versions WHERE evidence_id IN (SELECT id FROM evidence_items WHERE pack_id IN (SELECT id FROM packs WHERE organization_id = $1))", [organizationId]);
+      await client.query("DELETE FROM evidence_items WHERE pack_id IN (SELECT id FROM packs WHERE organization_id = $1)", [organizationId]);
+      await client.query("DELETE FROM prompt_responses WHERE section_id IN (SELECT id FROM section_instances WHERE pack_id IN (SELECT id FROM packs WHERE organization_id = $1))", [organizationId]);
+      await client.query("DELETE FROM section_instances WHERE pack_id IN (SELECT id FROM packs WHERE organization_id = $1)", [organizationId]);
+      await client.query("DELETE FROM authorization_projects WHERE organization_id = $1", [organizationId]);
+      await client.query("DELETE FROM packs WHERE organization_id = $1", [organizationId]);
+    } else {
+      // Full reset (dev/test only — no org specified)
+      await client.query(`
+        TRUNCATE TABLE
+          activity_log,
+          review_gates,
+          tasks,
+          pack_documents,
+          evidence_versions,
+          evidence_items,
+          prompt_responses,
+          section_instances,
+          authorization_projects,
+          packs,
+          required_evidence,
+          prompts,
+          section_templates,
+          pack_templates,
+          permission_ecosystems
+        RESTART IDENTITY CASCADE
+      `);
+    }
+
     await client.query("COMMIT");
   } catch (error) {
     await client.query("ROLLBACK");

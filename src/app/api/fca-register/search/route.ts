@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getFCAConfig, isFCAApiError } from "@/lib/fca-register";
+import { requireAuth } from "@/lib/auth-utils";
 
 interface SearchResult {
   type: "Firm" | "Individual";
@@ -58,6 +59,8 @@ async function searchFCA(
  */
 export async function GET(request: NextRequest) {
   try {
+    const { error } = await requireAuth();
+    if (error) return error;
     const searchParams = request.nextUrl.searchParams;
     const query = searchParams.get("q");
     const searchType = searchParams.get("type") || "all";

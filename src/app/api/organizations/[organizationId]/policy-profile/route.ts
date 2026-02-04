@@ -1,13 +1,17 @@
 import { NextResponse } from "next/server";
-import { DEFAULT_ORGANIZATION_ID } from "@/lib/constants";
+import { requireAuth } from "@/lib/auth-utils";
 import { getPolicyFirmProfile, upsertPolicyFirmProfile } from "@/lib/server/policy-firm-profile";
 
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ organizationId: string }> },
 ) {
-  const { organizationId: paramOrgId } = await params;
-  const organizationId = paramOrgId ?? DEFAULT_ORGANIZATION_ID;
+  const { auth, error } = await requireAuth();
+  if (error) return error;
+  const { organizationId } = await params;
+  if (organizationId !== auth.organizationId) {
+    return NextResponse.json({ error: "Access denied" }, { status: 403 });
+  }
   const profile = await getPolicyFirmProfile(organizationId);
   if (!profile) {
     return NextResponse.json({ error: "Policy firm profile not found" }, { status: 404 });
@@ -19,8 +23,12 @@ export async function PUT(
   request: Request,
   { params }: { params: Promise<{ organizationId: string }> },
 ) {
-  const { organizationId: paramOrgId } = await params;
-  const organizationId = paramOrgId ?? DEFAULT_ORGANIZATION_ID;
+  const { auth, error } = await requireAuth();
+  if (error) return error;
+  const { organizationId } = await params;
+  if (organizationId !== auth.organizationId) {
+    return NextResponse.json({ error: "Access denied" }, { status: 403 });
+  }
   const body = await request.json();
   const profile = await upsertPolicyFirmProfile(organizationId, {
     firmProfile: body.firmProfile ?? body.firm_profile,

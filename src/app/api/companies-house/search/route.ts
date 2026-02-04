@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireAuth } from "@/lib/auth-utils";
 
 const BASE_URL = "https://api.company-information.service.gov.uk";
 
@@ -11,6 +12,8 @@ function getAuthHeader() {
 
 export async function GET(request: NextRequest) {
   try {
+    const { error } = await requireAuth();
+    if (error) return error;
     const authHeader = getAuthHeader();
 
     const { searchParams } = new URL(request.url);

@@ -1,11 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { DEFAULT_ORGANIZATION_ID } from "@/lib/constants";
 import { markAllNotificationsRead } from "@/lib/server/notifications-store";
 import { requireAuth } from "@/lib/auth-utils";
 
 vi.mock("@/lib/auth-utils", () => ({
   requireAuth: vi.fn(),
-  DEFAULT_ORG_ID: "00000000-0000-0000-0000-000000000001",
 }));
 
 vi.mock("@/lib/server/notifications-store", () => ({
@@ -20,8 +18,6 @@ vi.mock("@/lib/logger", () => ({
   logError: vi.fn(),
 }));
 
-const DEFAULT_ORG_ID = "00000000-0000-0000-0000-000000000001";
-
 describe("Mark all read route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -29,8 +25,8 @@ describe("Mark all read route", () => {
 
   it("marks notifications for the authenticated org", async () => {
     vi.mocked(requireAuth).mockResolvedValue({
-      auth: { userId: "user-1", userEmail: "user@example.com", organizationId: "default-org" },
-      error: null,
+      auth: { authenticated: true, userId: "user-1", userEmail: "user@example.com", userName: "User 1", organizationId: "org-abc" },
+      error: undefined,
     });
     vi.mocked(markAllNotificationsRead).mockResolvedValue({ count: 2 });
 
@@ -42,7 +38,7 @@ describe("Mark all read route", () => {
     const res = await POST(req);
 
     expect(markAllNotificationsRead).toHaveBeenCalledWith({
-      organizationIds: ["default-org", DEFAULT_ORGANIZATION_ID, DEFAULT_ORG_ID],
+      organizationIds: ["org-abc"],
       userId: "user-1",
     });
     expect(res.status).toBe(200);

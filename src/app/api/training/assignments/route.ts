@@ -5,8 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/auth";
-import { getSessionIdentity, isAuthDisabled } from "@/lib/auth-utils";
+import { requireAuth } from "@/lib/auth-utils";
 import { logApiRequest, logError } from "@/lib/logger";
 import { createTrainingAssignment, initTrainingDatabase, listTrainingAssignments } from "@/lib/training-database";
 
@@ -14,10 +13,9 @@ export async function GET(_request: NextRequest) {
   logApiRequest("GET", "/api/training/assignments");
 
   try {
-    const session = isAuthDisabled() ? null : await auth();
-    const identity = getSessionIdentity(session);
-
-    if (!identity?.email) {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
+    if (!auth.userEmail) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -28,9 +26,9 @@ export async function GET(_request: NextRequest) {
       scopeParam === "assigned_to" || scopeParam === "all" || scopeParam === "assigned_by"
         ? scopeParam
         : "assigned_by";
-    const assignments = await listTrainingAssignments(identity.email, scope);
+    const assignments = await listTrainingAssignments(auth.userEmail, scope);
 
-    return NextResponse.json({ assignments, scope, viewerEmail: identity.email });
+    return NextResponse.json({ assignments, scope, viewerEmail: auth.userEmail });
   } catch (error) {
     logError(error, "Failed to fetch training assignments");
     return NextResponse.json(
@@ -44,10 +42,9 @@ export async function POST(request: NextRequest) {
   logApiRequest("POST", "/api/training/assignments");
 
   try {
-    const session = isAuthDisabled() ? null : await auth();
-    const identity = getSessionIdentity(session);
-
-    if (!identity?.email) {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
+    if (!auth.userEmail) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -63,7 +60,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "moduleId and assignedTo are required" }, { status: 400 });
     }
 
-    const assignment = await createTrainingAssignment(identity.email, {
+    const assignment = await createTrainingAssignment(auth.userEmail, {
       moduleId,
       assignedTo,
       dueDate,

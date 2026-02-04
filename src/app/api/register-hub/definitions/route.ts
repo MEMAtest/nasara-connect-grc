@@ -5,10 +5,13 @@ import {
   seedRegisterDefinitions,
   seedRegisterRecommendations,
 } from "@/lib/database";
+import { requireAuth } from "@/lib/auth-utils";
 
 // GET /api/register-hub/definitions - Get all register definitions
 export async function GET() {
   try {
+    const { error } = await requireAuth();
+    if (error) return error;
     await initDatabase();
     const definitions = await getRegisterDefinitions();
 
@@ -33,6 +36,8 @@ export async function GET() {
 // POST /api/register-hub/definitions - Seed/reseed definitions
 export async function POST(request: NextRequest) {
   try {
+    const { error } = await requireAuth();
+    if (error) return error;
     await initDatabase();
 
     const body = await request.json().catch(() => ({}));

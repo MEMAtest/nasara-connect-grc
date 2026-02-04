@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { DEFAULT_ORGANIZATION_ID } from "@/lib/constants";
+import { requireAuth } from "@/lib/auth-utils";
 import { initDatabase } from "@/lib/database";
 import { getPoliciesForOrganization, updatePolicy } from "@/lib/server/policy-store";
 import { enhanceClausesWithAi, DEFAULT_POLICY_MODEL, type PolicyAiDetailLevel } from "@/lib/policies/ai-policy-writer";
@@ -9,6 +9,8 @@ function nowIso() {
 }
 
 export async function POST(request: Request) {
+  const { auth, error } = await requireAuth();
+  if (error) return error;
   await initDatabase();
   const url = new URL(request.url);
   const detail = (url.searchParams.get("detail") ?? "detailed") as PolicyAiDetailLevel;
@@ -18,7 +20,7 @@ export async function POST(request: Request) {
   const limit = limitParam ? Number(limitParam) : undefined;
 
   try {
-    let policies = await getPoliciesForOrganization(DEFAULT_ORGANIZATION_ID);
+    let policies = await getPoliciesForOrganization(auth.organizationId);
     if (policyIdFilter) {
       policies = policies.filter((policy) => policy.id === policyIdFilter);
     }
@@ -61,7 +63,7 @@ export async function POST(request: Request) {
         },
       };
 
-      await updatePolicy(DEFAULT_ORGANIZATION_ID, policy.id, {
+      await updatePolicy(auth.organizationId, policy.id, {
         clauses: aiResult.clauses,
         customContent: nextContent,
       });

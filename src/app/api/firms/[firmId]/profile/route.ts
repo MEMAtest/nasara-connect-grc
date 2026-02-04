@@ -16,6 +16,7 @@ import {
 } from '@/lib/server/firm-profile-store';
 import type { FirmProfileCreate } from '@/lib/policies/types';
 import { logError } from '@/lib/logger';
+import { requireAuth } from '@/lib/auth-utils';
 
 // =====================================================
 // GET - Retrieve firm profile
@@ -26,7 +27,13 @@ export async function GET(
   { params }: { params: Promise<{ firmId: string }> }
 ) {
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
     const { firmId } = await params;
+
+    if (firmId !== auth.organizationId) {
+      return NextResponse.json({ error: 'Access denied', code: 'FORBIDDEN' }, { status: 403 });
+    }
 
     const profile = await getFirmProfile(firmId);
 
@@ -44,7 +51,6 @@ export async function GET(
       {
         error: 'Failed to fetch firm profile',
         code: 'INTERNAL_ERROR',
-        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );
@@ -60,7 +66,14 @@ export async function POST(
   { params }: { params: Promise<{ firmId: string }> }
 ) {
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
     const { firmId } = await params;
+
+    if (firmId !== auth.organizationId) {
+      return NextResponse.json({ error: 'Access denied', code: 'FORBIDDEN' }, { status: 403 });
+    }
+
     const body = await request.json();
 
     // Validate required fields
@@ -69,7 +82,6 @@ export async function POST(
         {
           error: 'Validation failed',
           code: 'VALIDATION_ERROR',
-          details: [{ field: 'name', message: 'Name is required', code: 'REQUIRED' }],
         },
         { status: 400 }
       );
@@ -91,7 +103,6 @@ export async function POST(
       {
         error: 'Failed to save firm profile',
         code: 'INTERNAL_ERROR',
-        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );
@@ -107,7 +118,14 @@ export async function PATCH(
   { params }: { params: Promise<{ firmId: string }> }
 ) {
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
     const { firmId } = await params;
+
+    if (firmId !== auth.organizationId) {
+      return NextResponse.json({ error: 'Access denied', code: 'FORBIDDEN' }, { status: 403 });
+    }
+
     const body = await request.json();
 
     let profile;
@@ -121,13 +139,6 @@ export async function PATCH(
         {
           error: 'Validation failed',
           code: 'VALIDATION_ERROR',
-          details: [
-            {
-              field: 'attributes',
-              message: 'Either attributes or branding must be provided',
-              code: 'REQUIRED',
-            },
-          ],
         },
         { status: 400 }
       );
@@ -139,7 +150,7 @@ export async function PATCH(
 
     if (error instanceof Error && error.message.includes('not found')) {
       return NextResponse.json(
-        { error: error.message, code: 'NOT_FOUND' },
+        { error: 'Firm profile not found', code: 'NOT_FOUND' },
         { status: 404 }
       );
     }
@@ -148,7 +159,6 @@ export async function PATCH(
       {
         error: 'Failed to update firm profile',
         code: 'INTERNAL_ERROR',
-        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );
@@ -164,7 +174,13 @@ export async function DELETE(
   { params }: { params: Promise<{ firmId: string }> }
 ) {
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
     const { firmId } = await params;
+
+    if (firmId !== auth.organizationId) {
+      return NextResponse.json({ error: 'Access denied', code: 'FORBIDDEN' }, { status: 403 });
+    }
 
     const deleted = await deleteFirmProfile(firmId);
 
@@ -182,7 +198,6 @@ export async function DELETE(
       {
         error: 'Failed to delete firm profile',
         code: 'INTERNAL_ERROR',
-        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );

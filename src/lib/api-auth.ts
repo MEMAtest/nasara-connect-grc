@@ -37,7 +37,7 @@ export async function authenticateRequest(
         userId: "dev-user",
         userEmail: "dev@example.com",
         // Keep legacy default-org data visible in auth-disabled mode.
-        organizationId: "default-org",
+        organizationId: DEFAULT_ORG_ID,
       },
     };
   }
@@ -54,17 +54,12 @@ export async function authenticateRequest(
     };
   }
 
-  // Get organization ID from query params or derive from the user email.
-  const { searchParams } = new URL(request.url);
-  const requestedOrgId = searchParams.get("organizationId");
-
-  // In a real app, you'd verify the user has access to this organization.
-  // For now, allow the override but default to the same derived org ID
-  // used by requireAuth/auth-utils.
+  // Derive organization ID from the user email.
+  // Do not accept org overrides from query params (prevents tenant hopping).
   const derivedOrgId = session.user.email
     ? await deriveOrganizationIdFromEmail(session.user.email)
     : DEFAULT_ORG_ID;
-  const organizationId = requestedOrgId || derivedOrgId;
+  const organizationId = derivedOrgId;
 
   return {
     authenticated: true,

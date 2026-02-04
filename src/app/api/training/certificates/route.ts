@@ -4,8 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/auth";
-import { getSessionIdentity, isAuthDisabled } from "@/lib/auth-utils";
+import { requireAuth } from "@/lib/auth-utils";
 import { logError, logApiRequest } from "@/lib/logger";
 import { getCertificateDownloads, initTrainingDatabase, logCertificateDownload } from "@/lib/training-database";
 
@@ -13,15 +12,14 @@ export async function GET() {
   logApiRequest("GET", "/api/training/certificates");
 
   try {
-    const session = isAuthDisabled() ? null : await auth();
-    const identity = getSessionIdentity(session);
-
-    if (!identity?.email) {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
+    if (!auth.userEmail) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     await initTrainingDatabase();
-    const certificates = await getCertificateDownloads(identity.email);
+    const certificates = await getCertificateDownloads(auth.userEmail);
 
     return NextResponse.json({ certificates });
   } catch (error) {
@@ -37,10 +35,9 @@ export async function POST(request: NextRequest) {
   logApiRequest("POST", "/api/training/certificates");
 
   try {
-    const session = isAuthDisabled() ? null : await auth();
-    const identity = getSessionIdentity(session);
-
-    if (!identity?.email) {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
+    if (!auth.userEmail) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -52,7 +49,7 @@ export async function POST(request: NextRequest) {
     }
 
     await initTrainingDatabase();
-    await logCertificateDownload(identity.email, moduleId, typeof score === "number" ? score : undefined);
+    await logCertificateDownload(auth.userEmail, moduleId, typeof score === "number" ? score : undefined);
 
     return NextResponse.json({ status: "ok" });
   } catch (error) {

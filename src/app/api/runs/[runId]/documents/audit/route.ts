@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateDocument, generateAuditBundleBuffer } from '@/lib/documents/document-generator';
 import type { Run, FirmProfile, Clause } from '@/lib/policies/types';
+import { requireAuth } from '@/lib/auth-utils';
 
 // Mock data (same as other routes)
 const MOCK_RUN: Run = {
@@ -78,6 +79,8 @@ export async function GET(
   { params }: { params: Promise<{ runId: string }> }
 ) {
   try {
+    const { error } = await requireAuth();
+    if (error) return error;
     const { runId } = await params;
 
     const run = { ...MOCK_RUN, id: runId };

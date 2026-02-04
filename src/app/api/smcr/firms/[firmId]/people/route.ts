@@ -7,12 +7,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
   createPerson,
+  getFirm,
   getPeople,
   initSmcrDatabase,
   CreatePersonInput,
 } from '@/lib/smcr-database';
 import { createNotification } from "@/lib/server/notifications-store";
 import { logError, logApiRequest } from '@/lib/logger';
+import { requireAuth } from '@/lib/auth-utils';
 
 export async function GET(
   request: NextRequest,
@@ -22,7 +24,17 @@ export async function GET(
   logApiRequest('GET', `/api/smcr/firms/${firmId}/people`);
 
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
     await initSmcrDatabase();
+
+    const firm = await getFirm(firmId);
+    if (!firm) {
+      return NextResponse.json({ error: 'Firm not found' }, { status: 404 });
+    }
+    if (firm.organization_id && firm.organization_id !== auth.organizationId) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+    }
 
     const people = await getPeople(firmId);
     return NextResponse.json(people);
@@ -43,7 +55,17 @@ export async function POST(
   logApiRequest('POST', `/api/smcr/firms/${firmId}/people`);
 
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
     await initSmcrDatabase();
+
+    const firm = await getFirm(firmId);
+    if (!firm) {
+      return NextResponse.json({ error: 'Firm not found' }, { status: 404 });
+    }
+    if (firm.organization_id && firm.organization_id !== auth.organizationId) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+    }
 
     const body = await request.json();
     const { name, email, department, title, phone, address, lineManager, startDate, hireDate, endDate } = body;
@@ -72,7 +94,7 @@ export async function POST(
     const person = await createPerson(input);
     try {
       await createNotification({
-        organizationId: "default-org",
+        organizationId: auth.organizationId,
         title: "SMCR person added",
         message: `${person.name} added to SMCR firm ${firmId}.`,
         severity: "info",

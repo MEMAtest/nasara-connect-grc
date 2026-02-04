@@ -7,12 +7,14 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import {
+  getFirm,
   getPerson,
   updatePerson,
   deletePerson,
   initSmcrDatabase,
 } from '@/lib/smcr-database';
 import { logError, logApiRequest } from '@/lib/logger';
+import { requireAuth } from '@/lib/auth-utils';
 
 export async function GET(
   request: NextRequest,
@@ -22,12 +24,21 @@ export async function GET(
   logApiRequest('GET', `/api/smcr/people/${personId}`);
 
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
     await initSmcrDatabase();
 
     const person = await getPerson(personId);
 
     if (!person) {
       return NextResponse.json({ error: 'Person not found' }, { status: 404 });
+    }
+    const firm = await getFirm(person.firm_id);
+    if (!firm) {
+      return NextResponse.json({ error: 'Firm not found' }, { status: 404 });
+    }
+    if (firm.organization_id && firm.organization_id !== auth.organizationId) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
     return NextResponse.json(person);
@@ -48,6 +59,8 @@ export async function PATCH(
   logApiRequest('PATCH', `/api/smcr/people/${personId}`);
 
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
     await initSmcrDatabase();
 
     const body = await request.json();
@@ -71,11 +84,19 @@ export async function PATCH(
     if (body.irn !== undefined) updates.irn = body.irn;
     if (body.fcaVerification !== undefined) updates.fca_verification = body.fcaVerification;
 
-    const person = await updatePerson(personId, updates);
-
-    if (!person) {
+    const existing = await getPerson(personId);
+    if (!existing) {
       return NextResponse.json({ error: 'Person not found' }, { status: 404 });
     }
+    const firm = await getFirm(existing.firm_id);
+    if (!firm) {
+      return NextResponse.json({ error: 'Firm not found' }, { status: 404 });
+    }
+    if (firm.organization_id && firm.organization_id !== auth.organizationId) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+    }
+
+    const person = await updatePerson(personId, updates);
 
     return NextResponse.json(person);
   } catch (error) {
@@ -95,13 +116,23 @@ export async function DELETE(
   logApiRequest('DELETE', `/api/smcr/people/${personId}`);
 
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
     await initSmcrDatabase();
 
-    const deleted = await deletePerson(personId);
-
-    if (!deleted) {
+    const existing = await getPerson(personId);
+    if (!existing) {
       return NextResponse.json({ error: 'Person not found' }, { status: 404 });
     }
+    const firm = await getFirm(existing.firm_id);
+    if (!firm) {
+      return NextResponse.json({ error: 'Firm not found' }, { status: 404 });
+    }
+    if (firm.organization_id && firm.organization_id !== auth.organizationId) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+    }
+
+    await deletePerson(personId);
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -9,6 +9,7 @@ import {
   LetterTemplateType,
 } from "@/lib/database";
 import { isValidUUID, sanitizeString, sanitizeText } from "@/lib/validation";
+import { requireAuth } from "@/lib/auth-utils";
 
 const LETTER_TEMPLATE_TYPES: LetterTemplateType[] = [
   "acknowledgement",
@@ -26,6 +27,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
     await initDatabase();
     const { id } = await params;
 
@@ -34,6 +37,14 @@ export async function GET(
         { error: "Invalid complaint ID format" },
         { status: 400 }
       );
+    }
+
+    const complaint = await getComplaintRecord(id);
+    if (!complaint) {
+      return NextResponse.json({ error: "Complaint not found" }, { status: 404 });
+    }
+    if (complaint.organization_id && complaint.organization_id !== auth.organizationId) {
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
     const letters = await getComplaintLetters(id);
@@ -53,6 +64,8 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
     await initDatabase();
     const { id } = await params;
 
@@ -70,6 +83,9 @@ export async function POST(
         { error: "Complaint not found" },
         { status: 404 }
       );
+    }
+    if (complaint.organization_id && complaint.organization_id !== auth.organizationId) {
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
     const body = await request.json();

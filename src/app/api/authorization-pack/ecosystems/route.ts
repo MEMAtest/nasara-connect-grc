@@ -5,9 +5,12 @@ import {
   syncPermissionEcosystems,
 } from "@/lib/authorization-pack-db";
 import { logError } from "@/lib/logger";
+import { requireAuth } from "@/lib/auth-utils";
 
 export async function GET(request: Request) {
   try {
+    const { error } = await requireAuth();
+    if (error) return error;
     const url = new URL(request.url);
     const force = url.searchParams.get("force") === "1";
     const allowForce = force && process.env.NODE_ENV !== "production";

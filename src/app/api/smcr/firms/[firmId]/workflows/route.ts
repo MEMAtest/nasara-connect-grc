@@ -7,12 +7,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
   createWorkflow,
+  getFirm,
   getWorkflows,
   initSmcrDatabase,
   CreateWorkflowInput,
 } from '@/lib/smcr-database';
 import { createNotification } from "@/lib/server/notifications-store";
 import { logError, logApiRequest } from '@/lib/logger';
+import { requireAuth } from '@/lib/auth-utils';
 
 export async function GET(
   request: NextRequest,
@@ -22,7 +24,17 @@ export async function GET(
   logApiRequest('GET', `/api/smcr/firms/${firmId}/workflows`);
 
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
     await initSmcrDatabase();
+
+    const firm = await getFirm(firmId);
+    if (!firm) {
+      return NextResponse.json({ error: 'Firm not found' }, { status: 404 });
+    }
+    if (firm.organization_id && firm.organization_id !== auth.organizationId) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+    }
 
     const workflows = await getWorkflows(firmId);
     return NextResponse.json(workflows);
@@ -43,7 +55,17 @@ export async function POST(
   logApiRequest('POST', `/api/smcr/firms/${firmId}/workflows`);
 
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
     await initSmcrDatabase();
+
+    const firm = await getFirm(firmId);
+    if (!firm) {
+      return NextResponse.json({ error: 'Firm not found' }, { status: 404 });
+    }
+    if (firm.organization_id && firm.organization_id !== auth.organizationId) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+    }
 
     const body = await request.json();
     const {
@@ -82,7 +104,7 @@ export async function POST(
     const workflow = await createWorkflow(input);
     try {
       await createNotification({
-        organizationId: "default-org",
+        organizationId: auth.organizationId,
         title: "SMCR workflow created",
         message: `Workflow "${workflow.name}" created for SMCR oversight.`,
         severity: "info",

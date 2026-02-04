@@ -2,7 +2,11 @@ import type { Session } from "next-auth";
 import { NextResponse } from "next/server";
 
 export function isAuthDisabled() {
-  return process.env.AUTH_DISABLED === "true" || process.env.AUTH_DISABLED === "1";
+  const disabled = process.env.AUTH_DISABLED === "true" || process.env.AUTH_DISABLED === "1";
+  if (disabled && process.env.NODE_ENV === "production") {
+    throw new Error("AUTH_DISABLED cannot be enabled in production.");
+  }
+  return disabled;
 }
 
 export function getSessionIdentity(session?: Session | null) {

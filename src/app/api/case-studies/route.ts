@@ -6,10 +6,13 @@ import {
   seedCaseStudies,
   CaseStudy,
 } from '@/lib/database';
+import { requireAuth } from '@/lib/auth-utils';
 
 // GET: Fetch all case studies (published only for public, all for admin)
 export async function GET(request: NextRequest) {
   try {
+    const { error } = await requireAuth();
+    if (error) return error;
     // Initialize database and seed if needed
     await initDatabase();
     await seedCaseStudies();
@@ -34,6 +37,8 @@ export async function GET(request: NextRequest) {
 // POST: Create a new case study (admin only)
 export async function POST(request: NextRequest) {
   try {
+    const { error } = await requireAuth();
+    if (error) return error;
     // Initialize database if needed
     await initDatabase();
 

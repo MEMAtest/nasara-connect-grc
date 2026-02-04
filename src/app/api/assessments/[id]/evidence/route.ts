@@ -1,16 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getEvidenceDocuments, initializeEvidenceDocuments, updateEvidenceDocument } from '@/lib/database';
+import { getEvidenceDocuments, initializeEvidenceDocuments, updateEvidenceDocument, getAssessment } from '@/lib/database';
 import { logError } from '@/lib/logger';
+import { requireAuth } from '@/lib/auth-utils';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
     const { id: assessmentId } = await params;
 
     if (!assessmentId) {
       return NextResponse.json({ error: 'Assessment ID is required' }, { status: 400 });
+    }
+
+    const assessment = await getAssessment(assessmentId);
+    if (!assessment) {
+      return NextResponse.json({ error: 'Assessment not found' }, { status: 404 });
+    }
+    if (!assessment.organization_id || assessment.organization_id !== auth.organizationId) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
     const documents = await getEvidenceDocuments(assessmentId);
@@ -34,11 +45,21 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
     const { id: assessmentId } = await params;
     const { documentId, ...updates } = await request.json();
 
     if (!assessmentId || !documentId) {
       return NextResponse.json({ error: 'Assessment ID and document ID are required' }, { status: 400 });
+    }
+
+    const assessment = await getAssessment(assessmentId);
+    if (!assessment) {
+      return NextResponse.json({ error: 'Assessment not found' }, { status: 404 });
+    }
+    if (!assessment.organization_id || assessment.organization_id !== auth.organizationId) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
     // Handle file upload status changes

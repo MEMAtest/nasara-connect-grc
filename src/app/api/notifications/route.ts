@@ -1,20 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { badRequestResponse, serverErrorResponse } from "@/lib/api-auth";
-import { requireAuth, DEFAULT_ORG_ID } from "@/lib/auth-utils";
-import { DEFAULT_ORGANIZATION_ID } from "@/lib/constants";
+import { requireAuth } from "@/lib/auth-utils";
 import { sanitizeString, sanitizeText } from "@/lib/validation";
 import { createNotification, listNotifications } from "@/lib/server/notifications-store";
 import type { NotificationSeverity } from "@/lib/notifications/types";
 import { logError } from "@/lib/logger";
 
 const ALLOWED_SEVERITIES: NotificationSeverity[] = ["info", "warning", "critical", "success"];
-
-function resolveOrganizationIds(primary: string): string[] {
-  if (primary === "default-org" || primary === DEFAULT_ORGANIZATION_ID || primary === DEFAULT_ORG_ID) {
-    return Array.from(new Set(["default-org", DEFAULT_ORGANIZATION_ID, DEFAULT_ORG_ID]));
-  }
-  return [primary];
-}
 
 export async function GET(request: NextRequest) {
   try {
@@ -29,7 +21,7 @@ export async function GET(request: NextRequest) {
     const unreadOnly = searchParams.get("unreadOnly") === "true";
 
     const result = await listNotifications({
-      organizationIds: resolveOrganizationIds(auth.organizationId),
+      organizationIds: [auth.organizationId],
       userId: auth.userId ?? "unknown",
       limit,
       offset,

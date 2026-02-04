@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { completeWizardSetup } from "@/lib/database";
 import { FirmType, FIRM_TYPES } from "@/lib/types/register-hub";
-import { requireAuth, isAuthDisabled } from "@/lib/auth-utils";
+import { requireAuth } from "@/lib/auth-utils";
 
 export async function POST(request: NextRequest) {
   // Require authentication
@@ -28,8 +28,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Use legacy default-org for register hub in auth-disabled mode.
-    const organizationId = isAuthDisabled() ? "default-org" : auth.organizationId;
+    const organizationId = auth.organizationId;
 
     const result = await completeWizardSetup(
       organizationId,

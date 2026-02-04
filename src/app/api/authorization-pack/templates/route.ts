@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 import { getPackTemplates, syncAuthorizationTemplates } from "@/lib/authorization-pack-db";
 import { logError } from "@/lib/logger";
+import { requireAuth } from "@/lib/auth-utils";
 
 export async function GET() {
   try {
+    const { error } = await requireAuth();
+    if (error) return error;
     await syncAuthorizationTemplates();
 
     const templates = await getPackTemplates();

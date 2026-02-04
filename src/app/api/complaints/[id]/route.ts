@@ -17,6 +17,7 @@ import {
   COMPLAINT_STATUSES,
   PRIORITY_LEVELS,
 } from "@/lib/validation";
+import { requireAuth } from "@/lib/auth-utils";
 
 // GET /api/complaints/[id] - Get complaint with all details (letters, activities)
 export async function GET(
@@ -24,6 +25,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
     await initDatabase();
     const { id } = await params;
 
@@ -42,6 +45,9 @@ export async function GET(
         { status: 404 }
       );
     }
+    if (data.complaint.organization_id && data.complaint.organization_id !== auth.organizationId) {
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
+    }
 
     return NextResponse.json(data);
   } catch (error) {
@@ -59,6 +65,8 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
     await initDatabase();
     const { id } = await params;
 
@@ -80,6 +88,9 @@ export async function PATCH(
         { error: "Complaint not found" },
         { status: 404 }
       );
+    }
+    if (currentData.complaint.organization_id && currentData.complaint.organization_id !== auth.organizationId) {
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
     const current = currentData.complaint;
 

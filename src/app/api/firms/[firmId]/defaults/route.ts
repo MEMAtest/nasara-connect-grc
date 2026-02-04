@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getFirmDefaults } from '@/lib/server/firm-profile-store';
 import type { JsonValue } from '@/lib/policies/types';
 import { logError } from '@/lib/logger';
+import { requireAuth } from '@/lib/auth-utils';
 
 const fallbackDefaults: Record<string, JsonValue> = {
   firm_role: 'principal',
@@ -28,7 +29,13 @@ export async function GET(
   { params }: { params: Promise<{ firmId: string }> }
 ) {
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
     const { firmId } = await params;
+
+    if (firmId !== auth.organizationId) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+    }
 
     const defaults = await getFirmDefaults(firmId);
 
@@ -43,10 +50,9 @@ export async function GET(
     logError(error, 'Failed to fetch firm defaults');
     return NextResponse.json(
       {
-        firm_id: 'demo-firm',
+        firm_id: 'unknown',
         defaults: fallbackDefaults,
         warning: 'Using fallback firm defaults (database unavailable)',
-        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 200 }
     );

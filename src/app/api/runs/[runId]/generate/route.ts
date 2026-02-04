@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { generateDocumentWithPdf } from '@/lib/documents/document-generator';
+import { requireAuth } from '@/lib/auth-utils';
 // import { getRunById } from '@/lib/server/run-store';
 // import { getPolicyById } from '@/lib/server/policy-store';
 // import { getFirmProfile } from '@/lib/server/firm-profile-store';
@@ -165,6 +166,8 @@ export async function POST(
   { params }: { params: Promise<{ runId: string }> }
 ) {
   try {
+    const { error } = await requireAuth();
+    if (error) return error;
     const { runId } = await params;
     const body = await request.json();
 

@@ -22,6 +22,7 @@ interface HealthCheck {
  * Readiness probe - checks if the application can serve traffic.
  * Verifies all critical dependencies are available.
  * Used by load balancers to determine if traffic should be routed to this instance.
+ * NOTE: No auth check — must remain accessible to load balancers and monitoring.
  */
 export async function GET() {
   const checks: HealthCheck[] = []

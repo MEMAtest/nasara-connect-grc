@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireAuth } from "@/lib/auth-utils";
 
 const BASE_URL = "https://api.company-information.service.gov.uk";
 
@@ -11,6 +12,8 @@ function getAuthHeader() {
 
 export async function GET(_request: NextRequest, context: { params: Promise<{ companyNumber: string }> }) {
   try {
+    const { error } = await requireAuth();
+    if (error) return error;
     const authHeader = getAuthHeader();
     if (!authHeader) {
       return NextResponse.json({ error: "Companies House API key not configured" }, { status: 501 });

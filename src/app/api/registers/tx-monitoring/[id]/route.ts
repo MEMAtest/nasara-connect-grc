@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   initDatabase,
+  getTxMonitoringRecords,
   updateTxMonitoringRecord,
   deleteTxMonitoringRecord,
 } from "@/lib/database";
@@ -11,6 +12,7 @@ import {
   sanitizeText,
   parseValidDate,
 } from "@/lib/validation";
+import { requireAuth } from "@/lib/auth-utils";
 
 const ALERT_TYPES = ["high_value", "unusual_pattern", "structuring", "rapid_movement", "dormant_account", "geographic", "other"] as const;
 const ALERT_SEVERITIES = ["low", "medium", "high", "critical"] as const;
@@ -23,6 +25,8 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
     await initDatabase();
 
     const { id } = await params;
@@ -95,6 +99,12 @@ export async function PATCH(
     if (body.closed_by !== undefined) updateData.closed_by = sanitizeString(body.closed_by);
     if (body.notes !== undefined) updateData.notes = sanitizeText(body.notes);
 
+    const records = await getTxMonitoringRecords(auth.organizationId);
+    const existing = records.find((item) => item.id === id);
+    if (!existing) {
+      return NextResponse.json({ error: "Record not found" }, { status: 404 });
+    }
+
     const record = await updateTxMonitoringRecord(id, updateData);
 
     if (!record) {
@@ -120,6 +130,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
     await initDatabase();
 
     const { id } = await params;
@@ -129,6 +141,12 @@ export async function DELETE(
         { error: "Invalid record ID format" },
         { status: 400 }
       );
+    }
+
+    const records = await getTxMonitoringRecords(auth.organizationId);
+    const existing = records.find((item) => item.id === id);
+    if (!existing) {
+      return NextResponse.json({ error: "Record not found" }, { status: 404 });
     }
 
     const deleted = await deleteTxMonitoringRecord(id);

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireAuth } from "@/lib/auth-utils";
 import { recordCmpFinding } from "@/lib/server/cmp-store";
 import { createNotification } from "@/lib/server/notifications-store";
 import type { NewFindingPayload } from "@/data/cmp/types";
@@ -7,7 +8,12 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ organizationId: string; controlId: string }> },
 ) {
+  const { auth, error } = await requireAuth();
+  if (error) return error;
   const { organizationId, controlId } = await params;
+  if (organizationId !== auth.organizationId) {
+    return NextResponse.json({ error: "Access denied" }, { status: 403 });
+  }
   const payload = (await request.json()) as Partial<NewFindingPayload>;
   if (!payload?.title || !payload?.severity || !payload?.dueDate || !payload?.owner || !payload?.rootCause || !payload?.businessImpact || !payload?.description) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });

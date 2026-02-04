@@ -1,16 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getGapAnalysis, initializeGapAnalysis, updateGapStatus } from '@/lib/database';
+import { getGapAnalysis, initializeGapAnalysis, updateGapStatus, getAssessment } from '@/lib/database';
 import { logError } from '@/lib/logger';
+import { requireAuth } from '@/lib/auth-utils';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
     const { id: assessmentId } = await params;
 
     if (!assessmentId) {
       return NextResponse.json({ error: 'Assessment ID is required' }, { status: 400 });
+    }
+
+    const assessment = await getAssessment(assessmentId);
+    if (!assessment) {
+      return NextResponse.json({ error: 'Assessment not found' }, { status: 404 });
+    }
+    if (!assessment.organization_id || assessment.organization_id !== auth.organizationId) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
     const gaps = await getGapAnalysis(assessmentId);
@@ -34,6 +45,8 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
     const { id: assessmentId } = await params;
     const { gapId, status } = await request.json();
 
@@ -43,6 +56,14 @@ export async function PATCH(
 
     if (!['identified', 'in-progress', 'resolved'].includes(status)) {
       return NextResponse.json({ error: 'Invalid status value' }, { status: 400 });
+    }
+
+    const assessment = await getAssessment(assessmentId);
+    if (!assessment) {
+      return NextResponse.json({ error: 'Assessment not found' }, { status: 404 });
+    }
+    if (!assessment.organization_id || assessment.organization_id !== auth.organizationId) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
     await updateGapStatus(gapId, status);

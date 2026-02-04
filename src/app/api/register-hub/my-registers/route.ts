@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { pool, getOrganizationSettings, getRegisterSubscriptions } from "@/lib/database";
-import { requireAuth, isAuthDisabled } from "@/lib/auth-utils";
+import { requireAuth } from "@/lib/auth-utils";
 
 interface RegisterStats {
   code: string;
@@ -103,35 +103,17 @@ export async function GET() {
   if (error) return error;
 
   try {
-    const authOrgId = auth.organizationId;
-    const legacyOrgId = "default-org";
-    let organizationId = authOrgId;
+    const organizationId = auth.organizationId;
 
-    // Load org settings/subscriptions for the authenticated org first.
-    // In auth-disabled mode, we may need to fall back to legacy default-org data.
-    let settings = await getOrganizationSettings(authOrgId);
-    let subscriptions = await getRegisterSubscriptions(authOrgId);
+    const settings = await getOrganizationSettings(organizationId);
+    const subscriptions = await getRegisterSubscriptions(organizationId);
 
-    if (isAuthDisabled()) {
-      const [legacySettings, legacySubscriptions] = await Promise.all([
-        getOrganizationSettings(legacyOrgId),
-        getRegisterSubscriptions(legacyOrgId),
-      ]);
-      if (legacySettings || legacySubscriptions.length > 0) {
-        organizationId = legacyOrgId;
-        settings = legacySettings;
-        subscriptions = legacySubscriptions;
-      }
-    }
     const enabledCodes = subscriptions
       .filter((s) => s.enabled)
       .map((s) => s.register_code);
 
     // Get stats for enabled registers
-    const statsOrgIds = isAuthDisabled()
-      ? Array.from(new Set([organizationId, authOrgId, legacyOrgId]))
-      : [organizationId];
-    const stats = await getRegisterStats(statsOrgIds, enabledCodes);
+    const stats = await getRegisterStats([organizationId], enabledCodes);
 
     return NextResponse.json({
       firmType: settings?.firm_type || null,

@@ -7,7 +7,7 @@ import {
 } from "@/lib/database";
 import { getRecommendationsForFirmType } from "@/lib/register-hub/recommendations";
 import { FirmType } from "@/lib/types/register-hub";
-import { requireAuth, isAuthDisabled } from "@/lib/auth-utils";
+import { requireAuth } from "@/lib/auth-utils";
 
 // GET /api/register-hub/recommendations - Get recommendations for a firm type
 export async function GET(request: NextRequest) {
@@ -20,8 +20,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const firmType = searchParams.get("firmType") as FirmType | null;
-    // Use legacy default-org for register hub in auth-disabled mode.
-    const organizationId = isAuthDisabled() ? "default-org" : auth.organizationId;
+    const organizationId = auth.organizationId;
 
     // If no firm type provided, try to get from organization settings
     let effectiveFirmType = firmType;
@@ -61,8 +60,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const { firmType } = body;
-    // Use legacy default-org for register hub in auth-disabled mode.
-    const organizationId = isAuthDisabled() ? "default-org" : auth.organizationId;
+    const organizationId = auth.organizationId;
 
     if (!firmType) {
       return NextResponse.json(

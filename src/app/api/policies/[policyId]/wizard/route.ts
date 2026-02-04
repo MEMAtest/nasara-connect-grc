@@ -4,6 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAuth } from '@/lib/auth-utils';
 // import { getQuestionsForPolicy, getRulesForPolicy } from '@/lib/server/policy-store';
 
 // Mock data for demonstration - replace with actual database queries
@@ -128,6 +129,8 @@ export async function GET(
   { params }: { params: Promise<{ policyId: string }> }
 ) {
   try {
+    const { error } = await requireAuth();
+    if (error) return error;
     const { policyId } = await params;
 
     // In production, fetch from database:

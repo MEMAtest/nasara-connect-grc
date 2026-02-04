@@ -8,6 +8,13 @@ const isAuthDisabled = () => process.env.AUTH_DISABLED === "true" || process.env
 export default auth((req) => {
   const { pathname } = req.nextUrl
 
+  if (process.env.NODE_ENV === "production" && isAuthDisabled()) {
+    return NextResponse.json({ error: "AUTH_DISABLED is not allowed in production." }, { status: 500 })
+  }
+
+  const isApiRoute = pathname.startsWith('/api')
+  const isAuthApi = pathname.startsWith('/api/auth')
+
   if (isAuthDisabled()) {
     if (pathname.startsWith('/auth/login') || pathname.startsWith('/auth/error')) {
       const response = NextResponse.redirect(new URL('/authorization-pack', req.url))
@@ -18,6 +25,10 @@ export default auth((req) => {
   }
 
   const isLoggedIn = !!req.auth
+
+  if (isApiRoute && !isAuthApi && !isLoggedIn) {
+    return NextResponse.json({ error: "Authentication required" }, { status: 401 })
+  }
 
   // Define protected routes
   const isProtectedRoute =
@@ -62,12 +73,11 @@ export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
-     * - api (all API routes)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico, icon.png, apple-icon.png (favicon files)
      * - public files (images, etc.)
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|icon.png|apple-icon.png|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|icon.png|apple-icon.png|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }

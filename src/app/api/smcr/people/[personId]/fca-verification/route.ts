@@ -6,11 +6,13 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import {
+  getFirm,
   getPerson,
   updatePerson,
   initSmcrDatabase,
 } from '@/lib/smcr-database';
 import { logError, logApiRequest } from '@/lib/logger';
+import { requireAuth } from '@/lib/auth-utils';
 
 const MAX_CONTROL_FUNCTIONS = 200;
 
@@ -102,6 +104,8 @@ export async function POST(
   logApiRequest('POST', `/api/smcr/people/${personId}/fca-verification`);
 
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
     await initSmcrDatabase();
 
     const body = await request.json();
@@ -114,6 +118,13 @@ export async function POST(
     const person = await getPerson(personId);
     if (!person) {
       return NextResponse.json({ error: 'Person not found' }, { status: 404 });
+    }
+    const firm = await getFirm(person.firm_id);
+    if (!firm) {
+      return NextResponse.json({ error: 'Firm not found' }, { status: 404 });
+    }
+    if (firm.organization_id && firm.organization_id !== auth.organizationId) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
     const verificationPayload = {
@@ -155,11 +166,20 @@ export async function GET(
   logApiRequest('GET', `/api/smcr/people/${personId}/fca-verification`);
 
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
     await initSmcrDatabase();
 
     const person = await getPerson(personId);
     if (!person) {
       return NextResponse.json({ error: 'Person not found' }, { status: 404 });
+    }
+    const firm = await getFirm(person.firm_id);
+    if (!firm) {
+      return NextResponse.json({ error: 'Firm not found' }, { status: 404 });
+    }
+    if (firm.organization_id && firm.organization_id !== auth.organizationId) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
     return NextResponse.json({

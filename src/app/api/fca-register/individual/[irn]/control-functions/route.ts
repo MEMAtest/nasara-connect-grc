@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createFCAClient, isFCAApiError } from "@/lib/fca-register";
 import type { FCAControlFunctionEntry } from "@/lib/fca-register/types";
+import { requireAuth } from "@/lib/auth-utils";
 
 interface RouteParams {
   params: Promise<{ irn: string }>;
@@ -12,6 +13,8 @@ interface RouteParams {
  */
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
+    const { error } = await requireAuth();
+    if (error) return error;
     const { irn } = await params;
 
     // IRN format: typically alphanumeric, 3-10 characters

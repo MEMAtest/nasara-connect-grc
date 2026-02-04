@@ -1,11 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { DEFAULT_ORGANIZATION_ID } from "@/lib/constants";
 import { createNotification, listNotifications } from "@/lib/server/notifications-store";
 import { requireAuth } from "@/lib/auth-utils";
 
 vi.mock("@/lib/auth-utils", () => ({
   requireAuth: vi.fn(),
-  DEFAULT_ORG_ID: "00000000-0000-0000-0000-000000000001",
 }));
 
 vi.mock("@/lib/server/notifications-store", () => ({
@@ -22,8 +20,6 @@ vi.mock("@/lib/logger", () => ({
   logError: vi.fn(),
 }));
 
-const DEFAULT_ORG_ID = "00000000-0000-0000-0000-000000000001";
-
 describe("Notifications route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -31,8 +27,8 @@ describe("Notifications route", () => {
 
   it("uses the authenticated org for GET requests", async () => {
     vi.mocked(requireAuth).mockResolvedValue({
-      auth: { userId: "user-1", userEmail: "user@example.com", organizationId: "default-org" },
-      error: null,
+      auth: { authenticated: true, userId: "user-1", userEmail: "user@example.com", userName: "User 1", organizationId: "org-abc" },
+      error: undefined,
     });
     vi.mocked(listNotifications).mockResolvedValue({ notifications: [], unreadCount: 0 });
 
@@ -44,7 +40,7 @@ describe("Notifications route", () => {
     const res = await GET(req);
 
     expect(listNotifications).toHaveBeenCalledWith({
-      organizationIds: ["default-org", DEFAULT_ORGANIZATION_ID, DEFAULT_ORG_ID],
+      organizationIds: ["org-abc"],
       userId: "user-1",
       limit: 5,
       offset: 1,
@@ -56,8 +52,8 @@ describe("Notifications route", () => {
 
   it("drops external links on POST requests", async () => {
     vi.mocked(requireAuth).mockResolvedValue({
-      auth: { userId: "user-1", userEmail: "user@example.com", organizationId: "org-123" },
-      error: null,
+      auth: { authenticated: true, userId: "user-1", userEmail: "user@example.com", userName: "User 1", organizationId: "org-123" },
+      error: undefined,
     });
     vi.mocked(createNotification).mockResolvedValue({
       id: "note-1",

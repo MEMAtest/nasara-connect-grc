@@ -6,11 +6,13 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
-import { auth } from '@/auth';
-import { getSessionIdentity } from '@/lib/auth-utils';
+import { requireAuth } from '@/lib/auth-utils';
 import { logError, logApiRequest } from '@/lib/logger';
 
-const connectionString = process.env.DATABASE_URL || "postgresql://neondb_owner:npg_Vtu9NK8ThRbB@ep-royal-queen-abitcphb-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require";
+const connectionString = process.env.DATABASE_URL;
+if (!connectionString) {
+  throw new Error("DATABASE_URL is required.");
+}
 
 const pool = new Pool({
   connectionString,
@@ -93,10 +95,9 @@ export async function GET(request: NextRequest) {
   logApiRequest('GET', '/api/settings');
 
   try {
-    const session = await auth();
-    const identity = getSessionIdentity(session);
-
-    if (!identity?.email) {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
+    if (!auth.userEmail) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -104,16 +105,16 @@ export async function GET(request: NextRequest) {
 
     const result = await pool.query<UserSettings>(
       'SELECT * FROM user_settings WHERE user_email = $1',
-      [identity.email]
+      [auth.userEmail]
     );
 
     if (result.rows.length === 0) {
       // Return default settings for new users
       return NextResponse.json({
         ...defaultSettings,
-        user_email: identity.email,
-        first_name: identity.name?.split(' ')[0] || '',
-        last_name: identity.name?.split(' ').slice(1).join(' ') || '',
+        user_email: auth.userEmail,
+        first_name: auth.userName?.split(' ')[0] || '',
+        last_name: auth.userName?.split(' ').slice(1).join(' ') || '',
       });
     }
 
@@ -131,10 +132,9 @@ export async function PUT(request: NextRequest) {
   logApiRequest('PUT', '/api/settings');
 
   try {
-    const session = await auth();
-    const identity = getSessionIdentity(session);
-
-    if (!identity?.email) {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
+    if (!auth.userEmail) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -161,7 +161,7 @@ export async function PUT(request: NextRequest) {
     // Check if settings exist for this user
     const existing = await pool.query(
       'SELECT id FROM user_settings WHERE user_email = $1',
-      [identity.email]
+      [auth.userEmail]
     );
 
     let result;
@@ -177,8 +177,8 @@ export async function PUT(request: NextRequest) {
         RETURNING *`,
         [
           id,
-          identity.email, // Use email as user_id for now
-          identity.email,
+          auth.userEmail, // Use email as user_id for now
+          auth.userEmail,
           firstName ?? defaultSettings.first_name,
           lastName ?? defaultSettings.last_name,
           role ?? defaultSettings.role,
@@ -231,7 +231,7 @@ export async function PUT(request: NextRequest) {
           darkMode,
           compactView,
           language,
-          identity.email,
+          auth.userEmail,
         ]
       );
     }

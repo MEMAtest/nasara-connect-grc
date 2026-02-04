@@ -8,17 +8,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createFirm, getFirms, initSmcrDatabase } from '@/lib/smcr-database';
 import { createNotification } from "@/lib/server/notifications-store";
 import { logError, logApiRequest } from '@/lib/logger';
+import { requireAuth } from '@/lib/auth-utils';
 
 export async function GET(request: NextRequest) {
   logApiRequest('GET', '/api/smcr/firms');
 
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
     await initSmcrDatabase();
 
-    const { searchParams } = new URL(request.url);
-    const organizationId = searchParams.get('organizationId') || undefined;
-
-    const firms = await getFirms(organizationId);
+    const firms = await getFirms(auth.organizationId);
     return NextResponse.json(firms);
   } catch (error) {
     logError(error, 'Failed to fetch SMCR firms');
@@ -33,10 +33,12 @@ export async function POST(request: NextRequest) {
   logApiRequest('POST', '/api/smcr/firms');
 
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
     await initSmcrDatabase();
 
     const body = await request.json();
-    const { name, organizationId } = body;
+    const { name } = body;
 
     if (!name || typeof name !== 'string' || name.trim().length === 0) {
       return NextResponse.json(
@@ -45,10 +47,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const firm = await createFirm(name.trim(), organizationId);
+    const firm = await createFirm(name.trim(), auth.organizationId);
     try {
       await createNotification({
-        organizationId: organizationId || "default-org",
+        organizationId: auth.organizationId,
         title: "SMCR firm created",
         message: `Firm "${firm.name}" added to SMCR management.`,
         severity: "success",

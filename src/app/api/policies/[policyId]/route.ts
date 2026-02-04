@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { DEFAULT_ORGANIZATION_ID } from "@/lib/constants";
+import { requireAuth } from "@/lib/auth-utils";
 import { updatePolicy, getPolicyById, deletePolicy } from "@/lib/server/policy-store";
 import {
   initDatabase,
@@ -23,6 +23,8 @@ export async function GET(
   { params }: { params: Promise<{ policyId: string }> }
 ) {
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
     await initDatabase();
     const { policyId } = await params;
 
@@ -34,7 +36,7 @@ export async function GET(
     }
 
     // Get policy from policy-store (includes template processing)
-    const policy = await getPolicyById(DEFAULT_ORGANIZATION_ID, policyId);
+    const policy = await getPolicyById(auth.organizationId, policyId);
     if (!policy) {
       return NextResponse.json({ error: "Policy not found" }, { status: 404 });
     }
@@ -62,6 +64,8 @@ export async function PATCH(
   { params }: { params: Promise<{ policyId: string }> }
 ) {
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
     await initDatabase();
     const { policyId } = await params;
 
@@ -83,7 +87,7 @@ export async function PATCH(
     let statusChange: { from: string; to: string } | null = null;
 
     // Get current policy for tracking changes
-    const current = await getPolicyById(DEFAULT_ORGANIZATION_ID, policyId);
+    const current = await getPolicyById(auth.organizationId, policyId);
     if (!current) {
       return NextResponse.json({ error: "Policy not found" }, { status: 404 });
     }
@@ -233,7 +237,7 @@ export async function PATCH(
     }
 
     // Update the record
-    const updated = await updatePolicy(DEFAULT_ORGANIZATION_ID, policyId, updates);
+    const updated = await updatePolicy(auth.organizationId, policyId, updates);
     if (!updated) {
       return NextResponse.json({ error: "Policy not found" }, { status: 404 });
     }
@@ -255,7 +259,7 @@ export async function PATCH(
       try {
         const severity = statusChange.to === "approved" ? "success" : "info";
         await createNotification({
-          organizationId: DEFAULT_ORGANIZATION_ID,
+          organizationId: auth.organizationId,
           title: "Policy status updated",
           message: `"${updated.name}" moved from ${statusChange.from} to ${statusChange.to}.`,
           severity,
@@ -284,6 +288,8 @@ export async function DELETE(
   { params }: { params: Promise<{ policyId: string }> }
 ) {
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
     await initDatabase();
     const { policyId } = await params;
 
@@ -295,12 +301,12 @@ export async function DELETE(
     }
 
     // Get policy info before deletion for logging
-    const policy = await getPolicyById(DEFAULT_ORGANIZATION_ID, policyId);
+    const policy = await getPolicyById(auth.organizationId, policyId);
     if (!policy) {
       return NextResponse.json({ error: "Policy not found" }, { status: 404 });
     }
 
-    const deleted = await deletePolicy(DEFAULT_ORGANIZATION_ID, policyId);
+    const deleted = await deletePolicy(auth.organizationId, policyId);
     if (!deleted) {
       return NextResponse.json({ error: "Policy not found" }, { status: 404 });
     }

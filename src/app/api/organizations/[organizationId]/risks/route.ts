@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireAuth } from "@/lib/auth-utils";
 import { getRisksForOrganization, createRisk } from "@/lib/server/risk-database";
 import { recordTrigger } from "@/lib/policies/policyTriggers";
 import type { RiskFormValues } from "@/app/(dashboard)/risk-assessment/lib/riskValidation";
@@ -9,7 +10,12 @@ export async function GET(
   { params }: { params: Promise<{ organizationId: string }> },
 ) {
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
     const { organizationId } = await params;
+    if (organizationId !== auth.organizationId) {
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
+    }
     const risks = await getRisksForOrganization(organizationId);
     return NextResponse.json(risks);
   } catch (error) {
@@ -23,7 +29,12 @@ export async function POST(
   { params }: { params: Promise<{ organizationId: string }> },
 ) {
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
     const { organizationId } = await params;
+    if (organizationId !== auth.organizationId) {
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
+    }
     const payload = (await request.json()) as Partial<RiskFormValues>;
     if (!payload?.title || !payload.description) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });

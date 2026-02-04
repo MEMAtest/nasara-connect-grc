@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireAuth } from "@/lib/auth-utils";
 import {
   deleteRisk,
   getRiskById,
@@ -11,7 +12,12 @@ export async function PUT(
   { params }: { params: Promise<{ organizationId: string; riskId: string }> },
 ) {
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
     const { organizationId, riskId } = await params;
+    if (organizationId !== auth.organizationId) {
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
+    }
     const payload = (await request.json()) as Partial<RiskFormValues>;
 
     const existing = await getRiskById(organizationId, riskId);
@@ -39,7 +45,12 @@ export async function DELETE(
   { params }: { params: Promise<{ organizationId: string; riskId: string }> },
 ) {
   try {
+    const { auth, error } = await requireAuth();
+    if (error) return error;
     const { organizationId, riskId } = await params;
+    if (organizationId !== auth.organizationId) {
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
+    }
     await deleteRisk(organizationId, riskId);
     return NextResponse.json({ success: true });
   } catch (error) {

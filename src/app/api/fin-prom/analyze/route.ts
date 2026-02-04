@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { logError } from "@/lib/logger";
 import { getOpenRouterApiKey } from "@/lib/openrouter";
+import { requireAuth } from "@/lib/auth-utils";
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const VISION_MODEL = process.env.OPENROUTER_VISION_MODEL ?? "openai/gpt-4o";
@@ -205,6 +206,8 @@ async function analyzeWithText(textContent: string): Promise<AnalysisResult> {
 
 export async function POST(request: Request) {
   try {
+    const { error } = await requireAuth();
+    if (error) return error;
     const contentType = request.headers.get("content-type") || "";
 
     let result: AnalysisResult;

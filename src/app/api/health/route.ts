@@ -13,6 +13,7 @@ export const dynamic = 'force-dynamic'
  * Liveness probe - returns 200 if the application is running.
  * Used by load balancers and orchestrators to check if the app is alive.
  * Does NOT check dependencies (use /api/readiness for that).
+ * NOTE: No auth check — must remain accessible to load balancers and monitoring.
  */
 export async function GET() {
   return NextResponse.json({
