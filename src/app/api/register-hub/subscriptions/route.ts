@@ -31,7 +31,7 @@ export async function GET() {
 // POST /api/register-hub/subscriptions - Enable/disable a register
 export async function POST(request: NextRequest) {
   // Require authentication
-  const { auth, error } = await requireRole("member");
+  const { auth, error } = await requireRole("admin");
   if (error) return error;
 
   try {
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
 // PATCH /api/register-hub/subscriptions - Bulk enable registers
 export async function PATCH(request: NextRequest) {
   // Require authentication
-  const { auth, error } = await requireRole("member");
+  const { auth, error } = await requireRole("admin");
   if (error) return error;
 
   try {

@@ -43,11 +43,17 @@ export async function GET() {
   const overallStatus = hasUnhealthy ? 'unhealthy' : hasDegraded ? 'degraded' : 'healthy'
   const statusCode = hasUnhealthy ? 503 : 200
 
+  const isProd = process.env.NODE_ENV === 'production'
+  // In production, only expose status — no latency or message details
+  const safeChecks = isProd
+    ? checks.map(c => ({ name: c.name, status: c.status }))
+    : checks
+
   return NextResponse.json({
     status: overallStatus,
     timestamp: new Date().toISOString(),
-    totalLatencyMs: Date.now() - startTime,
-    checks
+    ...(isProd ? {} : { totalLatencyMs: Date.now() - startTime }),
+    checks: safeChecks
   }, { status: statusCode })
 }
 

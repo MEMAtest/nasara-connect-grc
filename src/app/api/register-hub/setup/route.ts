@@ -5,7 +5,7 @@ import { requireRole } from "@/lib/rbac";
 
 export async function POST(request: NextRequest) {
   // Require authentication
-  const { auth, error } = await requireRole("member");
+  const { auth, error } = await requireRole("admin");
   if (error) return error;
 
   try {

@@ -15,6 +15,7 @@ import {
 import { logApiRequest, logError } from '@/lib/logger';
 import { requireRole } from "@/lib/rbac";
 import { storeSmcrDocument } from '@/lib/smcr-document-storage';
+import { validateFileUpload, sanitizeFilename } from '@/lib/file-upload-security';
 
 export async function GET(
   request: NextRequest,
@@ -89,10 +90,16 @@ export async function POST(
       return NextResponse.json({ error: 'Step ID is required' }, { status: 400 });
     }
 
+    const validation = await validateFileUpload(file);
+    if (!validation.valid) {
+      return NextResponse.json({ error: 'File validation failed', details: validation.error }, { status: 400 });
+    }
+
+    const safeName = sanitizeFilename(file.name);
     const buffer = Buffer.from(await file.arrayBuffer());
     const { storageKey } = await storeSmcrDocument(
       `workflows/${workflowId}`,
-      file.name,
+      safeName,
       buffer,
       file.type || 'application/octet-stream'
     );
@@ -101,7 +108,7 @@ export async function POST(
       firm_id: workflow.firm_id,
       workflow_id: workflowId,
       step_id: stepId.trim(),
-      name: file.name,
+      name: safeName,
       type: file.type || 'application/octet-stream',
       size: file.size,
       file_path: storageKey,

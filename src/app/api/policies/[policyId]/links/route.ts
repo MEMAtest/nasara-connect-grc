@@ -55,7 +55,7 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ policyId: string }> },
 ) {
-  const { auth, error } = await requireRole("member");
+  const { auth, error } = await requireRole("admin");
   if (error) return error;
   const { policyId } = await params;
   const body = (await request.json()) as Record<string, unknown>;

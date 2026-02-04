@@ -46,7 +46,7 @@ export async function DELETE(
   { params }: { params: Promise<{ organizationId: string; riskId: string }> },
 ) {
   try {
-    const { auth, error } = await requireRole("member");
+    const { auth, error } = await requireRole("admin");
     if (error) return error;
     const { organizationId, riskId } = await params;
     if (organizationId !== auth.organizationId) {

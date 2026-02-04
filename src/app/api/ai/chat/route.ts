@@ -1,10 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { buildAssistantContext } from "@/lib/ai/context";
 import { fetchPolicyContext } from "@/lib/ai/policies";
 import { logError } from "@/lib/logger";
 import { requireRole } from "@/lib/rbac";
 import { getPoliciesForOrganization } from "@/lib/server/policy-store";
 import { getOpenRouterApiKey } from "@/lib/openrouter";
+import { checkRateLimit, rateLimitExceeded } from "@/lib/api-utils";
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const DEFAULT_MODEL = process.env.OPENROUTER_MODEL ?? "openai/gpt-4o-mini";
@@ -73,7 +74,10 @@ Mode: ${modeDirectives[mode]}
 ${contextLine}`;
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  const { success, headers: rlHeaders } = await checkRateLimit(request, { requests: 10, window: "60 s" });
+  if (!success) return rateLimitExceeded(rlHeaders);
+
   const { auth, error } = await requireRole("member");
   if (error) return error;
 

@@ -1,4 +1,5 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import { NextRequest } from "next/server";
 import { POST } from "./route";
 
 const originalFetch = global.fetch;
@@ -28,7 +29,7 @@ describe("AI chat route", () => {
       json: vi.fn().mockResolvedValue(mockResponse),
     } as unknown as Response);
 
-    const req = new Request("http://localhost/api/ai/chat", {
+    const req = new NextRequest("http://localhost/api/ai/chat", {
       method: "POST",
       body: JSON.stringify({ messages: [{ role: "user", content: "Hi" }], stream: false }),
     });
@@ -47,7 +48,7 @@ describe("AI chat route", () => {
       status: 500,
     } as unknown as Response);
 
-    const req = new Request("http://localhost/api/ai/chat", {
+    const req = new NextRequest("http://localhost/api/ai/chat", {
       method: "POST",
       body: JSON.stringify({ messages: [{ role: "user", content: "Hi" }], stream: false }),
     });

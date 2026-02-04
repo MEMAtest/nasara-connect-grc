@@ -288,7 +288,7 @@ export async function DELETE(
   { params }: { params: Promise<{ policyId: string }> }
 ) {
   try {
-    const { auth, error } = await requireRole("member");
+    const { auth, error } = await requireRole("admin");
     if (error) return error;
     await initDatabase();
     const { policyId } = await params;

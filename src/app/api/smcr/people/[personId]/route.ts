@@ -119,7 +119,7 @@ export async function DELETE(
   logApiRequest('DELETE', `/api/smcr/people/${personId}`);
 
   try {
-    const { auth, error } = await requireRole("member");
+    const { auth, error } = await requireRole("admin");
     if (error) return error;
     await initSmcrDatabase();
 

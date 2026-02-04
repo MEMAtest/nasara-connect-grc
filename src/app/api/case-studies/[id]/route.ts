@@ -79,7 +79,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { error } = await requireRole("member");
+    const { error } = await requireRole("admin");
     if (error) return error;
     await initDatabase();
 
