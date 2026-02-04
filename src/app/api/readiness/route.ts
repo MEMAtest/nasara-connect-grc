@@ -65,7 +65,7 @@ function checkEnvironmentVariables(): HealthCheck {
     return {
       name: 'environment',
       status: 'unhealthy',
-      message: `Missing required env vars: ${missing.join(', ')}`
+      message: `Missing ${missing.length} required environment variable(s)`
     }
   }
 
@@ -80,7 +80,7 @@ function checkEnvironmentVariables(): HealthCheck {
     return {
       name: 'environment',
       status: 'degraded',
-      message: `Missing optional env vars: ${missingOptional.join(', ')}`
+      message: `${missingOptional.length} optional environment variable(s) not configured`
     }
   }
 

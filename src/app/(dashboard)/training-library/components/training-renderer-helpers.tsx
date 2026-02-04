@@ -12,6 +12,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { marked } from "marked";
+import DOMPurify from "dompurify";
 
 marked.setOptions({
   breaks: true,
@@ -69,7 +70,8 @@ export function MarkdownContent({ content, className = "" }: { content: unknown;
   const html = useMemo(() => {
     const normalized = normalizeMarkdown(content);
     if (!normalized) return "";
-    return marked.parse(normalized, { async: false }) as string;
+    const raw = marked.parse(normalized, { async: false }) as string;
+    return DOMPurify.sanitize(raw);
   }, [content]);
 
   return (

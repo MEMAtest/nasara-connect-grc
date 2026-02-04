@@ -176,7 +176,7 @@ export async function POST(request: Request) {
       const errorText = await upstream.text();
       console.error("OpenRouter error", upstream.status, errorText);
       return NextResponse.json(
-        { error: "Upstream model call failed", details: errorText },
+        { error: "Upstream model call failed" },
         { status: 502 }
       );
     }

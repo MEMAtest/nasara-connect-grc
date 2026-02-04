@@ -27,6 +27,7 @@ import {
   Trophy
 } from "lucide-react";
 import { marked } from "marked";
+import DOMPurify from "dompurify";
 import { getTrainingModule } from "../content";
 import { normalizeTrainingModule } from "../lib/module-normalizer";
 import { normalizeMarkdown } from "./training-renderer-helpers";
@@ -48,7 +49,8 @@ function MarkdownContent({ content, className = "" }: { content: unknown; classN
   const html = useMemo(() => {
     const normalized = normalizeMarkdown(content);
     if (!normalized) return "";
-    return marked.parse(normalized, { async: false }) as string;
+    const raw = marked.parse(normalized, { async: false }) as string;
+    return DOMPurify.sanitize(raw);
   }, [content]);
 
   return (

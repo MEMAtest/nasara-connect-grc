@@ -66,6 +66,18 @@ export default auth((req) => {
     return response
   }
 
+  // CSRF protection: reject state-changing requests with mismatched Origin
+  if (isApiRoute && !isAuthApi && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) {
+    const origin = req.headers.get('origin')
+    const host = req.headers.get('host')
+    if (origin && host) {
+      const originHost = new URL(origin).host
+      if (originHost !== host) {
+        return NextResponse.json({ error: 'CSRF origin mismatch' }, { status: 403 })
+      }
+    }
+  }
+
   return NextResponse.next()
 })
 

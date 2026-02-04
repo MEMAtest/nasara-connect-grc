@@ -283,9 +283,11 @@ export async function getFirms(organizationId?: string): Promise<SmcrFirm[]> {
   return result.rows;
 }
 
-export async function getFirm(id: string): Promise<SmcrFirm | null> {
+export async function getFirm(id: string, organizationId?: string): Promise<SmcrFirm | null> {
   const startTime = Date.now();
-  const result = await pool.query<SmcrFirm>('SELECT * FROM smcr_firms WHERE id = $1', [id]);
+  const result = organizationId
+    ? await pool.query<SmcrFirm>('SELECT * FROM smcr_firms WHERE id = $1 AND organization_id = $2', [id, organizationId])
+    : await pool.query<SmcrFirm>('SELECT * FROM smcr_firms WHERE id = $1', [id]);
   logDbOperation('query', 'smcr_firms', Date.now() - startTime);
   return result.rows[0] || null;
 }

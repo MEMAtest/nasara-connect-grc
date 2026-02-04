@@ -18,7 +18,7 @@ if (!connectionString) {
 
 const pool = new Pool({
   connectionString,
-  ssl: { rejectUnauthorized: false },
+  ssl: { rejectUnauthorized: process.env.NODE_ENV === "production" },
   max: 5,
 });
 
