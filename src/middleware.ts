@@ -14,6 +14,7 @@ export default auth((req) => {
 
   const isApiRoute = pathname.startsWith('/api')
   const isAuthApi = pathname.startsWith('/api/auth')
+  const isProbeRoute = pathname === '/api/health' || pathname === '/api/readiness'
 
   if (isAuthDisabled()) {
     if (pathname.startsWith('/auth/login') || pathname.startsWith('/auth/error')) {
@@ -26,7 +27,7 @@ export default auth((req) => {
 
   const isLoggedIn = !!req.auth
 
-  if (isApiRoute && !isAuthApi && !isLoggedIn) {
+  if (isApiRoute && !isAuthApi && !isProbeRoute && !isLoggedIn) {
     return NextResponse.json({ error: "Authentication required" }, { status: 401 })
   }
 
