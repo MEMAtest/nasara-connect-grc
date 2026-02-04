@@ -10,6 +10,9 @@ import {
 import { isValidUUID } from "@/lib/auth-utils";
 import { logError } from "@/lib/logger";
 import { writeAuthorizationPackFile } from "@/lib/authorization-pack-storage";
+import { validateFileUpload, sanitizeFilename } from "@/lib/file-upload-security";
+import { checkRateLimit, rateLimitExceeded, logAuditEvent } from "@/lib/api-utils";
+import { pool } from "@/lib/database";
 
 const VALID_STATUSES = new Set(["draft", "review", "approved", "signed"]);
 
@@ -77,6 +80,9 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { success: rlOk, headers: rlHeaders } = await checkRateLimit(request, { requests: 20, window: "60 s" });
+  if (!rlOk) return rateLimitExceeded(rlHeaders);
+
   try {
     const { auth, error } = await requireRole("member");
     if (error) return error;
@@ -109,17 +115,23 @@ export async function POST(
       sectionCode = (formData.get("sectionCode") as string) || undefined;
 
       if (file && file.size > 0) {
+        const validation = await validateFileUpload(file);
+        if (!validation.valid) {
+          return NextResponse.json({ error: "File validation failed", details: validation.error }, { status: 400 });
+        }
+        const safeName = sanitizeFilename(file.name);
         const arrayBuffer = await file.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
         const result = await writeAuthorizationPackFile(
           packId,
-          file.name,
+          safeName,
           buffer,
           file.type || "application/octet-stream"
         );
         storageKey = result.storageKey;
         fileSizeBytes = file.size;
         mimeType = file.type || "application/octet-stream";
+        name = name || safeName;
       }
     } else {
       const body = await request.json();
@@ -261,6 +273,14 @@ export async function DELETE(
     if (!deleted) {
       return NextResponse.json({ error: "Document not found" }, { status: 404 });
     }
+
+    await logAuditEvent(pool, {
+      entityType: 'pack_document',
+      entityId: documentId,
+      action: 'deleted',
+      actorId: auth.userId ?? 'unknown',
+      organizationId: auth.organizationId,
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

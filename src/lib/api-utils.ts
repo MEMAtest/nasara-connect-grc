@@ -143,6 +143,9 @@ export async function checkRateLimit(
   const limiter = getRatelimiter(config);
 
   if (!limiter) {
+    if (process.env.NODE_ENV === "production") {
+      return { success: false, headers: {} };
+    }
     return { success: true, headers: {} };
   }
 

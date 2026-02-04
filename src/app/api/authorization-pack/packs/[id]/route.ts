@@ -8,6 +8,8 @@ import {
 } from "@/lib/authorization-pack-db";
 import { isValidUUID } from "@/lib/auth-utils";
 import { logError } from "@/lib/logger";
+import { logAuditEvent } from "@/lib/api-utils";
+import { pool } from "@/lib/database";
 
 export async function GET(
   request: NextRequest,
@@ -82,6 +84,14 @@ export async function DELETE(
     if (!deleted) {
       return NextResponse.json({ error: "Failed to delete pack" }, { status: 500 });
     }
+
+    await logAuditEvent(pool, {
+      entityType: 'authorization_pack',
+      entityId: id,
+      action: 'deleted',
+      actorId: auth.userId ?? 'unknown',
+      organizationId: auth.organizationId,
+    });
 
     return NextResponse.json({ success: true, message: "Pack deleted successfully" });
   } catch (error) {

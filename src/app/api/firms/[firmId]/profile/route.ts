@@ -17,6 +17,8 @@ import {
 import type { FirmProfileCreate } from '@/lib/policies/types';
 import { logError } from '@/lib/logger';
 import { requireRole } from "@/lib/rbac";
+import { logAuditEvent } from "@/lib/api-utils";
+import { pool } from "@/lib/database";
 
 // =====================================================
 // GET - Retrieve firm profile
@@ -190,6 +192,14 @@ export async function DELETE(
         { status: 404 }
       );
     }
+
+    await logAuditEvent(pool, {
+      entityType: 'firm_profile',
+      entityId: firmId,
+      action: 'deleted',
+      actorId: auth.userId ?? 'unknown',
+      organizationId: auth.organizationId,
+    });
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {

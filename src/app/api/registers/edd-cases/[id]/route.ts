@@ -22,6 +22,7 @@ import {
   forbiddenResponse,
   serverErrorResponse,
 } from "@/lib/api-auth";
+import { requireRole } from "@/lib/rbac";
 import { logError } from "@/lib/logger";
 
 const EDD_TRIGGERS = [
@@ -157,11 +158,9 @@ export async function DELETE(
       return rateLimitExceededResponse(rateLimit.resetIn);
     }
 
-    // Authentication
-    const authResult = await authenticateRequest(request);
-    if (!authResult.authenticated || !authResult.user) {
-      return authResult.error!;
-    }
+    // Authentication & Authorization (admin only)
+    const { auth, error: authError } = await requireRole("admin");
+    if (authError) return authError;
 
     await initDatabase();
 
@@ -172,13 +171,13 @@ export async function DELETE(
     }
 
     // Fetch record first to verify ownership
-    const existingRecord = await getEddCaseRecordById(id, authResult.user.organizationId);
+    const existingRecord = await getEddCaseRecordById(id, auth.organizationId);
     if (!existingRecord) {
       return notFoundResponse("Record not found");
     }
 
     // IDOR protection
-    if (!verifyRecordOwnership(existingRecord, authResult.user.organizationId)) {
+    if (!verifyRecordOwnership(existingRecord, auth.organizationId)) {
       return forbiddenResponse("You don't have permission to access this record");
     }
 

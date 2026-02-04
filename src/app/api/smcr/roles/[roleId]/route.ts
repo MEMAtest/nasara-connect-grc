@@ -14,6 +14,8 @@ import {
   getFirm,
 } from "@/lib/smcr-database";
 import { logError, logApiRequest } from "@/lib/logger";
+import { logAuditEvent } from "@/lib/api-utils";
+import { pool } from "@/lib/database";
 
 export async function PATCH(
   request: NextRequest,
@@ -91,6 +93,15 @@ export async function DELETE(
     }
 
     await deleteRoleAssignment(roleId);
+
+    await logAuditEvent(pool, {
+      entityType: 'smcr_role',
+      entityId: roleId,
+      action: 'deleted',
+      actorId: auth.userId ?? 'unknown',
+      organizationId: auth.organizationId,
+    });
+
     return NextResponse.json({ success: true });
   } catch (error) {
     logError(error, "Failed to delete SMCR role", { roleId });

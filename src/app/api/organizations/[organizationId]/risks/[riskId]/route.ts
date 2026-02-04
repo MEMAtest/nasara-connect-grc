@@ -7,6 +7,8 @@ import {
 } from "@/lib/server/risk-database";
 import type { RiskFormValues } from "@/app/(dashboard)/risk-assessment/lib/riskValidation";
 import type { RiskRecord } from "@/app/(dashboard)/risk-assessment/lib/riskConstants";
+import { logAuditEvent } from "@/lib/api-utils";
+import { pool } from "@/lib/database";
 
 export async function PUT(
   request: Request,
@@ -53,6 +55,15 @@ export async function DELETE(
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
     await deleteRisk(organizationId, riskId);
+
+    await logAuditEvent(pool, {
+      entityType: 'risk',
+      entityId: riskId,
+      action: 'deleted',
+      actorId: auth.userId ?? 'unknown',
+      organizationId: auth.organizationId,
+    });
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting risk:", error);

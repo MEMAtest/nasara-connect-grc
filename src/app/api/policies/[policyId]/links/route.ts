@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { requireRole } from "@/lib/rbac";
 import type { EntityType } from "@/lib/server/entity-link-store";
 import { deleteEntityLink, listEntityLinks, upsertEntityLink } from "@/lib/server/entity-link-store";
+import { logAuditEvent } from "@/lib/api-utils";
+import { pool } from "@/lib/database";
 
 const ALLOWED_ENTITY_TYPES: ReadonlySet<EntityType> = new Set(["policy", "risk", "control", "training", "evidence"]);
 
@@ -70,6 +72,14 @@ export async function DELETE(
     fromId: policyId,
     toType: body.toType,
     toId: body.toId.trim(),
+  });
+
+  await logAuditEvent(pool, {
+    entityType: 'policy_link',
+    entityId: policyId,
+    action: 'deleted',
+    actorId: auth.userId ?? 'unknown',
+    organizationId: auth.organizationId,
   });
 
   return NextResponse.json({ success: deleted });

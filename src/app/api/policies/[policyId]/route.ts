@@ -5,6 +5,7 @@ import {
   initDatabase,
   getPolicyWithDetails,
   createPolicyActivity,
+  pool,
 } from "@/lib/database";
 import { createNotification } from "@/lib/server/notifications-store";
 import {
@@ -16,6 +17,7 @@ import {
   POLICY_ACTIVITY_TYPES,
   BOARD_FREQUENCIES,
 } from "@/lib/validation";
+import { logAuditEvent } from "@/lib/api-utils";
 
 // GET /api/policies/[policyId] - Get policy with all details (versions, activities)
 export async function GET(
@@ -310,6 +312,14 @@ export async function DELETE(
     if (!deleted) {
       return NextResponse.json({ error: "Policy not found" }, { status: 404 });
     }
+
+    await logAuditEvent(pool, {
+      entityType: 'policy',
+      entityId: policyId,
+      action: 'deleted',
+      actorId: auth.userId ?? 'unknown',
+      organizationId: auth.organizationId,
+    });
 
     return NextResponse.json({ success: true, deletedPolicy: policy.name });
   } catch (error) {

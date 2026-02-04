@@ -18,6 +18,8 @@ import {
 import { logApiRequest, logError } from '@/lib/logger';
 import { requireRole } from "@/lib/rbac";
 import { readSmcrDocument, removeSmcrDocument } from '@/lib/smcr-document-storage';
+import { logAuditEvent } from "@/lib/api-utils";
+import { pool } from "@/lib/database";
 
 function isWorkflowDocumentId(documentId: string) {
   return documentId.startsWith('wdoc-');
@@ -156,6 +158,15 @@ export async function DELETE(
         await removeSmcrDocument(workflowDoc.file_path);
       }
       await deleteWorkflowDocument(documentId);
+
+      await logAuditEvent(pool, {
+        entityType: 'smcr_document',
+        entityId: documentId,
+        action: 'deleted',
+        actorId: auth.userId ?? 'unknown',
+        organizationId: auth.organizationId,
+      });
+
       return NextResponse.json({ success: true });
     }
 
@@ -179,6 +190,14 @@ export async function DELETE(
       await removeSmcrDocument(personDoc.file_path);
     }
     await deleteSmcrDocument(documentId);
+
+    await logAuditEvent(pool, {
+      entityType: 'smcr_document',
+      entityId: documentId,
+      action: 'deleted',
+      actorId: auth.userId ?? 'unknown',
+      organizationId: auth.organizationId,
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -4,8 +4,10 @@ import {
   updateCaseStudy,
   deleteCaseStudy,
   initDatabase,
+  pool,
 } from '@/lib/database';
 import { requireRole } from "@/lib/rbac";
+import { logAuditEvent } from "@/lib/api-utils";
 
 // GET: Fetch a single case study by ID
 export async function GET(
@@ -79,7 +81,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { error } = await requireRole("admin");
+    const { auth, error } = await requireRole("admin");
     if (error) return error;
     await initDatabase();
 
@@ -92,6 +94,14 @@ export async function DELETE(
         { status: 404 }
       );
     }
+
+    await logAuditEvent(pool, {
+      entityType: 'case_study',
+      entityId: id,
+      action: 'deleted',
+      actorId: auth.userId ?? 'unknown',
+      organizationId: auth.organizationId,
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

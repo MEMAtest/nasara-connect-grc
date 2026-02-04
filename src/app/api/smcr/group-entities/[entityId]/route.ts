@@ -13,6 +13,8 @@ import {
 } from '@/lib/smcr-database';
 import { logApiRequest, logError } from '@/lib/logger';
 import { requireRole } from "@/lib/rbac";
+import { logAuditEvent } from "@/lib/api-utils";
+import { pool } from "@/lib/database";
 
 export async function PATCH(
   request: NextRequest,
@@ -79,6 +81,15 @@ export async function DELETE(
     }
 
     await deleteGroupEntity(entityId);
+
+    await logAuditEvent(pool, {
+      entityType: 'smcr_group_entity',
+      entityId: entityId,
+      action: 'deleted',
+      actorId: auth.userId ?? 'unknown',
+      organizationId: auth.organizationId,
+    });
+
     return NextResponse.json({ success: true });
   } catch (error) {
     logError(error, 'Failed to delete group entity', { entityId });

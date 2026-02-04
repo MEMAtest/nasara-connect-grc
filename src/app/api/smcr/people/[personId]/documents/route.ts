@@ -16,6 +16,7 @@ import { logApiRequest, logError } from '@/lib/logger';
 import { requireRole } from "@/lib/rbac";
 import { storeSmcrDocument } from '@/lib/smcr-document-storage';
 import { validateFileUpload, sanitizeFilename } from '@/lib/file-upload-security';
+import { checkRateLimit, rateLimitExceeded } from '@/lib/api-utils';
 
 export async function GET(
   request: NextRequest,
@@ -59,6 +60,9 @@ export async function POST(
 ) {
   const { personId } = await params;
   logApiRequest('POST', `/api/smcr/people/${personId}/documents`);
+
+  const { success: rlOk, headers: rlHeaders } = await checkRateLimit(request, { requests: 20, window: "60 s" });
+  if (!rlOk) return rateLimitExceeded(rlHeaders);
 
   try {
     const { auth, error } = await requireRole("member");

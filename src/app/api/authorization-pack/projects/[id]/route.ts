@@ -3,6 +3,8 @@ import { deleteAuthorizationProject, getAuthorizationProject } from "@/lib/autho
 import { logError } from "@/lib/logger";
 import { isValidUUID } from "@/lib/auth-utils";
 import { requireRole } from "@/lib/rbac";
+import { logAuditEvent } from "@/lib/api-utils";
+import { pool } from "@/lib/database";
 
 export async function GET(
   request: NextRequest,
@@ -89,6 +91,14 @@ export async function DELETE(
     if (!deleted) {
       return NextResponse.json({ error: "Failed to delete project" }, { status: 500 });
     }
+
+    await logAuditEvent(pool, {
+      entityType: 'authorization_project',
+      entityId: id,
+      action: 'deleted',
+      actorId: auth.userId ?? 'unknown',
+      organizationId: auth.organizationId,
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

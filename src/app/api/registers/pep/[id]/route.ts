@@ -27,6 +27,7 @@ import {
   forbiddenResponse,
   serverErrorResponse,
 } from "@/lib/api-auth";
+import { requireRole } from "@/lib/rbac";
 import { logError } from "@/lib/logger";
 
 // GET /api/registers/pep/[id] - Get a single PEP record
@@ -253,11 +254,9 @@ export async function DELETE(
       return rateLimitExceededResponse(rateLimit.resetIn);
     }
 
-    // Authentication
-    const authResult = await authenticateRequest(request);
-    if (!authResult.authenticated || !authResult.user) {
-      return authResult.error!;
-    }
+    // Authentication & Authorization (admin only)
+    const { auth, error: authError } = await requireRole("admin");
+    if (authError) return authError;
 
     await initDatabase();
     const { id } = await params;
@@ -274,7 +273,7 @@ export async function DELETE(
     }
 
     // IDOR protection
-    if (!verifyRecordOwnership(existingRecord, authResult.user.organizationId)) {
+    if (!verifyRecordOwnership(existingRecord, auth.organizationId)) {
       return forbiddenResponse("You don't have permission to access this record");
     }
 

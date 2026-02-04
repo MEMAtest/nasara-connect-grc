@@ -7,9 +7,11 @@ import {
   updateProjectDocument,
   deleteProjectDocument,
   getAuthorizationPack,
+  pool,
 } from "@/lib/database";
 import { logError } from "@/lib/logger";
 import { isValidUUID } from "@/lib/auth-utils";
+import { logAuditEvent } from "@/lib/api-utils";
 
 // Allowed document statuses
 const VALID_STATUSES = new Set(['draft', 'review', 'approved', 'signed']);
@@ -274,6 +276,14 @@ export async function DELETE(
     if (!deleted) {
       return NextResponse.json({ error: "Document not found" }, { status: 404 });
     }
+
+    await logAuditEvent(pool, {
+      entityType: 'pack_document',
+      entityId: documentId,
+      action: 'deleted',
+      actorId: auth.userId ?? 'unknown',
+      organizationId: auth.organizationId,
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {
