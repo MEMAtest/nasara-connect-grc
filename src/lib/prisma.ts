@@ -5,7 +5,9 @@ declare global {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- PrismaClient constructor typing mismatch with global singleton pattern
-export const prisma = global.prisma ?? new (PrismaClient as any)();
+export const prisma = global.prisma ?? new (PrismaClient as any)({
+  datasourceUrl: process.env.DATABASE_URL,
+});
 
 if (process.env.NODE_ENV !== "production") {
   global.prisma = prisma;

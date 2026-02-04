@@ -54,6 +54,7 @@ export type SmcrBreachCountAggregateOutputType = {
   severity: number
   status: number
   timeline: number
+  details: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -90,6 +91,7 @@ export type SmcrBreachCountAggregateInputType = {
   severity?: true
   status?: true
   timeline?: true
+  details?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -175,6 +177,7 @@ export type SmcrBreachGroupByOutputType = {
   severity: string
   status: string
   timeline: runtime.JsonValue | null
+  details: runtime.JsonValue | null
   createdAt: Date
   updatedAt: Date
   _count: SmcrBreachCountAggregateOutputType | null
@@ -208,8 +211,11 @@ export type SmcrBreachWhereInput = {
   severity?: Prisma.StringFilter<"SmcrBreach"> | string
   status?: Prisma.StringFilter<"SmcrBreach"> | string
   timeline?: Prisma.JsonNullableFilter<"SmcrBreach">
+  details?: Prisma.JsonNullableFilter<"SmcrBreach">
   createdAt?: Prisma.DateTimeFilter<"SmcrBreach"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"SmcrBreach"> | Date | string
+  firm?: Prisma.XOR<Prisma.SmcrFirmScalarRelationFilter, Prisma.SmcrFirmWhereInput>
+  person?: Prisma.XOR<Prisma.SmcrPersonNullableScalarRelationFilter, Prisma.SmcrPersonWhereInput> | null
 }
 
 export type SmcrBreachOrderByWithRelationInput = {
@@ -220,8 +226,11 @@ export type SmcrBreachOrderByWithRelationInput = {
   severity?: Prisma.SortOrder
   status?: Prisma.SortOrder
   timeline?: Prisma.SortOrderInput | Prisma.SortOrder
+  details?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  firm?: Prisma.SmcrFirmOrderByWithRelationInput
+  person?: Prisma.SmcrPersonOrderByWithRelationInput
 }
 
 export type SmcrBreachWhereUniqueInput = Prisma.AtLeast<{
@@ -235,8 +244,11 @@ export type SmcrBreachWhereUniqueInput = Prisma.AtLeast<{
   severity?: Prisma.StringFilter<"SmcrBreach"> | string
   status?: Prisma.StringFilter<"SmcrBreach"> | string
   timeline?: Prisma.JsonNullableFilter<"SmcrBreach">
+  details?: Prisma.JsonNullableFilter<"SmcrBreach">
   createdAt?: Prisma.DateTimeFilter<"SmcrBreach"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"SmcrBreach"> | Date | string
+  firm?: Prisma.XOR<Prisma.SmcrFirmScalarRelationFilter, Prisma.SmcrFirmWhereInput>
+  person?: Prisma.XOR<Prisma.SmcrPersonNullableScalarRelationFilter, Prisma.SmcrPersonWhereInput> | null
 }, "id">
 
 export type SmcrBreachOrderByWithAggregationInput = {
@@ -247,6 +259,7 @@ export type SmcrBreachOrderByWithAggregationInput = {
   severity?: Prisma.SortOrder
   status?: Prisma.SortOrder
   timeline?: Prisma.SortOrderInput | Prisma.SortOrder
+  details?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.SmcrBreachCountOrderByAggregateInput
@@ -265,44 +278,48 @@ export type SmcrBreachScalarWhereWithAggregatesInput = {
   severity?: Prisma.StringWithAggregatesFilter<"SmcrBreach"> | string
   status?: Prisma.StringWithAggregatesFilter<"SmcrBreach"> | string
   timeline?: Prisma.JsonNullableWithAggregatesFilter<"SmcrBreach">
+  details?: Prisma.JsonNullableWithAggregatesFilter<"SmcrBreach">
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"SmcrBreach"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"SmcrBreach"> | Date | string
 }
 
 export type SmcrBreachCreateInput = {
-  id?: string
-  firmId: string
-  personId?: string | null
+  id: string
   ruleId?: string | null
   severity: string
   status: string
   timeline?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  details?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
+  firm: Prisma.SmcrFirmCreateNestedOneWithoutBreachesInput
+  person?: Prisma.SmcrPersonCreateNestedOneWithoutBreachesInput
 }
 
 export type SmcrBreachUncheckedCreateInput = {
-  id?: string
+  id: string
   firmId: string
   personId?: string | null
   ruleId?: string | null
   severity: string
   status: string
   timeline?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  details?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
 }
 
 export type SmcrBreachUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  firmId?: Prisma.StringFieldUpdateOperationsInput | string
-  personId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ruleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   severity?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   timeline?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  details?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  firm?: Prisma.SmcrFirmUpdateOneRequiredWithoutBreachesNestedInput
+  person?: Prisma.SmcrPersonUpdateOneWithoutBreachesNestedInput
 }
 
 export type SmcrBreachUncheckedUpdateInput = {
@@ -313,30 +330,31 @@ export type SmcrBreachUncheckedUpdateInput = {
   severity?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   timeline?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  details?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type SmcrBreachCreateManyInput = {
-  id?: string
+  id: string
   firmId: string
   personId?: string | null
   ruleId?: string | null
   severity: string
   status: string
   timeline?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  details?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
 }
 
 export type SmcrBreachUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  firmId?: Prisma.StringFieldUpdateOperationsInput | string
-  personId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ruleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   severity?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   timeline?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  details?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -349,8 +367,19 @@ export type SmcrBreachUncheckedUpdateManyInput = {
   severity?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   timeline?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  details?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type SmcrBreachListRelationFilter = {
+  every?: Prisma.SmcrBreachWhereInput
+  some?: Prisma.SmcrBreachWhereInput
+  none?: Prisma.SmcrBreachWhereInput
+}
+
+export type SmcrBreachOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
 }
 
 export type SmcrBreachCountOrderByAggregateInput = {
@@ -361,6 +390,7 @@ export type SmcrBreachCountOrderByAggregateInput = {
   severity?: Prisma.SortOrder
   status?: Prisma.SortOrder
   timeline?: Prisma.SortOrder
+  details?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -387,6 +417,302 @@ export type SmcrBreachMinOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
 }
 
+export type SmcrBreachCreateNestedManyWithoutFirmInput = {
+  create?: Prisma.XOR<Prisma.SmcrBreachCreateWithoutFirmInput, Prisma.SmcrBreachUncheckedCreateWithoutFirmInput> | Prisma.SmcrBreachCreateWithoutFirmInput[] | Prisma.SmcrBreachUncheckedCreateWithoutFirmInput[]
+  connectOrCreate?: Prisma.SmcrBreachCreateOrConnectWithoutFirmInput | Prisma.SmcrBreachCreateOrConnectWithoutFirmInput[]
+  createMany?: Prisma.SmcrBreachCreateManyFirmInputEnvelope
+  connect?: Prisma.SmcrBreachWhereUniqueInput | Prisma.SmcrBreachWhereUniqueInput[]
+}
+
+export type SmcrBreachUncheckedCreateNestedManyWithoutFirmInput = {
+  create?: Prisma.XOR<Prisma.SmcrBreachCreateWithoutFirmInput, Prisma.SmcrBreachUncheckedCreateWithoutFirmInput> | Prisma.SmcrBreachCreateWithoutFirmInput[] | Prisma.SmcrBreachUncheckedCreateWithoutFirmInput[]
+  connectOrCreate?: Prisma.SmcrBreachCreateOrConnectWithoutFirmInput | Prisma.SmcrBreachCreateOrConnectWithoutFirmInput[]
+  createMany?: Prisma.SmcrBreachCreateManyFirmInputEnvelope
+  connect?: Prisma.SmcrBreachWhereUniqueInput | Prisma.SmcrBreachWhereUniqueInput[]
+}
+
+export type SmcrBreachUpdateManyWithoutFirmNestedInput = {
+  create?: Prisma.XOR<Prisma.SmcrBreachCreateWithoutFirmInput, Prisma.SmcrBreachUncheckedCreateWithoutFirmInput> | Prisma.SmcrBreachCreateWithoutFirmInput[] | Prisma.SmcrBreachUncheckedCreateWithoutFirmInput[]
+  connectOrCreate?: Prisma.SmcrBreachCreateOrConnectWithoutFirmInput | Prisma.SmcrBreachCreateOrConnectWithoutFirmInput[]
+  upsert?: Prisma.SmcrBreachUpsertWithWhereUniqueWithoutFirmInput | Prisma.SmcrBreachUpsertWithWhereUniqueWithoutFirmInput[]
+  createMany?: Prisma.SmcrBreachCreateManyFirmInputEnvelope
+  set?: Prisma.SmcrBreachWhereUniqueInput | Prisma.SmcrBreachWhereUniqueInput[]
+  disconnect?: Prisma.SmcrBreachWhereUniqueInput | Prisma.SmcrBreachWhereUniqueInput[]
+  delete?: Prisma.SmcrBreachWhereUniqueInput | Prisma.SmcrBreachWhereUniqueInput[]
+  connect?: Prisma.SmcrBreachWhereUniqueInput | Prisma.SmcrBreachWhereUniqueInput[]
+  update?: Prisma.SmcrBreachUpdateWithWhereUniqueWithoutFirmInput | Prisma.SmcrBreachUpdateWithWhereUniqueWithoutFirmInput[]
+  updateMany?: Prisma.SmcrBreachUpdateManyWithWhereWithoutFirmInput | Prisma.SmcrBreachUpdateManyWithWhereWithoutFirmInput[]
+  deleteMany?: Prisma.SmcrBreachScalarWhereInput | Prisma.SmcrBreachScalarWhereInput[]
+}
+
+export type SmcrBreachUncheckedUpdateManyWithoutFirmNestedInput = {
+  create?: Prisma.XOR<Prisma.SmcrBreachCreateWithoutFirmInput, Prisma.SmcrBreachUncheckedCreateWithoutFirmInput> | Prisma.SmcrBreachCreateWithoutFirmInput[] | Prisma.SmcrBreachUncheckedCreateWithoutFirmInput[]
+  connectOrCreate?: Prisma.SmcrBreachCreateOrConnectWithoutFirmInput | Prisma.SmcrBreachCreateOrConnectWithoutFirmInput[]
+  upsert?: Prisma.SmcrBreachUpsertWithWhereUniqueWithoutFirmInput | Prisma.SmcrBreachUpsertWithWhereUniqueWithoutFirmInput[]
+  createMany?: Prisma.SmcrBreachCreateManyFirmInputEnvelope
+  set?: Prisma.SmcrBreachWhereUniqueInput | Prisma.SmcrBreachWhereUniqueInput[]
+  disconnect?: Prisma.SmcrBreachWhereUniqueInput | Prisma.SmcrBreachWhereUniqueInput[]
+  delete?: Prisma.SmcrBreachWhereUniqueInput | Prisma.SmcrBreachWhereUniqueInput[]
+  connect?: Prisma.SmcrBreachWhereUniqueInput | Prisma.SmcrBreachWhereUniqueInput[]
+  update?: Prisma.SmcrBreachUpdateWithWhereUniqueWithoutFirmInput | Prisma.SmcrBreachUpdateWithWhereUniqueWithoutFirmInput[]
+  updateMany?: Prisma.SmcrBreachUpdateManyWithWhereWithoutFirmInput | Prisma.SmcrBreachUpdateManyWithWhereWithoutFirmInput[]
+  deleteMany?: Prisma.SmcrBreachScalarWhereInput | Prisma.SmcrBreachScalarWhereInput[]
+}
+
+export type SmcrBreachCreateNestedManyWithoutPersonInput = {
+  create?: Prisma.XOR<Prisma.SmcrBreachCreateWithoutPersonInput, Prisma.SmcrBreachUncheckedCreateWithoutPersonInput> | Prisma.SmcrBreachCreateWithoutPersonInput[] | Prisma.SmcrBreachUncheckedCreateWithoutPersonInput[]
+  connectOrCreate?: Prisma.SmcrBreachCreateOrConnectWithoutPersonInput | Prisma.SmcrBreachCreateOrConnectWithoutPersonInput[]
+  createMany?: Prisma.SmcrBreachCreateManyPersonInputEnvelope
+  connect?: Prisma.SmcrBreachWhereUniqueInput | Prisma.SmcrBreachWhereUniqueInput[]
+}
+
+export type SmcrBreachUncheckedCreateNestedManyWithoutPersonInput = {
+  create?: Prisma.XOR<Prisma.SmcrBreachCreateWithoutPersonInput, Prisma.SmcrBreachUncheckedCreateWithoutPersonInput> | Prisma.SmcrBreachCreateWithoutPersonInput[] | Prisma.SmcrBreachUncheckedCreateWithoutPersonInput[]
+  connectOrCreate?: Prisma.SmcrBreachCreateOrConnectWithoutPersonInput | Prisma.SmcrBreachCreateOrConnectWithoutPersonInput[]
+  createMany?: Prisma.SmcrBreachCreateManyPersonInputEnvelope
+  connect?: Prisma.SmcrBreachWhereUniqueInput | Prisma.SmcrBreachWhereUniqueInput[]
+}
+
+export type SmcrBreachUpdateManyWithoutPersonNestedInput = {
+  create?: Prisma.XOR<Prisma.SmcrBreachCreateWithoutPersonInput, Prisma.SmcrBreachUncheckedCreateWithoutPersonInput> | Prisma.SmcrBreachCreateWithoutPersonInput[] | Prisma.SmcrBreachUncheckedCreateWithoutPersonInput[]
+  connectOrCreate?: Prisma.SmcrBreachCreateOrConnectWithoutPersonInput | Prisma.SmcrBreachCreateOrConnectWithoutPersonInput[]
+  upsert?: Prisma.SmcrBreachUpsertWithWhereUniqueWithoutPersonInput | Prisma.SmcrBreachUpsertWithWhereUniqueWithoutPersonInput[]
+  createMany?: Prisma.SmcrBreachCreateManyPersonInputEnvelope
+  set?: Prisma.SmcrBreachWhereUniqueInput | Prisma.SmcrBreachWhereUniqueInput[]
+  disconnect?: Prisma.SmcrBreachWhereUniqueInput | Prisma.SmcrBreachWhereUniqueInput[]
+  delete?: Prisma.SmcrBreachWhereUniqueInput | Prisma.SmcrBreachWhereUniqueInput[]
+  connect?: Prisma.SmcrBreachWhereUniqueInput | Prisma.SmcrBreachWhereUniqueInput[]
+  update?: Prisma.SmcrBreachUpdateWithWhereUniqueWithoutPersonInput | Prisma.SmcrBreachUpdateWithWhereUniqueWithoutPersonInput[]
+  updateMany?: Prisma.SmcrBreachUpdateManyWithWhereWithoutPersonInput | Prisma.SmcrBreachUpdateManyWithWhereWithoutPersonInput[]
+  deleteMany?: Prisma.SmcrBreachScalarWhereInput | Prisma.SmcrBreachScalarWhereInput[]
+}
+
+export type SmcrBreachUncheckedUpdateManyWithoutPersonNestedInput = {
+  create?: Prisma.XOR<Prisma.SmcrBreachCreateWithoutPersonInput, Prisma.SmcrBreachUncheckedCreateWithoutPersonInput> | Prisma.SmcrBreachCreateWithoutPersonInput[] | Prisma.SmcrBreachUncheckedCreateWithoutPersonInput[]
+  connectOrCreate?: Prisma.SmcrBreachCreateOrConnectWithoutPersonInput | Prisma.SmcrBreachCreateOrConnectWithoutPersonInput[]
+  upsert?: Prisma.SmcrBreachUpsertWithWhereUniqueWithoutPersonInput | Prisma.SmcrBreachUpsertWithWhereUniqueWithoutPersonInput[]
+  createMany?: Prisma.SmcrBreachCreateManyPersonInputEnvelope
+  set?: Prisma.SmcrBreachWhereUniqueInput | Prisma.SmcrBreachWhereUniqueInput[]
+  disconnect?: Prisma.SmcrBreachWhereUniqueInput | Prisma.SmcrBreachWhereUniqueInput[]
+  delete?: Prisma.SmcrBreachWhereUniqueInput | Prisma.SmcrBreachWhereUniqueInput[]
+  connect?: Prisma.SmcrBreachWhereUniqueInput | Prisma.SmcrBreachWhereUniqueInput[]
+  update?: Prisma.SmcrBreachUpdateWithWhereUniqueWithoutPersonInput | Prisma.SmcrBreachUpdateWithWhereUniqueWithoutPersonInput[]
+  updateMany?: Prisma.SmcrBreachUpdateManyWithWhereWithoutPersonInput | Prisma.SmcrBreachUpdateManyWithWhereWithoutPersonInput[]
+  deleteMany?: Prisma.SmcrBreachScalarWhereInput | Prisma.SmcrBreachScalarWhereInput[]
+}
+
+export type SmcrBreachCreateWithoutFirmInput = {
+  id: string
+  ruleId?: string | null
+  severity: string
+  status: string
+  timeline?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  details?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  person?: Prisma.SmcrPersonCreateNestedOneWithoutBreachesInput
+}
+
+export type SmcrBreachUncheckedCreateWithoutFirmInput = {
+  id: string
+  personId?: string | null
+  ruleId?: string | null
+  severity: string
+  status: string
+  timeline?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  details?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type SmcrBreachCreateOrConnectWithoutFirmInput = {
+  where: Prisma.SmcrBreachWhereUniqueInput
+  create: Prisma.XOR<Prisma.SmcrBreachCreateWithoutFirmInput, Prisma.SmcrBreachUncheckedCreateWithoutFirmInput>
+}
+
+export type SmcrBreachCreateManyFirmInputEnvelope = {
+  data: Prisma.SmcrBreachCreateManyFirmInput | Prisma.SmcrBreachCreateManyFirmInput[]
+  skipDuplicates?: boolean
+}
+
+export type SmcrBreachUpsertWithWhereUniqueWithoutFirmInput = {
+  where: Prisma.SmcrBreachWhereUniqueInput
+  update: Prisma.XOR<Prisma.SmcrBreachUpdateWithoutFirmInput, Prisma.SmcrBreachUncheckedUpdateWithoutFirmInput>
+  create: Prisma.XOR<Prisma.SmcrBreachCreateWithoutFirmInput, Prisma.SmcrBreachUncheckedCreateWithoutFirmInput>
+}
+
+export type SmcrBreachUpdateWithWhereUniqueWithoutFirmInput = {
+  where: Prisma.SmcrBreachWhereUniqueInput
+  data: Prisma.XOR<Prisma.SmcrBreachUpdateWithoutFirmInput, Prisma.SmcrBreachUncheckedUpdateWithoutFirmInput>
+}
+
+export type SmcrBreachUpdateManyWithWhereWithoutFirmInput = {
+  where: Prisma.SmcrBreachScalarWhereInput
+  data: Prisma.XOR<Prisma.SmcrBreachUpdateManyMutationInput, Prisma.SmcrBreachUncheckedUpdateManyWithoutFirmInput>
+}
+
+export type SmcrBreachScalarWhereInput = {
+  AND?: Prisma.SmcrBreachScalarWhereInput | Prisma.SmcrBreachScalarWhereInput[]
+  OR?: Prisma.SmcrBreachScalarWhereInput[]
+  NOT?: Prisma.SmcrBreachScalarWhereInput | Prisma.SmcrBreachScalarWhereInput[]
+  id?: Prisma.StringFilter<"SmcrBreach"> | string
+  firmId?: Prisma.StringFilter<"SmcrBreach"> | string
+  personId?: Prisma.StringNullableFilter<"SmcrBreach"> | string | null
+  ruleId?: Prisma.StringNullableFilter<"SmcrBreach"> | string | null
+  severity?: Prisma.StringFilter<"SmcrBreach"> | string
+  status?: Prisma.StringFilter<"SmcrBreach"> | string
+  timeline?: Prisma.JsonNullableFilter<"SmcrBreach">
+  details?: Prisma.JsonNullableFilter<"SmcrBreach">
+  createdAt?: Prisma.DateTimeFilter<"SmcrBreach"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"SmcrBreach"> | Date | string
+}
+
+export type SmcrBreachCreateWithoutPersonInput = {
+  id: string
+  ruleId?: string | null
+  severity: string
+  status: string
+  timeline?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  details?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  firm: Prisma.SmcrFirmCreateNestedOneWithoutBreachesInput
+}
+
+export type SmcrBreachUncheckedCreateWithoutPersonInput = {
+  id: string
+  firmId: string
+  ruleId?: string | null
+  severity: string
+  status: string
+  timeline?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  details?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type SmcrBreachCreateOrConnectWithoutPersonInput = {
+  where: Prisma.SmcrBreachWhereUniqueInput
+  create: Prisma.XOR<Prisma.SmcrBreachCreateWithoutPersonInput, Prisma.SmcrBreachUncheckedCreateWithoutPersonInput>
+}
+
+export type SmcrBreachCreateManyPersonInputEnvelope = {
+  data: Prisma.SmcrBreachCreateManyPersonInput | Prisma.SmcrBreachCreateManyPersonInput[]
+  skipDuplicates?: boolean
+}
+
+export type SmcrBreachUpsertWithWhereUniqueWithoutPersonInput = {
+  where: Prisma.SmcrBreachWhereUniqueInput
+  update: Prisma.XOR<Prisma.SmcrBreachUpdateWithoutPersonInput, Prisma.SmcrBreachUncheckedUpdateWithoutPersonInput>
+  create: Prisma.XOR<Prisma.SmcrBreachCreateWithoutPersonInput, Prisma.SmcrBreachUncheckedCreateWithoutPersonInput>
+}
+
+export type SmcrBreachUpdateWithWhereUniqueWithoutPersonInput = {
+  where: Prisma.SmcrBreachWhereUniqueInput
+  data: Prisma.XOR<Prisma.SmcrBreachUpdateWithoutPersonInput, Prisma.SmcrBreachUncheckedUpdateWithoutPersonInput>
+}
+
+export type SmcrBreachUpdateManyWithWhereWithoutPersonInput = {
+  where: Prisma.SmcrBreachScalarWhereInput
+  data: Prisma.XOR<Prisma.SmcrBreachUpdateManyMutationInput, Prisma.SmcrBreachUncheckedUpdateManyWithoutPersonInput>
+}
+
+export type SmcrBreachCreateManyFirmInput = {
+  id: string
+  personId?: string | null
+  ruleId?: string | null
+  severity: string
+  status: string
+  timeline?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  details?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type SmcrBreachUpdateWithoutFirmInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  ruleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  severity?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  timeline?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  details?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  person?: Prisma.SmcrPersonUpdateOneWithoutBreachesNestedInput
+}
+
+export type SmcrBreachUncheckedUpdateWithoutFirmInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  personId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ruleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  severity?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  timeline?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  details?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type SmcrBreachUncheckedUpdateManyWithoutFirmInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  personId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ruleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  severity?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  timeline?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  details?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type SmcrBreachCreateManyPersonInput = {
+  id: string
+  firmId: string
+  ruleId?: string | null
+  severity: string
+  status: string
+  timeline?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  details?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type SmcrBreachUpdateWithoutPersonInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  ruleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  severity?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  timeline?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  details?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  firm?: Prisma.SmcrFirmUpdateOneRequiredWithoutBreachesNestedInput
+}
+
+export type SmcrBreachUncheckedUpdateWithoutPersonInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  firmId?: Prisma.StringFieldUpdateOperationsInput | string
+  ruleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  severity?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  timeline?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  details?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type SmcrBreachUncheckedUpdateManyWithoutPersonInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  firmId?: Prisma.StringFieldUpdateOperationsInput | string
+  ruleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  severity?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  timeline?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  details?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
 
 
 export type SmcrBreachSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -397,8 +723,11 @@ export type SmcrBreachSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   severity?: boolean
   status?: boolean
   timeline?: boolean
+  details?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  firm?: boolean | Prisma.SmcrFirmDefaultArgs<ExtArgs>
+  person?: boolean | Prisma.SmcrBreach$personArgs<ExtArgs>
 }, ExtArgs["result"]["smcrBreach"]>
 
 export type SmcrBreachSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -409,8 +738,11 @@ export type SmcrBreachSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   severity?: boolean
   status?: boolean
   timeline?: boolean
+  details?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  firm?: boolean | Prisma.SmcrFirmDefaultArgs<ExtArgs>
+  person?: boolean | Prisma.SmcrBreach$personArgs<ExtArgs>
 }, ExtArgs["result"]["smcrBreach"]>
 
 export type SmcrBreachSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -421,8 +753,11 @@ export type SmcrBreachSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   severity?: boolean
   status?: boolean
   timeline?: boolean
+  details?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  firm?: boolean | Prisma.SmcrFirmDefaultArgs<ExtArgs>
+  person?: boolean | Prisma.SmcrBreach$personArgs<ExtArgs>
 }, ExtArgs["result"]["smcrBreach"]>
 
 export type SmcrBreachSelectScalar = {
@@ -433,15 +768,31 @@ export type SmcrBreachSelectScalar = {
   severity?: boolean
   status?: boolean
   timeline?: boolean
+  details?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type SmcrBreachOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "firmId" | "personId" | "ruleId" | "severity" | "status" | "timeline" | "createdAt" | "updatedAt", ExtArgs["result"]["smcrBreach"]>
+export type SmcrBreachOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "firmId" | "personId" | "ruleId" | "severity" | "status" | "timeline" | "details" | "createdAt" | "updatedAt", ExtArgs["result"]["smcrBreach"]>
+export type SmcrBreachInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  firm?: boolean | Prisma.SmcrFirmDefaultArgs<ExtArgs>
+  person?: boolean | Prisma.SmcrBreach$personArgs<ExtArgs>
+}
+export type SmcrBreachIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  firm?: boolean | Prisma.SmcrFirmDefaultArgs<ExtArgs>
+  person?: boolean | Prisma.SmcrBreach$personArgs<ExtArgs>
+}
+export type SmcrBreachIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  firm?: boolean | Prisma.SmcrFirmDefaultArgs<ExtArgs>
+  person?: boolean | Prisma.SmcrBreach$personArgs<ExtArgs>
+}
 
 export type $SmcrBreachPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "SmcrBreach"
-  objects: {}
+  objects: {
+    firm: Prisma.$SmcrFirmPayload<ExtArgs>
+    person: Prisma.$SmcrPersonPayload<ExtArgs> | null
+  }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     firmId: string
@@ -450,6 +801,7 @@ export type $SmcrBreachPayload<ExtArgs extends runtime.Types.Extensions.Internal
     severity: string
     status: string
     timeline: runtime.JsonValue | null
+    details: runtime.JsonValue | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["smcrBreach"]>
@@ -846,6 +1198,8 @@ readonly fields: SmcrBreachFieldRefs;
  */
 export interface Prisma__SmcrBreachClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  firm<T extends Prisma.SmcrFirmDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SmcrFirmDefaultArgs<ExtArgs>>): Prisma.Prisma__SmcrFirmClient<runtime.Types.Result.GetResult<Prisma.$SmcrFirmPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  person<T extends Prisma.SmcrBreach$personArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SmcrBreach$personArgs<ExtArgs>>): Prisma.Prisma__SmcrPersonClient<runtime.Types.Result.GetResult<Prisma.$SmcrPersonPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -882,6 +1236,7 @@ export interface SmcrBreachFieldRefs {
   readonly severity: Prisma.FieldRef<"SmcrBreach", 'String'>
   readonly status: Prisma.FieldRef<"SmcrBreach", 'String'>
   readonly timeline: Prisma.FieldRef<"SmcrBreach", 'Json'>
+  readonly details: Prisma.FieldRef<"SmcrBreach", 'Json'>
   readonly createdAt: Prisma.FieldRef<"SmcrBreach", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"SmcrBreach", 'DateTime'>
 }
@@ -901,6 +1256,10 @@ export type SmcrBreachFindUniqueArgs<ExtArgs extends runtime.Types.Extensions.In
    */
   omit?: Prisma.SmcrBreachOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SmcrBreachInclude<ExtArgs> | null
+  /**
    * Filter, which SmcrBreach to fetch.
    */
   where: Prisma.SmcrBreachWhereUniqueInput
@@ -919,6 +1278,10 @@ export type SmcrBreachFindUniqueOrThrowArgs<ExtArgs extends runtime.Types.Extens
    */
   omit?: Prisma.SmcrBreachOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SmcrBreachInclude<ExtArgs> | null
+  /**
    * Filter, which SmcrBreach to fetch.
    */
   where: Prisma.SmcrBreachWhereUniqueInput
@@ -936,6 +1299,10 @@ export type SmcrBreachFindFirstArgs<ExtArgs extends runtime.Types.Extensions.Int
    * Omit specific fields from the SmcrBreach
    */
   omit?: Prisma.SmcrBreachOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SmcrBreachInclude<ExtArgs> | null
   /**
    * Filter, which SmcrBreach to fetch.
    */
@@ -985,6 +1352,10 @@ export type SmcrBreachFindFirstOrThrowArgs<ExtArgs extends runtime.Types.Extensi
    */
   omit?: Prisma.SmcrBreachOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SmcrBreachInclude<ExtArgs> | null
+  /**
    * Filter, which SmcrBreach to fetch.
    */
   where?: Prisma.SmcrBreachWhereInput
@@ -1033,6 +1404,10 @@ export type SmcrBreachFindManyArgs<ExtArgs extends runtime.Types.Extensions.Inte
    */
   omit?: Prisma.SmcrBreachOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SmcrBreachInclude<ExtArgs> | null
+  /**
    * Filter, which SmcrBreaches to fetch.
    */
   where?: Prisma.SmcrBreachWhereInput
@@ -1076,6 +1451,10 @@ export type SmcrBreachCreateArgs<ExtArgs extends runtime.Types.Extensions.Intern
    */
   omit?: Prisma.SmcrBreachOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SmcrBreachInclude<ExtArgs> | null
+  /**
    * The data needed to create a SmcrBreach.
    */
   data: Prisma.XOR<Prisma.SmcrBreachCreateInput, Prisma.SmcrBreachUncheckedCreateInput>
@@ -1109,6 +1488,10 @@ export type SmcrBreachCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Exte
    */
   data: Prisma.SmcrBreachCreateManyInput | Prisma.SmcrBreachCreateManyInput[]
   skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SmcrBreachIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1123,6 +1506,10 @@ export type SmcrBreachUpdateArgs<ExtArgs extends runtime.Types.Extensions.Intern
    * Omit specific fields from the SmcrBreach
    */
   omit?: Prisma.SmcrBreachOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SmcrBreachInclude<ExtArgs> | null
   /**
    * The data needed to update a SmcrBreach.
    */
@@ -1175,6 +1562,10 @@ export type SmcrBreachUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Exte
    * Limit how many SmcrBreaches to update.
    */
   limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SmcrBreachIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1189,6 +1580,10 @@ export type SmcrBreachUpsertArgs<ExtArgs extends runtime.Types.Extensions.Intern
    * Omit specific fields from the SmcrBreach
    */
   omit?: Prisma.SmcrBreachOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SmcrBreachInclude<ExtArgs> | null
   /**
    * The filter to search for the SmcrBreach to update in case it exists.
    */
@@ -1216,6 +1611,10 @@ export type SmcrBreachDeleteArgs<ExtArgs extends runtime.Types.Extensions.Intern
    */
   omit?: Prisma.SmcrBreachOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SmcrBreachInclude<ExtArgs> | null
+  /**
    * Filter which SmcrBreach to delete.
    */
   where: Prisma.SmcrBreachWhereUniqueInput
@@ -1236,6 +1635,25 @@ export type SmcrBreachDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.In
 }
 
 /**
+ * SmcrBreach.person
+ */
+export type SmcrBreach$personArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SmcrPerson
+   */
+  select?: Prisma.SmcrPersonSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SmcrPerson
+   */
+  omit?: Prisma.SmcrPersonOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SmcrPersonInclude<ExtArgs> | null
+  where?: Prisma.SmcrPersonWhereInput
+}
+
+/**
  * SmcrBreach without action
  */
 export type SmcrBreachDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1247,4 +1665,8 @@ export type SmcrBreachDefaultArgs<ExtArgs extends runtime.Types.Extensions.Inter
    * Omit specific fields from the SmcrBreach
    */
   omit?: Prisma.SmcrBreachOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SmcrBreachInclude<ExtArgs> | null
 }

@@ -42,6 +42,11 @@ export type SmcrGroupEntityMinAggregateOutputType = {
   parentId: string | null
   ownershipPercent: runtime.Decimal | null
   country: string | null
+  linkedFirmId: string | null
+  linkedProjectId: string | null
+  linkedProjectName: string | null
+  regulatoryStatus: string | null
+  isExternal: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -54,6 +59,11 @@ export type SmcrGroupEntityMaxAggregateOutputType = {
   parentId: string | null
   ownershipPercent: runtime.Decimal | null
   country: string | null
+  linkedFirmId: string | null
+  linkedProjectId: string | null
+  linkedProjectName: string | null
+  regulatoryStatus: string | null
+  isExternal: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -66,6 +76,11 @@ export type SmcrGroupEntityCountAggregateOutputType = {
   parentId: number
   ownershipPercent: number
   country: number
+  linkedFirmId: number
+  linkedProjectId: number
+  linkedProjectName: number
+  regulatoryStatus: number
+  isExternal: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -88,6 +103,11 @@ export type SmcrGroupEntityMinAggregateInputType = {
   parentId?: true
   ownershipPercent?: true
   country?: true
+  linkedFirmId?: true
+  linkedProjectId?: true
+  linkedProjectName?: true
+  regulatoryStatus?: true
+  isExternal?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -100,6 +120,11 @@ export type SmcrGroupEntityMaxAggregateInputType = {
   parentId?: true
   ownershipPercent?: true
   country?: true
+  linkedFirmId?: true
+  linkedProjectId?: true
+  linkedProjectName?: true
+  regulatoryStatus?: true
+  isExternal?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -112,6 +137,11 @@ export type SmcrGroupEntityCountAggregateInputType = {
   parentId?: true
   ownershipPercent?: true
   country?: true
+  linkedFirmId?: true
+  linkedProjectId?: true
+  linkedProjectName?: true
+  regulatoryStatus?: true
+  isExternal?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -211,6 +241,11 @@ export type SmcrGroupEntityGroupByOutputType = {
   parentId: string | null
   ownershipPercent: runtime.Decimal | null
   country: string | null
+  linkedFirmId: string | null
+  linkedProjectId: string | null
+  linkedProjectName: string | null
+  regulatoryStatus: string | null
+  isExternal: boolean
   createdAt: Date
   updatedAt: Date
   _count: SmcrGroupEntityCountAggregateOutputType | null
@@ -246,9 +281,13 @@ export type SmcrGroupEntityWhereInput = {
   parentId?: Prisma.StringNullableFilter<"SmcrGroupEntity"> | string | null
   ownershipPercent?: Prisma.DecimalNullableFilter<"SmcrGroupEntity"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   country?: Prisma.StringNullableFilter<"SmcrGroupEntity"> | string | null
+  linkedFirmId?: Prisma.StringNullableFilter<"SmcrGroupEntity"> | string | null
+  linkedProjectId?: Prisma.StringNullableFilter<"SmcrGroupEntity"> | string | null
+  linkedProjectName?: Prisma.StringNullableFilter<"SmcrGroupEntity"> | string | null
+  regulatoryStatus?: Prisma.StringNullableFilter<"SmcrGroupEntity"> | string | null
+  isExternal?: Prisma.BoolFilter<"SmcrGroupEntity"> | boolean
   createdAt?: Prisma.DateTimeFilter<"SmcrGroupEntity"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"SmcrGroupEntity"> | Date | string
-  organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
 }
 
 export type SmcrGroupEntityOrderByWithRelationInput = {
@@ -259,9 +298,13 @@ export type SmcrGroupEntityOrderByWithRelationInput = {
   parentId?: Prisma.SortOrderInput | Prisma.SortOrder
   ownershipPercent?: Prisma.SortOrderInput | Prisma.SortOrder
   country?: Prisma.SortOrderInput | Prisma.SortOrder
+  linkedFirmId?: Prisma.SortOrderInput | Prisma.SortOrder
+  linkedProjectId?: Prisma.SortOrderInput | Prisma.SortOrder
+  linkedProjectName?: Prisma.SortOrderInput | Prisma.SortOrder
+  regulatoryStatus?: Prisma.SortOrderInput | Prisma.SortOrder
+  isExternal?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  organization?: Prisma.OrganizationOrderByWithRelationInput
 }
 
 export type SmcrGroupEntityWhereUniqueInput = Prisma.AtLeast<{
@@ -275,9 +318,13 @@ export type SmcrGroupEntityWhereUniqueInput = Prisma.AtLeast<{
   parentId?: Prisma.StringNullableFilter<"SmcrGroupEntity"> | string | null
   ownershipPercent?: Prisma.DecimalNullableFilter<"SmcrGroupEntity"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   country?: Prisma.StringNullableFilter<"SmcrGroupEntity"> | string | null
+  linkedFirmId?: Prisma.StringNullableFilter<"SmcrGroupEntity"> | string | null
+  linkedProjectId?: Prisma.StringNullableFilter<"SmcrGroupEntity"> | string | null
+  linkedProjectName?: Prisma.StringNullableFilter<"SmcrGroupEntity"> | string | null
+  regulatoryStatus?: Prisma.StringNullableFilter<"SmcrGroupEntity"> | string | null
+  isExternal?: Prisma.BoolFilter<"SmcrGroupEntity"> | boolean
   createdAt?: Prisma.DateTimeFilter<"SmcrGroupEntity"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"SmcrGroupEntity"> | Date | string
-  organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
 }, "id">
 
 export type SmcrGroupEntityOrderByWithAggregationInput = {
@@ -288,6 +335,11 @@ export type SmcrGroupEntityOrderByWithAggregationInput = {
   parentId?: Prisma.SortOrderInput | Prisma.SortOrder
   ownershipPercent?: Prisma.SortOrderInput | Prisma.SortOrder
   country?: Prisma.SortOrderInput | Prisma.SortOrder
+  linkedFirmId?: Prisma.SortOrderInput | Prisma.SortOrder
+  linkedProjectId?: Prisma.SortOrderInput | Prisma.SortOrder
+  linkedProjectName?: Prisma.SortOrderInput | Prisma.SortOrder
+  regulatoryStatus?: Prisma.SortOrderInput | Prisma.SortOrder
+  isExternal?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.SmcrGroupEntityCountOrderByAggregateInput
@@ -308,44 +360,64 @@ export type SmcrGroupEntityScalarWhereWithAggregatesInput = {
   parentId?: Prisma.StringNullableWithAggregatesFilter<"SmcrGroupEntity"> | string | null
   ownershipPercent?: Prisma.DecimalNullableWithAggregatesFilter<"SmcrGroupEntity"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   country?: Prisma.StringNullableWithAggregatesFilter<"SmcrGroupEntity"> | string | null
+  linkedFirmId?: Prisma.StringNullableWithAggregatesFilter<"SmcrGroupEntity"> | string | null
+  linkedProjectId?: Prisma.StringNullableWithAggregatesFilter<"SmcrGroupEntity"> | string | null
+  linkedProjectName?: Prisma.StringNullableWithAggregatesFilter<"SmcrGroupEntity"> | string | null
+  regulatoryStatus?: Prisma.StringNullableWithAggregatesFilter<"SmcrGroupEntity"> | string | null
+  isExternal?: Prisma.BoolWithAggregatesFilter<"SmcrGroupEntity"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"SmcrGroupEntity"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"SmcrGroupEntity"> | Date | string
 }
 
 export type SmcrGroupEntityCreateInput = {
-  id?: string
-  name: string
-  type: string
-  parentId?: string | null
-  ownershipPercent?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  country?: string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  organization: Prisma.OrganizationCreateNestedOneWithoutGroupEntitiesInput
-}
-
-export type SmcrGroupEntityUncheckedCreateInput = {
-  id?: string
+  id: string
   organizationId: string
   name: string
   type: string
   parentId?: string | null
   ownershipPercent?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   country?: string | null
+  linkedFirmId?: string | null
+  linkedProjectId?: string | null
+  linkedProjectName?: string | null
+  regulatoryStatus?: string | null
+  isExternal?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type SmcrGroupEntityUncheckedCreateInput = {
+  id: string
+  organizationId: string
+  name: string
+  type: string
+  parentId?: string | null
+  ownershipPercent?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  country?: string | null
+  linkedFirmId?: string | null
+  linkedProjectId?: string | null
+  linkedProjectName?: string | null
+  regulatoryStatus?: string | null
+  isExternal?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
 
 export type SmcrGroupEntityUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.StringFieldUpdateOperationsInput | string
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ownershipPercent?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedFirmId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedProjectName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  regulatoryStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isExternal?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  organization?: Prisma.OrganizationUpdateOneRequiredWithoutGroupEntitiesNestedInput
 }
 
 export type SmcrGroupEntityUncheckedUpdateInput = {
@@ -356,29 +428,45 @@ export type SmcrGroupEntityUncheckedUpdateInput = {
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ownershipPercent?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedFirmId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedProjectName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  regulatoryStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isExternal?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type SmcrGroupEntityCreateManyInput = {
-  id?: string
+  id: string
   organizationId: string
   name: string
   type: string
   parentId?: string | null
   ownershipPercent?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   country?: string | null
+  linkedFirmId?: string | null
+  linkedProjectId?: string | null
+  linkedProjectName?: string | null
+  regulatoryStatus?: string | null
+  isExternal?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
 
 export type SmcrGroupEntityUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.StringFieldUpdateOperationsInput | string
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ownershipPercent?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedFirmId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedProjectName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  regulatoryStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isExternal?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -391,18 +479,13 @@ export type SmcrGroupEntityUncheckedUpdateManyInput = {
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ownershipPercent?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedFirmId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedProjectName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  regulatoryStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isExternal?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-}
-
-export type SmcrGroupEntityListRelationFilter = {
-  every?: Prisma.SmcrGroupEntityWhereInput
-  some?: Prisma.SmcrGroupEntityWhereInput
-  none?: Prisma.SmcrGroupEntityWhereInput
-}
-
-export type SmcrGroupEntityOrderByRelationAggregateInput = {
-  _count?: Prisma.SortOrder
 }
 
 export type SmcrGroupEntityCountOrderByAggregateInput = {
@@ -413,6 +496,11 @@ export type SmcrGroupEntityCountOrderByAggregateInput = {
   parentId?: Prisma.SortOrder
   ownershipPercent?: Prisma.SortOrder
   country?: Prisma.SortOrder
+  linkedFirmId?: Prisma.SortOrder
+  linkedProjectId?: Prisma.SortOrder
+  linkedProjectName?: Prisma.SortOrder
+  regulatoryStatus?: Prisma.SortOrder
+  isExternal?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -429,6 +517,11 @@ export type SmcrGroupEntityMaxOrderByAggregateInput = {
   parentId?: Prisma.SortOrder
   ownershipPercent?: Prisma.SortOrder
   country?: Prisma.SortOrder
+  linkedFirmId?: Prisma.SortOrder
+  linkedProjectId?: Prisma.SortOrder
+  linkedProjectName?: Prisma.SortOrder
+  regulatoryStatus?: Prisma.SortOrder
+  isExternal?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -441,6 +534,11 @@ export type SmcrGroupEntityMinOrderByAggregateInput = {
   parentId?: Prisma.SortOrder
   ownershipPercent?: Prisma.SortOrder
   country?: Prisma.SortOrder
+  linkedFirmId?: Prisma.SortOrder
+  linkedProjectId?: Prisma.SortOrder
+  linkedProjectName?: Prisma.SortOrder
+  regulatoryStatus?: Prisma.SortOrder
+  isExternal?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -449,165 +547,12 @@ export type SmcrGroupEntitySumOrderByAggregateInput = {
   ownershipPercent?: Prisma.SortOrder
 }
 
-export type SmcrGroupEntityCreateNestedManyWithoutOrganizationInput = {
-  create?: Prisma.XOR<Prisma.SmcrGroupEntityCreateWithoutOrganizationInput, Prisma.SmcrGroupEntityUncheckedCreateWithoutOrganizationInput> | Prisma.SmcrGroupEntityCreateWithoutOrganizationInput[] | Prisma.SmcrGroupEntityUncheckedCreateWithoutOrganizationInput[]
-  connectOrCreate?: Prisma.SmcrGroupEntityCreateOrConnectWithoutOrganizationInput | Prisma.SmcrGroupEntityCreateOrConnectWithoutOrganizationInput[]
-  createMany?: Prisma.SmcrGroupEntityCreateManyOrganizationInputEnvelope
-  connect?: Prisma.SmcrGroupEntityWhereUniqueInput | Prisma.SmcrGroupEntityWhereUniqueInput[]
-}
-
-export type SmcrGroupEntityUncheckedCreateNestedManyWithoutOrganizationInput = {
-  create?: Prisma.XOR<Prisma.SmcrGroupEntityCreateWithoutOrganizationInput, Prisma.SmcrGroupEntityUncheckedCreateWithoutOrganizationInput> | Prisma.SmcrGroupEntityCreateWithoutOrganizationInput[] | Prisma.SmcrGroupEntityUncheckedCreateWithoutOrganizationInput[]
-  connectOrCreate?: Prisma.SmcrGroupEntityCreateOrConnectWithoutOrganizationInput | Prisma.SmcrGroupEntityCreateOrConnectWithoutOrganizationInput[]
-  createMany?: Prisma.SmcrGroupEntityCreateManyOrganizationInputEnvelope
-  connect?: Prisma.SmcrGroupEntityWhereUniqueInput | Prisma.SmcrGroupEntityWhereUniqueInput[]
-}
-
-export type SmcrGroupEntityUpdateManyWithoutOrganizationNestedInput = {
-  create?: Prisma.XOR<Prisma.SmcrGroupEntityCreateWithoutOrganizationInput, Prisma.SmcrGroupEntityUncheckedCreateWithoutOrganizationInput> | Prisma.SmcrGroupEntityCreateWithoutOrganizationInput[] | Prisma.SmcrGroupEntityUncheckedCreateWithoutOrganizationInput[]
-  connectOrCreate?: Prisma.SmcrGroupEntityCreateOrConnectWithoutOrganizationInput | Prisma.SmcrGroupEntityCreateOrConnectWithoutOrganizationInput[]
-  upsert?: Prisma.SmcrGroupEntityUpsertWithWhereUniqueWithoutOrganizationInput | Prisma.SmcrGroupEntityUpsertWithWhereUniqueWithoutOrganizationInput[]
-  createMany?: Prisma.SmcrGroupEntityCreateManyOrganizationInputEnvelope
-  set?: Prisma.SmcrGroupEntityWhereUniqueInput | Prisma.SmcrGroupEntityWhereUniqueInput[]
-  disconnect?: Prisma.SmcrGroupEntityWhereUniqueInput | Prisma.SmcrGroupEntityWhereUniqueInput[]
-  delete?: Prisma.SmcrGroupEntityWhereUniqueInput | Prisma.SmcrGroupEntityWhereUniqueInput[]
-  connect?: Prisma.SmcrGroupEntityWhereUniqueInput | Prisma.SmcrGroupEntityWhereUniqueInput[]
-  update?: Prisma.SmcrGroupEntityUpdateWithWhereUniqueWithoutOrganizationInput | Prisma.SmcrGroupEntityUpdateWithWhereUniqueWithoutOrganizationInput[]
-  updateMany?: Prisma.SmcrGroupEntityUpdateManyWithWhereWithoutOrganizationInput | Prisma.SmcrGroupEntityUpdateManyWithWhereWithoutOrganizationInput[]
-  deleteMany?: Prisma.SmcrGroupEntityScalarWhereInput | Prisma.SmcrGroupEntityScalarWhereInput[]
-}
-
-export type SmcrGroupEntityUncheckedUpdateManyWithoutOrganizationNestedInput = {
-  create?: Prisma.XOR<Prisma.SmcrGroupEntityCreateWithoutOrganizationInput, Prisma.SmcrGroupEntityUncheckedCreateWithoutOrganizationInput> | Prisma.SmcrGroupEntityCreateWithoutOrganizationInput[] | Prisma.SmcrGroupEntityUncheckedCreateWithoutOrganizationInput[]
-  connectOrCreate?: Prisma.SmcrGroupEntityCreateOrConnectWithoutOrganizationInput | Prisma.SmcrGroupEntityCreateOrConnectWithoutOrganizationInput[]
-  upsert?: Prisma.SmcrGroupEntityUpsertWithWhereUniqueWithoutOrganizationInput | Prisma.SmcrGroupEntityUpsertWithWhereUniqueWithoutOrganizationInput[]
-  createMany?: Prisma.SmcrGroupEntityCreateManyOrganizationInputEnvelope
-  set?: Prisma.SmcrGroupEntityWhereUniqueInput | Prisma.SmcrGroupEntityWhereUniqueInput[]
-  disconnect?: Prisma.SmcrGroupEntityWhereUniqueInput | Prisma.SmcrGroupEntityWhereUniqueInput[]
-  delete?: Prisma.SmcrGroupEntityWhereUniqueInput | Prisma.SmcrGroupEntityWhereUniqueInput[]
-  connect?: Prisma.SmcrGroupEntityWhereUniqueInput | Prisma.SmcrGroupEntityWhereUniqueInput[]
-  update?: Prisma.SmcrGroupEntityUpdateWithWhereUniqueWithoutOrganizationInput | Prisma.SmcrGroupEntityUpdateWithWhereUniqueWithoutOrganizationInput[]
-  updateMany?: Prisma.SmcrGroupEntityUpdateManyWithWhereWithoutOrganizationInput | Prisma.SmcrGroupEntityUpdateManyWithWhereWithoutOrganizationInput[]
-  deleteMany?: Prisma.SmcrGroupEntityScalarWhereInput | Prisma.SmcrGroupEntityScalarWhereInput[]
-}
-
-export type NullableStringFieldUpdateOperationsInput = {
-  set?: string | null
-}
-
 export type NullableDecimalFieldUpdateOperationsInput = {
   set?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   increment?: runtime.Decimal | runtime.DecimalJsLike | number | string
   decrement?: runtime.Decimal | runtime.DecimalJsLike | number | string
   multiply?: runtime.Decimal | runtime.DecimalJsLike | number | string
   divide?: runtime.Decimal | runtime.DecimalJsLike | number | string
-}
-
-export type SmcrGroupEntityCreateWithoutOrganizationInput = {
-  id?: string
-  name: string
-  type: string
-  parentId?: string | null
-  ownershipPercent?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  country?: string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-}
-
-export type SmcrGroupEntityUncheckedCreateWithoutOrganizationInput = {
-  id?: string
-  name: string
-  type: string
-  parentId?: string | null
-  ownershipPercent?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  country?: string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-}
-
-export type SmcrGroupEntityCreateOrConnectWithoutOrganizationInput = {
-  where: Prisma.SmcrGroupEntityWhereUniqueInput
-  create: Prisma.XOR<Prisma.SmcrGroupEntityCreateWithoutOrganizationInput, Prisma.SmcrGroupEntityUncheckedCreateWithoutOrganizationInput>
-}
-
-export type SmcrGroupEntityCreateManyOrganizationInputEnvelope = {
-  data: Prisma.SmcrGroupEntityCreateManyOrganizationInput | Prisma.SmcrGroupEntityCreateManyOrganizationInput[]
-  skipDuplicates?: boolean
-}
-
-export type SmcrGroupEntityUpsertWithWhereUniqueWithoutOrganizationInput = {
-  where: Prisma.SmcrGroupEntityWhereUniqueInput
-  update: Prisma.XOR<Prisma.SmcrGroupEntityUpdateWithoutOrganizationInput, Prisma.SmcrGroupEntityUncheckedUpdateWithoutOrganizationInput>
-  create: Prisma.XOR<Prisma.SmcrGroupEntityCreateWithoutOrganizationInput, Prisma.SmcrGroupEntityUncheckedCreateWithoutOrganizationInput>
-}
-
-export type SmcrGroupEntityUpdateWithWhereUniqueWithoutOrganizationInput = {
-  where: Prisma.SmcrGroupEntityWhereUniqueInput
-  data: Prisma.XOR<Prisma.SmcrGroupEntityUpdateWithoutOrganizationInput, Prisma.SmcrGroupEntityUncheckedUpdateWithoutOrganizationInput>
-}
-
-export type SmcrGroupEntityUpdateManyWithWhereWithoutOrganizationInput = {
-  where: Prisma.SmcrGroupEntityScalarWhereInput
-  data: Prisma.XOR<Prisma.SmcrGroupEntityUpdateManyMutationInput, Prisma.SmcrGroupEntityUncheckedUpdateManyWithoutOrganizationInput>
-}
-
-export type SmcrGroupEntityScalarWhereInput = {
-  AND?: Prisma.SmcrGroupEntityScalarWhereInput | Prisma.SmcrGroupEntityScalarWhereInput[]
-  OR?: Prisma.SmcrGroupEntityScalarWhereInput[]
-  NOT?: Prisma.SmcrGroupEntityScalarWhereInput | Prisma.SmcrGroupEntityScalarWhereInput[]
-  id?: Prisma.StringFilter<"SmcrGroupEntity"> | string
-  organizationId?: Prisma.StringFilter<"SmcrGroupEntity"> | string
-  name?: Prisma.StringFilter<"SmcrGroupEntity"> | string
-  type?: Prisma.StringFilter<"SmcrGroupEntity"> | string
-  parentId?: Prisma.StringNullableFilter<"SmcrGroupEntity"> | string | null
-  ownershipPercent?: Prisma.DecimalNullableFilter<"SmcrGroupEntity"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  country?: Prisma.StringNullableFilter<"SmcrGroupEntity"> | string | null
-  createdAt?: Prisma.DateTimeFilter<"SmcrGroupEntity"> | Date | string
-  updatedAt?: Prisma.DateTimeFilter<"SmcrGroupEntity"> | Date | string
-}
-
-export type SmcrGroupEntityCreateManyOrganizationInput = {
-  id?: string
-  name: string
-  type: string
-  parentId?: string | null
-  ownershipPercent?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  country?: string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-}
-
-export type SmcrGroupEntityUpdateWithoutOrganizationInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  name?: Prisma.StringFieldUpdateOperationsInput | string
-  type?: Prisma.StringFieldUpdateOperationsInput | string
-  parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  ownershipPercent?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-}
-
-export type SmcrGroupEntityUncheckedUpdateWithoutOrganizationInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  name?: Prisma.StringFieldUpdateOperationsInput | string
-  type?: Prisma.StringFieldUpdateOperationsInput | string
-  parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  ownershipPercent?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-}
-
-export type SmcrGroupEntityUncheckedUpdateManyWithoutOrganizationInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  name?: Prisma.StringFieldUpdateOperationsInput | string
-  type?: Prisma.StringFieldUpdateOperationsInput | string
-  parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  ownershipPercent?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -620,9 +565,13 @@ export type SmcrGroupEntitySelect<ExtArgs extends runtime.Types.Extensions.Inter
   parentId?: boolean
   ownershipPercent?: boolean
   country?: boolean
+  linkedFirmId?: boolean
+  linkedProjectId?: boolean
+  linkedProjectName?: boolean
+  regulatoryStatus?: boolean
+  isExternal?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["smcrGroupEntity"]>
 
 export type SmcrGroupEntitySelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -633,9 +582,13 @@ export type SmcrGroupEntitySelectCreateManyAndReturn<ExtArgs extends runtime.Typ
   parentId?: boolean
   ownershipPercent?: boolean
   country?: boolean
+  linkedFirmId?: boolean
+  linkedProjectId?: boolean
+  linkedProjectName?: boolean
+  regulatoryStatus?: boolean
+  isExternal?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["smcrGroupEntity"]>
 
 export type SmcrGroupEntitySelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -646,9 +599,13 @@ export type SmcrGroupEntitySelectUpdateManyAndReturn<ExtArgs extends runtime.Typ
   parentId?: boolean
   ownershipPercent?: boolean
   country?: boolean
+  linkedFirmId?: boolean
+  linkedProjectId?: boolean
+  linkedProjectName?: boolean
+  regulatoryStatus?: boolean
+  isExternal?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["smcrGroupEntity"]>
 
 export type SmcrGroupEntitySelectScalar = {
@@ -659,26 +616,20 @@ export type SmcrGroupEntitySelectScalar = {
   parentId?: boolean
   ownershipPercent?: boolean
   country?: boolean
+  linkedFirmId?: boolean
+  linkedProjectId?: boolean
+  linkedProjectName?: boolean
+  regulatoryStatus?: boolean
+  isExternal?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type SmcrGroupEntityOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "name" | "type" | "parentId" | "ownershipPercent" | "country" | "createdAt" | "updatedAt", ExtArgs["result"]["smcrGroupEntity"]>
-export type SmcrGroupEntityInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
-}
-export type SmcrGroupEntityIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
-}
-export type SmcrGroupEntityIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
-}
+export type SmcrGroupEntityOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "name" | "type" | "parentId" | "ownershipPercent" | "country" | "linkedFirmId" | "linkedProjectId" | "linkedProjectName" | "regulatoryStatus" | "isExternal" | "createdAt" | "updatedAt", ExtArgs["result"]["smcrGroupEntity"]>
 
 export type $SmcrGroupEntityPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "SmcrGroupEntity"
-  objects: {
-    organization: Prisma.$OrganizationPayload<ExtArgs>
-  }
+  objects: {}
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     organizationId: string
@@ -687,6 +638,11 @@ export type $SmcrGroupEntityPayload<ExtArgs extends runtime.Types.Extensions.Int
     parentId: string | null
     ownershipPercent: runtime.Decimal | null
     country: string | null
+    linkedFirmId: string | null
+    linkedProjectId: string | null
+    linkedProjectName: string | null
+    regulatoryStatus: string | null
+    isExternal: boolean
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["smcrGroupEntity"]>
@@ -1083,7 +1039,6 @@ readonly fields: SmcrGroupEntityFieldRefs;
  */
 export interface Prisma__SmcrGroupEntityClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  organization<T extends Prisma.OrganizationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrganizationDefaultArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1120,6 +1075,11 @@ export interface SmcrGroupEntityFieldRefs {
   readonly parentId: Prisma.FieldRef<"SmcrGroupEntity", 'String'>
   readonly ownershipPercent: Prisma.FieldRef<"SmcrGroupEntity", 'Decimal'>
   readonly country: Prisma.FieldRef<"SmcrGroupEntity", 'String'>
+  readonly linkedFirmId: Prisma.FieldRef<"SmcrGroupEntity", 'String'>
+  readonly linkedProjectId: Prisma.FieldRef<"SmcrGroupEntity", 'String'>
+  readonly linkedProjectName: Prisma.FieldRef<"SmcrGroupEntity", 'String'>
+  readonly regulatoryStatus: Prisma.FieldRef<"SmcrGroupEntity", 'String'>
+  readonly isExternal: Prisma.FieldRef<"SmcrGroupEntity", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"SmcrGroupEntity", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"SmcrGroupEntity", 'DateTime'>
 }
@@ -1139,10 +1099,6 @@ export type SmcrGroupEntityFindUniqueArgs<ExtArgs extends runtime.Types.Extensio
    */
   omit?: Prisma.SmcrGroupEntityOmit<ExtArgs> | null
   /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.SmcrGroupEntityInclude<ExtArgs> | null
-  /**
    * Filter, which SmcrGroupEntity to fetch.
    */
   where: Prisma.SmcrGroupEntityWhereUniqueInput
@@ -1161,10 +1117,6 @@ export type SmcrGroupEntityFindUniqueOrThrowArgs<ExtArgs extends runtime.Types.E
    */
   omit?: Prisma.SmcrGroupEntityOmit<ExtArgs> | null
   /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.SmcrGroupEntityInclude<ExtArgs> | null
-  /**
    * Filter, which SmcrGroupEntity to fetch.
    */
   where: Prisma.SmcrGroupEntityWhereUniqueInput
@@ -1182,10 +1134,6 @@ export type SmcrGroupEntityFindFirstArgs<ExtArgs extends runtime.Types.Extension
    * Omit specific fields from the SmcrGroupEntity
    */
   omit?: Prisma.SmcrGroupEntityOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.SmcrGroupEntityInclude<ExtArgs> | null
   /**
    * Filter, which SmcrGroupEntity to fetch.
    */
@@ -1235,10 +1183,6 @@ export type SmcrGroupEntityFindFirstOrThrowArgs<ExtArgs extends runtime.Types.Ex
    */
   omit?: Prisma.SmcrGroupEntityOmit<ExtArgs> | null
   /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.SmcrGroupEntityInclude<ExtArgs> | null
-  /**
    * Filter, which SmcrGroupEntity to fetch.
    */
   where?: Prisma.SmcrGroupEntityWhereInput
@@ -1287,10 +1231,6 @@ export type SmcrGroupEntityFindManyArgs<ExtArgs extends runtime.Types.Extensions
    */
   omit?: Prisma.SmcrGroupEntityOmit<ExtArgs> | null
   /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.SmcrGroupEntityInclude<ExtArgs> | null
-  /**
    * Filter, which SmcrGroupEntities to fetch.
    */
   where?: Prisma.SmcrGroupEntityWhereInput
@@ -1334,10 +1274,6 @@ export type SmcrGroupEntityCreateArgs<ExtArgs extends runtime.Types.Extensions.I
    */
   omit?: Prisma.SmcrGroupEntityOmit<ExtArgs> | null
   /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.SmcrGroupEntityInclude<ExtArgs> | null
-  /**
    * The data needed to create a SmcrGroupEntity.
    */
   data: Prisma.XOR<Prisma.SmcrGroupEntityCreateInput, Prisma.SmcrGroupEntityUncheckedCreateInput>
@@ -1371,10 +1307,6 @@ export type SmcrGroupEntityCreateManyAndReturnArgs<ExtArgs extends runtime.Types
    */
   data: Prisma.SmcrGroupEntityCreateManyInput | Prisma.SmcrGroupEntityCreateManyInput[]
   skipDuplicates?: boolean
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.SmcrGroupEntityIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1389,10 +1321,6 @@ export type SmcrGroupEntityUpdateArgs<ExtArgs extends runtime.Types.Extensions.I
    * Omit specific fields from the SmcrGroupEntity
    */
   omit?: Prisma.SmcrGroupEntityOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.SmcrGroupEntityInclude<ExtArgs> | null
   /**
    * The data needed to update a SmcrGroupEntity.
    */
@@ -1445,10 +1373,6 @@ export type SmcrGroupEntityUpdateManyAndReturnArgs<ExtArgs extends runtime.Types
    * Limit how many SmcrGroupEntities to update.
    */
   limit?: number
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.SmcrGroupEntityIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1463,10 +1387,6 @@ export type SmcrGroupEntityUpsertArgs<ExtArgs extends runtime.Types.Extensions.I
    * Omit specific fields from the SmcrGroupEntity
    */
   omit?: Prisma.SmcrGroupEntityOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.SmcrGroupEntityInclude<ExtArgs> | null
   /**
    * The filter to search for the SmcrGroupEntity to update in case it exists.
    */
@@ -1493,10 +1413,6 @@ export type SmcrGroupEntityDeleteArgs<ExtArgs extends runtime.Types.Extensions.I
    * Omit specific fields from the SmcrGroupEntity
    */
   omit?: Prisma.SmcrGroupEntityOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.SmcrGroupEntityInclude<ExtArgs> | null
   /**
    * Filter which SmcrGroupEntity to delete.
    */
@@ -1529,8 +1445,4 @@ export type SmcrGroupEntityDefaultArgs<ExtArgs extends runtime.Types.Extensions.
    * Omit specific fields from the SmcrGroupEntity
    */
   omit?: Prisma.SmcrGroupEntityOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.SmcrGroupEntityInclude<ExtArgs> | null
 }

@@ -23,12 +23,67 @@ export * from './enums';
  */
 export type Organization = Prisma.OrganizationModel
 /**
- * Model SmcrGroupEntity
+ * Model User
  * 
  */
-export type SmcrGroupEntity = Prisma.SmcrGroupEntityModel
+export type User = Prisma.UserModel
+/**
+ * Model OrganizationMember
+ * 
+ */
+export type OrganizationMember = Prisma.OrganizationMemberModel
+/**
+ * Model OrganizationInvite
+ * 
+ */
+export type OrganizationInvite = Prisma.OrganizationInviteModel
+/**
+ * Model SmcrFirm
+ * 
+ */
+export type SmcrFirm = Prisma.SmcrFirmModel
+/**
+ * Model SmcrPerson
+ * 
+ */
+export type SmcrPerson = Prisma.SmcrPersonModel
+/**
+ * Model SmcrRoleAssignment
+ * 
+ */
+export type SmcrRoleAssignment = Prisma.SmcrRoleAssignmentModel
+/**
+ * Model SmcrFitnessAssessment
+ * 
+ */
+export type SmcrFitnessAssessment = Prisma.SmcrFitnessAssessmentModel
+/**
+ * Model SmcrWorkflow
+ * 
+ */
+export type SmcrWorkflow = Prisma.SmcrWorkflowModel
+/**
+ * Model SmcrWorkflowDocument
+ * 
+ */
+export type SmcrWorkflowDocument = Prisma.SmcrWorkflowDocumentModel
+/**
+ * Model SmcrTrainingItem
+ * 
+ */
+export type SmcrTrainingItem = Prisma.SmcrTrainingItemModel
+/**
+ * Model SmcrDocument
+ * 
+ */
+export type SmcrDocument = Prisma.SmcrDocumentModel
 /**
  * Model SmcrBreach
  * 
  */
 export type SmcrBreach = Prisma.SmcrBreachModel
+/**
+ * Model SmcrGroupEntity
+ * 
+ */
+export type SmcrGroupEntity = Prisma.SmcrGroupEntityModel

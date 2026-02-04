@@ -52,8 +52,19 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   Organization: 'Organization',
-  SmcrGroupEntity: 'SmcrGroupEntity',
-  SmcrBreach: 'SmcrBreach'
+  User: 'User',
+  OrganizationMember: 'OrganizationMember',
+  OrganizationInvite: 'OrganizationInvite',
+  SmcrFirm: 'SmcrFirm',
+  SmcrPerson: 'SmcrPerson',
+  SmcrRoleAssignment: 'SmcrRoleAssignment',
+  SmcrFitnessAssessment: 'SmcrFitnessAssessment',
+  SmcrWorkflow: 'SmcrWorkflow',
+  SmcrWorkflowDocument: 'SmcrWorkflowDocument',
+  SmcrTrainingItem: 'SmcrTrainingItem',
+  SmcrDocument: 'SmcrDocument',
+  SmcrBreach: 'SmcrBreach',
+  SmcrGroupEntity: 'SmcrGroupEntity'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -85,19 +96,193 @@ export const OrganizationScalarFieldEnum = {
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]
 
 
-export const SmcrGroupEntityScalarFieldEnum = {
+export const UserScalarFieldEnum = {
   id: 'id',
-  organizationId: 'organizationId',
+  email: 'email',
   name: 'name',
-  type: 'type',
-  parentId: 'parentId',
-  ownershipPercent: 'ownershipPercent',
-  country: 'country',
+  avatarUrl: 'avatarUrl',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
-export type SmcrGroupEntityScalarFieldEnum = (typeof SmcrGroupEntityScalarFieldEnum)[keyof typeof SmcrGroupEntityScalarFieldEnum]
+export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const OrganizationMemberScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  userId: 'userId',
+  role: 'role',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type OrganizationMemberScalarFieldEnum = (typeof OrganizationMemberScalarFieldEnum)[keyof typeof OrganizationMemberScalarFieldEnum]
+
+
+export const OrganizationInviteScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  email: 'email',
+  role: 'role',
+  invitedBy: 'invitedBy',
+  expiresAt: 'expiresAt',
+  acceptedAt: 'acceptedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type OrganizationInviteScalarFieldEnum = (typeof OrganizationInviteScalarFieldEnum)[keyof typeof OrganizationInviteScalarFieldEnum]
+
+
+export const SmcrFirmScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  organizationId: 'organizationId',
+  authorizationProjectId: 'authorizationProjectId',
+  authorizationProjectName: 'authorizationProjectName',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SmcrFirmScalarFieldEnum = (typeof SmcrFirmScalarFieldEnum)[keyof typeof SmcrFirmScalarFieldEnum]
+
+
+export const SmcrPersonScalarFieldEnum = {
+  id: 'id',
+  firmId: 'firmId',
+  employeeId: 'employeeId',
+  name: 'name',
+  email: 'email',
+  department: 'department',
+  title: 'title',
+  phone: 'phone',
+  address: 'address',
+  lineManager: 'lineManager',
+  startDate: 'startDate',
+  hireDate: 'hireDate',
+  endDate: 'endDate',
+  isPsd: 'isPsd',
+  psdStatus: 'psdStatus',
+  notes: 'notes',
+  assessmentStatus: 'assessmentStatus',
+  lastAssessment: 'lastAssessment',
+  nextAssessment: 'nextAssessment',
+  trainingCompletion: 'trainingCompletion',
+  irn: 'irn',
+  fcaVerification: 'fcaVerification',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SmcrPersonScalarFieldEnum = (typeof SmcrPersonScalarFieldEnum)[keyof typeof SmcrPersonScalarFieldEnum]
+
+
+export const SmcrRoleAssignmentScalarFieldEnum = {
+  id: 'id',
+  firmId: 'firmId',
+  personId: 'personId',
+  functionId: 'functionId',
+  functionType: 'functionType',
+  functionLabel: 'functionLabel',
+  entity: 'entity',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  assessmentDate: 'assessmentDate',
+  approvalStatus: 'approvalStatus',
+  notes: 'notes',
+  assignedAt: 'assignedAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SmcrRoleAssignmentScalarFieldEnum = (typeof SmcrRoleAssignmentScalarFieldEnum)[keyof typeof SmcrRoleAssignmentScalarFieldEnum]
+
+
+export const SmcrFitnessAssessmentScalarFieldEnum = {
+  id: 'id',
+  firmId: 'firmId',
+  personId: 'personId',
+  personName: 'personName',
+  personRole: 'personRole',
+  status: 'status',
+  assessmentDate: 'assessmentDate',
+  nextDueDate: 'nextDueDate',
+  reviewer: 'reviewer',
+  overallDetermination: 'overallDetermination',
+  conditions: 'conditions',
+  responses: 'responses',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SmcrFitnessAssessmentScalarFieldEnum = (typeof SmcrFitnessAssessmentScalarFieldEnum)[keyof typeof SmcrFitnessAssessmentScalarFieldEnum]
+
+
+export const SmcrWorkflowScalarFieldEnum = {
+  id: 'id',
+  firmId: 'firmId',
+  templateId: 'templateId',
+  name: 'name',
+  summary: 'summary',
+  ownerPersonId: 'ownerPersonId',
+  ownerName: 'ownerName',
+  launchedAt: 'launchedAt',
+  dueDate: 'dueDate',
+  status: 'status',
+  steps: 'steps',
+  successCriteria: 'successCriteria',
+  triggerEvent: 'triggerEvent'
+} as const
+
+export type SmcrWorkflowScalarFieldEnum = (typeof SmcrWorkflowScalarFieldEnum)[keyof typeof SmcrWorkflowScalarFieldEnum]
+
+
+export const SmcrWorkflowDocumentScalarFieldEnum = {
+  id: 'id',
+  firmId: 'firmId',
+  workflowId: 'workflowId',
+  stepId: 'stepId',
+  name: 'name',
+  type: 'type',
+  size: 'size',
+  filePath: 'filePath',
+  summary: 'summary',
+  status: 'status',
+  uploadedAt: 'uploadedAt'
+} as const
+
+export type SmcrWorkflowDocumentScalarFieldEnum = (typeof SmcrWorkflowDocumentScalarFieldEnum)[keyof typeof SmcrWorkflowDocumentScalarFieldEnum]
+
+
+export const SmcrTrainingItemScalarFieldEnum = {
+  id: 'id',
+  personId: 'personId',
+  moduleId: 'moduleId',
+  title: 'title',
+  required: 'required',
+  roleContext: 'roleContext',
+  status: 'status',
+  dueDate: 'dueDate',
+  completedDate: 'completedDate',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SmcrTrainingItemScalarFieldEnum = (typeof SmcrTrainingItemScalarFieldEnum)[keyof typeof SmcrTrainingItemScalarFieldEnum]
+
+
+export const SmcrDocumentScalarFieldEnum = {
+  id: 'id',
+  personId: 'personId',
+  category: 'category',
+  name: 'name',
+  type: 'type',
+  size: 'size',
+  filePath: 'filePath',
+  notes: 'notes',
+  uploadedAt: 'uploadedAt'
+} as const
+
+export type SmcrDocumentScalarFieldEnum = (typeof SmcrDocumentScalarFieldEnum)[keyof typeof SmcrDocumentScalarFieldEnum]
 
 
 export const SmcrBreachScalarFieldEnum = {
@@ -108,11 +293,32 @@ export const SmcrBreachScalarFieldEnum = {
   severity: 'severity',
   status: 'status',
   timeline: 'timeline',
+  details: 'details',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type SmcrBreachScalarFieldEnum = (typeof SmcrBreachScalarFieldEnum)[keyof typeof SmcrBreachScalarFieldEnum]
+
+
+export const SmcrGroupEntityScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  name: 'name',
+  type: 'type',
+  parentId: 'parentId',
+  ownershipPercent: 'ownershipPercent',
+  country: 'country',
+  linkedFirmId: 'linkedFirmId',
+  linkedProjectId: 'linkedProjectId',
+  linkedProjectName: 'linkedProjectName',
+  regulatoryStatus: 'regulatoryStatus',
+  isExternal: 'isExternal',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SmcrGroupEntityScalarFieldEnum = (typeof SmcrGroupEntityScalarFieldEnum)[keyof typeof SmcrGroupEntityScalarFieldEnum]
 
 
 export const SortOrder = {

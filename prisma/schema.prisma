@@ -1,11 +1,10 @@
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
   output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model Organization {
@@ -77,10 +76,11 @@ model SmcrFirm {
   createdAt               DateTime  @default(now()) @map("created_at")
   updatedAt               DateTime  @updatedAt @map("updated_at")
 
-  people    SmcrPerson[]
-  roles     SmcrRoleAssignment[]
-  workflows SmcrWorkflow[]
-  breaches  SmcrBreach[]
+  people      SmcrPerson[]
+  roles       SmcrRoleAssignment[]
+  workflows   SmcrWorkflow[]
+  breaches    SmcrBreach[]
+  assessments SmcrFitnessAssessment[]
 
   @@map("smcr_firms")
 }
