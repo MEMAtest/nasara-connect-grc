@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     } = body;
 
     const organizationId = auth.organizationId;
-    const enabledBy = auth.userEmail || auth.userId;
+    const enabledBy = auth.userEmail ?? auth.userId ?? undefined;
 
     if (!registerCode) {
       return NextResponse.json(
@@ -96,7 +96,7 @@ export async function PATCH(request: NextRequest) {
     } = body;
 
     const organizationId = auth.organizationId;
-    const enabledBy = auth.userEmail || auth.userId;
+    const enabledBy = auth.userEmail ?? auth.userId ?? undefined;
 
     if (!Array.isArray(registerCodes) || registerCodes.length === 0) {
       return NextResponse.json(

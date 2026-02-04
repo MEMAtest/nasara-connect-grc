@@ -32,9 +32,9 @@ interface ChatRequestBody {
   stream?: boolean;
 }
 
-type UpstreamStreamChunk =
-  | { choices?: Array<{ delta?: { content?: string } }> }
-  | { choices?: Array<{ message?: { content?: string } }> };
+type UpstreamStreamChunk = {
+  choices?: Array<{ delta?: { content?: string }; message?: { content?: string } }>;
+};
 
 function buildSystemPrompt(mode: Mode, context?: ChatRequestBody["context"]): string {
   const base = `You are Nasara Connect's AI Compliance Assistant.

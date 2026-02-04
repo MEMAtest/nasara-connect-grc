@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       organizationId,
       firmType as FirmType,
       selectedRegisters,
-      auth.userEmail || auth.userId // Use authenticated user as enabledBy
+      auth.userEmail ?? auth.userId ?? undefined
     );
 
     return NextResponse.json({

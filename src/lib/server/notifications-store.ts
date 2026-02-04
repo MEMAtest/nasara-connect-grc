@@ -198,5 +198,5 @@ export async function markAllNotificationsRead(options: {
     `,
     [options.organizationIds, options.userId, `read-${randomUUID()}`],
   );
-  return { count: result.rowCount };
+  return { count: result.rowCount ?? 0 };
 }
