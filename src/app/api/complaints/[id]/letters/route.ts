@@ -43,7 +43,7 @@ export async function GET(
     if (!complaint) {
       return NextResponse.json({ error: "Complaint not found" }, { status: 404 });
     }
-    if (complaint.organization_id && complaint.organization_id !== auth.organizationId) {
+    if (complaint.organization_id !== auth.organizationId) {
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
@@ -84,7 +84,7 @@ export async function POST(
         { status: 404 }
       );
     }
-    if (complaint.organization_id && complaint.organization_id !== auth.organizationId) {
+    if (complaint.organization_id !== auth.organizationId) {
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 

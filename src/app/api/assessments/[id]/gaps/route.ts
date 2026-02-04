@@ -20,7 +20,7 @@ export async function GET(
     if (!assessment) {
       return NextResponse.json({ error: 'Assessment not found' }, { status: 404 });
     }
-    if (!assessment.organization_id || assessment.organization_id !== auth.organizationId) {
+    if (assessment.organization_id !== auth.organizationId) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
@@ -62,7 +62,7 @@ export async function PATCH(
     if (!assessment) {
       return NextResponse.json({ error: 'Assessment not found' }, { status: 404 });
     }
-    if (!assessment.organization_id || assessment.organization_id !== auth.organizationId) {
+    if (assessment.organization_id !== auth.organizationId) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 

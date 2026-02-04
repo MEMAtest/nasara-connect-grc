@@ -45,7 +45,7 @@ export async function GET(
         { status: 404 }
       );
     }
-    if (data.complaint.organization_id && data.complaint.organization_id !== auth.organizationId) {
+    if (data.complaint.organization_id !== auth.organizationId) {
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
@@ -89,7 +89,7 @@ export async function PATCH(
         { status: 404 }
       );
     }
-    if (currentData.complaint.organization_id && currentData.complaint.organization_id !== auth.organizationId) {
+    if (currentData.complaint.organization_id !== auth.organizationId) {
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
     const current = currentData.complaint;

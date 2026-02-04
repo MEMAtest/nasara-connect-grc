@@ -62,7 +62,7 @@ export async function POST(
         { status: 404 }
       );
     }
-    if (complaint.organization_id && complaint.organization_id !== auth.organizationId) {
+    if (complaint.organization_id !== auth.organizationId) {
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
