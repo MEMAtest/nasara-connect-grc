@@ -75,6 +75,28 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.orgRefreshedAt = now
         token.roleRefreshedAt = now
       }
+
+      // Check for org override cookie (set by org switching or invite acceptance)
+      try {
+        const { cookies } = await import("next/headers")
+        const cookieStore = await cookies()
+        const overrideOrgId = cookieStore.get("nasara-active-org")?.value
+        if (overrideOrgId && overrideOrgId !== token.organizationId) {
+          const { getOrganizationMemberByUserId } = await import("@/lib/server/organization-store")
+          const userId = token.id as string
+          if (userId) {
+            const member = await getOrganizationMemberByUserId(overrideOrgId, userId)
+            if (member) {
+              token.organizationId = overrideOrgId
+              token.role = member.role
+            }
+            // If not a member, ignore the cookie (stale)
+          }
+        }
+      } catch {
+        // Cookie read can fail in Edge Runtime — fallback to token org (safe)
+      }
+
       return token
     },
     async session({ session, token }) {

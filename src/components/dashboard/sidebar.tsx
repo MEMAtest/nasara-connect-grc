@@ -29,6 +29,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useModuleAccess } from "@/hooks/use-module-access";
+import { OrgSwitcher } from "@/components/dashboard/org-switcher";
 
 export type SidebarBadgeVariant = "info" | "warning" | "danger" | "success" | "neutral";
 
@@ -415,6 +416,8 @@ export function Sidebar({ onNavigate, onClose, isMobile = false }: SidebarProps)
             </button>
           )}
         </div>
+
+        <OrgSwitcher />
 
         <nav aria-label="Primary" className="space-y-1 px-3">
           {/* Top-level items (Dashboard + enabled modules) */}

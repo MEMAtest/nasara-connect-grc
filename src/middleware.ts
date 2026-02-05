@@ -92,7 +92,8 @@ export default auth((req) => {
     pathname.startsWith('/ai-chat') ||
     pathname.startsWith('/settings') ||
     pathname.startsWith('/support') ||
-    pathname.startsWith('/admin')
+    pathname.startsWith('/admin') ||
+    pathname.startsWith('/invites')
 
   // Redirect to login if trying to access protected route while not logged in
   if (isProtectedRoute && !isLoggedIn) {

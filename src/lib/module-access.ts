@@ -120,7 +120,10 @@ export function isModuleEnabledForOrg(
   enabledModules: string[] | null | undefined,
   moduleId: string,
 ): boolean {
-  if (!enabledModules || enabledModules.length === 0) return false;
+  // null/undefined means module access hasn't been configured yet — allow all
+  if (enabledModules === null || enabledModules === undefined) return true;
+  // Explicit empty array means everything disabled
+  if (enabledModules.length === 0) return false;
   if (enabledModules.includes("*")) return true;
   return enabledModules.includes(moduleId);
 }

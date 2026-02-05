@@ -228,6 +228,15 @@ export async function upsertUser(params: {
   return rows[0];
 }
 
+export async function getUserById(userId: string): Promise<UserRecord | null> {
+  await initOrganizationTables();
+  const { rows } = await pool.query<UserRecord>(
+    `SELECT * FROM users WHERE id = $1`,
+    [userId]
+  );
+  return rows[0] ?? null;
+}
+
 export async function getUserByEmail(email: string): Promise<UserRecord | null> {
   await initOrganizationTables();
   const { rows } = await pool.query<UserRecord>(
@@ -457,6 +466,21 @@ export async function acceptOrganizationInvite(params: {
   } finally {
     client.release();
   }
+}
+
+export async function listOrganizationsForUser(
+  userId: string
+): Promise<Array<{ id: string; name: string; domain: string; role: string }>> {
+  await initOrganizationTables();
+  const { rows } = await pool.query<{ id: string; name: string; domain: string; role: string }>(
+    `SELECT o.id, o.name, o.domain, m.role
+     FROM organization_members m
+     JOIN organizations o ON o.id = m.organization_id
+     WHERE m.user_id = $1
+     ORDER BY o.name`,
+    [userId]
+  );
+  return rows;
 }
 
 export async function ensureOrganizationForUser(params: {

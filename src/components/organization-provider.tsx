@@ -4,6 +4,13 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { useSession } from "next-auth/react";
 import { DEFAULT_ORGANIZATION_ID } from "@/lib/constants";
 
+interface OrgListItem {
+  id: string;
+  name: string;
+  domain: string;
+  role: string;
+}
+
 interface OrganizationContextValue {
   organizationId: string;
   userEmail: string | null;
@@ -20,6 +27,12 @@ interface OrganizationContextValue {
   contextFetchFailed: boolean;
   /** Manually retry the context fetch. */
   retryContextFetch: () => void;
+  /** All organizations the user belongs to. */
+  organizations: OrgListItem[];
+  /** Name of the currently active organization. */
+  organizationName: string | null;
+  /** Switch to a different organization (sets cookie + reloads). */
+  switchOrganization: (orgId: string) => Promise<void>;
 }
 
 const OrganizationContext = createContext<OrganizationContextValue | null>(null);
@@ -39,6 +52,8 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
   const [confirmedRole, setConfirmedRole] = useState<string | null>(null);
   const [isModuleAccessLoading, setIsModuleAccessLoading] = useState(true);
   const [contextFetchFailed, setContextFetchFailed] = useState(false);
+  const [organizations, setOrganizations] = useState<OrgListItem[]>([]);
+  const [organizationName, setOrganizationName] = useState<string | null>(null);
 
   const fetchContext = useCallback(async () => {
     setIsModuleAccessLoading(true);
@@ -50,6 +65,11 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
       const data = await res.json();
       setEnabledModules(Array.isArray(data.enabledModules) ? data.enabledModules : []);
       setConfirmedRole(typeof data.role === "string" ? data.role : null);
+      setOrganizations(Array.isArray(data.organizations) ? data.organizations : []);
+      const activeOrg = Array.isArray(data.organizations)
+        ? data.organizations.find((o: OrgListItem) => o.id === (data.activeOrganizationId || organizationId))
+        : null;
+      setOrganizationName(activeOrg?.name ?? null);
     } catch {
       // Retry once after 2 seconds
       try {
@@ -59,6 +79,11 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
         const retryData = await retryRes.json();
         setEnabledModules(Array.isArray(retryData.enabledModules) ? retryData.enabledModules : []);
         setConfirmedRole(typeof retryData.role === "string" ? retryData.role : null);
+        setOrganizations(Array.isArray(retryData.organizations) ? retryData.organizations : []);
+        const retryActiveOrg = Array.isArray(retryData.organizations)
+          ? retryData.organizations.find((o: OrgListItem) => o.id === (retryData.activeOrganizationId || organizationId))
+          : null;
+        setOrganizationName(retryActiveOrg?.name ?? null);
       } catch {
         // Both attempts failed — fail-closed for modules, role falls back to JWT
         setEnabledModules([]);
@@ -67,6 +92,18 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
       }
     } finally {
       setIsModuleAccessLoading(false);
+    }
+  }, [organizationId]);
+
+  const switchOrganization = useCallback(async (orgId: string) => {
+    const res = await fetch("/api/user/switch-organization", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ organizationId: orgId }),
+    });
+    if (res.ok) {
+      // Full page reload to refresh JWT with new org
+      window.location.reload();
     }
   }, []);
 
@@ -89,6 +126,9 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
         confirmedRole,
         contextFetchFailed,
         retryContextFetch: fetchContext,
+        organizations,
+        organizationName,
+        switchOrganization,
       }}
     >
       {children}

@@ -240,6 +240,25 @@ export async function initSmcrDatabase() {
     await client.query(`ALTER TABLE smcr_people ADD COLUMN IF NOT EXISTS fca_verification JSONB`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_smcr_people_irn ON smcr_people(irn)`);
 
+    // Backfill NULL organization_id values and add NOT NULL constraint
+    const DEFAULT_ORG_FALLBACK = '00000000-0000-0000-0000-000000000001';
+    await client.query(
+      `UPDATE smcr_firms SET organization_id = $1 WHERE organization_id IS NULL`,
+      [DEFAULT_ORG_FALLBACK]
+    );
+    await client.query(`
+      DO $$ BEGIN
+        IF EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'smcr_firms'
+            AND column_name = 'organization_id'
+            AND is_nullable = 'YES'
+        ) THEN
+          ALTER TABLE smcr_firms ALTER COLUMN organization_id SET NOT NULL;
+        END IF;
+      END $$
+    `);
+
     logger.info('SMCR database tables initialized successfully');
   } catch (error) {
     logError(error, 'Failed to initialize SMCR database');
@@ -256,14 +275,14 @@ export async function initSmcrDatabase() {
 export interface SmcrFirm {
   id: string;
   name: string;
-  organization_id?: string;
+  organization_id: string;
   authorization_project_id?: string | null;
   authorization_project_name?: string | null;
   created_at: Date;
   updated_at: Date;
 }
 
-export async function createFirm(name: string, organizationId?: string): Promise<SmcrFirm> {
+export async function createFirm(name: string, organizationId: string): Promise<SmcrFirm> {
   const startTime = Date.now();
   const id = `firm-${crypto.randomUUID()}`;
   const result = await pool.query<SmcrFirm>(

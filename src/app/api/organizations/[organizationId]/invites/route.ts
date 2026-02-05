@@ -2,11 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireRole, type OrganizationRole } from "@/lib/rbac";
 import {
   createOrganizationInvite,
+  getOrganizationById,
   getOrganizationMemberByEmail,
+  getUserById,
   listOrganizationInvites,
 } from "@/lib/server/organization-store";
 import { checkRateLimit, logAuditEvent, rateLimitExceeded } from "@/lib/api-utils";
 import { pool } from "@/lib/database";
+import { sendEmail, isEmailConfigured } from "@/lib/email";
+import { inviteEmailTemplate } from "@/lib/email-templates";
 
 const ROLE_VALUES: OrganizationRole[] = ["owner", "admin", "member", "viewer"];
 
@@ -58,6 +62,28 @@ export async function POST(
     invitedBy: auth.userId ?? null,
     expiresAt,
   });
+
+  // Send invite email (fire-and-forget)
+  if (isEmailConfigured()) {
+    void (async () => {
+      try {
+        const [org, inviter] = await Promise.all([
+          getOrganizationById(organizationId),
+          auth.userId ? getUserById(auth.userId) : null,
+        ]);
+        const template = inviteEmailTemplate({
+          inviteId: invite.id,
+          organizationName: org?.name ?? "your organization",
+          role,
+          inviterName: inviter?.name ?? null,
+          expiresAt: expiresAt,
+        });
+        await sendEmail({ to: email, ...template });
+      } catch {
+        // Email sending is best-effort — don't block invite creation
+      }
+    })();
+  }
 
   await logAuditEvent(pool, {
     entityType: 'organization_invite',

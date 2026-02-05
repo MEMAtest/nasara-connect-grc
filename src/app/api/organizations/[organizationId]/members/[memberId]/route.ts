@@ -2,12 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireRole, type OrganizationRole } from "@/lib/rbac";
 import {
   countOrganizationOwners,
+  getOrganizationById,
   getOrganizationMemberById,
+  getUserById,
   removeOrganizationMember,
   updateOrganizationMemberRole,
 } from "@/lib/server/organization-store";
 import { logAuditEvent } from "@/lib/api-utils";
 import { pool } from "@/lib/database";
+import { sendEmail, isEmailConfigured } from "@/lib/email";
+import { roleChangeEmailTemplate, memberRemovedEmailTemplate } from "@/lib/email-templates";
 
 const ROLE_VALUES: OrganizationRole[] = ["owner", "admin", "member", "viewer"];
 
@@ -50,6 +54,27 @@ export async function PATCH(
     return NextResponse.json({ error: "Member not found" }, { status: 404 });
   }
 
+  // Send role change email (fire-and-forget)
+  if (isEmailConfigured()) {
+    void (async () => {
+      try {
+        const [user, org] = await Promise.all([
+          getUserById(existing.user_id),
+          getOrganizationById(organizationId),
+        ]);
+        if (user?.email) {
+          const template = roleChangeEmailTemplate({
+            organizationName: org?.name ?? "your organization",
+            newRole: role,
+          });
+          await sendEmail({ to: user.email, ...template });
+        }
+      } catch {
+        // Email sending is best-effort — don't block role update
+      }
+    })();
+  }
+
   await logAuditEvent(pool, {
     entityType: 'organization_member',
     entityId: memberId,
@@ -84,6 +109,26 @@ export async function DELETE(
   const removed = await removeOrganizationMember(organizationId, memberId);
   if (!removed) {
     return NextResponse.json({ error: "Member not found" }, { status: 404 });
+  }
+
+  // Send removal email (fire-and-forget)
+  if (isEmailConfigured()) {
+    void (async () => {
+      try {
+        const [user, org] = await Promise.all([
+          getUserById(existing.user_id),
+          getOrganizationById(organizationId),
+        ]);
+        if (user?.email) {
+          const template = memberRemovedEmailTemplate({
+            organizationName: org?.name ?? "your organization",
+          });
+          await sendEmail({ to: user.email, ...template });
+        }
+      } catch {
+        // Email sending is best-effort — don't block member removal
+      }
+    })();
   }
 
   await logAuditEvent(pool, {
