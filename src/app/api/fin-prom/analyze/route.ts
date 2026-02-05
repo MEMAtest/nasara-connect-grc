@@ -1,7 +1,27 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { logError } from "@/lib/logger";
 import { getOpenRouterApiKey } from "@/lib/openrouter";
 import { requireRole } from "@/lib/rbac";
+import { checkRateLimit, rateLimitExceeded } from "@/lib/api-utils";
+import { validateFileUpload, FILE_UPLOAD_CONFIG } from "@/lib/file-upload-security";
+
+const FINPROM_UPLOAD_CONFIG = {
+  ...FILE_UPLOAD_CONFIG,
+  maxFileSize: 10 * 1024 * 1024, // 10MB for this route
+  allowedMimeTypes: new Set([
+    "image/png",
+    "image/jpeg",
+    "image/webp",
+    "application/pdf",
+  ]),
+  allowedExtensions: new Set([
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".webp",
+    ".pdf",
+  ]),
+};
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const VISION_MODEL = process.env.OPENROUTER_VISION_MODEL ?? "openai/gpt-4o";
@@ -204,10 +224,14 @@ async function analyzeWithText(textContent: string): Promise<AnalysisResult> {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const { error } = await requireRole("member");
     if (error) return error;
+
+    const { success: rlOk, headers: rlHeaders } = await checkRateLimit(request, { requests: 5, window: "60 s" });
+    if (!rlOk) return rateLimitExceeded(rlHeaders);
+
     const contentType = request.headers.get("content-type") || "";
 
     let result: AnalysisResult;
@@ -224,19 +248,11 @@ export async function POST(request: Request) {
         );
       }
 
-      // Validate file type
-      const supportedTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp", "application/pdf"];
-      if (!supportedTypes.includes(file.type)) {
+      // Validate file type, size, magic numbers, dangerous extensions, PDF structure
+      const validation = await validateFileUpload(file, FINPROM_UPLOAD_CONFIG);
+      if (!validation.valid) {
         return NextResponse.json(
-          { error: "Unsupported file type. Use PNG, JPG, WEBP, or PDF." },
-          { status: 400 }
-        );
-      }
-
-      // Validate file size (10MB)
-      if (file.size > 10 * 1024 * 1024) {
-        return NextResponse.json(
-          { error: "File too large. Maximum size is 10MB." },
+          { error: "File validation failed", details: validation.error },
           { status: 400 }
         );
       }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getReports, initializeReports, updateReportStatus, getAssessment } from '@/lib/database';
 import { logError } from '@/lib/logger';
 import { requireRole } from "@/lib/rbac";
+import { checkRateLimit, rateLimitExceeded } from '@/lib/api-utils';
 
 export async function GET(
   request: NextRequest,
@@ -47,6 +48,10 @@ export async function PATCH(
   try {
     const { auth, error } = await requireRole("member");
     if (error) return error;
+
+    const { success: rlOk, headers: rlHeaders } = await checkRateLimit(request, { requests: 20, window: "60 s" });
+    if (!rlOk) return rateLimitExceeded(rlHeaders);
+
     const { id: assessmentId } = await params;
     const { reportId, status, filePath } = await request.json();
 
@@ -82,6 +87,10 @@ export async function POST(
   try {
     const { auth, error } = await requireRole("member");
     if (error) return error;
+
+    const { success: rlOk, headers: rlHeaders } = await checkRateLimit(request, { requests: 10, window: "60 s" });
+    if (!rlOk) return rateLimitExceeded(rlHeaders);
+
     const { id: assessmentId } = await params;
     const { reportId } = await request.json();
 

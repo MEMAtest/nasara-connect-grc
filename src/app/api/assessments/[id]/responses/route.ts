@@ -3,6 +3,7 @@ import { saveAssessmentResponse, getAssessmentResponses, updateSectionProgress, 
 import { getQuestionsBySection } from '@/app/(dashboard)/authorization-pack/lib/questionBank';
 import { logError } from '@/lib/logger';
 import { requireRole } from "@/lib/rbac";
+import { checkRateLimit, rateLimitExceeded } from '@/lib/api-utils';
 
 export async function GET(
   request: NextRequest,
@@ -47,6 +48,10 @@ export async function POST(
   try {
     const { auth, error } = await requireRole("member");
     if (error) return error;
+
+    const { success: rlOk, headers: rlHeaders } = await checkRateLimit(request, { requests: 30, window: "60 s" });
+    if (!rlOk) return rateLimitExceeded(rlHeaders);
+
     const { id: assessmentId } = await params;
     const body = await request.json();
     const { questionId, section, value, score, notes } = body;
