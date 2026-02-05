@@ -117,6 +117,7 @@ export async function POST(
     try {
       await createNotification({
         organizationId: auth.organizationId,
+        recipientEmail: auth.userEmail ?? null,
         title: "SMCR role assigned",
         message: `${role.function_label || role.function_id} assigned to ${role.person_id}.`,
         severity: "info",

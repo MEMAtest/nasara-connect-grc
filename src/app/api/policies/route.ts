@@ -248,6 +248,7 @@ export async function POST(request: Request) {
     try {
       await createNotification({
         organizationId: auth.organizationId,
+        recipientEmail: auth.userEmail ?? null,
         title: "Policy created",
         message: `Draft "${created.name}" created from template.`,
         severity: "success",
@@ -292,6 +293,7 @@ export async function POST(request: Request) {
     try {
       await createNotification({
         organizationId: auth.organizationId,
+        recipientEmail: auth.userEmail ?? null,
         title: "Policy created",
         message: `Draft "${fallback.name}" created from template.`,
         severity: "success",

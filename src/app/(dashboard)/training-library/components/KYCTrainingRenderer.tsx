@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Breadcrumbs } from '@/components/ui/breadcrumbs';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TrainingSlideGallery } from './TrainingSlideGallery';
@@ -787,25 +788,24 @@ export function KYCTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
     setCurrentSection(index);
     syncDeepLink(index);
   };
+  const stageLabel =
+    currentSection === 0
+      ? 'Hook'
+      : currentSection === sections.length - 1
+        ? 'Summary'
+        : sections[currentSection]?.id.startsWith('scenario-')
+          ? 'Practice'
+          : 'Content';
+  const lessonHref = `/training-library/lesson/${kycModule.id}`;
+  const breadcrumbItems = [
+    { label: 'Training Library', href: '/training-library' },
+    { label: kycModule.title, href: lessonHref },
+    { label: stageLabel },
+  ];
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      {/* Breadcrumbs */}
-      <nav className="flex items-center gap-2 text-sm text-slate-500 mb-6">
-        <a href="/training-library" className="hover:text-red-600 transition-colors">
-          Training Library
-        </a>
-        <span>/</span>
-        <span className="text-slate-700 font-medium truncate max-w-[200px]" title={kycModule.title}>
-          {kycModule.title}
-        </span>
-        <span>/</span>
-        <span className="text-red-600 font-medium">
-          {currentSection === 0 ? "Hook" :
-           currentSection === sections.length - 1 ? "Summary" :
-           sections[currentSection]?.id.startsWith('scenario-') ? "Practice" : "Content"}
-        </span>
-      </nav>
+      <Breadcrumbs items={breadcrumbItems} className="mb-6" />
 
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">

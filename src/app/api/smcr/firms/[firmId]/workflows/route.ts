@@ -105,6 +105,7 @@ export async function POST(
     try {
       await createNotification({
         organizationId: auth.organizationId,
+        recipientEmail: auth.userEmail ?? null,
         title: "SMCR workflow created",
         message: `Workflow "${workflow.name}" created for SMCR oversight.`,
         severity: "info",

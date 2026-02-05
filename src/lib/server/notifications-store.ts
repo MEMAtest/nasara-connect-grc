@@ -2,6 +2,7 @@ import { randomUUID } from "crypto";
 import { pool } from "@/lib/database";
 import type { Notification, NotificationCreateInput, NotificationListResult } from "@/lib/notifications/types";
 import { logError } from "@/lib/logger";
+import { sendNotificationEmailIfNeeded } from "@/lib/server/notification-email";
 
 interface NotificationRow {
   id: string;
@@ -100,7 +101,13 @@ export async function createNotification(input: NotificationCreateInput): Promis
       input.metadata ?? null,
     ],
   );
-  return toNotification(result.rows[0]);
+  const notification = toNotification(result.rows[0]);
+  const metadataActor = typeof input.metadata?.actor === "string" ? input.metadata.actor : null;
+  void sendNotificationEmailIfNeeded({
+    notification,
+    recipientEmail: input.recipientEmail ?? metadataActor,
+  });
+  return notification;
 }
 
 export async function listNotifications(options: {

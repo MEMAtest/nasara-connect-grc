@@ -198,7 +198,9 @@ export function Header({ onToggleSidebar, isSidebarOpen }: HeaderProps) {
               <DropdownMenuGroup>
                 <DropdownMenuItem>Profile</DropdownMenuItem>
                 <DropdownMenuItem>Team Settings</DropdownMenuItem>
-                <DropdownMenuItem>Notifications</DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/notifications">Notifications</Link>
+                </DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>

@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { Progress } from "@/components/ui/progress";
 import {
   Clock,
@@ -1193,21 +1194,16 @@ export function AMLTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
     practice: "Practice",
     summary: "Summary",
   };
+  const lessonHref = `/training-library/lesson/${amlFundamentalsModule.id}`;
+  const breadcrumbItems = [
+    { label: "Training Library", href: "/training-library" },
+    { label: amlFundamentalsModule.title, href: lessonHref },
+    { label: stageLabels[currentStage] },
+  ];
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      {/* Breadcrumbs */}
-      <nav className="flex items-center gap-2 text-sm text-slate-500">
-        <a href="/training-library" className="hover:text-teal-600 transition-colors">
-          Training Library
-        </a>
-        <span>/</span>
-        <span className="text-slate-700 font-medium truncate max-w-[200px]">
-          AML Fundamentals
-        </span>
-        <span>/</span>
-        <span className="text-teal-600 font-medium">{stageLabels[currentStage]}</span>
-      </nav>
+      <Breadcrumbs items={breadcrumbItems} />
 
       {/* Header */}
       <div className="flex items-center justify-between">

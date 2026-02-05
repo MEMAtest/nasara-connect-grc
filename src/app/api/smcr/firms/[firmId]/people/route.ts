@@ -100,6 +100,7 @@ export async function POST(
     try {
       await createNotification({
         organizationId: auth.organizationId,
+        recipientEmail: auth.userEmail ?? null,
         title: "SMCR person added",
         message: `${person.name} added to SMCR firm ${firmId}.`,
         severity: "info",

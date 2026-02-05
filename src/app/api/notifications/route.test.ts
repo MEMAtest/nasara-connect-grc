@@ -88,6 +88,7 @@ describe("Notifications route", () => {
     expect(createNotification).toHaveBeenCalledWith(
       expect.objectContaining({
         organizationId: "org-123",
+        recipientEmail: "user@example.com",
         title: "Test notification",
         link: null,
         severity: "success",

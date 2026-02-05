@@ -6,6 +6,7 @@ export async function notifyRegisterCreated(options: {
   registerKey: string;
   record: object & { id?: string };
   actor?: string | null;
+  recipientEmail?: string | null;
 }) {
   const label = REGISTER_LABELS[options.registerKey] ?? "Register";
   const rec = options.record as unknown as Record<string, unknown>;
@@ -13,9 +14,12 @@ export async function notifyRegisterCreated(options: {
   const messageParts: string[] = [];
   if (summary) messageParts.push(summary);
   if (options.actor) messageParts.push(`by ${options.actor}`);
+  const recipientEmail =
+    options.recipientEmail ?? (options.actor && options.actor.includes("@") ? options.actor : null);
 
   return createNotification({
     organizationId: options.organizationId,
+    recipientEmail,
     title: `${label} record created`,
     message: messageParts.length ? messageParts.join(" • ") : null,
     severity: deriveSeverity(rec),

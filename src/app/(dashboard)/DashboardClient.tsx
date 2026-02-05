@@ -26,7 +26,7 @@ import { useCmpSummary } from "./compliance-framework/cmp/hooks/useCmpSummary";
 import { useOrganization } from "@/components/organization-provider";
 import { useModuleAccess } from "@/hooks/use-module-access";
 import { useToast } from "@/components/toast-provider";
-import { getModuleLabel } from "@/lib/module-access";
+import { getModuleLabel } from "@/lib/module-access-shared";
 
 const ActivityFeed = dynamic(() => import("@/components/dashboard/activity-feed").then((mod) => mod.ActivityFeed), {
   ssr: false,

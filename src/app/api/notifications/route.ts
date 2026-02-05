@@ -56,6 +56,7 @@ export async function POST(request: NextRequest) {
 
     const created = await createNotification({
       organizationId: auth.organizationId,
+      recipientEmail: auth.userEmail ?? null,
       title,
       message: sanitizeText(body.message) || null,
       link: safeLink,

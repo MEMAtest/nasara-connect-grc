@@ -84,6 +84,7 @@ export async function POST(request: NextRequest) {
     try {
       await createNotification({
         organizationId: auth.organizationId,
+        recipientEmail: auth.userEmail ?? null,
         title: "Authorization pack created",
         message: `Pack "${name}" created from ${template.name}.`,
         severity: "success",

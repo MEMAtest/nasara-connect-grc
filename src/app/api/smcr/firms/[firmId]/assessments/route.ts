@@ -101,6 +101,7 @@ export async function POST(
     try {
       await createNotification({
         organizationId: auth.organizationId,
+        recipientEmail: auth.userEmail ?? null,
         title: "SMCR assessment logged",
         message: `Fitness & propriety assessment created for ${personName}.`,
         severity: "info",

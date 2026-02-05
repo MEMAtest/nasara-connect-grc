@@ -71,6 +71,7 @@ export async function POST(request: NextRequest) {
     try {
       await createNotification({
         organizationId: auth.organizationId,
+        recipientEmail: auth.userEmail ?? null,
         title: "Authorization project created",
         message: `Project "${project.name}" created for ${permissionCode}.`,
         severity: "success",

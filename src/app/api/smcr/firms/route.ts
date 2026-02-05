@@ -54,6 +54,7 @@ export async function POST(request: NextRequest) {
     try {
       await createNotification({
         organizationId: auth.organizationId,
+        recipientEmail: auth.userEmail ?? null,
         title: "SMCR firm created",
         message: `Firm "${firm.name}" added to SMCR management.`,
         severity: "success",

@@ -262,6 +262,7 @@ export async function PATCH(
         const severity = statusChange.to === "approved" ? "success" : "info";
         await createNotification({
           organizationId: auth.organizationId,
+          recipientEmail: auth.userEmail ?? null,
           title: "Policy status updated",
           message: `"${updated.name}" moved from ${statusChange.from} to ${statusChange.to}.`,
           severity,
