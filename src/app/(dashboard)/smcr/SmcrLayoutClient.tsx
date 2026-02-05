@@ -20,6 +20,7 @@ import { SmcrQuickTip } from "./components/SmcrSidebar";
 const smcrNavItems: ModuleSidebarItem[] = [
   { label: "Dashboard", href: "/smcr", icon: LayoutDashboard },
   { label: "People", href: "/smcr/people", icon: Users },
+  { label: "PSD Individuals", href: "/smcr/psd", icon: Users },
   { label: "SMFs", href: "/smcr/smfs", icon: Crown },
   { label: "Certs", href: "/smcr/certifications", icon: Award },
   { label: "F&P", href: "/smcr/fitness-propriety", icon: ClipboardCheck },

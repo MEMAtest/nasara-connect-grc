@@ -17,6 +17,7 @@ export interface Notification {
 export interface NotificationCreateInput {
   organizationId: string;
   userId?: string | null;
+  recipientEmail?: string | null;
   source?: string | null;
   title: string;
   message?: string | null;

@@ -907,24 +907,27 @@ export function AssessmentClient() {
 
   const activeSectionLabel =
     ASSESSMENT_SECTIONS.find((section) => section.id === activeSection)?.label ?? "Assessment";
-  const workspaceHref = project.packId
+  const hasPack = Boolean(project.packId);
+  const workspaceHref = hasPack
     ? `/authorization-pack/workspace?packId=${project.packId}`
     : projectId
       ? `/authorization-pack/${projectId}`
       : "/authorization-pack/workspace";
+  const backLabel = hasPack ? "Back to Workspace" : projectId ? "Back to Project" : "Back to Workspace";
+  const rootLabel = hasPack ? "Workspace" : projectId ? "Project" : "Workspace";
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Breadcrumbs
           items={[
-            { label: "Workspace", href: workspaceHref },
+            { label: rootLabel, href: workspaceHref },
             { label: "Assessment", href: projectId ? `/authorization-pack/${projectId}/assessment` : undefined },
             { label: activeSectionLabel },
           ]}
         />
         <Button variant="ghost" asChild className="text-slate-500 hover:text-slate-700">
-          <Link href={workspaceHref}>Back to Workspace</Link>
+          <Link href={workspaceHref}>{backLabel}</Link>
         </Button>
       </div>
       <ProjectHeader project={project} active="assessment" />

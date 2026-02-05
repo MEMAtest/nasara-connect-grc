@@ -54,8 +54,19 @@ export function PSDIndividualsClient() {
   const { people, documents } = state;
 
   const packId = searchParams.get("packId");
-  const workspaceHref = packId ? `/authorization-pack/workspace?packId=${packId}` : "/authorization-pack/workspace";
+  const workspaceHref = packId ? `/authorization-pack/workspace?packId=${packId}` : "/smcr";
   const psdFormHref = packId ? `/smcr/forms?tab=psd-individual&packId=${packId}` : "/smcr/forms?tab=psd-individual";
+  const backLabel = packId ? "Back to Workspace" : "Back to SMCR";
+  const breadcrumbItems = packId
+    ? [
+        { label: "Workspace", href: workspaceHref },
+        { label: "SMCR", href: "/smcr" },
+        { label: "PSD Individuals" },
+      ]
+    : [
+        { label: "SMCR", href: "/smcr" },
+        { label: "PSD Individuals" },
+      ];
 
   const firm = firms.find((item) => item.id === activeFirmId);
 
@@ -211,15 +222,9 @@ export function PSDIndividualsClient() {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Breadcrumbs
-          items={[
-            { label: "Workspace", href: workspaceHref },
-            { label: "SMCR", href: "/smcr" },
-            { label: "PSD Individuals" },
-          ]}
-        />
+        <Breadcrumbs items={breadcrumbItems} />
         <Button variant="ghost" asChild className="text-slate-500 hover:text-slate-700">
-          <Link href={workspaceHref}>Back to Workspace</Link>
+          <Link href={workspaceHref}>{backLabel}</Link>
         </Button>
       </div>
 

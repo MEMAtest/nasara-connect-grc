@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -641,21 +642,16 @@ export function CustomerProtectionTrainingRenderer({
     assessment: "Assessment",
     summary: "Summary",
   };
+  const lessonHref = `/training-library/lesson/${moduleId}`;
+  const breadcrumbItems = [
+    { label: "Training Library", href: "/training-library" },
+    { label: content.title, href: lessonHref },
+    { label: stageLabels[currentStage] },
+  ];
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      {/* Breadcrumbs */}
-      <nav className="flex items-center gap-2 text-sm text-slate-500">
-        <a href="/training-library" className="hover:text-emerald-600 transition-colors">
-          Training Library
-        </a>
-        <span>/</span>
-        <span className="text-slate-700 font-medium truncate max-w-[200px]" title={content.title}>
-          {content.title}
-        </span>
-        <span>/</span>
-        <span className="text-emerald-600 font-medium">{stageLabels[currentStage]}</span>
-      </nav>
+      <Breadcrumbs items={breadcrumbItems} />
 
       <div className="rounded-2xl border border-emerald-200 bg-white p-6 shadow-sm">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">

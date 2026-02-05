@@ -1,3 +1,5 @@
+import type { NotificationSeverity } from "@/lib/notifications/types";
+
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://app.nasaraconnect.com";
 
 function escapeHtml(str: string): string {
@@ -110,6 +112,65 @@ export function memberRemovedEmailTemplate(params: {
   `);
 
   const text = `You have been removed from ${params.organizationName} on Nasara Connect.\n\nIf you believe this was a mistake, please contact the organization administrator.`;
+
+  return { subject, html, text };
+}
+
+const severityLabels: Record<NotificationSeverity, string> = {
+  info: "Info",
+  success: "Success",
+  warning: "Warning",
+  critical: "Critical",
+};
+
+const severitySubjectPrefix: Record<NotificationSeverity, string> = {
+  info: "Notification",
+  success: "Notification",
+  warning: "Warning",
+  critical: "Critical Alert",
+};
+
+export function notificationEmailTemplate(params: {
+  title: string;
+  message?: string | null;
+  severity: NotificationSeverity;
+  link?: string | null;
+  source?: string | null;
+  createdAt?: string | null;
+}): { subject: string; html: string; text: string } {
+  const safeTitle = escapeHtml(params.title);
+  const safeMessage = params.message ? escapeHtml(params.message) : "";
+  const safeSource = params.source ? escapeHtml(params.source) : "General";
+  const severityLabel = severityLabels[params.severity];
+  const subjectPrefix = severitySubjectPrefix[params.severity];
+  const subject = `${subjectPrefix}: ${params.title}`;
+  const linkUrl = params.link ? `${APP_URL}${params.link}` : null;
+  const createdAtText = params.createdAt
+    ? new Date(params.createdAt).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })
+    : null;
+
+  const html = baseLayout(`
+    <h2 style="margin:0 0 12px;color:#111827;font-size:18px;">${safeTitle}</h2>
+    <p style="margin:0 0 12px;color:#6b7280;font-size:13px;">
+      Severity: <strong>${severityLabel}</strong>${createdAtText ? ` • ${createdAtText}` : ""}
+    </p>
+    ${safeMessage ? `<p style="margin:0 0 16px;color:#374151;font-size:14px;line-height:1.6;">${safeMessage}</p>` : ""}
+    <p style="margin:0 0 20px;color:#9ca3af;font-size:12px;">Source: ${safeSource}</p>
+    ${
+      linkUrl
+        ? `<table cellpadding="0" cellspacing="0" style="margin:0;">
+            <tr><td style="background-color:#0d9488;border-radius:6px;">
+              <a href="${linkUrl}" style="display:inline-block;padding:12px 24px;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;">View notification</a>
+            </td></tr>
+          </table>
+          <p style="margin:16px 0 0;color:#9ca3af;font-size:12px;">If the button doesn't work, copy and paste this URL: ${linkUrl}</p>`
+        : ""
+    }
+  `);
+
+  const text = `${params.title}\nSeverity: ${severityLabel}${createdAtText ? ` (${createdAtText})` : ""}\n${
+    params.message ? `\n${params.message}\n` : ""
+  }\nSource: ${params.source ?? "General"}${linkUrl ? `\n\nView: ${linkUrl}` : ""}`;
 
   return { subject, html, text };
 }

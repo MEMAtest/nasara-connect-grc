@@ -117,7 +117,9 @@ const ChecklistItemRow = memo(function ChecklistItemRow({
           <Link
             href={linkHref}
             className="shrink-0 text-teal-500 hover:text-teal-700 transition"
-            title="Open task"
+            title="Open in new tab"
+            target="_blank"
+            rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
           >
             <ExternalLink className="h-3 w-3" />

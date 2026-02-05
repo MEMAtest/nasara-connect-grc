@@ -7,6 +7,7 @@ import { PolicyReaderClient, type PolicyReaderOverview, type PolicyReaderSection
 import { PolicyStatusControl } from "@/components/policies/PolicyStatusControl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { auth } from "@/auth";
 import { DEFAULT_ORGANIZATION_ID } from "@/lib/constants";
 import { deriveOrganizationIdFromEmail } from "@/lib/auth-utils";
@@ -182,6 +183,16 @@ export default async function PolicyDetailPage({
     const params = new URLSearchParams({ packId, tab: "documents", category });
     return `/authorization-pack/workspace?${params.toString()}`;
   };
+  const policyBreadcrumbItems = packId
+    ? [
+        { label: "Workspace", href: workspaceBaseHref },
+        { label: "Policies", href: "/policies/register" },
+        { label: policy.name },
+      ]
+    : [
+        { label: "Policies", href: "/policies/register" },
+        { label: policy.name },
+      ];
 
   const policyFeedsMap: Record<string, Array<{ label: string; category?: string }>> = {
     AML_CTF: [{ label: "AML/CTF policies and procedures", category: "aml-ctf" }],
@@ -390,6 +401,9 @@ export default async function PolicyDetailPage({
 
   return (
     <div className="space-y-8 policy-print">
+      <div className="policy-screen">
+        <Breadcrumbs items={policyBreadcrumbItems} />
+      </div>
       <header className="policy-screen rounded-3xl border border-slate-100 bg-white p-6 shadow-lg">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-4">

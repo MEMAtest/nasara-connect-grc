@@ -2,7 +2,7 @@
 
 import { useOrganization } from "@/components/organization-provider";
 import { useCallback } from "react";
-import { isModuleEnabledForOrg } from "@/lib/module-access";
+import { isModuleEnabledForOrg } from "@/lib/module-access-shared";
 
 /**
  * Client hook for checking module access.

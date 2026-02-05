@@ -87,6 +87,7 @@ import { FormSelector } from './components/FormSelector';
 import { FormNotesPanel } from './components/FormNotesPanel';
 
 type SaveStatus = 'saved' | 'saving' | 'error' | 'quota-exceeded' | null;
+const PSD_SECTION_IDS = ["1", "2", "3", "4", "5", "6", "7"];
 
 export function FormGuideClient() {
   const searchParams = useSearchParams();
@@ -136,7 +137,7 @@ export function FormGuideClient() {
     }
     const psdSectionParam = searchParams.get("psdSection");
     if (tabParam === "psd-individual" && psdSectionParam) {
-      setPSDSectionActive(psdSectionParam);
+      setPSDSectionActive(PSD_SECTION_IDS.includes(psdSectionParam) ? psdSectionParam : "1");
     }
   }, [searchParams]);
 
@@ -923,21 +924,26 @@ export function FormGuideClient() {
   };
 
   const packId = searchParams.get("packId");
-  const workspaceHref = packId ? `/authorization-pack/workspace?packId=${packId}` : "/authorization-pack/workspace";
+  const workspaceHref = packId ? `/authorization-pack/workspace?packId=${packId}` : "/smcr";
   const breadcrumbLabel = activeTab === "psd-individual" ? "PSD Individual" : "SMCR Forms";
+  const backLabel = packId ? "Back to Workspace" : "Back to SMCR";
+  const breadcrumbItems = packId
+    ? [
+        { label: "Workspace", href: workspaceHref },
+        { label: "SMCR", href: "/smcr" },
+        { label: breadcrumbLabel },
+      ]
+    : [
+        { label: "SMCR", href: "/smcr" },
+        { label: breadcrumbLabel },
+      ];
 
   return (
     <div className="p-6 space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Breadcrumbs
-          items={[
-            { label: "Workspace", href: workspaceHref },
-            { label: "SMCR", href: "/smcr" },
-            { label: breadcrumbLabel },
-          ]}
-        />
+        <Breadcrumbs items={breadcrumbItems} />
         <Button variant="ghost" asChild className="text-slate-500 hover:text-slate-700">
-          <Link href={workspaceHref}>Back to Workspace</Link>
+          <Link href={workspaceHref}>{backLabel}</Link>
         </Button>
       </div>
       <FormHeader
