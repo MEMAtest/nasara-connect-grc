@@ -1194,7 +1194,11 @@ export function AMLTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
     practice: "Practice",
     summary: "Summary",
   };
-  const lessonHref = `/training-library/lesson/${amlFundamentalsModule.id}`;
+  const lessonParams = new URLSearchParams({ stage: currentStage });
+  if (currentStage === "content") {
+    lessonParams.set("section", String(currentContentSection));
+  }
+  const lessonHref = `/training-library/lesson/${amlFundamentalsModule.id}?${lessonParams.toString()}`;
   const breadcrumbItems = [
     { label: "Training Library", href: "/training-library" },
     { label: amlFundamentalsModule.title, href: lessonHref },

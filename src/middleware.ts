@@ -1,5 +1,9 @@
-import { auth } from "@/auth"
+import NextAuth from "next-auth"
+import { authConfig } from "./auth.config"
 import { NextResponse } from "next/server"
+
+// Use the Edge-compatible auth config (no database imports)
+const { auth } = NextAuth(authConfig)
 
 // Auth controlled via environment variable AUTH_DISABLED
 // Set AUTH_DISABLED=true in .env for development, remove for production

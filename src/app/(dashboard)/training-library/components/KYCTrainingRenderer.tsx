@@ -796,7 +796,20 @@ export function KYCTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
         : sections[currentSection]?.id.startsWith('scenario-')
           ? 'Practice'
           : 'Content';
-  const lessonHref = `/training-library/lesson/${kycModule.id}`;
+  const stageParam =
+    currentSection === 0
+      ? 'hook'
+      : currentSection === sections.length - 1
+        ? 'summary'
+        : sections[currentSection]?.id.startsWith('scenario-')
+          ? 'practice'
+          : 'content';
+  const lessonParams = new URLSearchParams({ stage: stageParam });
+  const sectionId = sections[currentSection]?.id;
+  if (stageParam === 'content' && sectionId) {
+    lessonParams.set('section', sectionId);
+  }
+  const lessonHref = `/training-library/lesson/${kycModule.id}?${lessonParams.toString()}`;
   const breadcrumbItems = [
     { label: 'Training Library', href: '/training-library' },
     { label: kycModule.title, href: lessonHref },

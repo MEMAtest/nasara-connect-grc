@@ -1,6 +1,6 @@
 import NextAuth, { DefaultSession } from "next-auth"
-import Google from "next-auth/providers/google"
-import { deriveOrganizationIdFromEmail, deriveUserIdFromEmail, isAuthDisabled } from "@/lib/auth-utils"
+import { authConfig } from "./auth.config"
+import { deriveOrganizationIdFromEmail, deriveUserIdFromEmail } from "@/lib/auth-utils"
 
 declare module "next-auth" {
   interface Session {
@@ -22,29 +22,9 @@ declare module "@auth/core/jwt" {
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  trustHost: true,
-  providers: [
-    Google({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      authorization: {
-        params: {
-          prompt: "consent",
-          access_type: "offline",
-          response_type: "code"
-        }
-      }
-    })
-  ],
-  pages: {
-    signIn: "/auth/login",
-    error: "/auth/error",
-  },
+  ...authConfig,
   callbacks: {
-    authorized({ auth }) {
-      if (isAuthDisabled()) return true
-      return !!auth
-    },
+    ...authConfig.callbacks,
     async jwt({ token, account, profile }) {
       if (account && profile) {
         const email = profile.email || token.email
@@ -132,10 +112,5 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return true
     }
   },
-  session: {
-    strategy: "jwt",
-    maxAge: 24 * 60 * 60, // 24 hours — appropriate for FCA-regulated platform
-  },
-  secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
   debug: process.env.NODE_ENV === "development",
 })

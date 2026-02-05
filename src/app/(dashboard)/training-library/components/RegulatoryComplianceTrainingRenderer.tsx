@@ -642,7 +642,11 @@ export function RegulatoryComplianceTrainingRenderer({
     assessment: "Assessment",
     summary: "Summary",
   };
-  const lessonHref = `/training-library/lesson/${moduleId}`;
+  const lessonParams = new URLSearchParams({ stage: currentStage });
+  if (currentStage === "content") {
+    lessonParams.set("section", String(currentLessonIndex));
+  }
+  const lessonHref = `/training-library/lesson/${moduleId}?${lessonParams.toString()}`;
   const breadcrumbItems = [
     { label: "Training Library", href: "/training-library" },
     { label: content.title, href: lessonHref },
