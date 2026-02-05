@@ -1,7 +1,5 @@
-import { DashboardClient } from "./DashboardClient";
+"use client";
 
-export const dynamic = "force-dynamic";
-
-export default function DashboardPage() {
-  return <DashboardClient />;
-}
+// Re-export DashboardClient as the page component
+// This fixes a Next.js 15 manifest generation issue
+export { DashboardClient as default } from "./DashboardClient";
