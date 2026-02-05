@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useModuleAccess } from "@/hooks/use-module-access";
 
 export type SidebarBadgeVariant = "info" | "warning" | "danger" | "success" | "neutral";
 
@@ -232,11 +233,53 @@ const glowByPath: Record<string, string> = {
   "/registers/gifts-hospitality": "shadow-[0_0_18px_rgba(236,72,153,0.45)]",
 };
 
+// Map sidebar hrefs → module IDs for access control filtering.
+// Items without an entry (Dashboard, Settings, Support) are always visible.
+const HREF_TO_MODULE: Record<string, string> = {
+  "/grc-hub": "grcHub",
+  "/registers/complaints": "complaints",
+  "/authorization-pack": "authPack",
+  "/compliance-framework/builder": "complianceFramework",
+  "/compliance-framework/monitoring": "complianceFramework",
+  "/reporting": "reportingPack",
+  "/policies": "policies",
+  "/smcr": "smcr",
+  "/risk-assessment": "riskAssessment",
+  "/registers": "registers",
+  "/training-library": "training",
+  "/regulatory-news": "regulatoryNews",
+  "/payments": "payments",
+  "/ai-chat": "aiChat",
+};
+
 const STORAGE_KEY = "nasara-sidebar-collapsed";
 
 export function Sidebar({ onNavigate, onClose, isMobile = false }: SidebarProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
+  const { isModuleEnabled, isLoading: isModuleAccessLoading } = useModuleAccess();
+
+  // Filter navigation items based on module access
+  const filteredTopLevelItems = useMemo(() => {
+    if (isModuleAccessLoading) return topLevelItems.filter((i) => !HREF_TO_MODULE[i.href]);
+    return topLevelItems.filter((item) => {
+      const moduleId = HREF_TO_MODULE[item.href];
+      return !moduleId || isModuleEnabled(moduleId);
+    });
+  }, [isModuleEnabled, isModuleAccessLoading]);
+
+  const filteredNavigationGroups = useMemo(() => {
+    if (isModuleAccessLoading) return [];
+    return navigationGroups
+      .map((group) => ({
+        ...group,
+        items: group.items.filter((item) => {
+          const moduleId = HREF_TO_MODULE[item.href];
+          return !moduleId || isModuleEnabled(moduleId);
+        }),
+      }))
+      .filter((group) => group.items.length > 0);
+  }, [isModuleEnabled, isModuleAccessLoading]);
 
   // Initialize with empty state to avoid hydration mismatch
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
@@ -272,13 +315,18 @@ export function Sidebar({ onNavigate, onClose, isMobile = false }: SidebarProps)
     }));
   }, []);
 
+  const allVisibleItems = useMemo(
+    () => [...filteredTopLevelItems, ...filteredNavigationGroups.flatMap((g) => g.items)],
+    [filteredTopLevelItems, filteredNavigationGroups],
+  );
+
   const activePath = useMemo(() => {
     if (!pathname) return "/";
-    const exactMatch = allNavigationItems.find((item) => item.href === pathname);
+    const exactMatch = allVisibleItems.find((item) => item.href === pathname);
     if (exactMatch) return exactMatch.href;
-    const fallback = allNavigationItems.find((item) => pathname.startsWith(item.href) && item.href !== "/");
+    const fallback = allVisibleItems.find((item) => pathname.startsWith(item.href) && item.href !== "/");
     return fallback?.href ?? "/";
-  }, [pathname]);
+  }, [pathname, allVisibleItems]);
 
   // Check if a group contains the active path
   const groupContainsActive = useCallback(
@@ -369,11 +417,23 @@ export function Sidebar({ onNavigate, onClose, isMobile = false }: SidebarProps)
         </div>
 
         <nav aria-label="Primary" className="space-y-1 px-3">
-          {/* Top-level items (Dashboard) */}
-          {topLevelItems.map((item) => renderNavItem(item))}
+          {/* Top-level items (Dashboard + enabled modules) */}
+          {filteredTopLevelItems.map((item) => renderNavItem(item))}
 
-          {/* Grouped navigation */}
-          {navigationGroups.map((group) => {
+          {/* Loading skeleton for module groups */}
+          {isModuleAccessLoading ? (
+            <div className="space-y-2 pt-2">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex items-center gap-3 px-4 py-2.5">
+                  <div className="h-7 w-7 animate-pulse rounded-lg bg-white/10" />
+                  <div className="h-4 flex-1 animate-pulse rounded bg-white/10" />
+                </div>
+              ))}
+            </div>
+          ) : null}
+
+          {/* Grouped navigation (filtered by module access) */}
+          {filteredNavigationGroups.map((group) => {
             const GroupIcon = group.icon;
             // Before hydration, use defaultOpen; after hydration, use persisted state
             const isCollapsed = isHydrated

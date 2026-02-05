@@ -16,13 +16,21 @@ export async function PATCH(
   { params }: { params: Promise<{ organizationId: string; memberId: string }> }
 ) {
   const { organizationId, memberId } = await params;
-  const { auth, error } = await requireRole("admin", organizationId);
+  const { auth, role: callerRole, error } = await requireRole("admin", organizationId);
   if (error) return error;
 
   const body = await request.json();
   const role = body?.role as OrganizationRole;
   if (!ROLE_VALUES.includes(role)) {
     return NextResponse.json({ error: "Invalid role" }, { status: 400 });
+  }
+
+  // Only owners can assign "owner" or "admin" roles — prevents privilege escalation
+  if ((role === "owner" || role === "admin") && callerRole !== "owner") {
+    return NextResponse.json(
+      { error: "Only owners can assign owner or admin roles" },
+      { status: 403 },
+    );
   }
 
   const existing = await getOrganizationMemberById(organizationId, memberId);

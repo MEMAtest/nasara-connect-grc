@@ -7,6 +7,7 @@ declare module "next-auth" {
     user: {
       id: string
       organizationId: string
+      role: string
     } & DefaultSession["user"]
   }
 }
@@ -14,6 +15,9 @@ declare module "next-auth" {
 declare module "@auth/core/jwt" {
   interface JWT {
     organizationId?: string
+    orgRefreshedAt?: number
+    role?: string
+    roleRefreshedAt?: number
   }
 }
 
@@ -53,14 +57,23 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       const needsRefresh = !token.organizationId || (now - orgRefreshedAt > ORG_REFRESH_INTERVAL)
       if (email && needsRefresh) {
         try {
-          const { getOrganizationIdByDomain } = await import("@/lib/server/organization-store")
+          const { getOrganizationIdByDomain, getOrganizationMemberByUserId } = await import("@/lib/server/organization-store")
           const domain = String(email).split("@")[1] || "default"
           const orgId = await getOrganizationIdByDomain(domain)
           token.organizationId = orgId ?? await deriveOrganizationIdFromEmail(String(email))
+
+          // Look up the user's role (same refresh interval as org)
+          const userId = (token.id as string) || await deriveUserIdFromEmail(String(email))
+          if (token.organizationId && userId) {
+            const member = await getOrganizationMemberByUserId(token.organizationId, userId)
+            token.role = member?.role ?? "viewer" // fail-closed to lowest privilege
+          }
         } catch {
           token.organizationId = token.organizationId ?? await deriveOrganizationIdFromEmail(String(email))
+          token.role = token.role ?? "viewer"
         }
         token.orgRefreshedAt = now
+        token.roleRefreshedAt = now
       }
       return token
     },
@@ -68,6 +81,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (session.user) {
         session.user.id = token.id as string
         session.user.organizationId = token.organizationId as string
+        session.user.role = (token.role as string) || "viewer"
       }
       return session
     },

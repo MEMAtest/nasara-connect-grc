@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
+import { useSearchParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { FileText, ShieldAlert, Sparkles, ClipboardList } from "lucide-react";
 import { ModuleCard } from "@/components/dashboard/module-card";
@@ -23,6 +24,9 @@ import type { DashboardModule } from "@/lib/dashboard-data";
 import { usePolicyMetrics } from "@/lib/policies";
 import { useCmpSummary } from "./compliance-framework/cmp/hooks/useCmpSummary";
 import { useOrganization } from "@/components/organization-provider";
+import { useModuleAccess } from "@/hooks/use-module-access";
+import { useToast } from "@/components/toast-provider";
+import { getModuleLabel } from "@/lib/module-access";
 
 const ActivityFeed = dynamic(() => import("@/components/dashboard/activity-feed").then((mod) => mod.ActivityFeed), {
   ssr: false,
@@ -91,6 +95,20 @@ export function DashboardClient() {
   const [hasError, setHasError] = useState(false);
 
   const { organizationId } = useOrganization();
+  const { isModuleEnabled, isLoading: isModuleAccessLoading } = useModuleAccess();
+  const toast = useToast();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  // Show toast when redirected from a blocked module
+  useEffect(() => {
+    const blockedModule = searchParams.get("module_blocked");
+    if (blockedModule) {
+      const label = getModuleLabel(blockedModule);
+      toast.warning(`Your firm does not have access to ${label}.`);
+      router.replace("/", { scroll: false });
+    }
+  }, [searchParams, toast, router]);
   const { metrics: policyMetrics, isLoading: isPolicyLoading, refresh: refreshPolicyMetrics } = usePolicyMetrics();
   const { summary: cmpSummary } = useCmpSummary({ organizationId });
 
@@ -131,11 +149,11 @@ export function DashboardClient() {
   }), [cmpSummary]);
 
   const moduleBlueprint = useMemo(() => {
-    return dashboardModules.map((module) =>
+    // First enrich modules with live data, then filter by access
+    const enriched = dashboardModules.map((module) =>
       module.id === "policies"
         ? {
             ...module,
-            // Show null/undefined during loading to trigger skeleton/loading state in ModuleCard
             progress: isPolicyLoading ? module.progress : policyMetrics.completionRate,
             alerts: isPolicyLoading ? module.alerts : policyMetrics.overduePolicies + policyMetrics.policyGaps,
             isLocked: false,
@@ -149,7 +167,11 @@ export function DashboardClient() {
           }
         : module
     );
-  }, [policyMetrics, cmpSummary, isPolicyLoading]);
+
+    // Filter by module access (show all while loading to avoid flash)
+    if (isModuleAccessLoading) return enriched;
+    return enriched.filter((module) => isModuleEnabled(module.id));
+  }, [policyMetrics, cmpSummary, isPolicyLoading, isModuleEnabled, isModuleAccessLoading]);
 
   const metricsWithPolicy = useMemo(() => {
     return [...dashboardMetrics, policyMetricCard, cmpMetricCard];
@@ -205,7 +227,7 @@ export function DashboardClient() {
     if (isLoadingModules) {
       return (
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-          {Array.from({ length: moduleBlueprint.length }).map((_, index) => (
+          {Array.from({ length: 6 }).map((_, index) => (
             <ModuleCardSkeleton key={`skeleton-${index}`} />
           ))}
         </div>

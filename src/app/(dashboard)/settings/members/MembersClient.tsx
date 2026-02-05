@@ -16,11 +16,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useOrganization } from "@/components/organization-provider";
+import { useUserRole } from "@/hooks/use-user-role";
+import {
+  getRoleLabel,
+  ASSIGNABLE_ROLES,
+  ADMIN_ASSIGNABLE_ROLES,
+} from "@/lib/role-labels";
 
 type OrganizationRole = "owner" | "admin" | "member" | "viewer";
 
 interface MemberRecord {
   id: string;
+  user_id: string;
   role: OrganizationRole;
   user_email?: string;
   user_name?: string | null;
@@ -35,17 +42,22 @@ interface InviteRecord {
   created_at?: string;
 }
 
-const ROLE_OPTIONS: OrganizationRole[] = ["owner", "admin", "member", "viewer"];
-
 export function MembersClient() {
-  const { organizationId } = useOrganization();
+  const { organizationId, userEmail } = useOrganization();
+  const { canManageTeam, isOwner } = useUserRole();
   const [members, setMembers] = useState<MemberRecord[]>([]);
   const [invites, setInvites] = useState<InviteRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteRole, setInviteRole] = useState<OrganizationRole>("member");
+  const [inviteRole, setInviteRole] = useState<string>("member");
   const [status, setStatus] = useState<string | null>(null);
   const [isSubmittingInvite, setIsSubmittingInvite] = useState(false);
+
+  // Owners can assign Admin; other admins can only assign User/Restricted
+  const roleOptions = useMemo(
+    () => (isOwner ? ADMIN_ASSIGNABLE_ROLES : ASSIGNABLE_ROLES),
+    [isOwner],
+  );
 
   const pendingInvites = useMemo(
     () => invites.filter((invite) => !invite.accepted_at),
@@ -168,7 +180,11 @@ export function MembersClient() {
           </Button>
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Members</h1>
-            <p className="text-muted-foreground">Invite and manage organization members</p>
+            <p className="text-muted-foreground">
+              {canManageTeam
+                ? "Invite and manage organization members"
+                : "View your organization's members"}
+            </p>
           </div>
         </div>
       </div>
@@ -179,47 +195,50 @@ export function MembersClient() {
         </div>
       ) : null}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Invite member</CardTitle>
-          <CardDescription>Send an invite to join your organization</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4 md:flex-row md:items-end">
-          <div className="flex-1 space-y-2">
-            <Label htmlFor="inviteEmail">Email</Label>
-            <Input
-              id="inviteEmail"
-              type="email"
-              value={inviteEmail}
-              placeholder="name@company.com"
-              onChange={(event) => setInviteEmail(event.target.value)}
-            />
-          </div>
-          <div className="w-full md:w-48 space-y-2">
-            <Label>Role</Label>
-            <Select value={inviteRole} onValueChange={(value) => setInviteRole(value as OrganizationRole)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Role" />
-              </SelectTrigger>
-              <SelectContent>
-                {ROLE_OPTIONS.map((role) => (
-                  <SelectItem key={role} value={role}>
-                    {role}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <Button onClick={handleInvite} disabled={isSubmittingInvite} className="md:self-end">
-            {isSubmittingInvite ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Plus className="mr-2 h-4 w-4" />
-            )}
-            Send Invite
-          </Button>
-        </CardContent>
-      </Card>
+      {/* Invite section — only visible to admins */}
+      {canManageTeam ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Invite member</CardTitle>
+            <CardDescription>Send an invite to join your organization</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-4 md:flex-row md:items-end">
+            <div className="flex-1 space-y-2">
+              <Label htmlFor="inviteEmail">Email</Label>
+              <Input
+                id="inviteEmail"
+                type="email"
+                value={inviteEmail}
+                placeholder="name@company.com"
+                onChange={(event) => setInviteEmail(event.target.value)}
+              />
+            </div>
+            <div className="w-full md:w-48 space-y-2">
+              <Label>Role</Label>
+              <Select value={inviteRole} onValueChange={setInviteRole}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Role" />
+                </SelectTrigger>
+                <SelectContent>
+                  {roleOptions.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button onClick={handleInvite} disabled={isSubmittingInvite} className="md:self-end">
+              {isSubmittingInvite ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Plus className="mr-2 h-4 w-4" />
+              )}
+              Send Invite
+            </Button>
+          </CardContent>
+        </Card>
+      ) : null}
 
       <Card>
         <CardHeader>
@@ -227,44 +246,69 @@ export function MembersClient() {
           <CardDescription>Roles determine access across the platform</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
-          {members.map((member) => (
-            <div
-              key={member.id}
-              className="flex flex-col gap-3 rounded-lg border border-slate-200 px-4 py-3 md:flex-row md:items-center md:justify-between"
-            >
-              <div>
-                <div className="text-sm font-medium">{member.user_name || member.user_email}</div>
-                <div className="text-xs text-slate-500">{member.user_email}</div>
+          {members.map((member) => {
+            const isSelf = userEmail != null && member.user_email === userEmail;
+            const isMemberOwner = member.role === "owner";
+            // Show actions only if: admin, not self, and not an owner row
+            const showActions = canManageTeam && !isSelf && !isMemberOwner;
+
+            return (
+              <div
+                key={member.id}
+                className="flex flex-col gap-3 rounded-lg border border-slate-200 px-4 py-3 md:flex-row md:items-center md:justify-between"
+              >
+                <div>
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    {member.user_name || member.user_email}
+                    {isSelf ? (
+                      <span className="text-xs text-slate-400">(You)</span>
+                    ) : null}
+                  </div>
+                  <div className="text-xs text-slate-500">{member.user_email}</div>
+                </div>
+                <div className="flex flex-wrap items-center gap-3">
+                  {isMemberOwner ? (
+                    <Badge variant="secondary" className="bg-amber-100 text-amber-800">
+                      Owner
+                    </Badge>
+                  ) : showActions ? (
+                    <>
+                      <Select
+                        value={member.role}
+                        onValueChange={(value) => handleRoleChange(member.id, value as OrganizationRole)}
+                      >
+                        <SelectTrigger className="w-32">
+                          <SelectValue>
+                            {getRoleLabel(member.role)}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {roleOptions.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button variant="outline" size="sm" onClick={() => handleRemove(member.id)}>
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Remove
+                      </Button>
+                    </>
+                  ) : (
+                    <Badge variant="secondary">{getRoleLabel(member.role)}</Badge>
+                  )}
+                </div>
               </div>
-              <div className="flex flex-wrap items-center gap-3">
-                <Select
-                  value={member.role}
-                  onValueChange={(value) => handleRoleChange(member.id, value as OrganizationRole)}
-                >
-                  <SelectTrigger className="w-32">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ROLE_OPTIONS.map((role) => (
-                      <SelectItem key={role} value={role}>
-                        {role}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button variant="outline" size="sm" onClick={() => handleRemove(member.id)}>
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Remove
-                </Button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
           {!members.length ? (
             <div className="text-sm text-slate-500">No members found.</div>
           ) : null}
         </CardContent>
       </Card>
 
+      {/* Pending invites — visible to all but actions only for admins */}
       <Card>
         <CardHeader>
           <CardTitle>Pending invites</CardTitle>
@@ -279,10 +323,10 @@ export function MembersClient() {
               <div>
                 <div className="text-sm font-medium">{invite.email}</div>
                 <div className="text-xs text-slate-500">
-                  Expires {invite.expires_at ? new Date(invite.expires_at).toLocaleDateString() : "—"}
+                  Expires {invite.expires_at ? new Date(invite.expires_at).toLocaleDateString() : "\u2014"}
                 </div>
               </div>
-              <Badge variant="secondary">{invite.role}</Badge>
+              <Badge variant="secondary">{getRoleLabel(invite.role)}</Badge>
             </div>
           ))}
           {!pendingInvites.length ? (

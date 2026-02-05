@@ -120,6 +120,21 @@ export async function getOrganizationById(id: string): Promise<OrganizationRecor
   return rows[0] ?? null;
 }
 
+export async function getOrganizationEnabledModules(
+  organizationId: string,
+): Promise<string[] | null> {
+  await initOrganizationTables();
+  const { rows } = await pool.query<{ settings: Record<string, unknown> | null }>(
+    `SELECT settings FROM organizations WHERE id = $1`,
+    [organizationId],
+  );
+  const settings = rows[0]?.settings;
+  if (!settings) return null;
+  const modules = (settings as Record<string, unknown>).enabledModules;
+  if (Array.isArray(modules)) return modules as string[];
+  return null;
+}
+
 export async function getOrganizationByDomain(domain: string): Promise<OrganizationRecord | null> {
   await initOrganizationTables();
   const { rows } = await pool.query<OrganizationRecord>(
@@ -147,9 +162,9 @@ export async function upsertOrganization(params: {
     `INSERT INTO organizations (id, name, domain, plan, settings)
      VALUES ($1, $2, $3, $4, $5)
      ON CONFLICT (domain) DO UPDATE
-       SET name = EXCLUDED.name,
-           plan = EXCLUDED.plan,
-           settings = EXCLUDED.settings,
+       SET name = COALESCE(NULLIF(organizations.name, ''), EXCLUDED.name),
+           plan = COALESCE(NULLIF(organizations.plan, ''), EXCLUDED.plan),
+           settings = COALESCE(organizations.settings, EXCLUDED.settings),
            updated_at = NOW()
      RETURNING *`,
     [id, name, domain, plan, settings]
