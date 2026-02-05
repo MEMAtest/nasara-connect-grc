@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["@aws-sdk/client-ses"],
+  serverExternalPackages: ["@aws-sdk/client-ses", "pg"],
   images: {
     remotePatterns: [
       {
@@ -20,8 +20,12 @@ const nextConfig: NextConfig = {
         fs: false,
         net: false,
         tls: false,
+        dns: false,
         https: false,
         http: false,
+        crypto: false,
+        stream: false,
+        zlib: false,
       };
       // Strip node: prefix so fallbacks above can handle them
       config.plugins.push(
