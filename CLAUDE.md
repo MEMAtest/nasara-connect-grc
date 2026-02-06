@@ -187,6 +187,44 @@ toast.error("Error message");
 - The `quick-questions.ts` file has a pre-existing duplicate export error — not our code
 - Always run `npx tsc --noEmit 2>&1 | grep -E "(PeopleClient|OrgChartClient|SmcrDataContext)"` to check only SMCR files
 
+## Next.js App Router & Vercel Deployment
+
+### CRITICAL: Route Groups Don't Affect URLs
+Route groups like `(dashboard)` are for code organization only — they do NOT create URL segments.
+
+**Example of a route conflict:**
+- `/app/page.tsx` → serves `/`
+- `/app/(dashboard)/page.tsx` → ALSO serves `/` (CONFLICT!)
+
+This causes Vercel builds to fail with `page_client-reference-manifest.js` not found errors.
+
+### Debugging Vercel Build Failures
+
+1. **Local builds may succeed when Vercel fails** — Vercel's file tracing step is stricter
+2. **Check `.next/server/app/` structure** — compare working pages vs broken ones
+3. **Look at `page.js.nft.json` files** — they list dependencies; if a file is listed but doesn't exist, that's the problem
+4. **The `page_client-reference-manifest.js` file** is generated for pages with client components; if missing, suspect route conflicts
+
+### Edge Runtime vs Node.js Runtime
+
+- **Middleware runs in Edge Runtime** — cannot import Node.js modules (pg, fs, crypto, etc.)
+- **Split auth config pattern:**
+  - `auth.config.ts` — Edge-compatible config (providers, pages, basic callbacks)
+  - `auth.ts` — Full config with database callbacks (imports auth.config.ts)
+  - `middleware.ts` — imports from `auth.config.ts`, NOT `auth.ts`
+
+### Client/Server Code Separation
+
+- Keep server-only code (database, `redirect()`, etc.) out of files imported by client components
+- Pattern: `module-access-shared.ts` (client-safe) + `module-access.ts` (server-only, re-exports shared)
+- Client hooks import from `-shared.ts` file
+
+### Vercel-Specific Settings
+
+- `serverExternalPackages` in next.config.ts for Node.js-only packages: `["@aws-sdk/client-ses", "pg"]`
+- Webpack fallbacks for client bundle: `{ fs: false, net: false, tls: false, dns: false, ... }`
+- Don't use `--turbopack` in production builds if you have Node.js dependencies
+
 ## Related Projects
 
 There is a separate standalone SMCR app at `/Users/omosanya_main/Documents/mema-smcr-tool/smcr-app/` which uses Zustand + dark theme. This is a DIFFERENT project from nasara-connect.
