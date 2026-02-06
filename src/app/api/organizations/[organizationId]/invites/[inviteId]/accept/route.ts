@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { deriveUserIdFromEmail, requireAuth } from "@/lib/auth-utils";
 import { acceptOrganizationInvite, getOrganizationInvite, upsertUser } from "@/lib/server/organization-store";
+import { createNotification } from "@/lib/server/notifications-store";
 import { checkRateLimit, rateLimitExceeded } from "@/lib/api-utils";
 
 export async function POST(
@@ -51,6 +52,21 @@ export async function POST(
 
   if (!accepted) {
     return NextResponse.json({ error: "Invite could not be accepted" }, { status: 400 });
+  }
+
+  try {
+    await createNotification({
+      organizationId,
+      userId,
+      title: "Welcome to Nasara Connect",
+      message: `You're now a ${invite.role} in this organization.`,
+      severity: "info",
+      source: "organization",
+      link: "/",
+      metadata: { inviteId, role: invite.role },
+    });
+  } catch {
+    // Non-blocking notification failures
   }
 
   return NextResponse.json(accepted);

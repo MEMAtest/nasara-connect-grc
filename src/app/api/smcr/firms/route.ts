@@ -6,7 +6,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createFirm, getFirms, initSmcrDatabase } from '@/lib/smcr-database';
-import { createNotification } from "@/lib/server/notifications-store";
 import { logError, logApiRequest } from '@/lib/logger';
 import { requireRole } from "@/lib/rbac";
 import { logAuditEvent } from "@/lib/api-utils";
@@ -51,20 +50,6 @@ export async function POST(request: NextRequest) {
     }
 
     const firm = await createFirm(name.trim(), auth.organizationId);
-    try {
-      await createNotification({
-        organizationId: auth.organizationId,
-        recipientEmail: auth.userEmail ?? null,
-        title: "SMCR firm created",
-        message: `Firm "${firm.name}" added to SMCR management.`,
-        severity: "success",
-        source: "smcr",
-        link: "/smcr",
-        metadata: { firmId: firm.id },
-      });
-    } catch {
-      // Non-blocking notification failures
-    }
 
     await logAuditEvent(pool, {
       entityType: 'smcr_firm',

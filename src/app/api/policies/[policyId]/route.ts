@@ -7,7 +7,6 @@ import {
   createPolicyActivity,
   pool,
 } from "@/lib/database";
-import { createNotification } from "@/lib/server/notifications-store";
 import {
   isValidUUID,
   isValidEnum,
@@ -255,24 +254,6 @@ export async function PATCH(
         new_value: change.new,
         performed_by: performedBy,
       });
-    }
-
-    if (statusChange) {
-      try {
-        const severity = statusChange.to === "approved" ? "success" : "info";
-        await createNotification({
-          organizationId: auth.organizationId,
-          recipientEmail: auth.userEmail ?? null,
-          title: "Policy status updated",
-          message: `"${updated.name}" moved from ${statusChange.from} to ${statusChange.to}.`,
-          severity,
-          source: "policies",
-          link: `/policies/${updated.id}`,
-          metadata: { policyId: updated.id, from: statusChange.from, to: statusChange.to },
-        });
-      } catch {
-        // Non-blocking notification failures
-      }
     }
 
     await logAuditEvent(pool, {

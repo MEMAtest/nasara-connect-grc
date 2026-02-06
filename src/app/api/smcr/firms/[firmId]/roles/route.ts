@@ -12,7 +12,6 @@ import {
   initSmcrDatabase,
   CreateRoleInput,
 } from '@/lib/smcr-database';
-import { createNotification } from "@/lib/server/notifications-store";
 import { logError, logApiRequest } from '@/lib/logger';
 import { requireRole } from "@/lib/rbac";
 import { logAuditEvent } from "@/lib/api-utils";
@@ -114,20 +113,6 @@ export async function POST(
     };
 
     const role = await createRoleAssignment(input);
-    try {
-      await createNotification({
-        organizationId: auth.organizationId,
-        recipientEmail: auth.userEmail ?? null,
-        title: "SMCR role assigned",
-        message: `${role.function_label || role.function_id} assigned to ${role.person_id}.`,
-        severity: "info",
-        source: "smcr",
-        link: "/smcr/smfs",
-        metadata: { firmId, roleId: role.id, personId },
-      });
-    } catch {
-      // Non-blocking notification failures
-    }
 
     await logAuditEvent(pool, {
       entityType: 'smcr_role',

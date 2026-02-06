@@ -1,12 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { badRequestResponse, serverErrorResponse } from "@/lib/api-auth";
+import { serverErrorResponse } from "@/lib/api-auth";
 import { requireRole } from "@/lib/rbac";
-import { sanitizeString, sanitizeText } from "@/lib/validation";
-import { createNotification, listNotifications } from "@/lib/server/notifications-store";
-import type { NotificationSeverity } from "@/lib/notifications/types";
+import { listNotifications } from "@/lib/server/notifications-store";
 import { logError } from "@/lib/logger";
-
-const ALLOWED_SEVERITIES: NotificationSeverity[] = ["info", "warning", "critical", "success"];
 
 export async function GET(request: NextRequest) {
   try {
@@ -35,39 +31,11 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
-    const { auth, error } = await requireRole("member");
+    const { error } = await requireRole("member");
     if (error) return error;
-
-    const body = await request.json();
-    const title = sanitizeString(body.title);
-    if (!title) {
-      return badRequestResponse("Notification title is required");
-    }
-
-    const severity = typeof body.severity === "string" ? body.severity.toLowerCase() : "info";
-    const safeSeverity = ALLOWED_SEVERITIES.includes(severity as NotificationSeverity)
-      ? (severity as NotificationSeverity)
-      : "info";
-
-    const rawLink = typeof body.link === "string" ? body.link.trim() : "";
-    const safeLink = rawLink.startsWith("/") ? rawLink : null;
-
-    const created = await createNotification({
-      organizationId: auth.organizationId,
-      recipientEmail: auth.userEmail ?? null,
-      title,
-      message: sanitizeText(body.message) || null,
-      link: safeLink,
-      severity: safeSeverity,
-      source: sanitizeString(body.source) || "custom",
-      metadata: {
-        actor: auth.userEmail || null,
-      },
-    });
-
-    return NextResponse.json(created, { status: 201 });
+    return NextResponse.json({ error: "Manual notifications are disabled." }, { status: 403 });
   } catch (error) {
     logError(error as Error, "Failed to create notification");
     return serverErrorResponse("Failed to create notification");

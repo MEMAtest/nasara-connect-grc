@@ -51,23 +51,10 @@ describe("Notifications route", () => {
     expect(await res.json()).toEqual({ notifications: [], unreadCount: 0 });
   });
 
-  it("drops external links on POST requests", async () => {
+  it("rejects manual notification creation on POST requests", async () => {
     vi.mocked(requireRole).mockResolvedValue({
       auth: { authenticated: true, userId: "user-1", userEmail: "user@example.com", userName: "User 1", organizationId: "org-123" },
       error: undefined,
-    });
-    vi.mocked(createNotification).mockResolvedValue({
-      id: "note-1",
-      organizationId: "org-123",
-      userId: null,
-      source: "custom",
-      title: "Test notification",
-      message: "hello",
-      link: null,
-      severity: "success",
-      metadata: { actor: "user@example.com" },
-      createdAt: new Date().toISOString(),
-      readAt: null,
     });
 
     const { POST } = await import("./route");
@@ -85,17 +72,8 @@ describe("Notifications route", () => {
 
     const res = await POST(req as unknown as NextRequest);
 
-    expect(createNotification).toHaveBeenCalledWith(
-      expect.objectContaining({
-        organizationId: "org-123",
-        recipientEmail: "user@example.com",
-        title: "Test notification",
-        link: null,
-        severity: "success",
-        source: "custom",
-        metadata: { actor: "user@example.com" },
-      })
-    );
-    expect(res.status).toBe(201);
+    expect(createNotification).not.toHaveBeenCalled();
+    expect(res.status).toBe(403);
+    expect(await res.json()).toEqual({ error: "Manual notifications are disabled." });
   });
 });

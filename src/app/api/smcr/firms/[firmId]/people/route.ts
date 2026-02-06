@@ -12,7 +12,6 @@ import {
   initSmcrDatabase,
   CreatePersonInput,
 } from '@/lib/smcr-database';
-import { createNotification } from "@/lib/server/notifications-store";
 import { logError, logApiRequest } from '@/lib/logger';
 import { requireRole } from "@/lib/rbac";
 import { logAuditEvent } from "@/lib/api-utils";
@@ -97,20 +96,6 @@ export async function POST(
     };
 
     const person = await createPerson(input);
-    try {
-      await createNotification({
-        organizationId: auth.organizationId,
-        recipientEmail: auth.userEmail ?? null,
-        title: "SMCR person added",
-        message: `${person.name} added to SMCR firm ${firmId}.`,
-        severity: "info",
-        source: "smcr",
-        link: "/smcr/people",
-        metadata: { firmId, personId: person.id },
-      });
-    } catch {
-      // Non-blocking notification failures
-    }
 
     await logAuditEvent(pool, {
       entityType: 'smcr_person',

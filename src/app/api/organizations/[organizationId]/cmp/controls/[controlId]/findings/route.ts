@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireRole } from "@/lib/rbac";
 import { recordCmpFinding } from "@/lib/server/cmp-store";
-import { createNotification } from "@/lib/server/notifications-store";
 import type { NewFindingPayload } from "@/data/cmp/types";
 
 export async function POST(
@@ -21,25 +20,6 @@ export async function POST(
   const finding = await recordCmpFinding(organizationId, controlId, payload as NewFindingPayload);
   if (!finding) {
     return NextResponse.json({ error: "Control not found" }, { status: 404 });
-  }
-  try {
-    const severity =
-      payload.severity === "critical" || payload.severity === "high"
-        ? "critical"
-        : payload.severity === "medium"
-        ? "warning"
-        : "info";
-    await createNotification({
-      organizationId,
-      title: "CMP finding raised",
-      message: `${payload.title} (owner: ${payload.owner}, due ${payload.dueDate})`,
-      severity,
-      source: "cmp",
-      link: `/compliance-framework/monitoring/${controlId}`,
-      metadata: { controlId, findingId: finding.id, severity: payload.severity },
-    });
-  } catch {
-    // Non-blocking notification failures
   }
   return NextResponse.json(finding, { status: 201 });
 }

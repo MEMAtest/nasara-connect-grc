@@ -3,7 +3,6 @@ import { z } from "zod";
 import { createAuthorizationProject, getAuthorizationProjects } from "@/lib/authorization-pack-db";
 import { PermissionCode } from "@/lib/authorization-pack-ecosystems";
 import { requireRole } from "@/lib/rbac";
-import { createNotification } from "@/lib/server/notifications-store";
 import {
   ApiError,
   checkRateLimit,
@@ -67,21 +66,6 @@ export async function POST(request: NextRequest) {
       }
       throw err;
     });
-
-    try {
-      await createNotification({
-        organizationId: auth.organizationId,
-        recipientEmail: auth.userEmail ?? null,
-        title: "Authorization project created",
-        message: `Project "${project.name}" created for ${permissionCode}.`,
-        severity: "success",
-        source: "authorization-pack",
-        link: "/authorization-pack",
-        metadata: { projectId: project.id, permissionCode },
-      });
-    } catch {
-      // Non-blocking notification failures
-    }
 
     return NextResponse.json({ project }, { status: 201, headers });
   } catch (error) {

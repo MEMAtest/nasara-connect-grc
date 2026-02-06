@@ -12,7 +12,6 @@ import {
   initSmcrDatabase,
   CreateWorkflowInput,
 } from '@/lib/smcr-database';
-import { createNotification } from "@/lib/server/notifications-store";
 import { logError, logApiRequest } from '@/lib/logger';
 import { requireRole } from "@/lib/rbac";
 
@@ -102,20 +101,6 @@ export async function POST(
     };
 
     const workflow = await createWorkflow(input);
-    try {
-      await createNotification({
-        organizationId: auth.organizationId,
-        recipientEmail: auth.userEmail ?? null,
-        title: "SMCR workflow created",
-        message: `Workflow "${workflow.name}" created for SMCR oversight.`,
-        severity: "info",
-        source: "smcr",
-        link: "/smcr/workflows",
-        metadata: { firmId, workflowId: workflow.id },
-      });
-    } catch {
-      // Non-blocking notification failures
-    }
     return NextResponse.json(workflow, { status: 201 });
   } catch (error) {
     logError(error, 'Failed to create SMCR workflow', { firmId });

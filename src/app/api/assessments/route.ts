@@ -6,7 +6,6 @@ import {
   initDatabase,
   Assessment,
 } from '@/lib/database';
-import { createNotification } from "@/lib/server/notifications-store";
 import { logError } from '@/lib/logger';
 import { requireRole } from "@/lib/rbac";
 
@@ -142,19 +141,6 @@ export async function POST(request: NextRequest) {
     });
 
     const dto = mapAssessmentToDto(created);
-    try {
-      await createNotification({
-        organizationId: auth.organizationId,
-        title: "Risk assessment created",
-        message: `"${dto.name}" started in the risk assessment tool.`,
-        severity: "info",
-        source: "risk",
-        link: "/risk-assessment",
-        metadata: { assessmentId: dto.id, status: dto.status },
-      });
-    } catch {
-      // Non-blocking notification failures
-    }
     return NextResponse.json(dto, { status: 201 });
   } catch (error) {
     logError(error, 'Failed to create assessment', { name: body.name, businessType: body.businessType, organizationId: auth.organizationId });
@@ -164,19 +150,6 @@ export async function POST(request: NextRequest) {
       businessType: body.businessType,
       permissions: body.permissions,
     });
-    try {
-      await createNotification({
-        organizationId: auth.organizationId,
-        title: "Risk assessment created",
-        message: `"${fallback.name}" started in the risk assessment tool.`,
-        severity: "info",
-        source: "risk",
-        link: "/risk-assessment",
-        metadata: { assessmentId: fallback.id, status: fallback.status },
-      });
-    } catch {
-      // Non-blocking notification failures
-    }
     fallbackAssessments.unshift(fallback);
     return NextResponse.json(fallback, { status: 201 });
   }
