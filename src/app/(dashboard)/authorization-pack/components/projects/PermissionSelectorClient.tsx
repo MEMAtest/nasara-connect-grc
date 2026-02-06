@@ -612,8 +612,10 @@ export function PermissionSelectorClient() {
         }
       } else {
         const errorData = await response.json().catch(() => ({}));
+        console.error("Project creation failed:", errorData);
         const detail = errorData.details ? ` (${errorData.details})` : "";
-        setLoadError((errorData.error || "Unable to create project. Please try again.") + detail);
+        const stackInfo = errorData.stack ? `\n\nStack: ${errorData.stack}` : "";
+        setLoadError((errorData.error || "Unable to create project. Please try again.") + detail + stackInfo);
       }
     } finally {
       setIsSubmitting(false);

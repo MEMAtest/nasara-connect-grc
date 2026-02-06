@@ -30,7 +30,8 @@ interface HeaderProps {
 }
 
 const breadcrumbsMap: Record<string, string> = {
-  "": "Dashboard",
+  "": "Home",
+  "dashboard": "Dashboard",
   "grc-hub": "GRC Control Panel",
   "authorization-pack": "Authorization Pack",
   "risk-assessment": "Risk Assessment",

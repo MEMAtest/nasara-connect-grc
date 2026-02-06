@@ -110,6 +110,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }
       }
       return true
+    },
+    async redirect({ url, baseUrl }) {
+      // After sign-in, always go to dashboard
+      if (url.startsWith(baseUrl)) {
+        return `${baseUrl}/dashboard`
+      }
+      return `${baseUrl}/dashboard`
     }
   },
   debug: process.env.NODE_ENV === "development",
