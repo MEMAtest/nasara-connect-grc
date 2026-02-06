@@ -1212,7 +1212,7 @@ export function AMLTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">AML Fundamentals</h1>
+          <h1 className="text-3xl font-bold text-slate-900">{amlFundamentalsModule.title}</h1>
           <p className="text-slate-600 mt-1">Your critical role in fighting financial crime</p>
         </div>
         <div className="flex items-center gap-3">

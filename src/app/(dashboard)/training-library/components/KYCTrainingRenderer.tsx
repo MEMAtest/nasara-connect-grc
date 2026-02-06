@@ -764,6 +764,15 @@ export function KYCTrainingRenderer({ onComplete, onProgress, deepLink, onDeepLi
           setCurrentSection(byId);
           return;
         }
+        const parsed = Number(section);
+        if (Number.isFinite(parsed)) {
+          const scenarioId = `scenario-${parsed}`;
+          const byScenario = sections.findIndex((item) => item.id === scenarioId);
+          if (byScenario !== -1 && byScenario !== currentSection) {
+            setCurrentSection(byScenario);
+            return;
+          }
+        }
       }
       const firstScenarioIndex = sections.findIndex((item) => item.id.startsWith('scenario-'));
       if (firstScenarioIndex !== -1 && currentSection !== firstScenarioIndex) {

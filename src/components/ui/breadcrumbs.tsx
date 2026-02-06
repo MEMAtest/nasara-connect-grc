@@ -19,7 +19,7 @@ export function Breadcrumbs({ items, className }: { items: BreadcrumbItem[]; cla
             <span key={`${item.label}-${index}`} className="flex items-center gap-2">
               <Link
                 href={item.href}
-                className="max-w-[200px] truncate hover:text-teal-600 transition-colors"
+                className="max-w-[140px] truncate hover:text-teal-600 transition-colors sm:max-w-[220px]"
                 title={item.label}
               >
                 {item.label}
@@ -36,7 +36,7 @@ export function Breadcrumbs({ items, className }: { items: BreadcrumbItem[]; cla
             aria-current={isLast ? "page" : undefined}
             title={item.label}
             className={cn(
-              "max-w-[200px] truncate",
+              "max-w-[140px] truncate sm:max-w-[220px]",
               isLast ? "text-slate-700 font-medium" : "text-slate-500"
             )}
           >
