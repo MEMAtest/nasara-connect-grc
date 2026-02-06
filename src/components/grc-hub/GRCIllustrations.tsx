@@ -610,3 +610,207 @@ export function GRCHeroIllustration({ className = "w-32 h-32" }: { className?: s
     </motion.svg>
   );
 }
+
+// Reporting Pack - 3D report sheet with a rising chart
+export function ReportingIllustration({ className = "w-16 h-16" }: { className?: string }) {
+  return (
+    <motion.svg
+      viewBox="0 0 64 64"
+      className={className}
+      initial={{ scale: 0.9, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      <defs>
+        <filter id="report-shadow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="1" dy="2" stdDeviation="2" floodColor="#1e293b" floodOpacity="0.2" />
+        </filter>
+      </defs>
+
+      {/* Paper */}
+      <rect x="14" y="8" width="36" height="48" rx="6" fill="#f8fafc" filter="url(#report-shadow)" />
+      <rect x="14" y="8" width="36" height="9" rx="6" fill="#0d9488" />
+
+      {/* Header lines */}
+      <rect x="20" y="21" width="20" height="3" rx="1.5" fill="#cbd5e1" />
+      <rect x="20" y="26" width="14" height="3" rx="1.5" fill="#e2e8f0" />
+
+      {/* Chart bars */}
+      <rect x="20" y="42" width="6" height="10" rx="1.5" fill="#14b8a6" />
+      <rect x="29" y="36" width="6" height="16" rx="1.5" fill="#0ea5e9" />
+      <rect x="38" y="30" width="6" height="22" rx="1.5" fill="#6366f1" />
+
+      {/* Rising line */}
+      <motion.path
+        d="M20 40 L30 34 L39 28 L46 24"
+        fill="none"
+        stroke="#0f172a"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        initial={{ pathLength: 0 }}
+        animate={{ pathLength: 1 }}
+        transition={{ delay: 0.25, duration: 0.7 }}
+      />
+      <motion.path
+        d="M46 24 L45 30 M46 24 L40 25"
+        fill="none"
+        stroke="#0f172a"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.75, duration: 0.25 }}
+      />
+    </motion.svg>
+  );
+}
+
+// Regulatory News - 3D newspaper with a "NEW" badge
+export function RegulatoryNewsIllustration({ className = "w-16 h-16" }: { className?: string }) {
+  return (
+    <motion.svg
+      viewBox="0 0 64 64"
+      className={className}
+      initial={{ scale: 0.9, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      <defs>
+        <filter id="news-shadow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="1" dy="2" stdDeviation="2" floodColor="#1e293b" floodOpacity="0.2" />
+        </filter>
+      </defs>
+
+      {/* Newspaper body */}
+      <rect x="10" y="14" width="44" height="36" rx="6" fill="#f8fafc" filter="url(#news-shadow)" />
+      <rect x="10" y="14" width="44" height="10" rx="6" fill="#334155" />
+
+      {/* Title + lines */}
+      <rect x="16" y="18" width="18" height="3" rx="1.5" fill="#e2e8f0" />
+      <rect x="16" y="28" width="32" height="3" rx="1.5" fill="#cbd5e1" />
+      <rect x="16" y="34" width="28" height="3" rx="1.5" fill="#e2e8f0" />
+      <rect x="16" y="40" width="30" height="3" rx="1.5" fill="#e2e8f0" />
+
+      {/* Photo block */}
+      <rect x="36" y="18" width="12" height="8" rx="2" fill="#94a3b8" />
+      <rect x="38" y="20" width="8" height="2" rx="1" fill="#e2e8f0" />
+
+      {/* NEW badge */}
+      <motion.g
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{ delay: 0.25, type: "spring", stiffness: 220, damping: 16 }}
+      >
+        <circle cx="50" cy="14" r="10" fill="#f59e0b" filter="url(#news-shadow)" />
+        <text x="44" y="17" fontSize="7" fontWeight="700" fill="#0f172a">NEW</text>
+      </motion.g>
+    </motion.svg>
+  );
+}
+
+// Payments - 3D card with shield-check badge
+export function PaymentsIllustration({ className = "w-16 h-16" }: { className?: string }) {
+  return (
+    <motion.svg
+      viewBox="0 0 64 64"
+      className={className}
+      initial={{ scale: 0.9, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      <defs>
+        <filter id="pay-shadow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="1" dy="2" stdDeviation="2" floodColor="#1e293b" floodOpacity="0.2" />
+        </filter>
+      </defs>
+
+      {/* Card */}
+      <rect x="8" y="18" width="48" height="30" rx="8" fill="#0ea5e9" filter="url(#pay-shadow)" />
+      <rect x="8" y="26" width="48" height="6" fill="#0f172a" opacity="0.35" />
+
+      {/* Chip */}
+      <rect x="14" y="35" width="12" height="9" rx="2" fill="#f59e0b" />
+      <rect x="16" y="38" width="8" height="1.8" rx="0.9" fill="#92400e" opacity="0.5" />
+      <rect x="16" y="41" width="8" height="1.8" rx="0.9" fill="#92400e" opacity="0.5" />
+
+      {/* Digits */}
+      <rect x="30" y="37" width="20" height="2.8" rx="1.4" fill="#e0f2fe" opacity="0.9" />
+      <rect x="30" y="42" width="14" height="2.8" rx="1.4" fill="#e0f2fe" opacity="0.7" />
+
+      {/* Shield badge */}
+      <motion.g
+        initial={{ scale: 0, rotate: -12 }}
+        animate={{ scale: 1, rotate: 0 }}
+        transition={{ delay: 0.25, type: "spring", stiffness: 200, damping: 14 }}
+      >
+        <circle cx="50" cy="46" r="10" fill="#10b981" filter="url(#pay-shadow)" />
+        <path
+          d="M50 38 C46 40 44 41 44 45 C44 49 47 52 50 54 C53 52 56 49 56 45 C56 41 54 40 50 38 Z"
+          fill="#065f46"
+          opacity="0.35"
+        />
+        <path
+          d="M46.5 46 L49 48.5 L54 43.5"
+          stroke="#ffffff"
+          strokeWidth="2.4"
+          fill="none"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </motion.g>
+    </motion.svg>
+  );
+}
+
+// AI Assistant - 3D chat bubble with sparkles
+export function AIAssistantIllustration({ className = "w-16 h-16" }: { className?: string }) {
+  return (
+    <motion.svg
+      viewBox="0 0 64 64"
+      className={className}
+      initial={{ scale: 0.9, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      <defs>
+        <filter id="ai-shadow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="1" dy="2" stdDeviation="2" floodColor="#1e293b" floodOpacity="0.2" />
+        </filter>
+      </defs>
+
+      {/* Chat bubble */}
+      <path
+        d="M14 18 C14 14.7 16.7 12 20 12 H44 C47.3 12 50 14.7 50 18 V34 C50 37.3 47.3 40 44 40 H28 L18 48 V40 H20 C16.7 40 14 37.3 14 34 Z"
+        fill="#6366f1"
+        filter="url(#ai-shadow)"
+      />
+      <path d="M20 20 H44" stroke="#eef2ff" strokeWidth="3" strokeLinecap="round" opacity="0.85" />
+      <path d="M20 26 H36" stroke="#eef2ff" strokeWidth="3" strokeLinecap="round" opacity="0.7" />
+      <path d="M20 32 H40" stroke="#eef2ff" strokeWidth="3" strokeLinecap="round" opacity="0.55" />
+
+      {/* Sparkles */}
+      <motion.g
+        animate={{ y: [0, -2, 0], opacity: [0.9, 1, 0.9] }}
+        transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <path
+          d="M54 14 L56 18 L60 20 L56 22 L54 26 L52 22 L48 20 L52 18 Z"
+          fill="#f59e0b"
+          filter="url(#ai-shadow)"
+        />
+      </motion.g>
+      <motion.g
+        animate={{ y: [0, 2, 0], opacity: [0.75, 1, 0.75] }}
+        transition={{ duration: 2.1, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <path
+          d="M8 30 L9.5 33 L12.5 34.5 L9.5 36 L8 39 L6.5 36 L3.5 34.5 L6.5 33 Z"
+          fill="#10b981"
+          filter="url(#ai-shadow)"
+        />
+      </motion.g>
+    </motion.svg>
+  );
+}

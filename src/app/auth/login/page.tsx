@@ -5,10 +5,22 @@ import { Button } from "@/components/ui/button"
 import { Shield, Sparkles } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import { useMemo } from "react"
+import { useSearchParams } from "next/navigation"
 
 export default function LoginPage() {
+  const searchParams = useSearchParams()
+
+  const callbackUrl = useMemo(() => {
+    const raw = searchParams.get("callbackUrl")?.trim()
+    if (!raw) return "/dashboard"
+    if (!raw.startsWith("/") || raw.startsWith("//")) return "/dashboard"
+    if (raw.startsWith("/api")) return "/dashboard"
+    return raw
+  }, [searchParams])
+
   const handleGoogleSignIn = async () => {
-    await signIn("google", { callbackUrl: "/authorization-pack" })
+    await signIn("google", { callbackUrl })
   }
 
   return (

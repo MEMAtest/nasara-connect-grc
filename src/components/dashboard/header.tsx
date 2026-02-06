@@ -45,6 +45,7 @@ const breadcrumbsMap: Record<string, string> = {
   clauses: "Clause library",
   edit: "Edit",
   training: "Training Library",
+  "training-library": "Training Library",
   reporting: "Reporting Pack",
   "regulatory-news": "Regulatory News",
   "ai-chat": "AI Assistant",
@@ -89,14 +90,18 @@ export function Header({ onToggleSidebar, isSidebarOpen }: HeaderProps) {
     const segments = pathname?.split("/").filter(Boolean) ?? [];
     const items: BreadcrumbItem[] = [];
 
-    items.push({ label: breadcrumbsMap[""], href: "/" });
+    items.push({ label: breadcrumbsMap[""], href: "/dashboard" });
 
-    if (segments.length === 0) {
+    if (segments.length === 0 || (segments.length === 1 && segments[0] === "dashboard")) {
       return items;
     }
 
     let cumulativePath = "";
     segments.forEach((segment, index) => {
+      if (segment === "dashboard" && index === 0) {
+        cumulativePath += `/${segment}`;
+        return;
+      }
       const previousSegment = segments[index - 1];
       if (segment === "builder" && previousSegment === "compliance-framework") {
         return;

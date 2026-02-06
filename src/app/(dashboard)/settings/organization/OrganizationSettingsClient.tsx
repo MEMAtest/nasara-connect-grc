@@ -37,6 +37,7 @@ export function OrganizationSettingsClient() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const canEditPlan = process.env.NODE_ENV !== "production";
 
   useEffect(() => {
     let isMounted = true;
@@ -83,7 +84,11 @@ export function OrganizationSettingsClient() {
       const response = await fetch(`/api/organizations/${organizationId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: organization.name, plan: organization.plan }),
+        body: JSON.stringify(
+          canEditPlan
+            ? { name: organization.name, plan: organization.plan }
+            : { name: organization.name },
+        ),
       });
       if (!response.ok) {
         throw new Error("Failed to update organization");
@@ -157,19 +162,28 @@ export function OrganizationSettingsClient() {
           </div>
           <div className="space-y-2">
             <Label>Plan</Label>
-            <Select
-              value={organization.plan}
-              onValueChange={(value) => setOrganization((prev) => ({ ...prev, plan: value }))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select plan" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="starter">Starter</SelectItem>
-                <SelectItem value="growth">Growth</SelectItem>
-                <SelectItem value="enterprise">Enterprise</SelectItem>
-              </SelectContent>
-            </Select>
+            {canEditPlan ? (
+              <Select
+                value={organization.plan}
+                onValueChange={(value) => setOrganization((prev) => ({ ...prev, plan: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select plan" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="starter">Starter</SelectItem>
+                  <SelectItem value="growth">Growth</SelectItem>
+                  <SelectItem value="enterprise">Enterprise</SelectItem>
+                </SelectContent>
+              </Select>
+            ) : (
+              <>
+                <Input value={organization.plan} readOnly />
+                <p className="text-xs text-slate-500">
+                  Plan changes are managed by Nasara.
+                </p>
+              </>
+            )}
           </div>
         </CardContent>
       </Card>

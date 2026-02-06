@@ -93,7 +93,7 @@ export default function InviteAcceptPage() {
 
       setPageState("accepted");
       // Full reload to pick up new org in JWT
-      window.location.href = "/authorization-pack";
+      window.location.href = "/dashboard";
     } catch {
       setPageState("error");
       setErrorMessage("Something went wrong. Please try again.");
@@ -139,7 +139,7 @@ export default function InviteAcceptPage() {
             </p>
           </div>
           <button
-            onClick={() => { window.location.href = "/authorization-pack"; }}
+            onClick={() => { window.location.href = "/dashboard"; }}
             className="w-full rounded-md bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700"
           >
             Go to Dashboard

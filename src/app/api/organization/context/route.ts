@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth-utils";
+import { isAuthDisabled, requireAuth } from "@/lib/auth-utils";
 import {
   getOrganizationEnabledModules,
   getOrganizationMemberByUserId,
@@ -25,10 +25,23 @@ export async function GET() {
     auth.userId ? listOrganizationsForUser(auth.userId) : [],
   ]);
 
+  const role = isAuthDisabled() ? "owner" : member?.role ?? "viewer";
+  const organizationsWithFallback =
+    isAuthDisabled() && organizations.length === 0
+      ? [
+          {
+            id: auth.organizationId,
+            name: "Demo Organization",
+            domain: "nasara.local",
+            role,
+          },
+        ]
+      : organizations;
+
   return NextResponse.json({
-    enabledModules: enabledModules ?? [],
-    role: member?.role ?? "viewer",
-    organizations,
+    enabledModules,
+    role,
+    organizations: organizationsWithFallback,
     activeOrganizationId: auth.organizationId,
   });
 }

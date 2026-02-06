@@ -1,9 +1,8 @@
 "use client";
 
-import type { KeyboardEvent } from "react";
+import type { KeyboardEvent, ComponentType } from "react";
 import { memo } from "react";
 import { useRouter } from "next/navigation";
-import type { LucideIcon } from "lucide-react";
 import { Lock } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -13,7 +12,7 @@ import type { ModuleAccent } from "@/lib/dashboard-data";
 export interface ModuleCardProps {
   title: string;
   description: string;
-  icon: LucideIcon;
+  icon: ComponentType<{ className?: string }>;
   color: ModuleAccent;
   progress?: number;
   alerts?: number;
@@ -21,31 +20,36 @@ export interface ModuleCardProps {
   route: string;
 }
 
-const accentMap: Record<ModuleAccent, { gradient: string; glow: string; button: string }> = {
+const accentMap: Record<ModuleAccent, { gradient: string; glow: string; button: string; icon: string }> = {
   teal: {
     gradient: "from-teal-400 to-teal-600",
     glow: "shadow-[0_14px_40px_rgba(13,148,136,0.25)]",
     button: "bg-teal-500 hover:bg-teal-600 focus-visible:ring-teal-400/60",
+    icon: "text-teal-700",
   },
   sky: {
     gradient: "from-sky-400 to-sky-600",
     glow: "shadow-[0_14px_40px_rgba(2,132,199,0.28)]",
     button: "bg-sky-500 hover:bg-sky-600 focus-visible:ring-sky-400/60",
+    icon: "text-sky-700",
   },
   indigo: {
     gradient: "from-indigo-400 to-indigo-600",
     glow: "shadow-[0_14px_40px_rgba(79,70,229,0.28)]",
     button: "bg-indigo-500 hover:bg-indigo-600 focus-visible:ring-indigo-400/60",
+    icon: "text-indigo-700",
   },
   rose: {
     gradient: "from-rose-400 to-rose-600",
     glow: "shadow-[0_14px_40px_rgba(244,63,94,0.25)]",
     button: "bg-rose-500 hover:bg-rose-600 focus-visible:ring-rose-400/60",
+    icon: "text-rose-700",
   },
   amber: {
     gradient: "from-amber-400 to-amber-600",
     glow: "shadow-[0_14px_40px_rgba(245,158,11,0.28)]",
     button: "bg-amber-500 hover:bg-amber-600 focus-visible:ring-amber-400/60",
+    icon: "text-amber-700",
   },
 };
 
@@ -84,7 +88,7 @@ export const ModuleCard = memo(function ModuleCard({
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       className={cn(
-        "group relative flex h-full flex-col justify-between rounded-2xl border border-slate-100 bg-white p-6 text-left shadow-lg transition duration-200",
+        "group relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border border-slate-100 bg-white p-6 text-left shadow-lg transition duration-200",
         "hover:-translate-y-1 hover:shadow-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-teal-200",
         isLocked && "pointer-events-none opacity-80",
       )}
@@ -92,6 +96,9 @@ export const ModuleCard = memo(function ModuleCard({
       animate={{ opacity: 1, y: 0 }}
       transition={springTransition}
     >
+      {/* Match the GRC Control Panel module cards (accent bar + illustration-style icon). */}
+      <div className={cn("absolute inset-x-0 top-0 h-1 bg-gradient-to-r", accent.gradient)} />
+
       {alerts > 0 ? (
         <motion.span
           className="absolute -top-2 -right-2 flex h-7 w-7 items-center justify-center rounded-full bg-rose-500 text-[11px] font-semibold text-white shadow-lg"
@@ -103,15 +110,8 @@ export const ModuleCard = memo(function ModuleCard({
       ) : null}
 
       <div>
-        <div
-          className={cn(
-            "mb-6 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br text-white",
-            accent.gradient,
-            accent.glow,
-            "transition-transform duration-200 group-hover:scale-105",
-          )}
-        >
-          <Icon className="h-8 w-8" aria-hidden="true" />
+        <div className="mb-6" aria-hidden="true">
+          <Icon className={cn("h-20 w-20", accent.icon)} />
         </div>
         <h3 className="text-lg font-semibold text-slate-900 sm:text-xl">{title}</h3>
         <p className="mt-2 text-sm text-slate-500 sm:text-[15px]">{description}</p>

@@ -1,7 +1,8 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
+import React, { createContext, useContext, useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { useSession } from "next-auth/react";
+import { usePathname } from "next/navigation";
 import { DEFAULT_ORGANIZATION_ID } from "@/lib/constants";
 
 interface OrgListItem {
@@ -17,8 +18,8 @@ interface OrganizationContextValue {
   userName: string | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  /** Modules enabled for this organisation. Empty while loading. */
-  enabledModules: string[];
+  /** Modules enabled for this organisation. Null means "all enabled". */
+  enabledModules: string[] | null;
   /** True until the /api/organization/context call resolves. */
   isModuleAccessLoading: boolean;
   /** Role confirmed by the API (freshest source). Null until loaded. */
@@ -39,16 +40,17 @@ const OrganizationContext = createContext<OrganizationContextValue | null>(null)
 
 export function OrganizationProvider({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
+  const pathname = usePathname();
   const user = session?.user;
 
   const organizationId = user?.organizationId ?? DEFAULT_ORGANIZATION_ID;
   const userEmail = user?.email ?? null;
   const userName = user?.name ?? null;
   const isLoading = status === "loading";
-  const isAuthenticated = Boolean(userEmail);
+  const isAuthenticated = status === "authenticated";
 
   // Module access + confirmed role (fetched from API)
-  const [enabledModules, setEnabledModules] = useState<string[]>([]);
+  const [enabledModules, setEnabledModules] = useState<string[] | null>(null);
   const [confirmedRole, setConfirmedRole] = useState<string | null>(null);
   const [isModuleAccessLoading, setIsModuleAccessLoading] = useState(true);
   const [contextFetchFailed, setContextFetchFailed] = useState(false);
@@ -63,7 +65,7 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
       const res = await fetch("/api/organization/context");
       if (!res.ok) throw new Error(`Context fetch failed: ${res.status}`);
       const data = await res.json();
-      setEnabledModules(Array.isArray(data.enabledModules) ? data.enabledModules : []);
+      setEnabledModules(data.enabledModules === null ? null : Array.isArray(data.enabledModules) ? data.enabledModules : null);
       setConfirmedRole(typeof data.role === "string" ? data.role : null);
       setOrganizations(Array.isArray(data.organizations) ? data.organizations : []);
       const activeOrg = Array.isArray(data.organizations)
@@ -77,7 +79,7 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
         const retryRes = await fetch("/api/organization/context");
         if (!retryRes.ok) throw new Error(`Retry failed: ${retryRes.status}`);
         const retryData = await retryRes.json();
-        setEnabledModules(Array.isArray(retryData.enabledModules) ? retryData.enabledModules : []);
+        setEnabledModules(retryData.enabledModules === null ? null : Array.isArray(retryData.enabledModules) ? retryData.enabledModules : null);
         setConfirmedRole(typeof retryData.role === "string" ? retryData.role : null);
         setOrganizations(Array.isArray(retryData.organizations) ? retryData.organizations : []);
         const retryActiveOrg = Array.isArray(retryData.organizations)
@@ -86,7 +88,8 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
         setOrganizationName(retryActiveOrg?.name ?? null);
       } catch {
         // Both attempts failed — fail-closed for modules, role falls back to JWT
-        setEnabledModules([]);
+        // In dev, keep the UI usable even if the context endpoint is unavailable.
+        setEnabledModules(process.env.NODE_ENV === "production" ? [] : null);
         setConfirmedRole(null);
         setContextFetchFailed(true);
       }
@@ -107,11 +110,54 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
     }
   }, []);
 
+  const shouldFetchContext = useMemo(() => {
+    if (isAuthenticated) return true;
+
+    // When auth is disabled in dev, NextAuth may still report "unauthenticated".
+    // If we're on any dashboard/protected route, attempt to fetch org context anyway.
+    const protectedPrefixes = [
+      "/dashboard",
+      "/grc-hub",
+      "/authorization-pack",
+      "/risk-assessment",
+      "/smcr",
+      "/policies",
+      "/compliance-framework",
+      "/reporting",
+      "/registers",
+      "/training-library",
+      "/regulatory-news",
+      "/payments",
+      "/ai-chat",
+      "/settings",
+      "/support",
+      "/admin",
+      "/notifications",
+      "/logout",
+      "/invites",
+    ];
+
+    return protectedPrefixes.some((p) => (pathname ?? "/").startsWith(p));
+  }, [isAuthenticated, pathname]);
+
+  const lastContextFetchKeyRef = useRef<string | null>(null);
+
   useEffect(() => {
-    if (isAuthenticated && !isLoading) {
-      void fetchContext();
+    if (isLoading) return;
+
+    if (!shouldFetchContext) {
+      // Avoid leaving module UI in a perpetual "loading" state on public pages.
+      setIsModuleAccessLoading(false);
+      return;
     }
-  }, [isAuthenticated, isLoading, fetchContext]);
+
+    // Fetch once per org + auth status, even across client navigations.
+    const key = `${status}:${organizationId}`;
+    if (lastContextFetchKeyRef.current === key) return;
+    lastContextFetchKeyRef.current = key;
+
+    void fetchContext();
+  }, [fetchContext, isLoading, organizationId, shouldFetchContext, status]);
 
   return (
     <OrganizationContext.Provider

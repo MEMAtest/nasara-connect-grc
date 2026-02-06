@@ -69,7 +69,7 @@ export default auth((req) => {
 
   if (isAuthDisabled()) {
     if (pathname.startsWith('/auth/login') || pathname.startsWith('/auth/error')) {
-      const response = NextResponse.redirect(new URL('/authorization-pack', req.url))
+      const response = NextResponse.redirect(new URL('/dashboard', req.url))
       response.headers.set('X-Robots-Tag', 'noindex, nofollow')
       return response
     }
@@ -84,12 +84,15 @@ export default auth((req) => {
 
   // Define protected routes
   const isProtectedRoute =
+    pathname.startsWith('/dashboard') ||
+    pathname.startsWith('/grc-hub') ||
     pathname.startsWith('/authorization-pack') ||
     pathname.startsWith('/risk-assessment') ||
     pathname.startsWith('/smcr') ||
     pathname.startsWith('/policies') ||
     pathname.startsWith('/compliance-framework') ||
     pathname.startsWith('/reporting') ||
+    pathname.startsWith('/registers') ||
     pathname.startsWith('/training-library') ||
     pathname.startsWith('/regulatory-news') ||
     pathname.startsWith('/payments') ||
@@ -97,6 +100,8 @@ export default auth((req) => {
     pathname.startsWith('/settings') ||
     pathname.startsWith('/support') ||
     pathname.startsWith('/admin') ||
+    pathname.startsWith('/notifications') ||
+    pathname.startsWith('/logout') ||
     pathname.startsWith('/invites')
 
   // Redirect to login if trying to access protected route while not logged in
@@ -108,7 +113,7 @@ export default auth((req) => {
 
   // Redirect to dashboard if trying to access login while already logged in
   if (pathname === '/auth/login' && isLoggedIn) {
-    const response = NextResponse.redirect(new URL('/authorization-pack', req.url))
+    const response = NextResponse.redirect(new URL('/dashboard', req.url))
     response.headers.set('X-Robots-Tag', 'noindex, nofollow')
     return response
   }

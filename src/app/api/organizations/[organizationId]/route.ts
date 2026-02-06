@@ -4,6 +4,17 @@ import { getOrganizationById, updateOrganization } from "@/lib/server/organizati
 import { logAuditEvent } from "@/lib/api-utils";
 import { pool } from "@/lib/database";
 
+function isNasaraAdminEmail(email: string | null): boolean {
+  const raw = process.env.NASARA_ADMIN_EMAILS ?? "";
+  const allowlist = raw
+    .split(",")
+    .map((v) => v.trim().toLowerCase())
+    .filter(Boolean);
+  if (!allowlist.length) return false;
+  if (!email) return false;
+  return allowlist.includes(email.toLowerCase());
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ organizationId: string }> }
@@ -34,6 +45,19 @@ export async function PATCH(
     plan: typeof body?.plan === "string" ? body.plan : undefined,
     settings: body?.settings && typeof body.settings === "object" ? body.settings : undefined,
   };
+
+  // In production, billing plan and entitlements must be controlled by Nasara.
+  // Allow firms to update their display name, but block plan/settings changes.
+  if (
+    process.env.NODE_ENV === "production"
+    && (updates.plan !== undefined || updates.settings !== undefined)
+    && !isNasaraAdminEmail(auth.userEmail)
+  ) {
+    return NextResponse.json(
+      { error: "Plan and module entitlements are managed by Nasara. Please contact support." },
+      { status: 403 },
+    );
+  }
 
   const updated = await updateOrganization(organizationId, updates);
   if (!updated) {

@@ -1,5 +1,30 @@
 import { pool } from "@/lib/database";
 import { logError } from "@/lib/logger";
+import type { ModuleId } from "@/lib/module-access-shared";
+
+const DEFAULT_MODULES_BY_PLAN: Record<string, Array<ModuleId | "*">> = {
+  starter: ["grcHub", "authPack", "riskAssessment", "policies", "training", "regulatoryNews"],
+  growth: [
+    "grcHub",
+    "authPack",
+    "riskAssessment",
+    "policies",
+    "training",
+    "regulatoryNews",
+    "smcr",
+    "complianceFramework",
+    "reportingPack",
+    "registers",
+    "complaints",
+  ],
+  scale: ["*"],
+  enterprise: ["*"],
+};
+
+function getDefaultModulesForPlan(plan: string | null | undefined): Array<ModuleId | "*"> {
+  const normalized = (plan ?? "starter").trim().toLowerCase();
+  return DEFAULT_MODULES_BY_PLAN[normalized] ?? DEFAULT_MODULES_BY_PLAN.starter;
+}
 
 export type OrganizationRole = "owner" | "admin" | "member" | "viewer";
 
@@ -124,15 +149,52 @@ export async function getOrganizationEnabledModules(
   organizationId: string,
 ): Promise<string[] | null> {
   await initOrganizationTables();
-  const { rows } = await pool.query<{ settings: Record<string, unknown> | null }>(
-    `SELECT settings FROM organizations WHERE id = $1`,
+  const { rows } = await pool.query<{ settings: Record<string, unknown> | null; plan: string | null }>(
+    `SELECT settings, plan FROM organizations WHERE id = $1`,
     [organizationId],
   );
-  const settings = rows[0]?.settings;
-  if (!settings) return null;
-  const modules = (settings as Record<string, unknown>).enabledModules;
+  const record = rows[0];
+  if (!record) {
+    return process.env.NODE_ENV === "production" ? [] : null;
+  }
+
+  const settings = record.settings;
+  const modules = settings ? (settings as Record<string, unknown>).enabledModules : undefined;
+
   if (Array.isArray(modules)) return modules as string[];
-  return null;
+
+  // Dev default: fail-open (everything enabled) when not configured.
+  if (process.env.NODE_ENV !== "production") return null;
+
+  // Production default: fall back to plan defaults (prevents "missing key = everything enabled").
+  return getDefaultModulesForPlan(record.plan) as string[];
+}
+
+export async function setOrganizationEnabledModules(
+  organizationId: string,
+  enabledModules: string[] | null,
+): Promise<void> {
+  await initOrganizationTables();
+
+  if (enabledModules === null) {
+    // Null means "all modules enabled": remove the key to fall back to default behavior.
+    await pool.query(
+      `UPDATE organizations
+       SET settings = COALESCE(settings, '{}'::jsonb) - 'enabledModules',
+           updated_at = NOW()
+       WHERE id = $1`,
+      [organizationId],
+    );
+    return;
+  }
+
+  await pool.query(
+    `UPDATE organizations
+     SET settings = jsonb_set(COALESCE(settings, '{}'::jsonb), '{enabledModules}', $2::jsonb, true),
+         updated_at = NOW()
+     WHERE id = $1`,
+    [organizationId, JSON.stringify(enabledModules)],
+  );
 }
 
 export async function getOrganizationByDomain(domain: string): Promise<OrganizationRecord | null> {
@@ -498,12 +560,21 @@ export async function ensureOrganizationForUser(params: {
   const orgName = organizationName ?? domain.split(".")[0]?.replace(/-/g, " ").toUpperCase() ?? "Organization";
   const orgId = organizationId ?? crypto.randomUUID();
 
+  const isProduction = process.env.NODE_ENV === "production";
+  const normalizedPlan = plan ?? "starter";
+
+  const existingOrg = isProduction ? await getOrganizationByDomain(domain) : null;
+  const shouldSeedModules = isProduction && !existingOrg;
+  const seededModules = shouldSeedModules
+    ? getDefaultModulesForPlan(normalizedPlan)
+    : null;
+
   const organization = await upsertOrganization({
     id: orgId,
     domain,
     name: orgName,
-    plan,
-    settings: {},
+    plan: normalizedPlan,
+    settings: seededModules ? { enabledModules: seededModules } : {},
   });
 
   await upsertUser({

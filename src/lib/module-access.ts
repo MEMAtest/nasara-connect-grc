@@ -9,6 +9,13 @@ import {
   isModuleEnabledForOrg,
 } from "./module-access-shared";
 
+function shouldEnforceModuleAccess(): boolean {
+  // Default: enforce in production. Allow opt-in/out via env for testing.
+  if (process.env.ENFORCE_MODULE_ACCESS === "true") return true;
+  if (process.env.ENFORCE_MODULE_ACCESS === "false") return false;
+  return process.env.NODE_ENV === "production";
+}
+
 // ---------------------------------------------------------------------------
 // Server-side layout guard (Layer 2)
 // ---------------------------------------------------------------------------
@@ -26,6 +33,12 @@ import {
  *   }
  */
 export async function requireModuleAccess(moduleId: ModuleId): Promise<void> {
+  const authDisabled = process.env.AUTH_DISABLED === "true" || process.env.AUTH_DISABLED === "1";
+  if (authDisabled) {
+    // Dev/demo mode: allow module routes without requiring a NextAuth session.
+    return;
+  }
+
   const { auth } = await import("@/auth");
   const session = await auth();
 
@@ -41,7 +54,8 @@ export async function requireModuleAccess(moduleId: ModuleId): Promise<void> {
   );
 
   if (!isModuleEnabledForOrg(enabledModules, moduleId)) {
-    redirect(`/?module_blocked=${moduleId}`);
+    if (!shouldEnforceModuleAccess()) return;
+    redirect(`/dashboard?module_blocked=${moduleId}`);
   }
 }
 
@@ -82,6 +96,9 @@ export function withModuleAccess<
     );
 
     if (!isModuleEnabledForOrg(enabledModules, moduleId)) {
+      if (!shouldEnforceModuleAccess()) {
+        return handler(req, ctx);
+      }
       return NextResponse.json(
         { error: "Module not enabled for this organization" },
         { status: 403 },

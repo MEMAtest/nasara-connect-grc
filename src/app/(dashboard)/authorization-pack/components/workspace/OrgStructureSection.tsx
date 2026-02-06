@@ -77,6 +77,14 @@ const ENTITY_TYPES = [
   { value: "branch" as const, label: "Branch" },
 ];
 
+const ENTITY_TYPE_HELP: Record<CorporateEntity["type"], string> = {
+  parent: "Top of the group structure (no parent within the applicant group).",
+  holding: "Typically owns shares in other group entities.",
+  subsidiary: "Controlled by its parent (often >50% ownership).",
+  associate: "Significant influence, but not full control (often 20-50% ownership).",
+  branch: "Operational branch or division (not a separate legal entity).",
+};
+
 const ENTITY_COLORS: Record<string, string> = {
   holding: "bg-purple-100 border-purple-300 text-purple-800",
   subsidiary: "bg-blue-100 border-blue-300 text-blue-800",
@@ -548,6 +556,7 @@ export function OrgStructureSection({ packId, packName, firmName }: OrgStructure
   const handleAddEntity = () => {
     if (!newEntity.name.trim()) return;
     const id = `e-${Date.now()}`;
+    const parentEntityId = newEntity.parentEntityId?.trim() ? newEntity.parentEntityId.trim() : undefined;
     setEntities((prev) => [
       ...prev,
       {
@@ -555,8 +564,8 @@ export function OrgStructureSection({ packId, packName, firmName }: OrgStructure
         name: newEntity.name.trim(),
         type: newEntity.type,
         jurisdiction: newEntity.jurisdiction.trim(),
-        ownershipPct: newEntity.ownershipPct,
-        parentEntityId: newEntity.parentEntityId || undefined,
+        ownershipPct: parentEntityId ? newEntity.ownershipPct : undefined,
+        parentEntityId,
         isExternal: newEntity.isExternal,
       },
     ]);
@@ -905,6 +914,25 @@ export function OrgStructureSection({ packId, packName, firmName }: OrgStructure
             </Button>
           </div>
 
+          <div className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-xs text-slate-600">
+            <p>
+              <span className="font-semibold text-slate-900">Ownership %</span> labels show the direct parent ownership of a child entity.
+            </p>
+            <p className="mt-1">
+              <span className="font-semibold text-slate-900">External</span> entities use dashed borders/lines and are not part of the applicant group.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {ENTITY_TYPES.map((t) => (
+                <span
+                  key={t.value}
+                  className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${ENTITY_COLORS[t.value]}`}
+                >
+                  {t.label}
+                </span>
+              ))}
+            </div>
+          </div>
+
           {entities.length === 0 ? (
             <Card className="border border-slate-200">
               <CardContent className="p-8 text-center">
@@ -937,6 +965,9 @@ export function OrgStructureSection({ packId, packName, firmName }: OrgStructure
 
                         return (
                           <g key={`${c.from.entity.id}-${c.to.entity.id}`}>
+                            {ownershipPct !== undefined ? (
+                              <title>{`${c.from.entity.name} owns ${ownershipPct}% of ${c.to.entity.name}`}</title>
+                            ) : null}
                             <path
                               d={path}
                               fill="none"
@@ -947,21 +978,26 @@ export function OrgStructureSection({ packId, packName, firmName }: OrgStructure
                             {ownershipPct !== undefined && (
                               <>
                                 <rect
-                                  x={midX - 22}
-                                  y={midY - 10}
-                                  width={44}
-                                  height={20}
-                                  rx={4}
-                                  fill="white"
+                                  x={midX - 26}
+                                  y={midY - 11}
+                                  width={52}
+                                  height={22}
+                                  rx={5}
+                                  fill="rgba(255,255,255,0.96)"
                                   stroke="#7c3aed"
-                                  strokeWidth={1}
+                                  strokeWidth={1.25}
                                 />
                                 <text
                                   x={midX}
                                   y={midY + 4}
                                   textAnchor="middle"
-                                  className="text-[10px] font-bold"
+                                  fontSize={11}
+                                  fontWeight={800}
                                   fill="#7c3aed"
+                                  paintOrder="stroke"
+                                  stroke="white"
+                                  strokeWidth={3}
+                                  strokeLinejoin="round"
                                 >
                                   {ownershipPct}%
                                 </text>
@@ -1002,8 +1038,11 @@ export function OrgStructureSection({ packId, packName, firmName }: OrgStructure
                                 <span className="text-[9px] opacity-70">
                                   {node.entity.type} | {node.entity.jurisdiction}
                                 </span>
-                                {node.entity.ownershipPct !== undefined && (
-                                  <Badge className="text-[8px] h-3.5 bg-white/60 border-0">
+                                {node.entity.parentEntityId && node.entity.ownershipPct !== undefined && (
+                                  <Badge
+                                    variant="outline"
+                                    className="h-3.5 border-slate-200 bg-white/80 px-1.5 text-[8px] text-slate-700"
+                                  >
                                     {node.entity.ownershipPct}%
                                   </Badge>
                                 )}
@@ -1037,8 +1076,12 @@ export function OrgStructureSection({ packId, packName, firmName }: OrgStructure
                           </div>
                           <p className="text-[10px] text-slate-500">
                             {e.type} | {e.jurisdiction}
-                            {e.ownershipPct !== undefined ? ` | ${e.ownershipPct}% owned` : ""}
-                            {e.parentEntityId ? ` | Parent: ${entities.find((x) => x.id === e.parentEntityId)?.name || "—"}` : ""}
+                            {e.parentEntityId
+                              ? ` | Parent: ${entities.find((x) => x.id === e.parentEntityId)?.name || "—"}`
+                              : ""}
+                            {e.parentEntityId && e.ownershipPct !== undefined
+                              ? ` | Owned by parent: ${e.ownershipPct}%`
+                              : ""}
                           </p>
                         </div>
                         <button
@@ -1163,61 +1206,69 @@ export function OrgStructureSection({ packId, packName, firmName }: OrgStructure
                 placeholder="e.g. PayCo Holdings Ltd"
               />
             </div>
-            <div className="grid gap-3 grid-cols-2">
-              <div className="space-y-1">
-                <Label className="text-xs">Type</Label>
-                <Select
-                  value={newEntity.type}
-                  onValueChange={(v) => setNewEntity((p) => ({ ...p, type: v as CorporateEntity["type"] }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ENTITY_TYPES.map((t) => (
-                      <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Jurisdiction</Label>
-                <Input
-                  value={newEntity.jurisdiction}
+              <div className="grid gap-3 grid-cols-2">
+                <div className="space-y-1">
+                  <Label className="text-xs">Type</Label>
+                  <Select
+                    value={newEntity.type}
+                    onValueChange={(v) => setNewEntity((p) => ({ ...p, type: v as CorporateEntity["type"] }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ENTITY_TYPES.map((t) => (
+                        <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-[11px] text-slate-500">
+                    {ENTITY_TYPE_HELP[newEntity.type]}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Jurisdiction</Label>
+                  <Input
+                    value={newEntity.jurisdiction}
                   onChange={(e) => setNewEntity((p) => ({ ...p, jurisdiction: e.target.value }))}
                   placeholder="United Kingdom"
                 />
               </div>
             </div>
-            <div className="grid gap-3 grid-cols-2">
-              <div className="space-y-1">
-                <Label className="text-xs">Parent Entity</Label>
-                <Select
-                  value={newEntity.parentEntityId || "__none__"}
-                  onValueChange={(v) => setNewEntity((p) => ({ ...p, parentEntityId: v === "__none__" ? "" : v }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__none__">None (top-level)</SelectItem>
-                    {entities.map((e) => (
-                      <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="grid gap-3 grid-cols-2">
+                <div className="space-y-1">
+                  <Label className="text-xs">Parent Entity</Label>
+                  <Select
+                    value={newEntity.parentEntityId || "__none__"}
+                    onValueChange={(v) => setNewEntity((p) => ({ ...p, parentEntityId: v === "__none__" ? "" : v }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">None (top-level)</SelectItem>
+                      {entities.map((e) => (
+                        <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Ownership %</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={newEntity.parentEntityId ? newEntity.ownershipPct : ""}
+                    onChange={(e) => setNewEntity((p) => ({ ...p, ownershipPct: Math.max(0, Math.min(100, parseInt(e.target.value, 10) || 0)) }))}
+                    disabled={!newEntity.parentEntityId}
+                    placeholder={!newEntity.parentEntityId ? "Set parent first" : undefined}
+                  />
+                  <p className="text-[11px] text-slate-500">
+                    Percentage owned by the selected parent entity (direct ownership).
+                  </p>
+                </div>
               </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Ownership %</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  max={100}
-                  value={newEntity.ownershipPct}
-                  onChange={(e) => setNewEntity((p) => ({ ...p, ownershipPct: Math.max(0, Math.min(100, parseInt(e.target.value, 10) || 0)) }))}
-                />
-              </div>
-            </div>
             <div className="flex items-center gap-2">
               <input
                 type="checkbox"

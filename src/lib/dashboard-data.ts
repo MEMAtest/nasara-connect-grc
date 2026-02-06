@@ -1,23 +1,28 @@
+import type { ComponentType } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
   AlertTriangle,
-  BookOpenCheck,
   Calendar,
   CheckCircle2,
   ClipboardList,
-  CreditCard,
-  FileCheck2,
-  FileText,
   GaugeCircle,
   GraduationCap,
   LayoutDashboard,
-  MessageCircle,
-  Newspaper,
-  Shield,
-  ShieldAlert,
   TrendingUp,
   Users,
 } from "lucide-react";
+import {
+  AuthorizationIllustration,
+  ComplianceIllustration,
+  RiskIllustration,
+  PolicyIllustration,
+  SMCRIllustration,
+  TrainingIllustration,
+  ReportingIllustration,
+  RegulatoryNewsIllustration,
+  PaymentsIllustration,
+  AIAssistantIllustration,
+} from "@/components/grc-hub/GRCIllustrations";
 
 export type ModuleAccent = "teal" | "sky" | "indigo" | "rose" | "amber";
 
@@ -25,7 +30,7 @@ export interface DashboardModule {
   id: string;
   title: string;
   description: string;
-  icon: LucideIcon;
+  icon: ComponentType<{ className?: string }>;
   color: ModuleAccent;
   route: string;
   progress?: number;
@@ -64,7 +69,7 @@ export const dashboardModules: DashboardModule[] = [
     id: "authPack",
     title: "Authorisation Pack Workspace",
     description: "Track the FCA business plan spine, evidence annexes, and review gates in one workspace",
-    icon: FileCheck2,
+    icon: AuthorizationIllustration,
     color: "teal",
     route: "/authorization-pack",
     progress: 75,
@@ -75,7 +80,7 @@ export const dashboardModules: DashboardModule[] = [
     id: "riskAssessment",
     title: "Risk Assessment Tool",
     description: "Identify, evaluate, and mitigate business risks effectively",
-    icon: ShieldAlert,
+    icon: RiskIllustration,
     color: "sky",
     route: "/risk-assessment",
     alerts: 3,
@@ -85,7 +90,7 @@ export const dashboardModules: DashboardModule[] = [
     id: "smcr",
     title: "SM&CR Management",
     description: "Senior Managers & Certification Regime compliance and oversight",
-    icon: Shield,
+    icon: SMCRIllustration,
     color: "indigo",
     route: "/smcr",
     progress: 85,
@@ -96,7 +101,7 @@ export const dashboardModules: DashboardModule[] = [
     id: "policies",
     title: "Policy Management",
     description: "Create, approve, and monitor FCA-mandatory policies",
-    icon: FileText,
+    icon: PolicyIllustration,
     color: "indigo",
     route: "/policies",
     progress: 72,
@@ -107,7 +112,7 @@ export const dashboardModules: DashboardModule[] = [
     id: "complianceFramework",
     title: "Compliance Framework",
     description: "Build the compliance framework and drive monitoring workflows",
-    icon: ClipboardList,
+    icon: ComplianceIllustration,
     color: "indigo",
     route: "/compliance-framework/builder",
     progress: 60,
@@ -118,7 +123,7 @@ export const dashboardModules: DashboardModule[] = [
     id: "reportingPack",
     title: "Reporting Pack",
     description: "Create board-ready packs that pull from every module",
-    icon: TrendingUp,
+    icon: ReportingIllustration,
     color: "teal",
     route: "/reporting",
     progress: 0,
@@ -129,9 +134,9 @@ export const dashboardModules: DashboardModule[] = [
     id: "training",
     title: "Training Library",
     description: "Access compliance training modules and track progress",
-    icon: BookOpenCheck,
+    icon: TrainingIllustration,
     color: "amber",
-    route: "/training",
+    route: "/training-library",
     progress: 45,
     alerts: 1,
     isLocked: false,
@@ -140,7 +145,7 @@ export const dashboardModules: DashboardModule[] = [
     id: "regulatoryNews",
     title: "Regulatory News",
     description: "Stay updated with latest regulatory changes",
-    icon: Newspaper,
+    icon: RegulatoryNewsIllustration,
     color: "rose",
     route: "/regulatory-news",
     alerts: 5,
@@ -150,7 +155,7 @@ export const dashboardModules: DashboardModule[] = [
     id: "payments",
     title: "Pay Suppliers",
     description: "Manage B2B payments with currency conversion and compliance monitoring",
-    icon: CreditCard,
+    icon: PaymentsIllustration,
     color: "sky",
     route: "/payments",
     alerts: 0,
@@ -160,7 +165,7 @@ export const dashboardModules: DashboardModule[] = [
     id: "aiChat",
     title: "AI Assistant",
     description: "Get instant regulatory guidance and support",
-    icon: MessageCircle,
+    icon: AIAssistantIllustration,
     color: "teal",
     route: "/ai-chat",
     alerts: 0,

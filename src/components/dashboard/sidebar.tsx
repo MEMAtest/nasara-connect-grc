@@ -59,7 +59,7 @@ const topLevelItems: NavigationItem[] = [
   {
     label: "Dashboard",
     icon: LayoutDashboard,
-    href: "/",
+    href: "/dashboard",
   },
   {
     label: "GRC Control Panel",
@@ -195,12 +195,6 @@ const navigationGroups: NavigationGroup[] = [
   },
 ];
 
-// Flatten all items for path matching
-const allNavigationItems = [
-  ...topLevelItems,
-  ...navigationGroups.flatMap((g) => g.items),
-];
-
 const badgeStyles: Record<SidebarBadgeVariant, string> = {
   info: "bg-sky-500 text-white",
   warning: "bg-amber-400 text-amber-950",
@@ -210,7 +204,7 @@ const badgeStyles: Record<SidebarBadgeVariant, string> = {
 };
 
 const glowByPath: Record<string, string> = {
-  "/": "shadow-[0_0_18px_rgba(20,184,166,0.45)]",
+  "/dashboard": "shadow-[0_0_18px_rgba(20,184,166,0.45)]",
   "/grc-hub": "shadow-[0_0_18px_rgba(34,197,94,0.45)]",
   "/registers/complaints": "shadow-[0_0_18px_rgba(251,191,36,0.55)]",
   "/authorization-pack": "shadow-[0_0_18px_rgba(245,158,11,0.45)]",

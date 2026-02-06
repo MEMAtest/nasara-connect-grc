@@ -147,7 +147,7 @@ export function RegisterClient() {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Breadcrumbs items={[{ label: "Dashboard", href: "/" }, { label: "Policies" }]} />
+        <Breadcrumbs items={[{ label: "Dashboard", href: "/dashboard" }, { label: "Policies" }]} />
       </div>
       <header className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">

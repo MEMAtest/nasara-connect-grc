@@ -113,7 +113,11 @@ export const MODULE_REGISTRY: ModuleDefinition[] = [
 
 /**
  * Check whether a module ID is enabled given the org's enabled list.
- * Supports wildcard `["*"]`. Fail-closed: null/empty → nothing enabled.
+ * Supports wildcard `["*"]`.
+ *
+ * Semantics:
+ * - null/undefined: "not configured yet" -> allow all (dev-friendly fail-open default)
+ * - []: explicitly disable everything
  */
 export function isModuleEnabledForOrg(
   enabledModules: string[] | null | undefined,
@@ -141,7 +145,10 @@ export function getModuleLabel(moduleId: string): string {
 export function getEnabledModuleLabels(
   enabledModules: string[] | null | undefined,
 ): string[] {
-  if (!enabledModules || enabledModules.length === 0) return [];
+  if (enabledModules === null || enabledModules === undefined) {
+    return MODULE_REGISTRY.map((m) => m.label);
+  }
+  if (enabledModules.length === 0) return [];
   if (enabledModules.includes("*")) return MODULE_REGISTRY.map((m) => m.label);
   return enabledModules
     .map((id) => MODULE_REGISTRY.find((m) => m.id === id)?.label)
