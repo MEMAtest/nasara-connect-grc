@@ -94,12 +94,19 @@ export async function PUT(request: NextRequest) {
   }
 
   const body = await request.json().catch(() => null);
-  const parsed = parseEnabledModules((body as { enabledModules?: unknown } | null)?.enabledModules);
+  if (body === null || typeof body !== "object" || Array.isArray(body)) {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
+
+  const parsed = parseEnabledModules((body as { enabledModules?: unknown }).enabledModules);
   if (!parsed.ok) {
     return NextResponse.json({ error: parsed.error }, { status: 400 });
   }
 
-  await setOrganizationEnabledModules(auth.organizationId, parsed.value);
+  const updated = await setOrganizationEnabledModules(auth.organizationId, parsed.value);
+  if (!updated) {
+    return NextResponse.json({ error: "Organization not found" }, { status: 404 });
+  }
 
   return NextResponse.json({ enabledModules: parsed.value, canEdit: true });
 }

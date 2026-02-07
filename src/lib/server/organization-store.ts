@@ -173,28 +173,29 @@ export async function getOrganizationEnabledModules(
 export async function setOrganizationEnabledModules(
   organizationId: string,
   enabledModules: string[] | null,
-): Promise<void> {
+): Promise<boolean> {
   await initOrganizationTables();
 
   if (enabledModules === null) {
     // Null means "all modules enabled": remove the key to fall back to default behavior.
-    await pool.query(
+    const { rowCount } = await pool.query(
       `UPDATE organizations
        SET settings = COALESCE(settings, '{}'::jsonb) - 'enabledModules',
            updated_at = NOW()
        WHERE id = $1`,
       [organizationId],
     );
-    return;
+    return (rowCount ?? 0) > 0;
   }
 
-  await pool.query(
+  const { rowCount } = await pool.query(
     `UPDATE organizations
      SET settings = jsonb_set(COALESCE(settings, '{}'::jsonb), '{enabledModules}', $2::jsonb, true),
          updated_at = NOW()
      WHERE id = $1`,
     [organizationId, JSON.stringify(enabledModules)],
   );
+  return (rowCount ?? 0) > 0;
 }
 
 export async function getOrganizationByDomain(domain: string): Promise<OrganizationRecord | null> {
