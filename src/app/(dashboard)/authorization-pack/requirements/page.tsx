@@ -28,7 +28,6 @@ export default function RequirementsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const packIdParam = searchParams.get("packId");
-  const highlightRequirement = searchParams.get("requirement");
 
   const [pack, setPack] = useState<PackRow | null>(null);
   const [readiness, setReadiness] = useState<ReadinessSummary | null>(null);
@@ -83,7 +82,7 @@ export default function RequirementsPage() {
 
   const requirements = pack?.template_type ? getRequirementsForPermission(pack.template_type) : [];
 
-  const handleUploadClick = (documentId: string, requirementId: string) => {
+  const handleUploadClick = (documentId: string, _requirementId: string) => {
     router.push(`/authorization-pack/evidence?packId=${pack?.id}&document=${documentId}`);
   };
 
