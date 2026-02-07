@@ -57,7 +57,7 @@ interface ProgressTrackerProps {
   onRequirementClick?: (requirementId: string) => void;
 }
 
-const statusConfig: Record<RequirementStatus, { label: string; color: string; bgColor: string; icon: React.ElementType }> = {
+const statusConfig: Record<RequirementStatus, { label: string; color: string; bgColor: string; icon: React.ComponentType<{ className?: string }> }> = {
   not_started: {
     label: "Not Started",
     color: "text-slate-400",
@@ -167,7 +167,7 @@ export function ProgressTracker({ requirements, progress, onRequirementClick }: 
                 <ArrowRightIcon className="h-5 w-5 text-teal-600" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium uppercase tracking-wider text-teal-600">What's Next</p>
+                <p className="text-xs font-medium uppercase tracking-wider text-teal-600">What&apos;s Next</p>
                 <p className="mt-1 font-medium text-slate-900">{nextAction.title}</p>
                 <p className="mt-1 text-sm text-slate-600">{nextAction.description}</p>
                 {onRequirementClick && (
