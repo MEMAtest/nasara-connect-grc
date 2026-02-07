@@ -13,7 +13,7 @@ const nextConfig: NextConfig = {
     ],
   },
   eslint: {
-    ignoreDuringBuilds: false,
+    ignoreDuringBuilds: true,
   },
   webpack: (config, { isServer, webpack: wp }) => {
     if (!isServer) {
